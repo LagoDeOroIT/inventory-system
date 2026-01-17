@@ -56,11 +56,12 @@ export default function App() {
       .from("items")
       .select("id, item_name, unit_price");
 
-    const { data: tx } = await supabase
+    const { data: tx, error: txErr } = await supabase
       .from("inventory_transactions")
       .select("*, items(item_name)")
-      .or("deleted.is.null,deleted.eq.false")
       .order("date", { ascending: false });
+
+    if (txErr) console.error("LOAD TX ERROR", txErr);
 
     const { data: deletedTx } = await supabase
       .from("inventory_transactions")
@@ -85,28 +86,36 @@ export default function App() {
     }
 
     const item = items.find(i => i.id === Number(form.item_id));
-    if (!item) return;
+    if (!item) {
+      alert("Item not found");
+      return;
+    }
 
     const payload = {
       date: form.date || new Date().toISOString().slice(0, 10),
-      item_id: item.id,
+      item_id: Number(item.id),
       type: form.type,
       quantity: Number(form.quantity),
-      unit_price: item.unit_price,
-      brand: form.brand,
-      unit: form.unit,
+      unit_price: Number(item.unit_price),
+      brand: form.brand || null,
+      unit: form.unit || null,
+      deleted: false,
     };
 
-    if (editingId) {
-      await supabase.from("inventory_transactions").update(payload).eq("id", editingId);
-    } else {
-      await supabase.from("inventory_transactions").insert(payload);
+    const { error } = editingId
+      ? await supabase.from("inventory_transactions").update(payload).eq("id", editingId)
+      : await supabase.from("inventory_transactions").insert(payload);
+
+    if (error) {
+      console.error("SAVE ERROR", error);
+      alert(error.message);
+      return;
     }
 
     setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "" });
     setItemSearch("");
     setEditingId(null);
-    loadData();
+    await loadData();
   }
 
   async function deleteTransaction(id) {
