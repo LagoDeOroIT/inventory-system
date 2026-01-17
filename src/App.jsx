@@ -271,7 +271,7 @@ export default function App() {
           {transactions.map(t => (
             <tr key={t.id}>
               <td style={thtd}>{t.date}</td>
-              <td style={thtd}>{t.items?.item_name}</td><td style={thtd}>{t.items?.brand}</td><td style={thtd}>{t.items?.unit}</td><td style={thtd}>{t.items?.volume_pack}</td>
+              <td style={thtd}>{t.items?.item_name}</td><td style={thtd}>{t.brand || "-"}</td><td style={thtd}>{t.unit || "-"}</td><td style={thtd}>{t.volume_pack || "-"}</td>
               <td style={thtd}>{t.type}</td>
               <td style={thtd}>{t.quantity}</td>
               <td style={thtd}>
