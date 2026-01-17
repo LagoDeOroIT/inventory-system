@@ -9,7 +9,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 export default function App() {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState("staff");
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState([]); // item_name, brand, unit, volume_pack
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
@@ -60,7 +60,7 @@ return () => listener.subscription.unsubscribe();
 
   // LOAD DATA
   async function loadData() {
-    const { data: itemsData } = await supabase.from("items").select("*");
+    const { data: itemsData } = await supabase.from("items").select("id, item_name, brand, unit, volume_pack, unit_price")("*");
 
     const { data: tx } = await supabase
       .from("inventory_transactions")
@@ -223,14 +223,14 @@ return () => listener.subscription.unsubscribe();
 
       <table style={tableStyle}>
         <thead>
-          <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Type</th><th style={thtd}>Qty</th><th style={thtd}>Action</th></tr>
+          <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Volume/Pack</th><th style={thtd}>Type</th><th style={thtd}>Qty</th><th style={thtd}>Action</th></tr>
         </thead>
         <tbody>
-          {transactions.length === 0 && emptyRow(5, "No transactions yet")}
+          {transactions.length === 0 && emptyRow(8, "No transactions yet")}
           {transactions.map(t => (
             <tr key={t.id}>
               <td style={thtd}>{t.date}</td>
-              <td style={thtd}>{t.items?.item_name}</td>
+              <td style={thtd}>{t.items?.item_name}</td><td style={thtd}>{t.items?.brand}</td><td style={thtd}>{t.items?.unit}</td><td style={thtd}>{t.items?.volume_pack}</td>
               <td style={thtd}>{t.type}</td>
               <td style={thtd}>{t.quantity}</td>
               <td style={thtd}>
