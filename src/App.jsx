@@ -252,11 +252,7 @@ export default function App() {
             <button onClick={() => setConfirmDeleteId(null)}>Cancel</button>
           </div>
         </div>
-      ) style={{ marginLeft: 10 }}>
-            Undo
-          </button>
-        </div>
-      )}
+    )}
 
       <button onClick={() => setShowDeleted(!showDeleted)}>
         {showDeleted ? "Hide Deleted History" : "View Deleted History"}
