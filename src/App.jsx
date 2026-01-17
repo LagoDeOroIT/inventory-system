@@ -121,10 +121,12 @@ export default function App() {
   });
 
   // 🖱 CLOSE DROPDOWN ON OUTSIDE CLICK
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
   useEffect(() => {
     function handleClickOutside(e) {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setItemSearch("");
+        setDropdownOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -153,11 +155,15 @@ export default function App() {
           type="text"
           placeholder="Search item..."
           value={itemSearch}
-          onChange={e => setItemSearch(e.target.value)}
+          onChange={e => {
+            setItemSearch(e.target.value);
+            setDropdownOpen(true);
+          }}
+          onFocus={() => setDropdownOpen(true)}
           style={{ width: "100%" }}
         />
 
-        {itemSearch && (
+        {dropdownOpen && (
           <div style={{ position: "absolute", top: "100%", left: 0, right: 0, border: "1px solid #ccc", background: "#fff", zIndex: 10 }}>
             {items
               .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
@@ -168,6 +174,7 @@ export default function App() {
                   onClick={() => {
                     setForm({ ...form, item_id: i.id });
                     setItemSearch(i.item_name);
+                    setDropdownOpen(false);
                   }}
                 >
                   {i.item_name}
