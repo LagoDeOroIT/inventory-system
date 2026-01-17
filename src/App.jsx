@@ -105,8 +105,7 @@ export default function App() {
     };
   });
 
-  if (!session) {
-    // 📅 MONTHLY REPORT FILTER
+  // 📅 MONTHLY REPORT FILTER
   const [reportMonth, setReportMonth] = useState("");
 
   const monthlyReport = items.map(item => {
@@ -130,24 +129,8 @@ export default function App() {
     };
   });
 
-  return (
-      <div style={{ padding: 40 }}>
-        <h2>Inventory Login</h2>
-        <button
-          onClick={() =>
-            supabase.auth.signInWithPassword({
-              email: prompt("Email"),
-              password: prompt("Password"),
-            })
-          }
-        >
-          Login
-        </button>
-      </div>
-    );
-  }
+  if (!session) {
 
-  return (
     <div style={{ padding: 30 }}>
       <h2>Inventory System</h2>
 
