@@ -21,6 +21,9 @@ export default function App() {
 
   // 🔍 ITEM SEARCH
   const [itemSearch, setItemSearch] = useState("");
+  const searchRef = React.useRef(null);
+
+  const [itemSearch, setItemSearch] = useState("");
 
   // 🔐 AUTH
   useEffect(() => {
@@ -141,13 +144,26 @@ export default function App() {
     );
   }
 
+    useEffect(() => {
+    function handleClickOutside(e) {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setItemSearch("");
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <div style={{ padding: 20 }}>
       <h1>Inventory System</h1>
 
       
 
-      <div style={{ position: "relative", display: "inline-block", width: 220 }}>
+      <div
+        ref={searchRef}
+        style={{ position: "relative", display: "inline-block", width: 220 }}
+      >
         <input
           type="text"
           placeholder="Search item..."
@@ -187,6 +203,14 @@ export default function App() {
                 >
                   {i.item_name}
                 </div>
+              ))}
+          </div>
+        )}
+      </div>
+        ))}
+    </div>
+  )}
+</div>
               ))}
           </div>
         )}
