@@ -106,7 +106,31 @@ export default function App() {
   });
 
   if (!session) {
-    return (
+    // 📅 MONTHLY REPORT FILTER
+  const [reportMonth, setReportMonth] = useState("");
+
+  const monthlyReport = items.map(item => {
+    const filtered = transactions.filter(t =>
+      t.item_id === item.id &&
+      (!reportMonth || t.date?.startsWith(reportMonth))
+    );
+
+    const totalIn = filtered
+      .filter(t => t.type === "IN")
+      .reduce((s, t) => s + t.quantity, 0);
+
+    const totalOut = filtered
+      .filter(t => t.type === "OUT")
+      .reduce((s, t) => s + t.quantity, 0);
+
+    return {
+      item_name: item.item_name,
+      totalIn,
+      totalOut,
+    };
+  });
+
+  return (
       <div style={{ padding: 40 }}>
         <h2>Inventory Login</h2>
         <button
@@ -217,6 +241,32 @@ export default function App() {
               <td>{i.stock}</td>
               <td>{i.unit_price}</td>
               <td>{i.totalValue}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h3 style={{ marginTop: 40 }}>Monthly Report</h3>
+      <input
+        type="month"
+        value={reportMonth}
+        onChange={e => setReportMonth(e.target.value)}
+      />
+
+      <table border="1" cellPadding="5" style={{ marginTop: 10 }}>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Total IN</th>
+            <th>Total OUT</th>
+          </tr>
+        </thead>
+        <tbody>
+          {monthlyReport.map((r, idx) => (
+            <tr key={idx}>
+              <td>{r.item_name}</td>
+              <td>{r.totalIn}</td>
+              <td>{r.totalOut}</td>
             </tr>
           ))}
         </tbody>
