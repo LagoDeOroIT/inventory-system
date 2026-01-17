@@ -13,37 +13,35 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
-  const [recentlyDeleted, setRecentlyDeleted] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-  
   const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
     item_id: "",
     type: "IN",
-    quantity: 0,
+    quantity: "",
     date: "",
   });
 
-  // 🔍 SINGLE SEARCH BAR STATE
   const [itemSearch, setItemSearch] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const searchRef = useRef(null);
 
   // 🔐 AUTH
-useEffect(() => {
-  supabase.auth.getSession().then(({ data }) => {
-    setSession(data.session);
-    setRole(data.session?.user?.user_metadata?.role || "staff");
-  });
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setRole(data.session?.user?.user_metadata?.role || "staff");
+    });
 
-  const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => {
-    setSession(s);
-    setRole(s?.user?.user_metadata?.role || "staff");
-  });
+    const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+      setRole(s?.user?.user_metadata?.role || "staff");
+    });
 
-  return () => listener.subscription.unsubscribe();
-}, []);
- 
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
   // 📥 LOAD DATA
   async function loadData() {
     const { data: items } = await supabase.from("items").select("*");
@@ -71,10 +69,13 @@ useEffect(() => {
 
   // ➕ ADD / ✏️ UPDATE
   async function saveTransaction() {
-    if (!form.item_id || !form.quantity) return alert("Complete the form");
+    if (!form.item_id || !form.quantity) {
+      alert("Complete the form");
+      return;
+    }
 
     const item = items.find(i => i.id === Number(form.item_id));
-    if (!item) return alert("Invalid item");
+    if (!item) return;
 
     const payload = {
       date: form.date || new Date().toISOString().slice(0, 10),
@@ -90,43 +91,27 @@ useEffect(() => {
       await supabase.from("inventory_transactions").insert(payload);
     }
 
-    setForm({ item_id: "", type: "IN", quantity: 0, date: "" });
+    setForm({ item_id: "", type: "IN", quantity: "", date: "" });
     setItemSearch("");
     setEditingId(null);
     loadData();
   }
 
   // 🗑 DELETE
-  // 🗑 DELETE (open confirmation)
-  async function deleteTransaction(id) {
-    setConfirmDeleteId(id);
-  }
-
   async function confirmDelete() {
-    const id = confirmDeleteId;
-    setConfirmDeleteId(null);
-
     await supabase
       .from("inventory_transactions")
       .update({ deleted: true })
-      .eq("id", id);
+      .eq("id", confirmDeleteId);
 
-    setRecentlyDeleted({ id });
+    setConfirmDeleteId(null);
     loadData();
   }
-
 
   async function recoverTransaction(id) {
-    await supabase
-      .from("inventory_transactions")
-      .update({ deleted: false })
-      .eq("id", id);
-
-    setRecentlyDeleted(null);
+    await supabase.from("inventory_transactions").update({ deleted: false }).eq("id", id);
     loadData();
   }
-
-  
 
   // ✏️ EDIT
   function editTransaction(t) {
@@ -152,9 +137,6 @@ useEffect(() => {
   // 📅 MONTHLY REPORT
   const [reportMonth, setReportMonth] = useState(new Date().toISOString().slice(0, 7));
 
-  
-  
-
   const monthlyReport = items.map(item => {
     const monthlyTx = transactions.filter(
       t => t.item_id === item.id && t.date.startsWith(reportMonth)
@@ -166,9 +148,7 @@ useEffect(() => {
     return { ...item, totalIn, totalOut };
   });
 
-  // 🖱 CLOSE DROPDOWN ON OUTSIDE CLICK
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
+  // 🖱 CLOSE DROPDOWN
   useEffect(() => {
     function handleClickOutside(e) {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
@@ -179,7 +159,6 @@ useEffect(() => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 🔑 LOGIN
   if (!session) {
     return (
       <div style={{ padding: 40 }}>
@@ -194,30 +173,26 @@ useEffect(() => {
   return (
     <div style={{ padding: 20 }}>
       <h1>Inventory System</h1>
-      <p><b>Role:</b> {role}</p>
 
-      {/* 🔍 SEARCHABLE ITEM SELECT */}
-      <div ref={searchRef} style={{ position: "relative", display: "inline-block", width: 220 }}>
+      {/* SEARCH */}
+      <div ref={searchRef} style={{ position: "relative", width: 220 }}>
         <input
-          type="text"
           placeholder="Search item..."
           value={itemSearch}
+          onFocus={() => setDropdownOpen(true)}
           onChange={e => {
             setItemSearch(e.target.value);
             setDropdownOpen(true);
           }}
-          onFocus={() => setDropdownOpen(true)}
-          style={{ width: "100%" }}
         />
 
         {dropdownOpen && (
-          <div style={{ position: "absolute", top: "100%", left: 0, right: 0, border: "1px solid #ccc", background: "#fff", zIndex: 10 }}>
+          <div style={{ border: "1px solid #ccc", background: "#fff" }}>
             {items
-              .filter(i => !itemSearch || i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
+              .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
               .map(i => (
                 <div
                   key={i.id}
-                  style={{ padding: 6, cursor: "pointer" }}
                   onClick={() => {
                     setForm({ ...form, item_id: i.id });
                     setItemSearch(i.item_name);
@@ -238,33 +213,9 @@ useEffect(() => {
 
       <input type="number" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} />
       <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
-      {(role === "admin" || role === "staff") && (
       <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
 
       <h2>Transactions</h2>
-
-      {recentlyDeleted && (
-        <div style={{ background: '#ffeeba', padding: 10, marginBottom: 10 }}>
-          Transaction deleted.
-          <button onClick={() => recoverTransaction(recentlyDeleted.id)} style={{ marginLeft: 10 }}>
-            Undo
-          </button>
-        </div>
-      )}
-
-      {confirmDeleteId && (
-        <div style={{ background: '#00000088', position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', padding: 20, borderRadius: 6 }}>
-            <p>Are you sure you want to delete this transaction?</p>
-            <button onClick={confirmDelete}>Yes, Delete</button>{" "}
-            <button onClick={() => setConfirmDeleteId(null)}>Cancel</button>
-          </div>
-        </div>
-    )}
-
-      <button onClick={() => setShowDeleted(!showDeleted)}>
-        {showDeleted ? "Hide Deleted History" : "View Deleted History"}
-      </button>
 
       <table border="1" cellPadding="5">
         <thead>
@@ -278,45 +229,26 @@ useEffect(() => {
               <td>{t.type}</td>
               <td>{t.quantity}</td>
               <td>
-                {role === "admin" && (
-                <button onClick={() => editTransaction(t)}>Edit</button>
-              )}{" "}
-                {role === "admin" && (
-                <button onClick={() => deleteTransaction(t.id)}>Delete</button>
-              )}
+                <button onClick={() => editTransaction(t)}>Edit</button>{" "}
+                <button onClick={() => setConfirmDeleteId(t.id)}>Delete</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      {showDeleted && (
-        <>
-          <h2>Deleted Transactions</h2>
-          <table border="1" cellPadding="5">
-            <thead>
-              <tr><th>Date</th><th>Item</th><th>Type</th><th>Qty</th><th>Action</th></tr>
-            </thead>
-            <tbody>
-              {deletedTransactions.map(t => (
-                <tr key={t.id}>
-                  <td>{t.date}</td>
-                  <td>{t.items?.item_name}</td>
-                  <td>{t.type}</td>
-                  <td>{t.quantity}</td>
-                  <td>
-                    <button onClick={() => recoverTransaction(t.id)}>Recover</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
+      {confirmDeleteId && (
+        <div style={{ background: "#00000088", position: "fixed", inset: 0 }}>
+          <div style={{ background: "#fff", margin: "20% auto", padding: 20, width: 300 }}>
+            <p>Confirm delete?</p>
+            <button onClick={confirmDelete}>Yes</button>{" "}
+            <button onClick={() => setConfirmDeleteId(null)}>Cancel</button>
+          </div>
+        </div>
       )}
 
       <h2>Stock Summary</h2>
       <table border="1" cellPadding="5">
-        <thead><tr><th>Item</th><th>Stock</th><th>Total</th></tr></thead>
         <tbody>
           {stockByItem.map(i => (
             <tr key={i.id}><td>{i.item_name}</td><td>{i.stock}</td><td>{i.total}</td></tr>
@@ -325,10 +257,9 @@ useEffect(() => {
       </table>
 
       <h2>Monthly Report</h2>
+      <input type="month" value={reportMonth} onChange={e => setReportMonth(e.target.value)} />
 
-
-
-<table border="1" cellPadding="5">
+      <table border="1" cellPadding="5">
         <thead><tr><th>Item</th><th>Total IN</th><th>Total OUT</th></tr></thead>
         <tbody>
           {monthlyReport.map(r => (
@@ -336,6 +267,24 @@ useEffect(() => {
           ))}
         </tbody>
       </table>
+
+      <button onClick={() => setShowDeleted(!showDeleted)}>
+        {showDeleted ? "Hide Deleted" : "View Deleted"}
+      </button>
+
+      {showDeleted && (
+        <table border="1" cellPadding="5">
+          <tbody>
+            {deletedTransactions.map(t => (
+              <tr key={t.id}>
+                <td>{t.date}</td>
+                <td>{t.items?.item_name}</td>
+                <td><button onClick={() => recoverTransaction(t.id)}>Recover</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
