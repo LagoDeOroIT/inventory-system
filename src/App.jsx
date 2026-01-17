@@ -19,8 +19,7 @@ const emptyRow = (colSpan, text) => (
 
 export default function App() {
   const [session, setSession] = useState(null);
-  const [items, setItems] = useState
-  const [transactions, setTransactions] = useState([]);
+  const [items, setItems] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
 
@@ -124,8 +123,7 @@ export default function App() {
 
   async function deleteTransaction(id) {
     const confirmDelete = window.confirm(
-      "Are you sure you want to delete this transaction?
-This will move it to Delete History."
+      "Are you sure you want to delete this transaction? This will move it to Delete History."
     );
     if (!confirmDelete) return;
 
