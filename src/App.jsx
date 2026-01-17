@@ -237,9 +237,20 @@ export default function App() {
 
       <h2>Stock Summary</h2>
       <table border="1" cellPadding="5">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Stock</th>
+            <th>Total Value</th>
+          </tr>
+        </thead>
         <tbody>
           {stockByItem.map(i => (
-            <tr key={i.id}><td>{i.item_name}</td><td>{i.stock}</td><td>{i.total}</td></tr>
+            <tr key={i.id}>
+              <td>{i.item_name}</td>
+              <td>{i.stock}</td>
+              <td>{i.total}</td>
+            </tr>
           ))}
         </tbody>
       </table>
@@ -262,12 +273,21 @@ export default function App() {
 
       {showDeleted && (
         <table border="1" cellPadding="5">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Item</th>
+              <th>Action</th>
+            </tr>
+          </thead>
           <tbody>
             {deletedTransactions.map(t => (
               <tr key={t.id}>
                 <td>{t.date}</td>
                 <td>{t.items?.item_name}</td>
-                <td><button onClick={() => recoverTransaction(t.id)}>Recover</button></td>
+                <td>
+                  <button onClick={() => recoverTransaction(t.id)}>Recover</button>
+                </td>
               </tr>
             ))}
           </tbody>
