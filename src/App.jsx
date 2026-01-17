@@ -13,6 +13,7 @@ export default function App() {
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
   const [recentlyDeleted, setRecentlyDeleted] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   
   const [editingId, setEditingId] = useState(null);
 
@@ -93,22 +94,24 @@ export default function App() {
   }
 
   // 🗑 DELETE
+  // 🗑 DELETE (open confirmation)
   async function deleteTransaction(id) {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this transaction? You can recover it later."
-    );
-    if (!confirmDelete) return;
+    setConfirmDeleteId(id);
+  }
 
-    const { data } = await supabase
+  async function confirmDelete() {
+    const id = confirmDeleteId;
+    setConfirmDeleteId(null);
+
+    await supabase
       .from("inventory_transactions")
       .update({ deleted: true })
-      .eq("id", id)
-      .select()
-      .single();
+      .eq("id", id);
 
-    setRecentlyDeleted(data);
+    setRecentlyDeleted({ id });
     loadData();
   }
+
 
   async function recoverTransaction(id) {
     await supabase
@@ -236,6 +239,20 @@ export default function App() {
         <div style={{ background: '#ffeeba', padding: 10, marginBottom: 10 }}>
           Transaction deleted.
           <button onClick={() => recoverTransaction(recentlyDeleted.id)} style={{ marginLeft: 10 }}>
+            Undo
+          </button>
+        </div>
+      )}
+
+      {confirmDeleteId && (
+        <div style={{ background: '#00000088', position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', padding: 20, borderRadius: 6 }}>
+            <p>Are you sure you want to delete this transaction?</p>
+            <button onClick={confirmDelete}>Yes, Delete</button>{" "}
+            <button onClick={() => setConfirmDeleteId(null)}>Cancel</button>
+          </div>
+        </div>
+      ) style={{ marginLeft: 10 }}>
             Undo
           </button>
         </div>
