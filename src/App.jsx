@@ -43,13 +43,19 @@ export default function App() {
       return alert("Not enough stock");
     }
 
-    await supabase.from("inventory_transactions").insert({
-      date: form.date,
+    const { error } = await supabase.from("inventory_transactions").insert({
+      date: form.date || new Date().toISOString().slice(0,10),
       item_id: item.id,
       type: form.type,
       quantity: Number(form.quantity),
       unit_price: item.unit_price,
     });
+
+    if (error) {
+      console.error("Insert error:", error);
+      alert(error.message);
+      return;
+    }
 
     setForm({ item_id: "", type: "IN", quantity: 0, date: "" });
     loadData();
