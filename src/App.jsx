@@ -153,21 +153,44 @@ export default function App() {
         style={{ marginRight: 8 }}
       />
 
-      <select
-        value={form.item_id}
-        onChange={e => setForm({ ...form, item_id: e.target.value })}
-      >
-        <option value="">Select Item</option>
-        {items
-          .filter(i =>
-            i.item_name.toLowerCase().includes(itemSearch.toLowerCase())
-          )
-          .map(i => (
-            <option key={i.id} value={i.id}>
-              {i.item_name}
-            </option>
-          ))}
-      </select>
+      <div style={{ position: "relative", display: "inline-block" }}>
+  <input
+    type="text"
+    placeholder="Search item..."
+    value={itemSearch}
+    onChange={e => setItemSearch(e.target.value)}
+  />
+
+  {itemSearch && (
+    <div
+      style={{
+        position: "absolute",
+        background: "#fff",
+        border: "1px solid #ccc",
+        width: "100%",
+        zIndex: 10
+      }}
+    >
+      {items
+        .filter(i =>
+          i.item_name.toLowerCase().includes(itemSearch.toLowerCase())
+        )
+        .map(i => (
+          <div
+            key={i.id}
+            style={{ padding: 6, cursor: "pointer" }}
+            onClick={() => {
+              setForm({ ...form, item_id: i.id });
+              setItemSearch(i.item_name);
+            }}
+          >
+            {i.item_name}
+          </div>
+        ))}
+    </div>
+  )}
+</div>
+
 
       <select
         value={form.type}
