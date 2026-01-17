@@ -145,47 +145,52 @@ export default function App() {
     <div style={{ padding: 20 }}>
       <h1>Inventory System</h1>
 
-      <input
-        type="text"
-        placeholder="Search item..."
-        value={itemSearch}
-        onChange={e => setItemSearch(e.target.value)}
-        style={{ marginRight: 8 }}
-      />
+      
 
-      <div style={{ position: "relative", display: "inline-block" }}>
-  <input
-    type="text"
-    placeholder="Search item..."
-    value={itemSearch}
-    onChange={e => setItemSearch(e.target.value)}
-  />
+      <div style={{ position: "relative", display: "inline-block", width: 220 }}>
+        <input
+          type="text"
+          placeholder="Search item..."
+          value={itemSearch}
+          onChange={e => setItemSearch(e.target.value)}
+          style={{ width: "100%" }}
+        />
 
-  {itemSearch && (
-    <div
-      style={{
-        position: "absolute",
-        background: "#fff",
-        border: "1px solid #ccc",
-        width: "100%",
-        zIndex: 10
-      }}
-    >
-      {items
-        .filter(i =>
-          i.item_name.toLowerCase().includes(itemSearch.toLowerCase())
-        )
-        .map(i => (
+        {itemSearch && (
           <div
-            key={i.id}
-            style={{ padding: 6, cursor: "pointer" }}
-            onClick={() => {
-              setForm({ ...form, item_id: i.id });
-              setItemSearch(i.item_name);
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              right: 0,
+              background: "#fff",
+              border: "1px solid #ccc",
+              zIndex: 10,
+              maxHeight: 150,
+              overflowY: "auto"
             }}
           >
-            {i.item_name}
+            {items
+              .filter(i =>
+                i.item_name
+                  .toLowerCase()
+                  .includes(itemSearch.toLowerCase())
+              )
+              .map(i => (
+                <div
+                  key={i.id}
+                  style={{ padding: 6, cursor: "pointer" }}
+                  onClick={() => {
+                    setForm({ ...form, item_id: i.id });
+                    setItemSearch(i.item_name);
+                  }}
+                >
+                  {i.item_name}
+                </div>
+              ))}
           </div>
+        )}
+      </div>
         ))}
     </div>
   )}
