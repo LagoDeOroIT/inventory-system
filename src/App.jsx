@@ -264,32 +264,72 @@ export default function App() {
 
       {/* DELETE CONFIRM MODAL */}
       {deleteTarget && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          background: "rgba(0,0,0,0.4)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 999,
-        }}>
-          <div style={{
-            background: "#fff",
-            padding: 20,
-            borderRadius: 8,
-            width: 320,
-            textAlign: "center",
-          }}>
-            <h3>Confirm Delete</h3>
-            <p>This transaction will be moved to Delete History.</p>
-            <div style={{ marginTop: 20 }}>
-              <button onClick={confirmDelete} style={{ marginRight: 10 }}>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.45)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "#ffffff",
+              padding: "24px",
+              borderRadius: "10px",
+              width: "360px",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+              textAlign: "center",
+            }}
+          >
+            <h3 style={{ marginBottom: 10 }}>Delete Transaction</h3>
+            <p style={{ fontSize: 14, color: "#555" }}>
+              Are you sure you want to delete this transaction?
+              <br />
+              This action will move it to <b>Delete History</b>.
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: 12,
+                marginTop: 20,
+              }}
+            >
+              <button
+                onClick={() => setDeleteTarget(null)}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: 6,
+                  border: "1px solid #ccc",
+                  background: "#f5f5f5",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={confirmDelete}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: 6,
+                  border: "none",
+                  background: "#d32f2f",
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+              >
                 Yes, Delete
               </button>
-              <button onClick={() => setDeleteTarget(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}>Cancel</button>
             </div>
           </div>
         </div>
