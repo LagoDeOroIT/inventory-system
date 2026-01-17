@@ -41,9 +41,12 @@ export default function App() {
     type: "IN",
     quantity: "",
     date: "",
+    brand: "",
+    unit: "",
+    volume_pack: "",
   });
 
-  const selectedItem = items.find(i => i.id === Number(form.item_id));
+  const selectedItem = items.find(i => i.id === Number(form.item_id)); // optional reference
 
   const [itemSearch, setItemSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -107,6 +110,9 @@ export default function App() {
       type: form.type,
       quantity: Number(form.quantity),
       unit_price: item.unit_price,
+      brand: form.brand,
+      unit: form.unit,
+      volume_pack: form.volume_pack,
     };
 
     if (editingId) {
@@ -115,7 +121,7 @@ export default function App() {
       await supabase.from("inventory_transactions").insert(payload);
     }
 
-    setForm({ item_id: "", type: "IN", quantity: "", date: "" });
+    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", volume_pack: "" });
     setItemSearch("");
     setEditingId(null);
     loadData();
@@ -135,7 +141,7 @@ export default function App() {
 
   function editTransaction(t) {
     setEditingId(t.id);
-    setForm({ item_id: t.item_id, type: t.type, quantity: t.quantity, date: t.date });
+    setForm({ item_id: t.item_id, type: t.type, quantity: t.quantity, date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" });
     setItemSearch(t.items?.item_name || "");
   }
 
@@ -217,13 +223,32 @@ export default function App() {
         )}
       </div>
 
-      {selectedItem && (
-        <div style={{ marginTop: 10, padding: 8, border: "1px solid #ddd" }}>
-          <div><strong>Brand:</strong> {selectedItem.brand}</div>
-          <div><strong>Unit:</strong> {selectedItem.unit}</div>
-          <div><strong>Volume / Pack:</strong> {selectedItem.volume_pack}</div>
+      <div style={{ marginTop: 10, padding: 8, border: "1px solid #ddd" }}>
+        <div>
+          <label>Brand</label><br />
+          <input
+            value={form.brand}
+            onChange={e => setForm({ ...form, brand: e.target.value })}
+            placeholder="Enter brand"
+          />
         </div>
-      )}
+        <div>
+          <label>Unit</label><br />
+          <input
+            value={form.unit}
+            onChange={e => setForm({ ...form, unit: e.target.value })}
+            placeholder="Enter unit (pcs, box, kg…)"
+          />
+        </div>
+        <div>
+          <label>Volume / Pack</label><br />
+          <input
+            value={form.volume_pack}
+            onChange={e => setForm({ ...form, volume_pack: e.target.value })}
+            placeholder="e.g. 500ml, 12 pcs"
+          />
+        </div>
+      </div>
 
       <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
         <option value="IN">IN</option>
