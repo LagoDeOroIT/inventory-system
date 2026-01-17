@@ -240,6 +240,7 @@ export default function App() {
             <th style={thtd}>Unit</th>
             <th style={thtd}>Type</th>
             <th style={thtd}>Qty</th>
+                <th style={thtd}>Actions</th>
             <th style={thtd}>Action</th>
           </tr>
         </thead>
@@ -253,6 +254,34 @@ export default function App() {
               <td style={thtd}>{t.unit || "-"}</td>
               <td style={thtd}>{t.type}</td>
               <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>
+                    <button
+                      onClick={async () => {
+                        await supabase
+                          .from("inventory_transactions")
+                          .update({ deleted: false, deleted_at: null })
+                          .eq("id", t.id);
+                        loadData();
+                      }}
+                    >
+                      Restore
+                    </button>
+
+                    <button
+                      style={{ marginLeft: 8, color: "#d32f2f" }}
+                      onClick={async () => {
+                        const ok = window.confirm("Permanently delete this record? This cannot be undone.");
+                        if (!ok) return;
+                        await supabase
+                          .from("inventory_transactions")
+                          .delete()
+                          .eq("id", t.id);
+                        loadData();
+                      }}
+                    >
+                      Delete Permanently
+                    </button>
+                  </td>
               <td style={thtd}>
                 <button onClick={() => editTransaction(t)}>Edit</button>
                 <button onClick={() => setDeleteTarget(t.id)}>Delete</button>
