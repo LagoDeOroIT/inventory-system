@@ -10,6 +10,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [recentlyDeleted, setRecentlyDeleted] = useState(null);([]);
   const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
@@ -41,6 +42,8 @@ export default function App() {
     const { data: items } = await supabase.from("items").select("*");
     const { data: tx } = await supabase
       .from("inventory_transactions")
+      .select("*, items(item_name)")
+      .eq("deleted", false)
       .select("*, items(item_name)")
       .order("date", { ascending: false });
 
@@ -81,7 +84,31 @@ export default function App() {
 
   // 🗑 DELETE
   async function deleteTransaction(id) {
-    await supabase.from("inventory_transactions").delete().eq("id", id);
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this transaction? You can undo this action."
+    );
+    if (!confirmDelete) return;
+
+    const { data } = await supabase
+      .from("inventory_transactions")
+      .update({ deleted: true })
+      .eq("id", id)
+      .select()
+      .single();
+
+    setRecentlyDeleted(data);
+    loadData();
+  }
+
+  async function undoDelete() {
+    if (!recentlyDeleted) return;
+
+    await supabase
+      .from("inventory_transactions")
+      .update({ deleted: false })
+      .eq("id", recentlyDeleted.id);
+
+    setRecentlyDeleted(null);
     loadData();
   }
 
@@ -194,6 +221,15 @@ export default function App() {
       <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
 
       <h2>Transactions</h2>
+
+      {recentlyDeleted && (
+        <div style={{ background: '#ffeeba', padding: 10, marginBottom: 10 }}>
+          Transaction deleted.
+          <button onClick={undoDelete} style={{ marginLeft: 10 }}>
+            Undo
+          </button>
+        </div>
+      )
       <table border="1" cellPadding="5">
         <thead>
           <tr><th>Date</th><th>Item</th><th>Type</th><th>Qty</th><th>Action</th></tr>
