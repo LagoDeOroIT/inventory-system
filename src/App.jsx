@@ -85,6 +85,33 @@ export default function App() {
     return { ...item, stock, total: stock * item.unit_price };
   });
 
+  // 📅 MONTHLY REPORT (CURRENT MONTH)
+  const currentMonth = new Date().toISOString().slice(0, 7);
+
+  const monthlyReport = items.map(item => {
+    const monthlyTx = transactions.filter(t =>
+      t.item_id === item.id && t.date.startsWith(currentMonth)
+    );
+
+    const totalIn = monthlyTx
+      .filter(t => t.type === "IN")
+      .reduce((s, t) => s + t.quantity, 0);
+
+    const totalOut = monthlyTx
+      .filter(t => t.type === "OUT")
+      .reduce((s, t) => s + t.quantity, 0);
+
+    return { ...item, totalIn, totalOut };
+  });
+
+(item => {
+    const stock = transactions
+      .filter(t => t.item_id === item.id)
+      .reduce((s, t) => s + (t.type === "IN" ? t.quantity : -t.quantity), 0);
+
+    return { ...item, stock, total: stock * item.unit_price };
+  });
+
   // 🔑 LOGIN SCREEN
   if (!session) {
     return (
@@ -149,6 +176,22 @@ export default function App() {
               <td>{i.item_name}</td>
               <td>{i.stock}</td>
               <td>{i.total}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h2>Monthly Report ({currentMonth})</h2>
+      <table border="1" cellPadding="5">
+        <thead>
+          <tr><th>Item</th><th>Total IN</th><th>Total OUT</th></tr>
+        </thead>
+        <tbody>
+          {monthlyReport.map(r => (
+            <tr key={r.id}>
+              <td>{r.item_name}</td>
+              <td>{r.totalIn}</td>
+              <td>{r.totalOut}</td>
             </tr>
           ))}
         </tbody>
