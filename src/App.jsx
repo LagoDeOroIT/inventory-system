@@ -48,7 +48,7 @@ export default function App() {
     const { data: tx } = await supabase
       .from("inventory_transactions")
       .select("*, items(item_name)")
-      .eq("deleted", false)
+      .or("deleted.is.null,deleted.eq.false")
       .order("date", { ascending: false });
 
     const { data: deletedTx } = await supabase
