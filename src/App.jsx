@@ -30,31 +30,20 @@ export default function App() {
   const searchRef = useRef(null);
 
   // 🔐 AUTH
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setRole(data.session?.user?.user_metadata?.role || "staff");
-    });
+useEffect(() => {
+  supabase.auth.getSession().then(({ data }) => {
+    setSession(data.session);
+    setRole(data.session?.user?.user_metadata?.role || "staff");
+  });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-      setRole(s?.user?.user_metadata?.role || "staff");
-    });
+  const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => {
+    setSession(s);
+    setRole(s?.user?.user_metadata?.role || "staff");
+  });
 
-    return () => listener.subscription.unsubscribe();
-  }, []);
-
-  // 🔐 ROLE = admin | staff().then(({ data }) => {
-      setSession(data.session);
-    });
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-    });
-
-    return () => listener.subscription.unsubscribe();
-  }, []);
-
+  return () => listener.subscription.unsubscribe();
+}, []);
+ 
   // 📥 LOAD DATA
   async function loadData() {
     const { data: items } = await supabase.from("items").select("*");
