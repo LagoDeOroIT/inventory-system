@@ -11,6 +11,7 @@ export default function App() {
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [form, setForm] = useState({ item_id: "", type: "IN", quantity: 0, date: "" });
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -36,28 +37,40 @@ export default function App() {
     if (!item) return alert("Select item");
 
     const stock = transactions
-      .filter(t => t.item_id === item.id)
+      .filter(t => t.item_id === item.id && t.id !== editingId)
       .reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
 
     if (form.type === "OUT" && stock < Number(form.quantity)) {
       return alert("Not enough stock");
     }
 
-    const { error } = await supabase.from("inventory_transactions").insert({
-      date: form.date || new Date().toISOString().slice(0,10),
-      item_id: item.id,
-      type: form.type,
-      quantity: Number(form.quantity),
-      unit_price: item.unit_price,
-    });
+    if (editingId) {
+      const { error } = await supabase
+        .from("inventory_transactions")
+        .update({
+          date: form.date || new Date().toISOString().slice(0,10),
+          item_id: item.id,
+          type: form.type,
+          quantity: Number(form.quantity),
+          unit_price: item.unit_price,
+        })
+        .eq("id", editingId);
 
-    if (error) {
-      console.error("Insert error:", error);
-      alert(error.message);
-      return;
+      if (error) return alert(error.message);
+    } else {
+      const { error } = await supabase.from("inventory_transactions").insert({
+        date: form.date || new Date().toISOString().slice(0,10),
+        item_id: item.id,
+        type: form.type,
+        quantity: Number(form.quantity),
+        unit_price: item.unit_price,
+      });
+
+      if (error) return alert(error.message);
     }
 
     setForm({ item_id: "", type: "IN", quantity: 0, date: "" });
+    setEditingId(null);
     loadData();
   }
 
@@ -146,7 +159,9 @@ export default function App() {
           value={form.date}
           onChange={e => setForm({ ...form, date: e.target.value })}
         />
-        <button onClick={addTransaction}>Save</button>
+        <button onClick={addTransaction}>
+          {editingId ? "Update" : "Save"}
+        </button>
       </div>
 
       <table border="1" cellPadding="5">
@@ -169,6 +184,15 @@ export default function App() {
               <td>{t.quantity}</td>
               <td>{t.unit_price}</td>
               <td>
+                <button onClick={() => {
+                  setEditingId(t.id);
+                  setForm({
+                    item_id: t.item_id,
+                    type: t.type,
+                    quantity: t.quantity,
+                    date: t.date,
+                  });
+                }}>Edit</button>
                 <button onClick={() => deleteTransaction(t.id)}>Delete</button>
               </td>
             </tr>
