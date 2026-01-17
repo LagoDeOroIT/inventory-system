@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// ✅ SUPABASE CONFIG
+// SUPABASE CONFIG
 const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
 const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -27,7 +27,7 @@ export default function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const searchRef = useRef(null);
 
-  // 🔐 AUTH
+  // AUTH
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -42,9 +42,9 @@ export default function App() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // 📥 LOAD DATA
+  // LOAD DATA
   async function loadData() {
-    const { data: items } = await supabase.from("items").select("*");
+    const { data: itemsData } = await supabase.from("items").select("*");
 
     const { data: tx } = await supabase
       .from("inventory_transactions")
@@ -58,7 +58,7 @@ export default function App() {
       .eq("deleted", true)
       .order("date", { ascending: false });
 
-    setItems(items || []);
+    setItems(itemsData || []);
     setTransactions(tx || []);
     setDeletedTransactions(deletedTx || []);
   }
@@ -67,7 +67,7 @@ export default function App() {
     if (session) loadData();
   }, [session]);
 
-  // ➕ ADD / ✏️ UPDATE
+  // ADD / UPDATE
   async function saveTransaction() {
     if (!form.item_id || !form.quantity) {
       alert("Complete the form");
@@ -97,13 +97,9 @@ export default function App() {
     loadData();
   }
 
-  // 🗑 DELETE
+  // DELETE (SOFT)
   async function confirmDelete() {
-    await supabase
-      .from("inventory_transactions")
-      .update({ deleted: true })
-      .eq("id", confirmDeleteId);
-
+    await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", confirmDeleteId);
     setConfirmDeleteId(null);
     loadData();
   }
@@ -113,19 +109,13 @@ export default function App() {
     loadData();
   }
 
-  // ✏️ EDIT
   function editTransaction(t) {
     setEditingId(t.id);
-    setForm({
-      item_id: t.item_id,
-      type: t.type,
-      quantity: t.quantity,
-      date: t.date,
-    });
+    setForm({ item_id: t.item_id, type: t.type, quantity: t.quantity, date: t.date });
     setItemSearch(t.items?.item_name || "");
   }
 
-  // 📊 STOCK SUMMARY
+  // STOCK SUMMARY
   const stockByItem = items.map(item => {
     const stock = transactions
       .filter(t => t.item_id === item.id)
@@ -134,13 +124,11 @@ export default function App() {
     return { ...item, stock, total: stock * item.unit_price };
   });
 
-  // 📅 MONTHLY REPORT
+  // MONTHLY REPORT
   const [reportMonth, setReportMonth] = useState(new Date().toISOString().slice(0, 7));
 
   const monthlyReport = items.map(item => {
-    const monthlyTx = transactions.filter(
-      t => t.item_id === item.id && t.date.startsWith(reportMonth)
-    );
+    const monthlyTx = transactions.filter(t => t.item_id === item.id && t.date.startsWith(reportMonth));
 
     const totalIn = monthlyTx.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
     const totalOut = monthlyTx.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
@@ -148,7 +136,7 @@ export default function App() {
     return { ...item, totalIn, totalOut };
   });
 
-  // 🖱 CLOSE DROPDOWN
+  // CLOSE DROPDOWN
   useEffect(() => {
     function handleClickOutside(e) {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
@@ -174,7 +162,6 @@ export default function App() {
     <div style={{ padding: 20 }}>
       <h1>Inventory System</h1>
 
-      {/* SEARCH */}
       <div ref={searchRef} style={{ position: "relative", width: 220 }}>
         <input
           placeholder="Search item..."
@@ -213,6 +200,7 @@ export default function App() {
 
       <input type="number" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} />
       <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+
       <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
 
       <h2>Transactions</h2>
