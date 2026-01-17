@@ -121,22 +121,23 @@ export default function App() {
     await loadData();
   }
 
-  async function deleteTransaction(id) {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this transaction? This will move it to Delete History."
-    );
-    if (!confirmDelete) return;
+  // DELETE MODAL STATE
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
 
     const { error } = await supabase
       .from("inventory_transactions")
       .update({ deleted: true, deleted_at: new Date().toISOString() })
-      .eq("id", id);
+      .eq("id", deleteTarget);
 
     if (error) {
       alert(error.message);
       return;
     }
 
+    setDeleteTarget(null);
     await loadData();
   }
 
@@ -254,12 +255,45 @@ export default function App() {
               <td style={thtd}>{t.quantity}</td>
               <td style={thtd}>
                 <button onClick={() => editTransaction(t)}>Edit</button>
-                <button onClick={() => deleteTransaction(t.id)}>Delete</button>
+                <button onClick={() => setDeleteTarget(t.id)}>Delete</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* DELETE CONFIRM MODAL */}
+      {deleteTarget && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          background: "rgba(0,0,0,0.4)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 999,
+        }}>
+          <div style={{
+            background: "#fff",
+            padding: 20,
+            borderRadius: 8,
+            width: 320,
+            textAlign: "center",
+          }}>
+            <h3>Confirm Delete</h3>
+            <p>This transaction will be moved to Delete History.</p>
+            <div style={{ marginTop: 20 }}>
+              <button onClick={confirmDelete} style={{ marginRight: 10 }}>
+                Yes, Delete
+              </button>
+              <button onClick={() => setDeleteTarget(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <h2>Stock Summary</h2>
       <table style={tableStyle}>
