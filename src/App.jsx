@@ -150,7 +150,17 @@ export default function App() {
   // 📅 MONTHLY REPORT
   const [reportMonth, setReportMonth] = useState(new Date().toISOString().slice(0, 7));
 
-  
+  const monthlyReport = items.map(item => {
+    const monthlyTx = transactions.filter(
+      t => t.item_id === item.id && t.date.startsWith(reportMonth)
+    );
+
+    const totalIn = monthlyTx.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
+    const totalOut = monthlyTx.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
+
+    return { ...item, totalIn, totalOut };
+  });
+
   // 📁 EXPORT MONTHLY REPORT TO EXCEL
   function exportMonthlyReport() {
     const data = monthlyReport.map(r => ({
@@ -330,10 +340,12 @@ export default function App() {
       </table>
 
       <h2>Monthly Report</h2>
-      <input type="month" value={reportMonth} onChange={e => setReportMonth(e.target.value)} />
-      <button onClick={exportMonthlyReport} style={{ marginLeft: 10 }}>
-        Export to Excel
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+        <input type="month" value={reportMonth} onChange={e => setReportMonth(e.target.value)} />
+        <button onClick={exportMonthlyReport}>
+          Export to Excel
+        </button>
+      </div>
 
       <table border="1" cellPadding="5">
         <thead><tr><th>Item</th><th>Total IN</th><th>Total OUT</th></tr></thead>
