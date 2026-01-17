@@ -166,7 +166,7 @@ export default function App() {
         {dropdownOpen && (
           <div style={{ position: "absolute", top: "100%", left: 0, right: 0, border: "1px solid #ccc", background: "#fff", zIndex: 10 }}>
             {items
-              .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
+              .filter(i => !itemSearch || i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
               .map(i => (
                 <div
                   key={i.id}
