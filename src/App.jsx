@@ -8,6 +8,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function App() {
   const [session, setSession] = useState(null);
+  const [role, setRole] = useState("staff");
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
@@ -31,6 +32,19 @@ export default function App() {
   // 🔐 AUTH
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setRole(data.session?.user?.user_metadata?.role || "staff");
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+      setRole(s?.user?.user_metadata?.role || "staff");
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // 🔐 ROLE = admin | staff().then(({ data }) => {
       setSession(data.session);
     });
 
@@ -191,6 +205,7 @@ export default function App() {
   return (
     <div style={{ padding: 20 }}>
       <h1>Inventory System</h1>
+      <p><b>Role:</b> {role}</p>
 
       {/* 🔍 SEARCHABLE ITEM SELECT */}
       <div ref={searchRef} style={{ position: "relative", display: "inline-block", width: 220 }}>
@@ -234,6 +249,7 @@ export default function App() {
 
       <input type="number" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} />
       <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+      {(role === "admin" || role === "staff") && (
       <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
 
       <h2>Transactions</h2>
@@ -273,8 +289,12 @@ export default function App() {
               <td>{t.type}</td>
               <td>{t.quantity}</td>
               <td>
-                <button onClick={() => editTransaction(t)}>Edit</button>{" "}
+                {role === "admin" && (
+                <button onClick={() => editTransaction(t)}>Edit</button>
+              )}{" "}
+                {role === "admin" && (
                 <button onClick={() => deleteTransaction(t.id)}>Delete</button>
+              )}
               </td>
             </tr>
           ))}
