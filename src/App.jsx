@@ -12,7 +12,7 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
-  const [recentlyDeleted, setRecentlyDeleted] = useState(null);([]);
+  const [recentlyDeleted, setRecentlyDeleted] = useState(null);
   
   const [editingId, setEditingId] = useState(null);
 
@@ -59,7 +59,6 @@ export default function App() {
     setItems(items || []);
     setTransactions(tx || []);
     setDeletedTransactions(deletedTx || []);
-  }(tx || []);
   }
 
   useEffect(() => {
