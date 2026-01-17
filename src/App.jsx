@@ -20,10 +20,10 @@ const emptyRow = (colSpan, text) => (
 export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
 
-([]);
   const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
@@ -321,7 +321,7 @@ export default function App() {
             </tbody>
           </table>
         </>
-      )
+      )}
 
       <h2>Monthly Report</h2>
       <table style={tableStyle}>
