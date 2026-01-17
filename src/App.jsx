@@ -29,7 +29,7 @@ const emptyRow = (colSpan, text) => (
 export default function App() {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState("staff");
-  const [items, setItems] = useState([]); // item_name, brand, unit, volume_pack
+  const [items, setItems] = useState([]); // item_name, brand, unit, 
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
@@ -43,7 +43,7 @@ export default function App() {
     date: "",
     brand: "",
     unit: "",
-    volume_pack: "",
+    
   });
 
   const selectedItem = items.find(i => i.id === Number(form.item_id)); // optional reference
@@ -71,11 +71,11 @@ export default function App() {
   async function loadData() {
   const { data: itemsData } = await supabase
     .from("items")
-    .select("id, item_name, brand, unit, volume_pack, unit_price");
+    .select("id, item_name, brand, unit, , unit_price");
 
   const { data: tx } = await supabase
     .from("inventory_transactions")
-    .select("*, items(item_name, brand, unit, volume_pack)")
+    .select("*, items(item_name, brand, unit, )")
     .or("deleted.is.null,deleted.eq.false")
     .order("date", { ascending: false });
 
@@ -112,7 +112,7 @@ export default function App() {
       unit_price: item.unit_price,
       brand: form.brand,
       unit: form.unit,
-      volume_pack: form.volume_pack,
+      : form.,
     };
 
     if (editingId) {
@@ -121,7 +121,7 @@ export default function App() {
       await supabase.from("inventory_transactions").insert(payload);
     }
 
-    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", volume_pack: "" });
+    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", : "" });
     setItemSearch("");
     setEditingId(null);
     loadData();
@@ -141,7 +141,7 @@ export default function App() {
 
   function editTransaction(t) {
     setEditingId(t.id);
-    setForm({ item_id: t.item_id, type: t.type, quantity: t.quantity, date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" });
+    setForm({ item_id: t.item_id, type: t.type, quantity: t.quantity, date: t.date, brand: t.brand || "", unit: t.unit || "", : t. || "" });
     setItemSearch(t.items?.item_name || "");
   }
 
@@ -243,8 +243,8 @@ export default function App() {
         <div>
           <label>Volume / Pack</label><br />
           <input
-            value={form.volume_pack}
-            onChange={e => setForm({ ...form, volume_pack: e.target.value })}
+            value={form.}
+            onChange={e => setForm({ ...form, : e.target.value })}
             placeholder="e.g. 500ml, 12 pcs"
           />
         </div>
@@ -271,7 +271,7 @@ export default function App() {
           {transactions.map(t => (
             <tr key={t.id}>
               <td style={thtd}>{t.date}</td>
-              <td style={thtd}>{t.items?.item_name}</td><td style={thtd}>{t.brand || "-"}</td><td style={thtd}>{t.unit || "-"}</td><td style={thtd}>{t.volume_pack || "-"}</td>
+              <td style={thtd}>{t.items?.item_name}</td><td style={thtd}>{t.brand || "-"}</td><td style={thtd}>{t.unit || "-"}</td><td style={thtd}>{t. || "-"}</td>
               <td style={thtd}>{t.type}</td>
               <td style={thtd}>{t.quantity}</td>
               <td style={thtd}>
