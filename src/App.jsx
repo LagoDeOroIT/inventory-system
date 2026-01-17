@@ -59,6 +59,7 @@ export default function App() {
     const { data: tx, error: txErr } = await supabase
       .from("inventory_transactions")
       .select("*, items(item_name)")
+      .eq("deleted", false)
       .order("date", { ascending: false });
 
     if (txErr) console.error("LOAD TX ERROR", txErr);
@@ -72,6 +73,7 @@ export default function App() {
     setItems(itemsData || []);
     setTransactions(tx || []);
     setDeletedTransactions(deletedTx || []);
+  }
   }
 
   useEffect(() => {
@@ -275,6 +277,33 @@ export default function App() {
               </tr>
             );
           })}
+        </tbody>
+      </table>
+
+      <h2>Deleted History</h2>
+      <table style={tableStyle}>
+        <thead>
+          <tr>
+            <th style={thtd}>Date</th>
+            <th style={thtd}>Item</th>
+            <th style={thtd}>Brand</th>
+            <th style={thtd}>Unit</th>
+            <th style={thtd}>Type</th>
+            <th style={thtd}>Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          {deletedTransactions.length === 0 && emptyRow(6, "No deleted history")}
+          {deletedTransactions.map(t => (
+            <tr key={t.id}>
+              <td style={thtd}>{t.date}</td>
+              <td style={thtd}>{t.items?.item_name}</td>
+              <td style={thtd}>{t.brand || "-"}</td>
+              <td style={thtd}>{t.unit || "-"}</td>
+              <td style={thtd}>{t.type}</td>
+              <td style={thtd}>{t.quantity}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
 
