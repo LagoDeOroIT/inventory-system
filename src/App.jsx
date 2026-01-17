@@ -220,6 +220,60 @@ export default function App() {
           ))}
         </tbody>
       </table>
+
+      <h2>Stock Summary</h2>
+      <table style={tableStyle}>
+        <thead>
+          <tr>
+            <th style={thtd}>Item</th>
+            <th style={thtd}>Stock</th>
+            <th style={thtd}>Total Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.length === 0 && emptyRow(3, "No stock data")}
+          {items.map(i => {
+            const stock = transactions
+              .filter(t => t.item_id === i.id)
+              .reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
+
+            return (
+              <tr key={i.id}>
+                <td style={thtd}>{i.item_name}</td>
+                <td style={thtd}>{stock}</td>
+                <td style={thtd}>{stock * i.unit_price}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      <h2>Monthly Report</h2>
+      <table style={tableStyle}>
+        <thead>
+          <tr>
+            <th style={thtd}>Item</th>
+            <th style={thtd}>Total IN</th>
+            <th style={thtd}>Total OUT</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.length === 0 && emptyRow(3, "No report data")}
+          {items.map(i => {
+            const monthly = transactions.filter(t => t.item_id === i.id);
+            const totalIn = monthly.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
+            const totalOut = monthly.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
+
+            return (
+              <tr key={i.id}>
+                <td style={thtd}>{i.item_name}</td>
+                <td style={thtd}>{totalIn}</td>
+                <td style={thtd}>{totalOut}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
