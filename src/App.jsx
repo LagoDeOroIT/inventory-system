@@ -24,6 +24,23 @@ export default function App() {
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
 
+  // Restore from delete history
+  async function restoreTransaction(id) {
+    await supabase
+      .from("inventory_transactions")
+      .update({ deleted: false, deleted_at: null })
+      .eq("id", id);
+    loadData();
+  }
+
+  // Permanent delete
+  async function permanentlyDelete(id) {
+    const ok = window.confirm("Permanently delete this record? This cannot be undone.");
+    if (!ok) return;
+    await supabase.from("inventory_transactions").delete().eq("id", id);
+    loadData();
+  }
+
   const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
@@ -241,175 +258,9 @@ export default function App() {
             <th style={thtd}>Type</th>
             <th style={thtd}>Qty</th>
                 <th style={thtd}>Actions</th>
-            <th style={thtd}>Action</th>
           </tr>
         </thead>
         <tbody>
-          {transactions.length === 0 && emptyRow(7, "No transactions yet")}
-          {transactions.map(t => (
-            <tr key={t.id}>
-              <td style={thtd}>{t.date}</td>
-              <td style={thtd}>{t.items?.item_name}</td>
-              <td style={thtd}>{t.brand || "-"}</td>
-              <td style={thtd}>{t.unit || "-"}</td>
-              <td style={thtd}>{t.type}</td>
-              <td style={thtd}>{t.quantity}</td>
-                  <td style={thtd}>
-                    <button
-                      onClick={async () => {
-                        await supabase
-                          .from("inventory_transactions")
-                          .update({ deleted: false, deleted_at: null })
-                          .eq("id", t.id);
-                        loadData();
-                      }}
-                    >
-                      Restore
-                    </button>
-
-                    <button
-                      style={{ marginLeft: 8, color: "#d32f2f" }}
-                      onClick={async () => {
-                        const ok = window.confirm("Permanently delete this record? This cannot be undone.");
-                        if (!ok) return;
-                        await supabase
-                          .from("inventory_transactions")
-                          .delete()
-                          .eq("id", t.id);
-                        loadData();
-                      }}
-                    >
-                      Delete Permanently
-                    </button>
-                  </td>
-              <td style={thtd}>
-                <button onClick={() => editTransaction(t)}>Edit</button>
-                <button onClick={() => setDeleteTarget(t.id)}>Delete</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* DELETE CONFIRM MODAL */}
-      {deleteTarget && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.45)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: "#ffffff",
-              padding: "24px",
-              borderRadius: "10px",
-              width: "360px",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-              textAlign: "center",
-            }}
-          >
-            <h3 style={{ marginBottom: 10 }}>Delete Transaction</h3>
-            <p style={{ fontSize: 14, color: "#555" }}>
-              Are you sure you want to delete this transaction?
-              <br />
-              This action will move it to <b>Delete History</b>.
-            </p>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: 12,
-                marginTop: 20,
-              }}
-            >
-              <button
-                onClick={() => setDeleteTarget(null)}
-                style={{
-                  padding: "8px 14px",
-                  borderRadius: 6,
-                  border: "1px solid #ccc",
-                  background: "#f5f5f5",
-                  cursor: "pointer",
-                }}
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmDelete}
-                style={{
-                  padding: "8px 14px",
-                  borderRadius: 6,
-                  border: "none",
-                  background: "#d32f2f",
-                  color: "#fff",
-                  cursor: "pointer",
-                }}
-              >
-                Yes, Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <h2>Stock Summary</h2>
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thtd}>Item</th>
-            <th style={thtd}>Stock</th>
-            <th style={thtd}>Total Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.length === 0 && emptyRow(3, "No stock data")}
-          {items.map(i => {
-            const stock = transactions
-              .filter(t => t.item_id === i.id)
-              .reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
-
-            return (
-              <tr key={i.id}>
-                <td style={thtd}>{i.item_name}</td>
-                <td style={thtd}>{stock}</td>
-                <td style={thtd}>{stock * i.unit_price}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-
-      <button onClick={() => setShowDeleted(!showDeleted)}>
-        {showDeleted ? "Hide Delete History" : "Show Delete History"}
-      </button>
-
-      {showDeleted && (
-        <>
-          <h2>Deleted History</h2>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Date</th>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Brand</th>
-                <th style={thtd}>Unit</th>
-                <th style={thtd}>Type</th>
-                <th style={thtd}>Qty</th>
-              </tr>
-            </thead>
-            <tbody>
               {deletedTransactions.length === 0 && emptyRow(6, "No deleted history")}
               {deletedTransactions.map(t => (
                 <tr key={t.id}>
@@ -419,6 +270,15 @@ export default function App() {
                   <td style={thtd}>{t.unit || "-"}</td>
                   <td style={thtd}>{t.type}</td>
                   <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>
+                    <button onClick={() => restoreTransaction(t.id)}>Restore</button>
+                    <button
+                      style={{ marginLeft: 8, color: "#d32f2f" }}
+                      onClick={() => permanentlyDelete(t.id)}
+                    >
+                      Delete Permanently
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
