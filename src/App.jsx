@@ -85,8 +85,26 @@ export default function App() {
     return { ...item, stock, total: stock * item.unit_price };
   });
 
-  // 📅 MONTHLY REPORT (CURRENT MONTH)
-  const currentMonth = new Date().toISOString().slice(0, 7);
+  // 📅 MONTHLY REPORT (SELECTABLE MONTH)
+  const [reportMonth, setReportMonth] = useState(
+    new Date().toISOString().slice(0, 7)
+  );
+
+  const monthlyReport = items.map(item => {
+    const monthlyTx = transactions.filter(t =>
+      t.item_id === item.id && t.date.startsWith(reportMonth)
+    );
+
+    const totalIn = monthlyTx
+      .filter(t => t.type === "IN")
+      .reduce((s, t) => s + t.quantity, 0);
+
+    const totalOut = monthlyTx
+      .filter(t => t.type === "OUT")
+      .reduce((s, t) => s + t.quantity, 0);
+
+    return { ...item, totalIn, totalOut };
+  });
 
   const monthlyReport = items.map(item => {
     const monthlyTx = transactions.filter(t =>
@@ -181,7 +199,36 @@ export default function App() {
         </tbody>
       </table>
 
-      <h2>Monthly Report ({currentMonth})</h2>
+      <h2>Monthly Report</h2>
+
+      <label>
+        Select Month:{" "}
+        <input
+          type="month"
+          value={reportMonth}
+          onChange={e => setReportMonth(e.target.value)}
+        />
+      </label>
+
+      <button
+        onClick={() => {
+          const rows = [
+            ["Item", "Total IN", "Total OUT"],
+            ...monthlyReport.map(r => [r.item_name, r.totalIn, r.totalOut])
+          ];
+          const csv = rows.map(r => r.join(",")).join("
+");
+          const blob = new Blob([csv], { type: "text/csv" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `monthly-report-${reportMonth}.csv`;
+          a.click();
+        }}
+      >
+        Export CSV
+      </button>
+
       <table border="1" cellPadding="5">
         <thead>
           <tr><th>Item</th><th>Total IN</th><th>Total OUT</th></tr>
