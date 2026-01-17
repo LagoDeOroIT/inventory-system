@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import * as XLSX from "xlsx";
 import { createClient } from "@supabase/supabase-js";
 
 // ✅ SUPABASE CONFIG
@@ -148,6 +149,32 @@ export default function App() {
 
   // 📅 MONTHLY REPORT
   const [reportMonth, setReportMonth] = useState(new Date().toISOString().slice(0, 7));
+
+  const monthlyReport = items.map(item => {
+    const monthlyTx = transactions.filter(
+      t => t.item_id === item.id && t.date.startsWith(reportMonth)
+    );
+
+    const totalIn = monthlyTx.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
+    const totalOut = monthlyTx.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
+
+    return { ...item, totalIn, totalOut };
+  });
+
+  // 📁 EXPORT MONTHLY REPORT TO EXCEL
+  function exportMonthlyReport() {
+    const data = monthlyReport.map(r => ({
+      Item: r.item_name,
+      "Total IN": r.totalIn,
+      "Total OUT": r.totalOut,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Report");
+
+    XLSX.writeFile(workbook, `Monthly_Report_${reportMonth}.xlsx`);
+  }
 
   const monthlyReport = items.map(item => {
     const monthlyTx = transactions.filter(
@@ -314,6 +341,9 @@ export default function App() {
 
       <h2>Monthly Report</h2>
       <input type="month" value={reportMonth} onChange={e => setReportMonth(e.target.value)} />
+      <button onClick={exportMonthlyReport} style={{ marginLeft: 10 }}>
+        Export to Excel
+      </button>
 
       <table border="1" cellPadding="5">
         <thead><tr><th>Item</th><th>Total IN</th><th>Total OUT</th></tr></thead>
