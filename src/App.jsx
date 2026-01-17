@@ -331,35 +331,24 @@ export default function App() {
 
       <h2>Monthly Report</h2>
 
-{/* 🔴 EXPORT CONTROLS (FORCED VISIBLE) */}
+{/* 🔴 EXPORT CONTROLS (ALWAYS VISIBLE) */}
 <div style={{
   display: 'flex',
   alignItems: 'center',
   gap: 12,
   padding: 12,
-  border: '2px solid #000',
-  background: '#f5f5f5',
+  border: '2px solid red',
+  background: '#fff3cd',
   marginBottom: 15
 }}>
   <input
     type="month"
     value={reportMonth}
     onChange={e => setReportMonth(e.target.value)}
-    style={{ padding: 6 }}
   />
 
-  <button
-    onClick={exportMonthlyReport}
-    style={{
-      padding: '8px 14px',
-      background: '#000',
-      color: '#fff',
-      border: 'none',
-      cursor: 'pointer',
-      fontWeight: 'bold'
-    }}
-  >
-    ⬇ Export to Excel
+  <button onClick={exportMonthlyReport}>
+    Export Monthly Report to Excel
   </button>
 </div>
 
