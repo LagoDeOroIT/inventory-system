@@ -43,6 +43,8 @@ export default function App() {
     date: "",
   });
 
+  const selectedItem = items.find(i => i.id === Number(form.item_id));
+
   const [itemSearch, setItemSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const searchRef = useRef(null);
@@ -214,6 +216,14 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {selectedItem && (
+        <div style={{ marginTop: 10, padding: 8, border: "1px solid #ddd" }}>
+          <div><strong>Brand:</strong> {selectedItem.brand}</div>
+          <div><strong>Unit:</strong> {selectedItem.unit}</div>
+          <div><strong>Volume / Pack:</strong> {selectedItem.volume_pack}</div>
+        </div>
+      )}
 
       <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
         <option value="IN">IN</option>
