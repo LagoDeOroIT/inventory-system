@@ -6,6 +6,26 @@ const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
 const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+const tableStyle = {
+  width: "100%",
+  borderCollapse: "collapse",
+  marginTop: 10,
+};
+
+const thtd = {
+  border: "1px solid #ccc",
+  padding: "8px",
+  textAlign: "left",
+};
+
+const emptyRow = (colSpan, text) => (
+  <tr>
+    <td colSpan={colSpan} style={{ textAlign: "center", padding: 12 }}>
+      {text}
+    </td>
+  </tr>
+);
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState("staff");
@@ -29,55 +49,41 @@ export default function App() {
 
   // AUTH
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setRole(data.session?.user?.user_metadata?.role || "staff");
-    });
+  supabase.auth.getSession().then(({ data }) => {
+    setSession(data.session);
+    setRole(data.session?.user?.user_metadata?.role || "staff");
+  });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-      setRole(s?.user?.user_metadata?.role || "staff");
-    });
+  const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => {
+    setSession(s);
+    setRole(s?.user?.user_metadata?.role || "staff");
+  });
 
-    const tableStyle = {
-  width: "100%",
-  borderCollapse: "collapse",
-  marginTop: 10,
-};
-
-const thtd = {
-  border: "1px solid #ccc",
-  padding: "8px",
-  textAlign: "left",
-};
-
-const emptyRow = (colSpan, text) => (
-  <tr><td colSpan={colSpan} style={{ textAlign: "center", padding: 12 }}>{text}</td></tr>
-);
-
-return () => listener.subscription.unsubscribe();
-  }, []);
+  return () => listener.subscription.unsubscribe();
+}, []);
 
   // LOAD DATA
   async function loadData() {
-    const { data: itemsData } = await supabase.from("items").select("id, item_name, brand, unit, volume_pack, unit_price")("*");
+  const { data: itemsData } = await supabase
+    .from("items")
+    .select("id, item_name, brand, unit, volume_pack, unit_price");
 
-    const { data: tx } = await supabase
-      .from("inventory_transactions")
-      .select("*, items(item_name)")
-      .or("deleted.is.null,deleted.eq.false")
-      .order("date", { ascending: false });
+  const { data: tx } = await supabase
+    .from("inventory_transactions")
+    .select("*, items(item_name, brand, unit, volume_pack)")
+    .or("deleted.is.null,deleted.eq.false")
+    .order("date", { ascending: false });
 
-    const { data: deletedTx } = await supabase
-      .from("inventory_transactions")
-      .select("*, items(item_name)")
-      .eq("deleted", true)
-      .order("date", { ascending: false });
+  const { data: deletedTx } = await supabase
+    .from("inventory_transactions")
+    .select("*, items(item_name)")
+    .eq("deleted", true)
+    .order("date", { ascending: false });
 
-    setItems(itemsData || []);
-    setTransactions(tx || []);
-    setDeletedTransactions(deletedTx || []);
-  }
+  setItems(itemsData || []);
+  setTransactions(tx || []);
+  setDeletedTransactions(deletedTx || []);
+}
 
   useEffect(() => {
     if (session) loadData();
