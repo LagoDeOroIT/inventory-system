@@ -22,6 +22,9 @@ export default function App() {
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
+  const [showDeleted, setShowDeleted] = useState(false);
+
+([]);
   const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
@@ -121,15 +124,21 @@ export default function App() {
   }
 
   async function deleteTransaction(id) {
-    const confirmDelete = window.confirm("Are you sure you want to delete this transaction?");
+    const confirmDelete = window.confirm("Are you sure you want to delete this transaction?
+This will move it to Delete History.");
     if (!confirmDelete) return;
 
-    await supabase
+    const { error } = await supabase
       .from("inventory_transactions")
       .update({ deleted: true, deleted_at: new Date().toISOString() })
       .eq("id", id);
 
-    loadData();
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await loadData();
   }
 
   function editTransaction(t) {
@@ -280,32 +289,40 @@ export default function App() {
         </tbody>
       </table>
 
-      <h2>Deleted History</h2>
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thtd}>Date</th>
-            <th style={thtd}>Item</th>
-            <th style={thtd}>Brand</th>
-            <th style={thtd}>Unit</th>
-            <th style={thtd}>Type</th>
-            <th style={thtd}>Qty</th>
-          </tr>
-        </thead>
-        <tbody>
-          {deletedTransactions.length === 0 && emptyRow(6, "No deleted history")}
-          {deletedTransactions.map(t => (
-            <tr key={t.id}>
-              <td style={thtd}>{t.date}</td>
-              <td style={thtd}>{t.items?.item_name}</td>
-              <td style={thtd}>{t.brand || "-"}</td>
-              <td style={thtd}>{t.unit || "-"}</td>
-              <td style={thtd}>{t.type}</td>
-              <td style={thtd}>{t.quantity}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <button onClick={() => setShowDeleted(!showDeleted)}>
+        {showDeleted ? "Hide Delete History" : "Show Delete History"}
+      </button>
+
+      {showDeleted && (
+        <>
+          <h2>Deleted History</h2>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Date</th>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Unit</th>
+                <th style={thtd}>Type</th>
+                <th style={thtd}>Qty</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deletedTransactions.length === 0 && emptyRow(6, "No deleted history")}
+              {deletedTransactions.map(t => (
+                <tr key={t.id}>
+                  <td style={thtd}>{t.date}</td>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.brand || "-"}</td>
+                  <td style={thtd}>{t.unit || "-"}</td>
+                  <td style={thtd}>{t.type}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )
 
       <h2>Monthly Report</h2>
       <table style={tableStyle}>
