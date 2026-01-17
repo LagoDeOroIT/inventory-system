@@ -139,4 +139,100 @@ export default function App() {
     </div>
   );
 }
-}
+
+  return (
+  <div style={{ padding: 20 }}>
+    <h1>Inventory System</h1>
+
+    {/* ADD TRANSACTION */}
+    <div>
+      <select
+        value={form.item_id}
+        onChange={e => setForm({ ...form, item_id: e.target.value })}
+      >
+        <option value="">Select Item</option>
+        {items.map(i => (
+          <option key={i.id} value={i.id}>
+            {i.item_name}
+          </option>
+        ))}
+      </select>
+
+      <select
+        value={form.type}
+        onChange={e => setForm({ ...form, type: e.target.value })}
+      >
+        <option value="IN">IN</option>
+        <option value="OUT">OUT</option>
+      </select>
+
+      <input
+        type="number"
+        value={form.quantity}
+        onChange={e => setForm({ ...form, quantity: e.target.value })}
+      />
+
+      <input
+        type="date"
+        value={form.date}
+        onChange={e => setForm({ ...form, date: e.target.value })}
+      />
+
+      <button onClick={addTransaction}>
+        {editingId ? "Update" : "Save"}
+      </button>
+    </div>
+
+    {/* TRANSACTIONS TABLE */}
+    <table border="1" cellPadding="5">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Item</th>
+          <th>Type</th>
+          <th>Qty</th>
+          <th>Unit Price</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {transactions.map(t => (
+          <tr key={t.id}>
+            <td>{t.date}</td>
+            <td>{t.items?.item_name}</td>
+            <td>{t.type}</td>
+            <td>{t.quantity}</td>
+            <td>{t.unit_price}</td>
+            <td>
+              <button onClick={() => deleteTransaction(t.id)}>Delete</button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    {/* STOCK SUMMARY */}
+    <h2>Current Stock Summary</h2>
+    <table border="1" cellPadding="5">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Stock</th>
+          <th>Unit Price</th>
+          <th>Total Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {stockByItem.map(i => (
+          <tr key={i.id}>
+            <td>{i.item_name}</td>
+            <td>{i.stock}</td>
+            <td>{i.unit_price}</td>
+            <td>{i.totalValue}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
