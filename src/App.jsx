@@ -21,6 +21,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
@@ -61,8 +62,15 @@ export default function App() {
       .or("deleted.is.null,deleted.eq.false")
       .order("date", { ascending: false });
 
+    const { data: deletedTx } = await supabase
+      .from("inventory_transactions")
+      .select("*, items(item_name)")
+      .eq("deleted", true)
+      .order("deleted_at", { ascending: false });
+
     setItems(itemsData || []);
     setTransactions(tx || []);
+    setDeletedTransactions(deletedTx || []);
   }
 
   useEffect(() => {
@@ -98,6 +106,18 @@ export default function App() {
     setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "" });
     setItemSearch("");
     setEditingId(null);
+    loadData();
+  }
+
+  async function deleteTransaction(id) {
+    const confirmDelete = window.confirm("Are you sure you want to delete this transaction?");
+    if (!confirmDelete) return;
+
+    await supabase
+      .from("inventory_transactions")
+      .update({ deleted: true, deleted_at: new Date().toISOString() })
+      .eq("id", id);
+
     loadData();
   }
 
@@ -215,6 +235,7 @@ export default function App() {
               <td style={thtd}>{t.quantity}</td>
               <td style={thtd}>
                 <button onClick={() => editTransaction(t)}>Edit</button>
+                <button onClick={() => deleteTransaction(t.id)}>Delete</button>
               </td>
             </tr>
           ))}
