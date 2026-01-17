@@ -10,7 +10,10 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [deletedTransactions, setDeletedTransactions] = useState([]);
+  const [showDeleted, setShowDeleted] = useState(false);
   const [recentlyDeleted, setRecentlyDeleted] = useState(null);([]);
+  
   const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
@@ -40,15 +43,23 @@ export default function App() {
   // 📥 LOAD DATA
   async function loadData() {
     const { data: items } = await supabase.from("items").select("*");
+
     const { data: tx } = await supabase
       .from("inventory_transactions")
       .select("*, items(item_name)")
       .eq("deleted", false)
+      .order("date", { ascending: false });
+
+    const { data: deletedTx } = await supabase
+      .from("inventory_transactions")
       .select("*, items(item_name)")
+      .eq("deleted", true)
       .order("date", { ascending: false });
 
     setItems(items || []);
     setTransactions(tx || []);
+    setDeletedTransactions(deletedTx || []);
+  }(tx || []);
   }
 
   useEffect(() => {
@@ -85,7 +96,7 @@ export default function App() {
   // 🗑 DELETE
   async function deleteTransaction(id) {
     const confirmDelete = window.confirm(
-      "Are you sure you want to delete this transaction? You can undo this action."
+      "Are you sure you want to delete this transaction? You can recover it later."
     );
     if (!confirmDelete) return;
 
@@ -100,17 +111,17 @@ export default function App() {
     loadData();
   }
 
-  async function undoDelete() {
-    if (!recentlyDeleted) return;
-
+  async function recoverTransaction(id) {
     await supabase
       .from("inventory_transactions")
       .update({ deleted: false })
-      .eq("id", recentlyDeleted.id);
+      .eq("id", id);
 
     setRecentlyDeleted(null);
     loadData();
   }
+
+  
 
   // ✏️ EDIT
   function editTransaction(t) {
@@ -225,11 +236,16 @@ export default function App() {
       {recentlyDeleted && (
         <div style={{ background: '#ffeeba', padding: 10, marginBottom: 10 }}>
           Transaction deleted.
-          <button onClick={undoDelete} style={{ marginLeft: 10 }}>
+          <button onClick={() => recoverTransaction(recentlyDeleted.id)} style={{ marginLeft: 10 }}>
             Undo
           </button>
         </div>
-      )
+      )}
+
+      <button onClick={() => setShowDeleted(!showDeleted)}>
+        {showDeleted ? "Hide Deleted History" : "View Deleted History"}
+      </button>
+
       <table border="1" cellPadding="5">
         <thead>
           <tr><th>Date</th><th>Item</th><th>Type</th><th>Qty</th><th>Action</th></tr>
@@ -249,6 +265,30 @@ export default function App() {
           ))}
         </tbody>
       </table>
+
+      {showDeleted && (
+        <>
+          <h2>Deleted Transactions</h2>
+          <table border="1" cellPadding="5">
+            <thead>
+              <tr><th>Date</th><th>Item</th><th>Type</th><th>Qty</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              {deletedTransactions.map(t => (
+                <tr key={t.id}>
+                  <td>{t.date}</td>
+                  <td>{t.items?.item_name}</td>
+                  <td>{t.type}</td>
+                  <td>{t.quantity}</td>
+                  <td>
+                    <button onClick={() => recoverTransaction(t.id)}>Recover</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
 
       <h2>Stock Summary</h2>
       <table border="1" cellPadding="5">
