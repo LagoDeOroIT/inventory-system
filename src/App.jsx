@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ✅ SUPABASE CONFIG
@@ -19,11 +19,9 @@ export default function App() {
     date: "",
   });
 
-  // 🔍 ITEM SEARCH
+  // 🔍 SINGLE SEARCH BAR STATE
   const [itemSearch, setItemSearch] = useState("");
-  const searchRef = React.useRef(null);
-
-  const [itemSearch, setItemSearch] = useState("");
+  const searchRef = useRef(null);
 
   // 🔐 AUTH
   useEffect(() => {
@@ -54,7 +52,7 @@ export default function App() {
     if (session) loadData();
   }, [session]);
 
-  // ➕ ADD / ✏️ UPDATE TRANSACTION
+  // ➕ ADD / ✏️ UPDATE
   async function saveTransaction() {
     if (!form.item_id || !form.quantity) return alert("Complete the form");
 
@@ -70,15 +68,13 @@ export default function App() {
     };
 
     if (editingId) {
-      await supabase
-        .from("inventory_transactions")
-        .update(payload)
-        .eq("id", editingId);
+      await supabase.from("inventory_transactions").update(payload).eq("id", editingId);
     } else {
       await supabase.from("inventory_transactions").insert(payload);
     }
 
     setForm({ item_id: "", type: "IN", quantity: 0, date: "" });
+    setItemSearch("");
     setEditingId(null);
     loadData();
   }
@@ -98,6 +94,7 @@ export default function App() {
       quantity: t.quantity,
       date: t.date,
     });
+    setItemSearch(t.items?.item_name || "");
   }
 
   // 📊 STOCK SUMMARY
@@ -110,41 +107,21 @@ export default function App() {
   });
 
   // 📅 MONTHLY REPORT
-  const [reportMonth, setReportMonth] = useState(
-    new Date().toISOString().slice(0, 7)
-  );
+  const [reportMonth, setReportMonth] = useState(new Date().toISOString().slice(0, 7));
 
   const monthlyReport = items.map(item => {
     const monthlyTx = transactions.filter(
       t => t.item_id === item.id && t.date.startsWith(reportMonth)
     );
 
-    const totalIn = monthlyTx
-      .filter(t => t.type === "IN")
-      .reduce((s, t) => s + t.quantity, 0);
-
-    const totalOut = monthlyTx
-      .filter(t => t.type === "OUT")
-      .reduce((s, t) => s + t.quantity, 0);
+    const totalIn = monthlyTx.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
+    const totalOut = monthlyTx.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
 
     return { ...item, totalIn, totalOut };
   });
 
-  // 🔑 LOGIN
-  if (!session) {
-    return (
-      <div style={{ padding: 40 }}>
-        <h2>Inventory Login</h2>
-        <button
-          onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}
-        >
-          Login with Google
-        </button>
-      </div>
-    );
-  }
-
-    useEffect(() => {
+  // 🖱 CLOSE DROPDOWN ON OUTSIDE CLICK
+  useEffect(() => {
     function handleClickOutside(e) {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
         setItemSearch("");
@@ -154,16 +131,24 @@ export default function App() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // 🔑 LOGIN
+  if (!session) {
+    return (
+      <div style={{ padding: 40 }}>
+        <h2>Inventory Login</h2>
+        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>
+          Login with Google
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: 20 }}>
       <h1>Inventory System</h1>
 
-      
-
-      <div
-        ref={searchRef}
-        style={{ position: "relative", display: "inline-block", width: 220 }}
-      >
+      {/* 🔍 SEARCHABLE ITEM SELECT */}
+      <div ref={searchRef} style={{ position: "relative", display: "inline-block", width: 220 }}>
         <input
           type="text"
           placeholder="Search item..."
@@ -173,25 +158,9 @@ export default function App() {
         />
 
         {itemSearch && (
-          <div
-            style={{
-              position: "absolute",
-              top: "100%",
-              left: 0,
-              right: 0,
-              background: "#fff",
-              border: "1px solid #ccc",
-              zIndex: 10,
-              maxHeight: 150,
-              overflowY: "auto"
-            }}
-          >
+          <div style={{ position: "absolute", top: "100%", left: 0, right: 0, border: "1px solid #ccc", background: "#fff", zIndex: 10 }}>
             {items
-              .filter(i =>
-                i.item_name
-                  .toLowerCase()
-                  .includes(itemSearch.toLowerCase())
-              )
+              .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
               .map(i => (
                 <div
                   key={i.id}
@@ -207,53 +176,20 @@ export default function App() {
           </div>
         )}
       </div>
-        ))}
-    </div>
-  )}
-</div>
-              ))}
-          </div>
-        )}
-      </div>
-        ))}
-    </div>
-  )}
-</div>
 
-
-      <select
-        value={form.type}
-        onChange={e => setForm({ ...form, type: e.target.value })}
-      >
+      <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
         <option value="IN">IN</option>
         <option value="OUT">OUT</option>
       </select>
 
-      <input
-        type="number"
-        value={form.quantity}
-        onChange={e => setForm({ ...form, quantity: e.target.value })}
-      />
-      <input
-        type="date"
-        value={form.date}
-        onChange={e => setForm({ ...form, date: e.target.value })}
-      />
-
-      <button onClick={saveTransaction}>
-        {editingId ? "Update" : "Save"}
-      </button>
+      <input type="number" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} />
+      <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+      <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
 
       <h2>Transactions</h2>
       <table border="1" cellPadding="5">
         <thead>
-          <tr>
-            <th>Date</th>
-            <th>Item</th>
-            <th>Type</th>
-            <th>Qty</th>
-            <th>Action</th>
-          </tr>
+          <tr><th>Date</th><th>Item</th><th>Type</th><th>Qty</th><th>Action</th></tr>
         </thead>
         <tbody>
           {transactions.map(t => (
@@ -273,46 +209,22 @@ export default function App() {
 
       <h2>Stock Summary</h2>
       <table border="1" cellPadding="5">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Stock</th>
-            <th>Total</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Item</th><th>Stock</th><th>Total</th></tr></thead>
         <tbody>
           {stockByItem.map(i => (
-            <tr key={i.id}>
-              <td>{i.item_name}</td>
-              <td>{i.stock}</td>
-              <td>{i.total}</td>
-            </tr>
+            <tr key={i.id}><td>{i.item_name}</td><td>{i.stock}</td><td>{i.total}</td></tr>
           ))}
         </tbody>
       </table>
 
       <h2>Monthly Report</h2>
-      <input
-        type="month"
-        value={reportMonth}
-        onChange={e => setReportMonth(e.target.value)}
-      />
+      <input type="month" value={reportMonth} onChange={e => setReportMonth(e.target.value)} />
 
       <table border="1" cellPadding="5">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Total IN</th>
-            <th>Total OUT</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Item</th><th>Total IN</th><th>Total OUT</th></tr></thead>
         <tbody>
           {monthlyReport.map(r => (
-            <tr key={r.id}>
-              <td>{r.item_name}</td>
-              <td>{r.totalIn}</td>
-              <td>{r.totalOut}</td>
-            </tr>
+            <tr key={r.id}><td>{r.item_name}</td><td>{r.totalIn}</td><td>{r.totalOut}</td></tr>
           ))}
         </tbody>
       </table>
