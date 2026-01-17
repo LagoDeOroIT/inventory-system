@@ -150,17 +150,7 @@ export default function App() {
   // 📅 MONTHLY REPORT
   const [reportMonth, setReportMonth] = useState(new Date().toISOString().slice(0, 7));
 
-  const monthlyReport = items.map(item => {
-    const monthlyTx = transactions.filter(
-      t => t.item_id === item.id && t.date.startsWith(reportMonth)
-    );
-
-    const totalIn = monthlyTx.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
-    const totalOut = monthlyTx.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
-
-    return { ...item, totalIn, totalOut };
-  });
-
+  
   // 📁 EXPORT MONTHLY REPORT TO EXCEL
   function exportMonthlyReport() {
     const data = monthlyReport.map(r => ({
@@ -340,14 +330,40 @@ export default function App() {
       </table>
 
       <h2>Monthly Report</h2>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-        <input type="month" value={reportMonth} onChange={e => setReportMonth(e.target.value)} />
-        <button onClick={exportMonthlyReport}>
-          Export to Excel
-        </button>
-      </div>
 
-      <table border="1" cellPadding="5">
+{/* 🔴 EXPORT CONTROLS (FORCED VISIBLE) */}
+<div style={{
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  padding: 12,
+  border: '2px solid #000',
+  background: '#f5f5f5',
+  marginBottom: 15
+}}>
+  <input
+    type="month"
+    value={reportMonth}
+    onChange={e => setReportMonth(e.target.value)}
+    style={{ padding: 6 }}
+  />
+
+  <button
+    onClick={exportMonthlyReport}
+    style={{
+      padding: '8px 14px',
+      background: '#000',
+      color: '#fff',
+      border: 'none',
+      cursor: 'pointer',
+      fontWeight: 'bold'
+    }}
+  >
+    ⬇ Export to Excel
+  </button>
+</div>
+
+<table border="1" cellPadding="5">
         <thead><tr><th>Item</th><th>Total IN</th><th>Total OUT</th></tr></thead>
         <tbody>
           {monthlyReport.map(r => (
