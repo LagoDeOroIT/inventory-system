@@ -39,7 +39,23 @@ export default function App() {
       setRole(s?.user?.user_metadata?.role || "staff");
     });
 
-    return () => listener.subscription.unsubscribe();
+    const tableStyle = {
+  width: "100%",
+  borderCollapse: "collapse",
+  marginTop: 10,
+};
+
+const thtd = {
+  border: "1px solid #ccc",
+  padding: "8px",
+  textAlign: "left",
+};
+
+const emptyRow = (colSpan, text) => (
+  <tr><td colSpan={colSpan} style={{ textAlign: "center", padding: 12 }}>{text}</td></tr>
+);
+
+return () => listener.subscription.unsubscribe();
   }, []);
 
   // LOAD DATA
@@ -205,18 +221,19 @@ export default function App() {
 
       <h2>Transactions</h2>
 
-      <table border="1" cellPadding="5">
+      <table style={tableStyle}>
         <thead>
-          <tr><th>Date</th><th>Item</th><th>Type</th><th>Qty</th><th>Action</th></tr>
+          <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Type</th><th style={thtd}>Qty</th><th style={thtd}>Action</th></tr>
         </thead>
         <tbody>
+          {transactions.length === 0 && emptyRow(5, "No transactions yet")}
           {transactions.map(t => (
             <tr key={t.id}>
-              <td>{t.date}</td>
-              <td>{t.items?.item_name}</td>
-              <td>{t.type}</td>
-              <td>{t.quantity}</td>
-              <td>
+              <td style={thtd}>{t.date}</td>
+              <td style={thtd}>{t.items?.item_name}</td>
+              <td style={thtd}>{t.type}</td>
+              <td style={thtd}>{t.quantity}</td>
+              <td style={thtd}>
                 <button onClick={() => editTransaction(t)}>Edit</button>{" "}
                 <button onClick={() => setConfirmDeleteId(t.id)}>Delete</button>
               </td>
@@ -236,20 +253,21 @@ export default function App() {
       )}
 
       <h2>Stock Summary</h2>
-      <table border="1" cellPadding="5">
+      <table style={tableStyle}>
         <thead>
           <tr>
-            <th>Item</th>
-            <th>Stock</th>
-            <th>Total Value</th>
+            <th style={thtd}>Item</th>
+            <th style={thtd}>Stock</th>
+            <th style={thtd}>Total Value</th>
           </tr>
         </thead>
         <tbody>
+          {stockByItem.length === 0 && emptyRow(3, "No stock data")}
           {stockByItem.map(i => (
             <tr key={i.id}>
-              <td>{i.item_name}</td>
-              <td>{i.stock}</td>
-              <td>{i.total}</td>
+              <td style={thtd}>{i.item_name}</td>
+              <td style={thtd}>{i.stock}</td>
+              <td style={thtd}>{i.total}</td>
             </tr>
           ))}
         </tbody>
@@ -258,11 +276,12 @@ export default function App() {
       <h2>Monthly Report</h2>
       <input type="month" value={reportMonth} onChange={e => setReportMonth(e.target.value)} />
 
-      <table border="1" cellPadding="5">
-        <thead><tr><th>Item</th><th>Total IN</th><th>Total OUT</th></tr></thead>
+      <table style={tableStyle}>
+        <thead><tr><th style={thtd}>Item</th><th style={thtd}>Total IN</th><th style={thtd}>Total OUT</th></tr></thead>
         <tbody>
+          {monthlyReport.length === 0 && emptyRow(3, "No report data")}
           {monthlyReport.map(r => (
-            <tr key={r.id}><td>{r.item_name}</td><td>{r.totalIn}</td><td>{r.totalOut}</td></tr>
+            <tr key={r.id}><td style={thtd}>{r.item_name}</td><td style={thtd}>{r.totalIn}</td><td style={thtd}>{r.totalOut}</td></tr>
           ))}
         </tbody>
       </table>
@@ -272,20 +291,20 @@ export default function App() {
       </button>
 
       {showDeleted && (
-        <table border="1" cellPadding="5">
+        <table style={tableStyle}>
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Item</th>
-              <th>Action</th>
+              <th style={thtd}>Date</th>
+              <th style={thtd}>Item</th>
+              <th style={thtd}>Action</th>
             </tr>
           </thead>
           <tbody>
             {deletedTransactions.map(t => (
               <tr key={t.id}>
-                <td>{t.date}</td>
-                <td>{t.items?.item_name}</td>
-                <td>
+                <td style={thtd}>{t.date}</td>
+                <td style={thtd}>{t.items?.item_name}</td>
+                <td style={thtd}>
                   <button onClick={() => recoverTransaction(t.id)}>Recover</button>
                 </td>
               </tr>
