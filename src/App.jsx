@@ -57,7 +57,19 @@ export default function App() {
   }
 
   if (!session) {
-    return (
+      // 📊 COMPUTED STOCK PER ITEM
+  const stockByItem = items.map(item => {
+    const stock = transactions
+      .filter(t => t.item_id === item.id)
+      .reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
+    return {
+      ...item,
+      stock,
+      totalValue: stock * item.unit_price,
+    };
+  });
+
+  return (
       <div style={{ padding: 40 }}>
         <h2>Inventory Login</h2>
         <button onClick={() => supabase.auth.signInWithPassword({ email: prompt("Email"), password: prompt("Password") })}>
@@ -105,6 +117,28 @@ export default function App() {
               <td>{t.type}</td>
               <td>{t.quantity}</td>
               <td>{t.unit_price}</td>
+            </tr>
+          ))}
+        </tbody>
+            </table>
+
+      <h3 style={{ marginTop: 30 }}>Current Stock Summary</h3>
+      <table border="1" cellPadding="5">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Stock</th>
+            <th>Unit Price</th>
+            <th>Total Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {stockByItem.map(i => (
+            <tr key={i.id}>
+              <td>{i.item_name}</td>
+              <td>{i.stock}</td>
+              <td>{i.unit_price}</td>
+              <td>{i.totalValue}</td>
             </tr>
           ))}
         </tbody>
