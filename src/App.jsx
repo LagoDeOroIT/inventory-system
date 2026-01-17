@@ -61,6 +61,24 @@ export default function App() {
     loadData();
   }
 
+  // 🗑️ DELETE TRANSACTION
+  async function deleteTransaction(id) {
+    const ok = window.confirm("Delete this transaction?");
+    if (!ok) return;
+
+    const { error } = await supabase
+      .from("inventory_transactions")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    loadData();
+  }
+
   // 📊 STOCK SUMMARY
   const stockByItem = items.map(item => {
     const stock = transactions
@@ -139,6 +157,7 @@ export default function App() {
             <th>Type</th>
             <th>Qty</th>
             <th>Unit Price</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -149,6 +168,9 @@ export default function App() {
               <td>{t.type}</td>
               <td>{t.quantity}</td>
               <td>{t.unit_price}</td>
+              <td>
+                <button onClick={() => deleteTransaction(t.id)}>Delete</button>
+              </td>
             </tr>
           ))}
         </tbody>
