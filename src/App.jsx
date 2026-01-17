@@ -350,18 +350,3 @@ export default function App() {
     </div>
   );
 }
-async function makeMeAdmin() {
-  const { error } = await supabase.auth.updateUser({
-    data: { role: "admin" }
-  });
-
-  if (error) {
-    alert(error.message);
-  } else {
-    alert("Role updated to admin. Please log out and log in again.");
-  }
-}
-<button onClick={makeMeAdmin}>
-  Make Me Admin (one time)
-</button>
-
