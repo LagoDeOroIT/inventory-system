@@ -56,8 +56,7 @@ export default function App() {
     loadData();
   }
 
-  if (!session) {
-      // 📊 COMPUTED STOCK PER ITEM
+  // 📊 COMPUTED STOCK PER ITEM
   const stockByItem = items.map(item => {
     const stock = transactions
       .filter(t => t.item_id === item.id)
@@ -67,6 +66,18 @@ export default function App() {
       stock,
       totalValue: stock * item.unit_price,
     };
+  });
+
+  if (!session) {
+    return (
+      <div style={{ padding: 40 }}>
+        <h2>Inventory Login</h2>
+        <button onClick={() => supabase.auth.signInWithPassword({ email: prompt("Email"), password: prompt("Password") })}>
+          Login
+        </button>
+      </div>
+    );
+  };
   });
 
   return (
@@ -146,3 +157,4 @@ export default function App() {
     </div>
   );
 }
+
