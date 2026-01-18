@@ -292,8 +292,6 @@ export default function App() {
     </thead>
     <tbody>
       {transactions.length === 0 && emptyRow(7, "No transactions")}
-      
-)
       {transactions.map(t => (
         <tr key={t.id}>
           <td style={thtd}>{t.date}</td>
@@ -325,20 +323,54 @@ export default function App() {
       }}
       style={{ marginBottom: 8 }}
     />
-  <table style={tableStyle}>
-    <thead>
-      <tr>
-        <th style={thtd}>Date</th>
-        <th style={thtd}>Item</th>
-        <th style={thtd}>Brand</th>
-        <th style={thtd}>Unit</th>
-        <th style={thtd}>Type</th>
-        <th style={thtd}>Qty</th>
-        <th style={thtd}>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {deletedTransactions.length === 0 && emptyRow(7, "No deleted history")}
+    <table style={tableStyle}>
+      <thead>
+        <tr>
+          <th style={thtd}>Date</th>
+          <th style={thtd}>Item</th>
+          <th style={thtd}>Brand</th>
+          <th style={thtd}>Unit</th>
+          <th style={thtd}>Type</th>
+          <th style={thtd}>Qty</th>
+          <th style={thtd}>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {deletedTransactions.length === 0 && emptyRow(7, "No deleted history")}
+        {deletedTransactions
+          .filter(t =>
+            t.items?.item_name?.toLowerCase().includes(deleteSearch.toLowerCase())
+          )
+          .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+          .map(t => (
+            <tr key={t.id}>
+              <td style={thtd}>{t.date}</td>
+              <td style={thtd}>{t.items?.item_name}</td>
+              <td style={thtd}>{t.brand || "-"}</td>
+              <td style={thtd}>{t.unit || "-"}</td>
+              <td style={thtd}>{t.type}</td>
+              <td style={thtd}>{t.quantity}</td>
+              <td style={thtd}>
+                <button onClick={() => restoreTransaction(t.id)}>♻️</button>
+                <button
+                  style={{ marginLeft: 8, color: "#d32f2f" }}
+                  onClick={() => permanentlyDelete(t.id)}
+                >🗑️</button>
+              </td>
+            </tr>
+          ))}
+      </tbody>
+    </table>
+    <div style={{ marginTop: 8 }}>
+      <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>Prev</button>
+      <span style={{ margin: "0 8px" }}>Page {page}</span>
+      <button
+        disabled={page * PAGE_SIZE >= deletedTransactions.length}
+        onClick={() => setPage(p => p + 1)}
+      >Next</button>
+    </div>
+  </>
+)}
       {deletedTransactions
         .filter(t =>
           t.items?.item_name?.toLowerCase().includes(deleteSearch.toLowerCase())
