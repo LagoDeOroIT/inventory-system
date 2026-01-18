@@ -31,7 +31,7 @@ export default function App() {
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 5;
 
-  // Restore from delete history
+    // Restore from delete history
   async function restoreTransaction(id) {
     setConfirmModal({
       text: "Restore this transaction?",
@@ -45,10 +45,8 @@ export default function App() {
         loadData();
       },
     });
-  })
-      .eq("id", id);
-    loadData();
   }
+
 
   // Permanent delete
   async function permanentlyDelete(id) {
@@ -79,7 +77,7 @@ export default function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const searchRef = useRef(null);
 
-  // AUTH
+    // AUTH
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -89,32 +87,9 @@ export default function App() {
       setSession(s);
     });
 
-    return (
-    <>
-      {toast && (
-        <div style={{ position: "fixed", top: 20, right: 20, background: "#323232", color: "#fff", padding: 12 }}>
-          {toast}
-          <button style={{ marginLeft: 8 }} onClick={() => setToast(null)}>✖</button>
-        </div>
-      )}
-
-      {confirmModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ background: "#fff", padding: 20, width: 320 }}>
-            <p>{confirmModal.text}</p>
-            <div style={{ textAlign: "right" }}>
-              <button onClick={() => setConfirmModal(null)}>Cancel</button>
-              <button
-                style={{ marginLeft: 8, color: confirmModal.danger ? "#d32f2f" : "inherit" }}
-                onClick={confirmModal.onConfirm}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}) => listener.subscription.unsubscribe();
+    return () => listener.subscription.unsubscribe();
   }, []);
+
 
   // LOAD DATA
   async function loadData() {
@@ -188,18 +163,10 @@ export default function App() {
   // DELETE MODAL STATE
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  async function confirmDelete() {
+    async function confirmDelete() {
     if (!deleteTarget) return;
 
-    await supabase
-      .from("inventory_transactions")
-      .update({ deleted: true, deleted_at: new Date().toISOString() })
-      .eq("id", deleteTarget);
-
-    setToast("Transaction deleted (undo available)");
-    setDeleteTarget(null);
-    loadData();
-  } = await supabase
+    const { error } = await supabase
       .from("inventory_transactions")
       .update({ deleted: true, deleted_at: new Date().toISOString() })
       .eq("id", deleteTarget);
@@ -208,6 +175,11 @@ export default function App() {
       alert(error.message);
       return;
     }
+
+    setToast("Transaction deleted (undo available)");
+    setDeleteTarget(null);
+    loadData();
+  }
 
     setDeleteTarget(null);
     await loadData();
