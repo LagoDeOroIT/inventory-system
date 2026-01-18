@@ -354,4 +354,10 @@ export default function App() {
     })()}
   </tbody>
 </table>
+      {/* PAGINATION FOR MONTHLY REPORT */}
+      {paginate(reportPage, setReportPage, Math.ceil(
+        transactions.filter(t => (!reportMonth || t.date?.startsWith(reportMonth))).length / REPORT_PAGE_SIZE
+      ))}
+    </div>
+  );
 }
