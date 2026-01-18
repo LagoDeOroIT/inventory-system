@@ -31,6 +31,11 @@ export default function App() {
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 5;
 
+  // Monthly report pagination + filter
+  const [reportMonth, setReportMonth] = useState("");
+  const [reportPage, setReportPage] = useState(1);
+  const REPORT_PAGE_SIZE = 5;
+
     // Restore from delete history
   async function restoreTransaction(id) {
     setConfirmModal({
@@ -326,7 +331,9 @@ export default function App() {
     </thead>
     <tbody>
       {transactions.length === 0 && emptyRow(7, "No transactions")}
-      {transactions.map(t => (
+      {transactions
+        .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+        .map(t => (
         <tr key={t.id}>
           <td style={thtd}>{t.date}</td>
           <td style={thtd}>{t.items?.item_name}</td>
@@ -416,31 +423,67 @@ export default function App() {
 )}
 
 <h2>Monthly Report</h2>
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thtd}>Item</th>
-            <th style={thtd}>Total IN</th>
-            <th style={thtd}>Total OUT</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.length === 0 && emptyRow(3, "No report data")}
-          {items.map(i => {
-            const monthly = transactions.filter(t => t.item_id === i.id);
-            const totalIn = monthly.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
-            const totalOut = monthly.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
 
-            return (
-              <tr key={i.id}>
-                <td style={thtd}>{i.item_name}</td>
-                <td style={thtd}>{totalIn}</td>
-                <td style={thtd}>{totalOut}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+{/* MONTH FILTER */}
+<div style={{ marginBottom: 8 }}>
+  <input
+    type="month"
+    value={reportMonth}
+    onChange={e => {
+      setReportMonth(e.target.value);
+      setReportPage(1);
+    }}
+  />
+</div>
+
+<table style={tableStyle}>
+  <thead>
+    <tr>
+      <th style={thtd}>Item</th>
+      <th style={thtd}>Total IN</th>
+      <th style={thtd}>Total OUT</th>
+    </tr>
+  </thead>
+  <tbody>
+    {items.length === 0 && emptyRow(3, "No report data")}
+    {items
+      .slice((reportPage - 1) * REPORT_PAGE_SIZE, reportPage * REPORT_PAGE_SIZE)
+      .map(i => {
+        const monthly = transactions.filter(t =>
+          t.item_id === i.id &&
+          (!reportMonth || t.date.startsWith(reportMonth))
+        );
+
+        const totalIn = monthly
+          .filter(t => t.type === "IN")
+          .reduce((s, t) => s + t.quantity, 0);
+
+        const totalOut = monthly
+          .filter(t => t.type === "OUT")
+          .reduce((s, t) => s + t.quantity, 0);
+
+        return (
+          <tr key={i.id}>
+            <td style={thtd}>{i.item_name}</td>
+            <td style={thtd}>{totalIn}</td>
+            <td style={thtd}>{totalOut}</td>
+          </tr>
+        );
+      })}
+  </tbody>
+</table>
+
+<div style={{ marginTop: 8 }}>
+  <button
+    disabled={reportPage === 1}
+    onClick={() => setReportPage(p => p - 1)}
+  >Prev</button>
+  <span style={{ margin: "0 8px" }}>Page {reportPage}</span>
+  <button
+    disabled={reportPage * REPORT_PAGE_SIZE >= items.length}
+    onClick={() => setReportPage(p => p + 1)}
+  >Next</button>
+</div>
     </div>
   );
 }
