@@ -176,42 +176,63 @@ export default function App() {
       <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
 
       {/* TRANSACTIONS */}
-      <h2>Transactions</h2>
-      <table style={tableStyle}>
-        <thead>
-          <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Volume</th><th style={thtd}>Qty</th><th style={thtd}>Actions</th></tr>
-        </thead>
-        <tbody>
-          {transactions.length === 0 && emptyRow(7, "No transactions")}
-          {transactions.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE).map(t => (
-            <tr key={t.id}>
-              <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-              <td style={thtd}>{t.items?.item_name}</td>
-              <td style={thtd}>{t.brand}</td>
-              <td style={thtd}>{t.unit}</td>
-              <td style={thtd}>{t.volume_pack}</td>
-              <td style={thtd}>{t.quantity}</td>
-              <td style={thtd}>
-                <button onClick={() => confirm("Edit this transaction?", () => {
-                  setEditingId(t.id);
-                  setForm({
-                    item_id: t.item_id,
-                    type: t.type,
-                    quantity: t.quantity,
-                    date: t.date,
-                    brand: t.brand || "",
-                    unit: t.unit || "",
-                    volume_pack: t.volume_pack || "",
-                  });
-                  setItemSearch(t.items?.item_name || "");
-                })}>✏️</button>
-                <button onClick={() => confirm("Delete transaction?", async()=>{ await supabase.from("inventory_transactions").update({deleted:true}).eq("id",t.id); loadData(); }, true)}>🗑️</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {paginate(page, setPage, Math.ceil(transactions.length / PAGE_SIZE))}
+<h2>Transactions - IN</h2>
+<table style={tableStyle}>
+  <thead>
+    <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Volume</th><th style={thtd}>Qty</th><th style={thtd}>Actions</th></tr>
+  </thead>
+  <tbody>
+    {transactions.filter(t=>t.type==="IN").length===0 && emptyRow(7,"No IN transactions")}
+    {transactions.filter(t=>t.type==="IN").slice((page-1)*PAGE_SIZE,page*PAGE_SIZE).map(t=> (
+      <tr key={t.id}>
+        <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+        <td style={thtd}>{t.items?.item_name}</td>
+        <td style={thtd}>{t.brand}</td>
+        <td style={thtd}>{t.unit}</td>
+        <td style={thtd}>{t.volume_pack}</td>
+        <td style={thtd}>{t.quantity}</td>
+        <td style={thtd}>
+          <button onClick={()=>confirm("Edit this transaction?",()=>{
+            setEditingId(t.id);
+            setForm({ item_id:t.item_id,type:t.type,quantity:t.quantity,date:t.date,brand:t.brand||"",unit:t.unit||"",volume_pack:t.volume_pack||""});
+            setItemSearch(t.items?.item_name||"");
+          })}>✏️</button>
+          <button onClick={()=>confirm("Delete transaction?",async()=>{await supabase.from("inventory_transactions").update({deleted:true}).eq("id",t.id);loadData();},true)}>🗑️</button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+{paginate(page,setPage,Math.ceil(transactions.filter(t=>t.type==="IN").length/PAGE_SIZE))}
+
+<h2 style={{marginTop:30}}>Transactions - OUT</h2>
+<table style={tableStyle}>
+  <thead>
+    <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Volume</th><th style={thtd}>Qty</th><th style={thtd}>Actions</th></tr>
+  </thead>
+  <tbody>
+    {transactions.filter(t=>t.type==="OUT").length===0 && emptyRow(7,"No OUT transactions")}
+    {transactions.filter(t=>t.type==="OUT").slice((page-1)*PAGE_SIZE,page*PAGE_SIZE).map(t=> (
+      <tr key={t.id}>
+        <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+        <td style={thtd}>{t.items?.item_name}</td>
+        <td style={thtd}>{t.brand}</td>
+        <td style={thtd}>{t.unit}</td>
+        <td style={thtd}>{t.volume_pack}</td>
+        <td style={thtd}>{t.quantity}</td>
+        <td style={thtd}>
+          <button onClick={()=>confirm("Edit this transaction?",()=>{
+            setEditingId(t.id);
+            setForm({ item_id:t.item_id,type:t.type,quantity:t.quantity,date:t.date,brand:t.brand||"",unit:t.unit||"",volume_pack:t.volume_pack||""});
+            setItemSearch(t.items?.item_name||"");
+          })}>✏️</button>
+          <button onClick={()=>confirm("Delete transaction?",async()=>{await supabase.from("inventory_transactions").update({deleted:true}).eq("id",t.id);loadData();},true)}>🗑️</button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+{paginate(page,setPage,Math.ceil(transactions.filter(t=>t.type==="OUT").length/PAGE_SIZE))}
 
       {/* DELETE HISTORY */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 30 }}>
@@ -285,36 +306,52 @@ export default function App() {
       )}
 
       {/* MONTHLY REPORT */}
-      <h2 style={{ marginTop: 40 }}>Monthly Report</h2>
-      <input type="month" value={reportMonth} onChange={e => { setReportMonth(e.target.value); setReportPage(1); }} />
+<h2 style={{ marginTop: 40 }}>Monthly Report - IN</h2>
+<input type="month" value={reportMonth} onChange={e=>{setReportMonth(e.target.value);setReportPage(1);}} />
+<table style={tableStyle}>
+  <thead>
+    <tr><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Volume</th><th style={thtd}>Qty</th><th style={thtd}>Total</th></tr>
+  </thead>
+  <tbody>
+    {(() => {
+      const filtered = transactions.filter(t=>t.type==="IN" && (!reportMonth || t.date?.startsWith(reportMonth)));
+      const grouped = {};
+      filtered.forEach(t=>{
+        const key = `${t.item_id}-${t.brand}-${t.unit}-${t.volume_pack}`;
+        if(!grouped[key]) grouped[key]={name:t.items?.item_name,brand:t.brand,unit:t.unit,volume:t.volume_pack,qty:0,total:0};
+        grouped[key].qty+=t.quantity;
+        grouped[key].total+=t.quantity*t.unit_price;
+      });
+      const rows = Object.values(grouped);
+      if(!rows.length) return emptyRow(6,"No IN data");
+      return rows.slice((reportPage-1)*REPORT_PAGE_SIZE,reportPage*REPORT_PAGE_SIZE).map((r,i)=>(
+        <tr key={i}><td style={thtd}>{r.name}</td><td style={thtd}>{r.brand}</td><td style={thtd}>{r.unit}</td><td style={thtd}>{r.volume}</td><td style={thtd}>{r.qty}</td><td style={thtd}>₱{r.total.toFixed(2)}</td></tr>
+      ));
+    })()}
+  </tbody>
+</table>
 
-      <table style={tableStyle}>
-        <thead>
-          <tr><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Volume</th><th style={thtd}>Qty</th><th style={thtd}>Total</th></tr>
-        </thead>
-        <tbody>
-          {(() => {
-            const filtered = transactions.filter(t => !reportMonth || t.date?.startsWith(reportMonth));
-            const grouped = {};
-            filtered.forEach(t => {
-              const key = `${t.item_id}-${t.brand}-${t.unit}-${t.volume_pack}`;
-              if (!grouped[key]) grouped[key] = { name: t.items?.item_name, brand: t.brand, unit: t.unit, volume: t.volume_pack, qty: 0, total: 0 };
-              grouped[key].qty += t.quantity;
-              grouped[key].total += t.quantity * t.unit_price;
-            });
-            const rows = Object.values(grouped);
-            if (!rows.length) return emptyRow(6, "No data");
-            return rows.slice((reportPage-1)*REPORT_PAGE_SIZE, reportPage*REPORT_PAGE_SIZE).map((r,i)=> (
-              <tr key={i}><td style={thtd}>{r.name}</td><td style={thtd}>{r.brand}</td><td style={thtd}>{r.unit}</td><td style={thtd}>{r.volume}</td><td style={thtd}>{r.qty}</td><td style={thtd}>₱{r.total.toFixed(2)}</td></tr>
-            ));
-          })()}
-        </tbody>
-      </table>
-      {paginate(reportPage, setReportPage, Math.ceil((() => {
-        const filtered = transactions.filter(t => !reportMonth || t.date?.startsWith(reportMonth));
-        const keys = new Set(filtered.map(t => `${t.item_id}-${t.brand}-${t.unit}-${t.volume_pack}`));
-        return keys.size;
-      })() / REPORT_PAGE_SIZE))}
-    </div>
-  );
+<h2 style={{ marginTop: 40 }}>Monthly Report - OUT</h2>
+<table style={tableStyle}>
+  <thead>
+    <tr><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Volume</th><th style={thtd}>Qty</th><th style={thtd}>Total</th></tr>
+  </thead>
+  <tbody>
+    {(() => {
+      const filtered = transactions.filter(t=>t.type==="OUT" && (!reportMonth || t.date?.startsWith(reportMonth)));
+      const grouped = {};
+      filtered.forEach(t=>{
+        const key = `${t.item_id}-${t.brand}-${t.unit}-${t.volume_pack}`;
+        if(!grouped[key]) grouped[key]={name:t.items?.item_name,brand:t.brand,unit:t.unit,volume:t.volume_pack,qty:0,total:0};
+        grouped[key].qty+=t.quantity;
+        grouped[key].total+=t.quantity*t.unit_price;
+      });
+      const rows = Object.values(grouped);
+      if(!rows.length) return emptyRow(6,"No OUT data");
+      return rows.slice((reportPage-1)*REPORT_PAGE_SIZE,reportPage*REPORT_PAGE_SIZE).map((r,i)=>(
+        <tr key={i}><td style={thtd}>{r.name}</td><td style={thtd}>{r.brand}</td><td style={thtd}>{r.unit}</td><td style={thtd}>{r.volume}</td><td style={thtd}>{r.qty}</td><td style={thtd}>₱{r.total.toFixed(2)}</td></tr>
+      ));
+    })()}
+  </tbody>
+</table>
 }
