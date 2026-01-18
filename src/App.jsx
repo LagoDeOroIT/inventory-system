@@ -311,8 +311,8 @@ export default function App() {
           <td style={thtd}>{t.type}</td>
           <td style={thtd}>{t.quantity}</td>
           <td style={thtd}>
-            <button onClick={() => restoreTransaction(t.id)}>Restore</button>
-            <button style={{ marginLeft: 8, color: "#d32f2f" }} onClick={() => permanentlyDelete(t.id)}>Delete Permanently</button>
+            <button onClick={() => restoreTransaction(t.id)} title="Restore">♻️ Restore</button>
+            <button style={{ marginLeft: 8, color: "#d32f2f" }} onClick={() => permanentlyDelete(t.id)} title="Delete permanently">🗑️ Delete</button>
           </td>
         </tr>
       ))}
