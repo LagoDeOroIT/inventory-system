@@ -250,19 +250,47 @@ export default function App() {
       </table>
 
       {/* DELETE HISTORY */}
-      <h2>Delete History</h2>
-      <table style={tableStyle}>
-        <thead><tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Volume</th><th style={thtd}>Type</th><th style={thtd}>Qty</th><th style={thtd}>Actions</th></tr></thead>
-        <tbody>
-          {deletedTransactions.length === 0 && emptyRow(8, "No deleted history")}
-          {deletedTransactions.map(t => (
-            <tr key={t.id}>
-              <td style={thtd}>{t.date}</td><td style={thtd}>{t.items?.item_name}</td><td style={thtd}>{t.brand}</td><td style={thtd}>{t.unit}</td><td style={thtd}>{t.volume_pack}</td><td style={thtd}>{t.type}</td><td style={thtd}>{t.quantity}</td>
-              <td style={thtd}><button onClick={() => restoreTransaction(t.id)}>♻️</button><button onClick={() => permanentlyDelete(t.id)}>🗑️</button></td>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 30 }}>
+        <h2>Delete History</h2>
+        <button onClick={() => setShowDeleted(v => !v)}>
+          {showDeleted ? "Hide Delete History" : "Show Delete History"}
+        </button>
+      </div>
+
+      {showDeleted && (
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thtd}>Date</th>
+              <th style={thtd}>Item</th>
+              <th style={thtd}>Brand</th>
+              <th style={thtd}>Unit</th>
+              <th style={thtd}>Volume</th>
+              <th style={thtd}>Type</th>
+              <th style={thtd}>Qty</th>
+              <th style={thtd}>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {deletedTransactions.length === 0 && emptyRow(8, "No deleted history")}
+            {deletedTransactions.map(t => (
+              <tr key={t.id}>
+                <td style={thtd}>{t.date}</td>
+                <td style={thtd}>{t.items?.item_name}</td>
+                <td style={thtd}>{t.brand}</td>
+                <td style={thtd}>{t.unit}</td>
+                <td style={thtd}>{t.volume_pack}</td>
+                <td style={thtd}>{t.type}</td>
+                <td style={thtd}>{t.quantity}</td>
+                <td style={thtd}>
+                  <button onClick={() => restoreTransaction(t.id)}>♻️</button>
+                  <button onClick={() => permanentlyDelete(t.id)}>🗑️</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )
     </div>
   );
 }
