@@ -77,7 +77,7 @@ export default function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const searchRef = useRef(null);
 
-    // AUTH
+      // AUTH
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -87,23 +87,7 @@ export default function App() {
       setSession(s);
     });
 
-    return (
-    <>
-      {confirmModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "#fff", padding: 20, borderRadius: 6, minWidth: 280 }}>
-            <p>{confirmModal.text}</p>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-              <button onClick={() => setConfirmModal(null)}>Cancel</button>
-              <button
-                style={{ color: confirmModal.danger ? "#d32f2f" : "#000" }}
-                onClick={confirmModal.onConfirm}
-              >Confirm</button>
-            </div>
-          </div>
-        </div>
-      )}
-) => listener.subscription.unsubscribe();
+    return () => listener.subscription.unsubscribe();
   }, []);
 
 
@@ -249,8 +233,24 @@ export default function App() {
     );
   }
 
-  return (
+    return (
     <div style={{ padding: 20 }}>
+      {/* CONFIRM MODAL */}
+      {confirmModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "#fff", padding: 20, borderRadius: 6, minWidth: 280 }}>
+            <p>{confirmModal.text}</p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button onClick={() => setConfirmModal(null)}>Cancel</button>
+              <button
+                style={{ color: confirmModal.danger ? "#d32f2f" : "#000" }}
+                onClick={confirmModal.onConfirm}
+              >Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <h1>Inventory System</h1>
 
       <div ref={searchRef} style={{ position: "relative", width: 220 }}>
