@@ -24,21 +24,44 @@ export default function App() {
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
 
+  // UI STATES
+  const [toast, setToast] = useState(null);
+  const [confirmModal, setConfirmModal] = useState(null);
+  const [deleteSearch, setDeleteSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
+
   // Restore from delete history
   async function restoreTransaction(id) {
-    await supabase
-      .from("inventory_transactions")
-      .update({ deleted: false, deleted_at: null })
+    setConfirmModal({
+      text: "Restore this transaction?",
+      onConfirm: async () => {
+        await supabase
+          .from("inventory_transactions")
+          .update({ deleted: false, deleted_at: null })
+          .eq("id", id);
+        setToast("Transaction restored");
+        setConfirmModal(null);
+        loadData();
+      },
+    });
+  })
       .eq("id", id);
     loadData();
   }
 
   // Permanent delete
   async function permanentlyDelete(id) {
-    const ok = window.confirm("Permanently delete this record? This cannot be undone.");
-    if (!ok) return;
-    await supabase.from("inventory_transactions").delete().eq("id", id);
-    loadData();
+    setConfirmModal({
+      text: "Permanently delete this record? This cannot be undone.",
+      danger: true,
+      onConfirm: async () => {
+        await supabase.from("inventory_transactions").delete().eq("id", id);
+        setToast("Transaction permanently deleted");
+        setConfirmModal(null);
+        loadData();
+      },
+    });
   }
 
   const [editingId, setEditingId] = useState(null);
@@ -66,7 +89,31 @@ export default function App() {
       setSession(s);
     });
 
-    return () => listener.subscription.unsubscribe();
+    return (
+    <>
+      {toast && (
+        <div style={{ position: "fixed", top: 20, right: 20, background: "#323232", color: "#fff", padding: 12 }}>
+          {toast}
+          <button style={{ marginLeft: 8 }} onClick={() => setToast(null)}>✖</button>
+        </div>
+      )}
+
+      {confirmModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "#fff", padding: 20, width: 320 }}>
+            <p>{confirmModal.text}</p>
+            <div style={{ textAlign: "right" }}>
+              <button onClick={() => setConfirmModal(null)}>Cancel</button>
+              <button
+                style={{ marginLeft: 8, color: confirmModal.danger ? "#d32f2f" : "inherit" }}
+                onClick={confirmModal.onConfirm}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}) => listener.subscription.unsubscribe();
   }, []);
 
   // LOAD DATA
@@ -144,7 +191,15 @@ export default function App() {
   async function confirmDelete() {
     if (!deleteTarget) return;
 
-    const { error } = await supabase
+    await supabase
+      .from("inventory_transactions")
+      .update({ deleted: true, deleted_at: new Date().toISOString() })
+      .eq("id", deleteTarget);
+
+    setToast("Transaction deleted (undo available)");
+    setDeleteTarget(null);
+    loadData();
+  } = await supabase
       .from("inventory_transactions")
       .update({ deleted: true, deleted_at: new Date().toISOString() })
       .eq("id", deleteTarget);
@@ -253,10 +308,6 @@ export default function App() {
   </button>
 </div>
 
-<button onClick={() => setShowDeleted(s => !s)}>
-  {showDeleted ? "Hide Delete History" : "Show Delete History"}
-</button>
-
 {/* ACTIVE TRANSACTIONS */}
 {!showDeleted && (
   <table style={tableStyle}>
@@ -289,10 +340,32 @@ export default function App() {
       ))}
     </tbody>
   </table>
+
+<div style={{ marginTop: 8 }}>
+  <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>Prev</button>
+  <span style={{ margin: "0 8px" }}>Page {page}</span>
+  <button
+    disabled={page * PAGE_SIZE >= deletedTransactions.length}
+    onClick={() => setPage(p => p + 1)}
+  >
+    Next
+  </button>
+</div>
+</>
 )}
 
 {/* DELETE HISTORY */}
 {showDeleted && (
+  <>
+    <input
+      placeholder="Search deleted..."
+      value={deleteSearch}
+      onChange={e => {
+        setDeleteSearch(e.target.value);
+        setPage(1);
+      }}
+      style={{ marginBottom: 8 }}
+    />
   <table style={tableStyle}>
     <thead>
       <tr>
@@ -307,7 +380,12 @@ export default function App() {
     </thead>
     <tbody>
       {deletedTransactions.length === 0 && emptyRow(7, "No deleted history")}
-      {deletedTransactions.map(t => (
+      {deletedTransactions
+        .filter(t =>
+          t.items?.item_name?.toLowerCase().includes(deleteSearch.toLowerCase())
+        )
+        .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+        .map(t => (
         <tr key={t.id}>
           <td style={thtd}>{t.date}</td>
           <td style={thtd}>{t.items?.item_name}</td>
