@@ -178,10 +178,6 @@ export default function App() {
 
     setToast("Transaction deleted (undo available)");
     setDeleteTarget(null);
-    loadData();
-  }
-
-    setDeleteTarget(null);
     await loadData();
   }
 
