@@ -351,11 +351,11 @@ export default function App() {
               <td style={thtd}>{t.type}</td>
               <td style={thtd}>{t.quantity}</td>
               <td style={thtd}>
-                <button onClick={() => restoreTransaction(t.id)}>♻️</button>
+                <button onClick={() => restoreTransaction(t.id)}>♻️ Restore</button>
                 <button
                   style={{ marginLeft: 8, color: "#d32f2f" }}
                   onClick={() => permanentlyDelete(t.id)}
-                >🗑️</button>
+                >🗑️ Delete</button>
               </td>
             </tr>
           ))}
@@ -370,28 +370,6 @@ export default function App() {
       >Next</button>
     </div>
   </>
-)}
-      {deletedTransactions
-        .filter(t =>
-          t.items?.item_name?.toLowerCase().includes(deleteSearch.toLowerCase())
-        )
-        .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-        .map(t => (
-        <tr key={t.id}>
-          <td style={thtd}>{t.date}</td>
-          <td style={thtd}>{t.items?.item_name}</td>
-          <td style={thtd}>{t.brand || "-"}</td>
-          <td style={thtd}>{t.unit || "-"}</td>
-          <td style={thtd}>{t.type}</td>
-          <td style={thtd}>{t.quantity}</td>
-          <td style={thtd}>
-            <button onClick={() => restoreTransaction(t.id)} title="Restore">♻️ Restore</button>
-            <button style={{ marginLeft: 8, color: "#d32f2f" }} onClick={() => permanentlyDelete(t.id)} title="Delete permanently">🗑️ Delete</button>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
 )}
 
 <h2>Monthly Report</h2>
