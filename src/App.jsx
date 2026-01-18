@@ -226,43 +226,52 @@ export default function App() {
       <input placeholder="Search delete history" value={deletedSearch} onChange={e=>{setDeletedSearch(e.target.value); setDeletedPage(1);}} />
 
       {showDeleted && (
-        <table style={tableStyle}>
-          <thead>
-            <tr>
-              <th style={thtd}>Date</th>
-              <th style={thtd}>Item</th>
-              <th style={thtd}>Brand</th>
-              <th style={thtd}>Unit</th>
-              <th style={thtd}>Volume</th>
-              <th style={thtd}>Qty</th>
-              <th style={thtd}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {deletedTransactions
-              .filter(t =>
-                !deletedSearch ||
-                t.items?.item_name?.toLowerCase().includes(deletedSearch.toLowerCase()) ||
-                t.brand?.toLowerCase().includes(deletedSearch.toLowerCase())
-              )
-              .slice((deletedPage-1)*PAGE_SIZE, deletedPage*PAGE_SIZE)
-              .map(t => (
-                <tr key={t.id}>
-                  <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
-                  <td style={thtd}>{t.items?.item_name}</td>
-                  <td style={thtd}>{t.brand}</td>
-                  <td style={thtd}>{t.unit}</td>
-                  <td style={thtd}>{t.volume_pack}</td>
-                  <td style={thtd}>{t.quantity}</td>
-                  <td style={thtd}>
-                    <button onClick={() => confirm("Restore transaction?", async()=>{ await supabase.from("inventory_transactions").update({deleted:false}).eq("id",t.id); loadData(); })}>♻️</button>
-                    <button onClick={() => confirm("Permanent delete?", async()=>{ await supabase.from("inventory_transactions").delete().eq("id",t.id); loadData(); }, true)}>🗑️</button>
-                  </td>
-                </tr>
-              ))}
-            {deletedTransactions.length === 0 && emptyRow(7, "No deleted records")}
-          </tbody>
-        </table>
+        <>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Date</th>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Unit</th>
+                <th style={thtd}>Volume</th>
+                <th style={thtd}>Qty</th>
+                <th style={thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deletedTransactions
+                .filter(t =>
+                  !deletedSearch ||
+                  t.items?.item_name?.toLowerCase().includes(deletedSearch.toLowerCase()) ||
+                  t.brand?.toLowerCase().includes(deletedSearch.toLowerCase())
+                )
+                .slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE)
+                .map(t => (
+                  <tr key={t.id}>
+                    <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
+                    <td style={thtd}>{t.items?.item_name}</td>
+                    <td style={thtd}>{t.brand}</td>
+                    <td style={thtd}>{t.unit}</td>
+                    <td style={thtd}>{t.volume_pack}</td>
+                    <td style={thtd}>{t.quantity}</td>
+                    <td style={thtd}>
+                      <button onClick={() => confirm("Restore transaction?", async () => {
+                        await supabase.from("inventory_transactions").update({ deleted: false }).eq("id", t.id);
+                        loadData();
+                      })}>♻️</button>
+                      <button onClick={() => confirm("Permanent delete?", async () => {
+                        await supabase.from("inventory_transactions").delete().eq("id", t.id);
+                        loadData();
+                      }, true)}>🗑️</button>
+                    </td>
+                  </tr>
+                ))}
+              {deletedTransactions.length === 0 && emptyRow(7, "No deleted records")}
+            </tbody>
+          </table>
+          {paginate(deletedPage, setDeletedPage, Math.ceil(deletedTransactions.length / PAGE_SIZE))}
+        </>
       )
 
       {/* MONTHLY REPORT */}
