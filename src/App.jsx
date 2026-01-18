@@ -311,6 +311,7 @@ export default function App() {
 
 {/* ACTIVE TRANSACTIONS */}
 {!showDeleted && (
+  <>
   <table style={tableStyle}>
     <thead>
       <tr>
@@ -341,6 +342,15 @@ export default function App() {
       ))}
     </tbody>
   </table>
+    <div style={{ marginTop: 8 }}>
+      <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>Prev</button>
+      <span style={{ margin: "0 8px" }}>Page {page}</span>
+      <button
+        disabled={page * PAGE_SIZE >= transactions.length}
+        onClick={() => setPage(p => p + 1)}
+      >Next</button>
+    </div>
+  </>
 )}
 
 
