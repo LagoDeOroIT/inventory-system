@@ -16,29 +16,24 @@ const emptyRow = (colSpan, text) => (
   </tr>
 );
 
-// ================= APP =================
 export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
-  const [deletedSearch, setDeletedSearch] = useState("");
-  const [deletedPage, setDeletedPage] = useState(1);([]);
-  const [showDeleted, setShowDeleted] = useState(false);
 
   // Pagination
   const PAGE_SIZE = 5;
-  const [page, setPage] = useState(1);
-
-  // Monthly report
   const REPORT_PAGE_SIZE = 5;
-  const [reportMonth, setReportMonth] = useState("");
+  const [page, setPage] = useState(1);
+  const [deletedPage, setDeletedPage] = useState(1);
   const [reportPage, setReportPage] = useState(1);
 
-  // UI
+  // Filters / UI
+  const [deletedSearch, setDeletedSearch] = useState("");
+  const [showDeleted, setShowDeleted] = useState(false);
+  const [reportMonth, setReportMonth] = useState("");
   const [confirmModal, setConfirmModal] = useState(null);
-  const [MONTHLY_PAGE_SIZE] = useState(5);(null);
-  const [toast, setToast] = useState(null);
 
   // Form
   const [editingId, setEditingId] = useState(null);
@@ -52,7 +47,7 @@ export default function App() {
     volume_pack: "",
   });
 
-  // Item search dropdown
+  // Item search
   const [itemSearch, setItemSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const searchRef = useRef(null);
@@ -60,14 +55,13 @@ export default function App() {
   // ================= AUTH =================
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => listener.subscription.unsubscribe();
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => data.subscription.unsubscribe();
   }, []);
 
   // ================= LOAD DATA =================
   async function loadData() {
     const { data: itemsData } = await supabase.from("items").select("id, item_name, unit_price");
-
     const { data: tx } = await supabase
       .from("inventory_transactions")
       .select("*, items(item_name)")
@@ -89,7 +83,7 @@ export default function App() {
     if (session) loadData();
   }, [session]);
 
-  // ================= SAVE / UPDATE =================
+  // ================= SAVE =================
   async function saveTransaction() {
     if (!form.item_id || !form.quantity) return alert("Complete the form");
 
@@ -120,75 +114,16 @@ export default function App() {
     loadData();
   }
 
-  // ================= EDIT =================
-  function editTransaction(t) {
-    setConfirmModal({
-      text: "Edit this transaction?",
-      onConfirm: () => {
-        setEditingId(t.id);
-        setForm({
-          item_id: t.item_id,
-          type: t.type,
-          quantity: t.quantity,
-          date: t.date,
-          brand: t.brand || "",
-          unit: t.unit || "",
-          volume_pack: t.volume_pack || "",
-        });
-        setItemSearch(t.items?.item_name || "");
-        setConfirmModal(null);
-      },
-    });
-  }
+  // ================= CONFIRM HELPERS =================
+  const confirm = (text, action, danger) => setConfirmModal({ text, action, danger });
 
-  // ================= DELETE =================
-  function requestDelete(id) {
-    setConfirmModal({
-      text: "Delete this transaction?",
-      danger: true,
-      onConfirm: async () => {
-        await supabase
-          .from("inventory_transactions")
-          .update({ deleted: true, deleted_at: new Date().toISOString() })
-          .eq("id", id);
-        setConfirmModal(null);
-        loadData();
-      },
-    });
-  }
-
-  // ================= RESTORE / PERMANENT DELETE =================
-  function restoreTransaction(id) {
-    setConfirmModal({
-      text: "Restore this transaction?",
-      onConfirm: async () => {
-        await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("id", id);
-        setConfirmModal(null);
-        loadData();
-      },
-    });
-  }
-
-  function permanentlyDelete(id) {
-    setConfirmModal({
-      text: "Permanently delete this record?",
-      danger: true,
-      onConfirm: async () => {
-        await supabase.from("inventory_transactions").delete().eq("id", id);
-        setConfirmModal(null);
-        loadData();
-      },
-    });
-  }
-
-  // ================= DROPDOWN CLICK OUTSIDE =================
+  // ================= CLICK OUTSIDE =================
   useEffect(() => {
     const handler = e => searchRef.current && !searchRef.current.contains(e.target) && setDropdownOpen(false);
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // ================= LOGIN =================
   if (!session) {
     return (
       <div style={{ padding: 40 }}>
@@ -198,17 +133,14 @@ export default function App() {
     );
   }
 
-  // ================= UI =================
   return (
     <div style={{ padding: 20 }}>
       {confirmModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "#fff", padding: 20, borderRadius: 6, minWidth: 280 }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <div style={{ background: "#fff", padding: 20 }}>
             <p>{confirmModal.text}</p>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-              <button style={{ color: confirmModal?.danger ? "#d32f2f" : "#000" }} onClick={confirmModal.onConfirm}>Confirm</button>
-              <button onClick={() => setConfirmModal(null)}>Cancel</button>
-            </div>
+            <button onClick={() => setConfirmModal(null)}>Cancel</button>
+            <button style={{ marginLeft: 8, color: confirmModal.danger ? "red" : "black" }} onClick={() => { confirmModal.action(); setConfirmModal(null); }}>Confirm</button>
           </div>
         </div>
       )}
@@ -217,7 +149,7 @@ export default function App() {
 
       {/* FORM */}
       <div ref={searchRef} style={{ position: "relative", width: 250 }}>
-        <input placeholder="Search item..." value={itemSearch} onFocus={() => setDropdownOpen(true)} onChange={e => { setItemSearch(e.target.value); setDropdownOpen(true); }} />
+        <input value={itemSearch} placeholder="Search item" onFocus={() => setDropdownOpen(true)} onChange={e => { setItemSearch(e.target.value); setDropdownOpen(true); }} />
         {dropdownOpen && (
           <div style={{ border: "1px solid #ccc", background: "#fff" }}>
             {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
@@ -239,168 +171,74 @@ export default function App() {
       <h2>Transactions</h2>
       <table style={tableStyle}>
         <thead>
-          <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Volume</th><th style={thtd}>Type</th><th style={thtd}>Qty</th><th style={thtd}>Actions</th></tr>
+          <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Volume</th><th style={thtd}>Qty</th><th style={thtd}>Actions</th></tr>
         </thead>
         <tbody>
-          {transactions.length === 0 && emptyRow(8, "No transactions")}
-          {transactions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(t => (
+          {transactions.length === 0 && emptyRow(7, "No transactions")}
+          {transactions.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE).map(t => (
             <tr key={t.id}>
-              ate).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" })}</td>
+              <td style={thtd}>{new Date(t.date).toLocaleDateString("en-US",{month:"long",day:"2-digit",year:"numeric"})}</td>
               <td style={thtd}>{t.items?.item_name}</td>
               <td style={thtd}>{t.brand}</td>
               <td style={thtd}>{t.unit}</td>
               <td style={thtd}>{t.volume_pack}</td>
-              <td style={thtd}>{t.type}</td>
               <td style={thtd}>{t.quantity}</td>
               <td style={thtd}>
-                <button onClick={() => editTransaction(t)}>✏️</button>
-                <button onClick={() => requestDelete(t.id)}>🗑️</button>
+                <button onClick={() => confirm("Delete transaction?", async()=>{ await supabase.from("inventory_transactions").update({deleted:true}).eq("id",t.id); loadData(); }, true)}>🗑️</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <div>
-        <button disabled={page===1} onClick={()=>setPage(p=>p-1)}>Prev</button>
-        <span> Page {page} </span>
-        <button disabled={page*PAGE_SIZE>=transactions.length} onClick={()=>setPage(p=>p+1)}>Next</button>
-      </div>
 
       {/* DELETE HISTORY */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 30 }}>
-        <h2>Delete History</h2>
-        <button onClick={() => setShowDeleted(v => !v)}>
-          {showDeleted ? "Hide Delete History" : "Show Delete History"}
-        </button>
-      </div>
+      <h2 style={{ marginTop: 30 }}>
+        Delete History
+        <button style={{ marginLeft: 10 }} onClick={() => setShowDeleted(v=>!v)}>{showDeleted ? "Hide" : "Show"}</button>
+      </h2>
 
       {showDeleted && (
-        <>
-          <input
-            placeholder="Search deleted..."
-            value={deletedSearch}
-            onChange={e => { setDeletedSearch(e.target.value); setDeletedPage(1); }}
-          />
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Volume</th><th style={thtd}>Type</th><th style={thtd}>Qty</th><th style={thtd}>Actions</th>
+        <table style={tableStyle}>
+          <tbody>
+            {deletedTransactions.map(t => (
+              <tr key={t.id}>
+                <td style={thtd}>{t.items?.item_name}</td>
+                <td style={thtd}>
+                  <button onClick={() => confirm("Restore?", async()=>{ await supabase.from("inventory_transactions").update({deleted:false}).eq("id",t.id); loadData(); })}>♻️</button>
+                  <button onClick={() => confirm("Permanent delete?", async()=>{ await supabase.from("inventory_transactions").delete().eq("id",t.id); loadData(); }, true)}>🗑️</button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {deletedTransactions
-                .filter(t => (t.items?.item_name || "").toLowerCase().includes(deletedSearch.toLowerCase()))
-                .slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE)
-                .map(t => (
-                  <tr key={t.id}>
-                    ate).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" })}</td>
-                    <td style={thtd}>{t.items?.item_name}</td>
-                    <td style={thtd}>{t.brand}</td>
-                    <td style={thtd}>{t.unit}</td>
-                    <td style={thtd}>{t.volume_pack}</td>
-                    <td style={thtd}>{t.type}</td>
-                    <td style={thtd}>{t.quantity}</td>
-                    <td style={thtd}>
-                      <button onClick={() => restoreTransaction(t.id)}>♻️</button>
-                      <button onClick={() => permanentlyDelete(t.id)}>🗑️</button>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-          <div>
-            <button disabled={deletedPage===1} onClick={()=>setDeletedPage(p=>p-1)}>Prev</button>
-            <span> Page {deletedPage} </span>
-            <button disabled={deletedPage*PAGE_SIZE>=deletedTransactions.length} onClick={()=>setDeletedPage(p=>p+1)}>Next</button>
-          </div>
-        </>
-      )
-    </div>
-  );
-
+            ))}
+          </tbody>
+        </table>
+      )}
 
       {/* MONTHLY REPORT */}
       <h2 style={{ marginTop: 40 }}>Monthly Report</h2>
-
-      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-        <input
-          type="month"
-          value={reportMonth}
-          onChange={e => { setReportMonth(e.target.value); setReportPage(1); }}
-        />
-      </div>
+      <input type="month" value={reportMonth} onChange={e => { setReportMonth(e.target.value); setReportPage(1); }} />
 
       <table style={tableStyle}>
         <thead>
-          <tr>
-            <th style={thtd}>Item</th>
-            <th style={thtd}>Brand</th>
-            <th style={thtd}>Unit</th>
-            <th style={thtd}>Volume</th>
-            <th style={thtd}>Qty</th>
-            <th style={thtd}>Total Price</th>
-          </tr>
+          <tr><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Volume</th><th style={thtd}>Qty</th><th style={thtd}>Total</th></tr>
         </thead>
         <tbody>
           {(() => {
-            const filtered = transactions.filter(t => {
-              if (!reportMonth) return true;
-              return t.date?.startsWith(reportMonth);
-            });
-
+            const filtered = transactions.filter(t => !reportMonth || t.date?.startsWith(reportMonth));
             const grouped = {};
             filtered.forEach(t => {
               const key = `${t.item_id}-${t.brand}-${t.unit}-${t.volume_pack}`;
-              if (!grouped[key]) {
-                grouped[key] = {
-                  name: t.items?.item_name,
-                  brand: t.brand,
-                  unit: t.unit,
-                  volume: t.volume_pack,
-                  qty: 0,
-                  total: 0,
-                };
-              }
+              if (!grouped[key]) grouped[key] = { name: t.items?.item_name, brand: t.brand, unit: t.unit, volume: t.volume_pack, qty: 0, total: 0 };
               grouped[key].qty += t.quantity;
               grouped[key].total += t.quantity * t.unit_price;
             });
-
             const rows = Object.values(grouped);
-            const paged = rows.slice((reportPage - 1) * REPORT_PAGE_SIZE, reportPage * REPORT_PAGE_SIZE);
-
-            if (rows.length === 0) return emptyRow(6, "No report data");
-
-            return paged.map((r, i) => (
-              <tr key={i}>
-                <td style={thtd}>{r.name}</td>
-                <td style={thtd}>{r.brand}</td>
-                <td style={thtd}>{r.unit}</td>
-                <td style={thtd}>{r.volume}</td>
-                <td style={thtd}>{r.qty}</td>
-                <td style={thtd}>₱{r.total.toFixed(2)}</td>
-              </tr>
+            if (!rows.length) return emptyRow(6, "No data");
+            return rows.slice((reportPage-1)*REPORT_PAGE_SIZE, reportPage*REPORT_PAGE_SIZE).map((r,i)=> (
+              <tr key={i}><td style={thtd}>{r.name}</td><td style={thtd}>{r.brand}</td><td style={thtd}>{r.unit}</td><td style={thtd}>{r.volume}</td><td style={thtd}>{r.qty}</td><td style={thtd}>₱{r.total.toFixed(2)}</td></tr>
             ));
           })()}
         </tbody>
       </table>
-
-      {(() => {
-        const filtered = transactions.filter(t => !reportMonth || t.date?.startsWith(reportMonth));
-        const total = filtered.reduce((s, t) => s + t.quantity * t.unit_price, 0);
-        const avg = filtered.length ? total / filtered.length : 0;
-        return (
-          <p style={{ marginTop: 10 }}>
-            <strong>Total Average Price:</strong> ₱{avg.toFixed(2)}
-          </p>
-        );
-      })()}
-
-      <div>
-        <button disabled={reportPage === 1} onClick={() => setReportPage(p => p - 1)}>Prev</button>
-        <span> Page {reportPage} </span>
-        <button onClick={() => setReportPage(p => p + 1)}>Next</button>
-      </div>
-
     </div>
   );
 }
