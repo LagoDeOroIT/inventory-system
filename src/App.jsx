@@ -22,6 +22,8 @@ export default function App() {
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
+  const [deletedSearch, setDeletedSearch] = useState("");
+  const [deletedPage, setDeletedPage] = useState(1);([]);
   const [showDeleted, setShowDeleted] = useState(false);
 
   // Pagination
@@ -35,6 +37,7 @@ export default function App() {
 
   // UI
   const [confirmModal, setConfirmModal] = useState(null);
+  const [MONTHLY_PAGE_SIZE] = useState(5);(null);
   const [toast, setToast] = useState(null);
 
   // Form
@@ -203,8 +206,8 @@ export default function App() {
           <div style={{ background: "#fff", padding: 20, borderRadius: 6, minWidth: 280 }}>
             <p>{confirmModal.text}</p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button style={{ color: confirmModal?.danger ? "#d32f2f" : "#000" }} onClick={confirmModal.onConfirm}>Confirm</button>
               <button onClick={() => setConfirmModal(null)}>Cancel</button>
-              <button style={{ color: confirmModal.danger ? "#d32f2f" : "#000" }} onClick={confirmModal.onConfirm}>Confirm</button>
             </div>
           </div>
         </div>
@@ -242,12 +245,26 @@ export default function App() {
           {transactions.length === 0 && emptyRow(8, "No transactions")}
           {transactions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(t => (
             <tr key={t.id}>
-              <td style={thtd}>{t.date}</td><td style={thtd}>{t.items?.item_name}</td><td style={thtd}>{t.brand}</td><td style={thtd}>{t.unit}</td><td style={thtd}>{t.volume_pack}</td><td style={thtd}>{t.type}</td><td style={thtd}>{t.quantity}</td>
-              <td style={thtd}><button onClick={() => editTransaction(t)}>✏️</button><button onClick={() => requestDelete(t.id)}>🗑️</button></td>
+              ate).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" })}</td>
+              <td style={thtd}>{t.items?.item_name}</td>
+              <td style={thtd}>{t.brand}</td>
+              <td style={thtd}>{t.unit}</td>
+              <td style={thtd}>{t.volume_pack}</td>
+              <td style={thtd}>{t.type}</td>
+              <td style={thtd}>{t.quantity}</td>
+              <td style={thtd}>
+                <button onClick={() => editTransaction(t)}>✏️</button>
+                <button onClick={() => requestDelete(t.id)}>🗑️</button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <div>
+        <button disabled={page===1} onClick={()=>setPage(p=>p-1)}>Prev</button>
+        <span> Page {page} </span>
+        <button disabled={page*PAGE_SIZE>=transactions.length} onClick={()=>setPage(p=>p+1)}>Next</button>
+      </div>
 
       {/* DELETE HISTORY */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 30 }}>
@@ -258,39 +275,132 @@ export default function App() {
       </div>
 
       {showDeleted && (
-        <table style={tableStyle}>
-          <thead>
-            <tr>
-              <th style={thtd}>Date</th>
-              <th style={thtd}>Item</th>
-              <th style={thtd}>Brand</th>
-              <th style={thtd}>Unit</th>
-              <th style={thtd}>Volume</th>
-              <th style={thtd}>Type</th>
-              <th style={thtd}>Qty</th>
-              <th style={thtd}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {deletedTransactions.length === 0 && emptyRow(8, "No deleted history")}
-            {deletedTransactions.map(t => (
-              <tr key={t.id}>
-                <td style={thtd}>{t.date}</td>
-                <td style={thtd}>{t.items?.item_name}</td>
-                <td style={thtd}>{t.brand}</td>
-                <td style={thtd}>{t.unit}</td>
-                <td style={thtd}>{t.volume_pack}</td>
-                <td style={thtd}>{t.type}</td>
-                <td style={thtd}>{t.quantity}</td>
-                <td style={thtd}>
-                  <button onClick={() => restoreTransaction(t.id)}>♻️</button>
-                  <button onClick={() => permanentlyDelete(t.id)}>🗑️</button>
-                </td>
+        <>
+          <input
+            placeholder="Search deleted..."
+            value={deletedSearch}
+            onChange={e => { setDeletedSearch(e.target.value); setDeletedPage(1); }}
+          />
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Volume</th><th style={thtd}>Type</th><th style={thtd}>Qty</th><th style={thtd}>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {deletedTransactions
+                .filter(t => (t.items?.item_name || "").toLowerCase().includes(deletedSearch.toLowerCase()))
+                .slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE)
+                .map(t => (
+                  <tr key={t.id}>
+                    ate).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" })}</td>
+                    <td style={thtd}>{t.items?.item_name}</td>
+                    <td style={thtd}>{t.brand}</td>
+                    <td style={thtd}>{t.unit}</td>
+                    <td style={thtd}>{t.volume_pack}</td>
+                    <td style={thtd}>{t.type}</td>
+                    <td style={thtd}>{t.quantity}</td>
+                    <td style={thtd}>
+                      <button onClick={() => restoreTransaction(t.id)}>♻️</button>
+                      <button onClick={() => permanentlyDelete(t.id)}>🗑️</button>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+          <div>
+            <button disabled={deletedPage===1} onClick={()=>setDeletedPage(p=>p-1)}>Prev</button>
+            <span> Page {deletedPage} </span>
+            <button disabled={deletedPage*PAGE_SIZE>=deletedTransactions.length} onClick={()=>setDeletedPage(p=>p+1)}>Next</button>
+          </div>
+        </>
       )
+    </div>
+  );
+
+
+      {/* MONTHLY REPORT */}
+      <h2 style={{ marginTop: 40 }}>Monthly Report</h2>
+
+      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+        <input
+          type="month"
+          value={reportMonth}
+          onChange={e => { setReportMonth(e.target.value); setReportPage(1); }}
+        />
+      </div>
+
+      <table style={tableStyle}>
+        <thead>
+          <tr>
+            <th style={thtd}>Item</th>
+            <th style={thtd}>Brand</th>
+            <th style={thtd}>Unit</th>
+            <th style={thtd}>Volume</th>
+            <th style={thtd}>Qty</th>
+            <th style={thtd}>Total Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(() => {
+            const filtered = transactions.filter(t => {
+              if (!reportMonth) return true;
+              return t.date?.startsWith(reportMonth);
+            });
+
+            const grouped = {};
+            filtered.forEach(t => {
+              const key = `${t.item_id}-${t.brand}-${t.unit}-${t.volume_pack}`;
+              if (!grouped[key]) {
+                grouped[key] = {
+                  name: t.items?.item_name,
+                  brand: t.brand,
+                  unit: t.unit,
+                  volume: t.volume_pack,
+                  qty: 0,
+                  total: 0,
+                };
+              }
+              grouped[key].qty += t.quantity;
+              grouped[key].total += t.quantity * t.unit_price;
+            });
+
+            const rows = Object.values(grouped);
+            const paged = rows.slice((reportPage - 1) * REPORT_PAGE_SIZE, reportPage * REPORT_PAGE_SIZE);
+
+            if (rows.length === 0) return emptyRow(6, "No report data");
+
+            return paged.map((r, i) => (
+              <tr key={i}>
+                <td style={thtd}>{r.name}</td>
+                <td style={thtd}>{r.brand}</td>
+                <td style={thtd}>{r.unit}</td>
+                <td style={thtd}>{r.volume}</td>
+                <td style={thtd}>{r.qty}</td>
+                <td style={thtd}>₱{r.total.toFixed(2)}</td>
+              </tr>
+            ));
+          })()}
+        </tbody>
+      </table>
+
+      {(() => {
+        const filtered = transactions.filter(t => !reportMonth || t.date?.startsWith(reportMonth));
+        const total = filtered.reduce((s, t) => s + t.quantity * t.unit_price, 0);
+        const avg = filtered.length ? total / filtered.length : 0;
+        return (
+          <p style={{ marginTop: 10 }}>
+            <strong>Total Average Price:</strong> ₱{avg.toFixed(2)}
+          </p>
+        );
+      })()}
+
+      <div>
+        <button disabled={reportPage === 1} onClick={() => setReportPage(p => p - 1)}>Prev</button>
+        <span> Page {reportPage} </span>
+        <button onClick={() => setReportPage(p => p + 1)}>Next</button>
+      </div>
+
     </div>
   );
 }
