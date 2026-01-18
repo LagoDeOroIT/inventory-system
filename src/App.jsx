@@ -211,6 +211,7 @@ export default function App() {
           ))}
         </tbody>
       </table>
+      {paginate(page, setPage, Math.ceil(transactions.length / PAGE_SIZE))}
 
       {/* DELETE HISTORY */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 30 }}>
@@ -300,6 +301,11 @@ export default function App() {
           })()}
         </tbody>
       </table>
+      {paginate(reportPage, setReportPage, Math.ceil((() => {
+        const filtered = transactions.filter(t => !reportMonth || t.date?.startsWith(reportMonth));
+        const keys = new Set(filtered.map(t => `${t.item_id}-${t.brand}-${t.unit}-${t.volume_pack}`));
+        return keys.size;
+      })() / REPORT_PAGE_SIZE))}
     </div>
   );
 }
