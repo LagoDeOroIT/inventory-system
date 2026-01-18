@@ -248,45 +248,79 @@ export default function App() {
 
       <h2>Transactions</h2>
 
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thtd}>Date</th>
-            <th style={thtd}>Item</th>
-            <th style={thtd}>Brand</th>
-            <th style={thtd}>Unit</th>
-            <th style={thtd}>Type</th>
-            <th style={thtd}>Qty</th>
-                <th style={thtd}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-              {deletedTransactions.length === 0 && emptyRow(6, "No deleted history")}
-              {deletedTransactions.map(t => (
-                <tr key={t.id}>
-                  <td style={thtd}>{t.date}</td>
-                  <td style={thtd}>{t.items?.item_name}</td>
-                  <td style={thtd}>{t.brand || "-"}</td>
-                  <td style={thtd}>{t.unit || "-"}</td>
-                  <td style={thtd}>{t.type}</td>
-                  <td style={thtd}>{t.quantity}</td>
-                  <td style={thtd}>
-                    <button onClick={() => restoreTransaction(t.id)}>Restore</button>
-                    <button
-                      style={{ marginLeft: 8, color: "#d32f2f" }}
-                      onClick={() => permanentlyDelete(t.id)}
-                    >
-                      Delete Permanently
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
-      )}
+<button onClick={() => setShowDeleted(s => !s)}>
+  {showDeleted ? "Hide Delete History" : "Show Delete History"}
+</button>
 
-      <h2>Monthly Report</h2>
+{/* ACTIVE TRANSACTIONS */}
+{!showDeleted && (
+  <table style={tableStyle}>
+    <thead>
+      <tr>
+        <th style={thtd}>Date</th>
+        <th style={thtd}>Item</th>
+        <th style={thtd}>Brand</th>
+        <th style={thtd}>Unit</th>
+        <th style={thtd}>Type</th>
+        <th style={thtd}>Qty</th>
+        <th style={thtd}>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {transactions.length === 0 && emptyRow(7, "No transactions")}
+      {transactions.map(t => (
+        <tr key={t.id}>
+          <td style={thtd}>{t.date}</td>
+          <td style={thtd}>{t.items?.item_name}</td>
+          <td style={thtd}>{t.brand || "-"}</td>
+          <td style={thtd}>{t.unit || "-"}</td>
+          <td style={thtd}>{t.type}</td>
+          <td style={thtd}>{t.quantity}</td>
+          <td style={thtd}>
+            <button onClick={() => editTransaction(t)}>Edit</button>
+            <button style={{ marginLeft: 8 }} onClick={() => setDeleteTarget(t.id)}>Delete</button>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+)}
+
+{/* DELETE HISTORY */}
+{showDeleted && (
+  <table style={tableStyle}>
+    <thead>
+      <tr>
+        <th style={thtd}>Date</th>
+        <th style={thtd}>Item</th>
+        <th style={thtd}>Brand</th>
+        <th style={thtd}>Unit</th>
+        <th style={thtd}>Type</th>
+        <th style={thtd}>Qty</th>
+        <th style={thtd}>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {deletedTransactions.length === 0 && emptyRow(7, "No deleted history")}
+      {deletedTransactions.map(t => (
+        <tr key={t.id}>
+          <td style={thtd}>{t.date}</td>
+          <td style={thtd}>{t.items?.item_name}</td>
+          <td style={thtd}>{t.brand || "-"}</td>
+          <td style={thtd}>{t.unit || "-"}</td>
+          <td style={thtd}>{t.type}</td>
+          <td style={thtd}>{t.quantity}</td>
+          <td style={thtd}>
+            <button onClick={() => restoreTransaction(t.id)}>Restore</button>
+            <button style={{ marginLeft: 8, color: "#d32f2f" }} onClick={() => permanentlyDelete(t.id)}>Delete Permanently</button>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+)}
+
+<h2>Monthly Report</h2>
       <table style={tableStyle}>
         <thead>
           <tr>
