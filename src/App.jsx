@@ -246,7 +246,12 @@ export default function App() {
 
       <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
 
-      <h2>Transactions</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+  <h2>Transactions</h2>
+  <button onClick={() => setShowDeleted(s => !s)}>
+    {showDeleted ? "Hide Delete History" : "Show Delete History"}
+  </button>
+</div>
 
 <button onClick={() => setShowDeleted(s => !s)}>
   {showDeleted ? "Hide Delete History" : "Show Delete History"}
