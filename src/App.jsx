@@ -204,16 +204,22 @@ export default function App() {
   }
 
   function editTransaction(t) {
-    setEditingId(t.id);
-    setForm({
-      item_id: t.item_id,
-      type: t.type,
-      quantity: t.quantity,
-      date: t.date,
-      brand: t.brand || "",
-      unit: t.unit || "",
+    setConfirmModal({
+      text: "Edit this transaction?",
+      onConfirm: () => {
+        setEditingId(t.id);
+        setForm({
+          item_id: t.item_id,
+          type: t.type,
+          quantity: t.quantity,
+          date: t.date,
+          brand: t.brand || "",
+          unit: t.unit || "",
+        });
+        setItemSearch(t.items?.item_name || "");
+        setConfirmModal(null);
+      },
     });
-    setItemSearch(t.items?.item_name || "");
   }
 
   // CLICK OUTSIDE DROPDOWN
