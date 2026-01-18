@@ -87,7 +87,23 @@ export default function App() {
       setSession(s);
     });
 
-    return () => listener.subscription.unsubscribe();
+    return (
+    <>
+      {confirmModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "#fff", padding: 20, borderRadius: 6, minWidth: 280 }}>
+            <p>{confirmModal.text}</p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button onClick={() => setConfirmModal(null)}>Cancel</button>
+              <button
+                style={{ color: confirmModal.danger ? "#d32f2f" : "#000" }}
+                onClick={confirmModal.onConfirm}
+              >Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
+) => listener.subscription.unsubscribe();
   }, []);
 
 
@@ -162,6 +178,23 @@ export default function App() {
 
   // DELETE MODAL STATE
   const [deleteTarget, setDeleteTarget] = useState(null);
+
+  // OPEN delete confirmation
+  function requestDelete(id) {
+    setConfirmModal({
+      text: "Delete this transaction?",
+      onConfirm: async () => {
+        await supabase
+          .from("inventory_transactions")
+          .update({ deleted: true, deleted_at: new Date().toISOString() })
+          .eq("id", id);
+        setToast("Transaction deleted");
+        setConfirmModal(null);
+        loadData();
+      },
+    });
+  }
+
 
     async function confirmDelete() {
     if (!deleteTarget) return;
@@ -302,7 +335,7 @@ export default function App() {
           <td style={thtd}>{t.quantity}</td>
           <td style={thtd}>
             <button onClick={() => editTransaction(t)}>Edit</button>
-            <button style={{ marginLeft: 8 }} onClick={() => setDeleteTarget(t.id)}>Delete</button>
+            <button style={{ marginLeft: 8 }} onClick={() => requestDelete(t.id)}>Delete</button>
           </td>
         </tr>
       ))}
