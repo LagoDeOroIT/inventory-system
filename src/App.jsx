@@ -224,7 +224,16 @@ export default function App() {
     🗑️
   </button>
 </div>
-      <input placeholder="Search delete history" value={deletedSearch} onChange={e=>{setDeletedSearch(e.target.value); setDeletedPage(1);}} />
+      {showDeleted && (
+        <input
+          placeholder="Search delete history"
+          value={deletedSearch}
+          onChange={e => {
+            setDeletedSearch(e.target.value);
+            setDeletedPage(1);
+          }}
+        />
+      )}
 
       {showDeleted && (
         <>
