@@ -252,11 +252,11 @@ export default function App() {
           <div style={{ background: "#fff", padding: 20, borderRadius: 6, minWidth: 280 }}>
             <p>{confirmModal.text}</p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-              <button onClick={() => setConfirmModal(null)}>Cancel</button>
               <button
                 style={{ color: confirmModal.danger ? "#d32f2f" : "#000" }}
                 onClick={confirmModal.onConfirm}
               >Confirm</button>
+              <button onClick={() => setConfirmModal(null)}>Cancel</button>
             </div>
           </div>
         </div>
