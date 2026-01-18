@@ -117,6 +117,14 @@ export default function App() {
   // ================= CONFIRM HELPERS =================
   const confirm = (text, action, danger) => setConfirmModal({ text, action, danger });
 
+  const paginate = (current, set, total) => (
+    <div style={{ marginTop: 10 }}>
+      <button disabled={current === 1} onClick={() => set(current - 1)}>Prev</button>
+      <span style={{ margin: "0 10px" }}>Page {current}</span>
+      <button disabled={current >= total} onClick={() => set(current + 1)}>Next</button>
+    </div>
+  );
+
   // ================= CLICK OUTSIDE =================
   useEffect(() => {
     const handler = e => searchRef.current && !searchRef.current.contains(e.target) && setDropdownOpen(false);
@@ -139,8 +147,8 @@ export default function App() {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", display: "flex", justifyContent: "center", alignItems: "center" }}>
           <div style={{ background: "#fff", padding: 20 }}>
             <p>{confirmModal.text}</p>
+            <button style={{ marginRight: 8, color: confirmModal.danger ? "red" : "black" }} onClick={() => { confirmModal.action(); setConfirmModal(null); }}>Confirm</button>
             <button onClick={() => setConfirmModal(null)}>Cancel</button>
-            <button style={{ marginLeft: 8, color: confirmModal.danger ? "red" : "black" }} onClick={() => { confirmModal.action(); setConfirmModal(null); }}>Confirm</button>
           </div>
         </div>
       )}
@@ -177,13 +185,26 @@ export default function App() {
           {transactions.length === 0 && emptyRow(7, "No transactions")}
           {transactions.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE).map(t => (
             <tr key={t.id}>
-              <td style={thtd}>{new Date(t.date).toLocaleDateString("en-US",{month:"long",day:"2-digit",year:"numeric"})}</td>
+              <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
               <td style={thtd}>{t.items?.item_name}</td>
               <td style={thtd}>{t.brand}</td>
               <td style={thtd}>{t.unit}</td>
               <td style={thtd}>{t.volume_pack}</td>
               <td style={thtd}>{t.quantity}</td>
               <td style={thtd}>
+                <button onClick={() => confirm("Edit this transaction?", () => {
+                  setEditingId(t.id);
+                  setForm({
+                    item_id: t.item_id,
+                    type: t.type,
+                    quantity: t.quantity,
+                    date: t.date,
+                    brand: t.brand || "",
+                    unit: t.unit || "",
+                    volume_pack: t.volume_pack || "",
+                  });
+                  setItemSearch(t.items?.item_name || "");
+                })}>✏️</button>
                 <button onClick={() => confirm("Delete transaction?", async()=>{ await supabase.from("inventory_transactions").update({deleted:true}).eq("id",t.id); loadData(); }, true)}>🗑️</button>
               </td>
             </tr>
@@ -192,26 +213,57 @@ export default function App() {
       </table>
 
       {/* DELETE HISTORY */}
-      <h2 style={{ marginTop: 30 }}>
-        Delete History
-        <button style={{ marginLeft: 10 }} onClick={() => setShowDeleted(v=>!v)}>{showDeleted ? "Hide" : "Show"}</button>
-      </h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 30 }}>
+  <h2>Delete History</h2>
+  <button
+    title="Toggle Delete History"
+    onClick={() => setShowDeleted(v => !v)}
+    style={{ fontSize: 18 }}
+  >
+    🗑️
+  </button>
+</div>
+      <input placeholder="Search delete history" value={deletedSearch} onChange={e=>{setDeletedSearch(e.target.value); setDeletedPage(1);}} />
 
       {showDeleted && (
         <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thtd}>Date</th>
+              <th style={thtd}>Item</th>
+              <th style={thtd}>Brand</th>
+              <th style={thtd}>Unit</th>
+              <th style={thtd}>Volume</th>
+              <th style={thtd}>Qty</th>
+              <th style={thtd}>Actions</th>
+            </tr>
+          </thead>
           <tbody>
-            {deletedTransactions.map(t => (
-              <tr key={t.id}>
-                <td style={thtd}>{t.items?.item_name}</td>
-                <td style={thtd}>
-                  <button onClick={() => confirm("Restore?", async()=>{ await supabase.from("inventory_transactions").update({deleted:false}).eq("id",t.id); loadData(); })}>♻️</button>
-                  <button onClick={() => confirm("Permanent delete?", async()=>{ await supabase.from("inventory_transactions").delete().eq("id",t.id); loadData(); }, true)}>🗑️</button>
-                </td>
-              </tr>
-            ))}
+            {deletedTransactions
+              .filter(t =>
+                !deletedSearch ||
+                t.items?.item_name?.toLowerCase().includes(deletedSearch.toLowerCase()) ||
+                t.brand?.toLowerCase().includes(deletedSearch.toLowerCase())
+              )
+              .slice((deletedPage-1)*PAGE_SIZE, deletedPage*PAGE_SIZE)
+              .map(t => (
+                <tr key={t.id}>
+                  <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.brand}</td>
+                  <td style={thtd}>{t.unit}</td>
+                  <td style={thtd}>{t.volume_pack}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>
+                    <button onClick={() => confirm("Restore transaction?", async()=>{ await supabase.from("inventory_transactions").update({deleted:false}).eq("id",t.id); loadData(); })}>♻️</button>
+                    <button onClick={() => confirm("Permanent delete?", async()=>{ await supabase.from("inventory_transactions").delete().eq("id",t.id); loadData(); }, true)}>🗑️</button>
+                  </td>
+                </tr>
+              ))}
+            {deletedTransactions.length === 0 && emptyRow(7, "No deleted records")}
           </tbody>
         </table>
-      )}
+      )
 
       {/* MONTHLY REPORT */}
       <h2 style={{ marginTop: 40 }}>Monthly Report</h2>
