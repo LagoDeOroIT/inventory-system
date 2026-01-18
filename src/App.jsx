@@ -147,13 +147,21 @@ export default function App() {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", display: "flex", justifyContent: "center", alignItems: "center" }}>
           <div style={{ background: "#fff", padding: 20 }}>
             <p>{confirmModal.text}</p>
-            <button style={{ marginRight: 8, color: confirmModal.danger ? "red" : "black" }} onClick={() => { confirmModal.action(); setConfirmModal(null); }}>Confirm</button>
+            <button
+              style={{ marginRight: 8, color: confirmModal.danger ? "red" : "black" }}
+              onClick={() => {
+                confirmModal.action();
+                setConfirmModal(null);
+              }}
+            >
+              Confirm
+            </button>
             <button onClick={() => setConfirmModal(null)}>Cancel</button>
           </div>
         </div>
       )}
 
-      <h1>Inventory System</h1>
+      <h1 style={{ textAlign: "center" }}>Inventory System</h1>
 
       {/* FORM */}
       <div ref={searchRef} style={{ position: "relative", width: 250 }}>
@@ -176,9 +184,10 @@ export default function App() {
       <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
 
       {/* TRANSACTIONS */}
-<div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
+<h2 style={{ textAlign: "center", width: "100%" }}>Transactions History</h2>
+<div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}}>
   <div style={{ flex: 1, minWidth: 420 }}>
-    <h2>Transactions - IN</h2>
+    <h2 style={{ textAlign: "center" }}>IN</h2>
     <table style={{ ...tableStyle, fontSize: 13 }}>
       <thead>
         <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Vol</th><th style={thtd}>Qty</th><th style={thtd}>Act</th></tr>
@@ -209,7 +218,7 @@ export default function App() {
   </div>
 
   <div style={{ flex: 1, minWidth: 420 }}>
-    <h2>Transactions - OUT</h2>
+    <h2 style={{ textAlign: "center" }}>OUT</h2>
     <table style={{ ...tableStyle, fontSize: 13 }}>
       <thead>
         <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Vol</th><th style={thtd}>Qty</th><th style={thtd}>Act</th></tr>
@@ -313,11 +322,12 @@ export default function App() {
 
       {/* MONTHLY REPORT */}
 <div style={{ marginTop: 40 }}>
+  <h2 style={{ textAlign: "center" }}>Monthly Report</h2>
   <input type="month" value={reportMonth} onChange={e=>{setReportMonth(e.target.value);setReportPage(1);}} />
 
-  <div style={{ display: "flex", gap: 20, marginTop: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
+  <div style={{ display: "flex", gap: 20, marginTop: 20, alignItems: "flex-start", flexWrap: "wrap", borderTop: "1px solid #ddd", paddingTop: 20 }}>
     <div style={{ flex: 1, minWidth: 420 }}>
-      <h2>Monthly Report - IN</h2>
+      <h2 style={{ textAlign: "center" }}>IN</h2>
       <table style={{ ...tableStyle, fontSize: 13 }}>
         <thead>
           <tr><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Vol</th><th style={thtd}>Qty</th><th style={thtd}>Total</th></tr>
@@ -343,7 +353,7 @@ export default function App() {
     </div>
 
     <div style={{ flex: 1, minWidth: 420 }}>
-      <h2>Monthly Report - OUT</h2>
+      <h2 style={{ textAlign: "center" }}>OUT</h2>
       <table style={{ ...tableStyle, fontSize: 13 }}>
         <thead>
           <tr><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Vol</th><th style={thtd}>Qty</th><th style={thtd}>Total</th></tr>
