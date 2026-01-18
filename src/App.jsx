@@ -73,6 +73,8 @@ export default function App() {
     item_id: "",
     type: "IN",
     quantity: "",
+    volume: "",
+    pack: "",
     date: "",
     brand: "",
     unit: "",
@@ -143,6 +145,8 @@ export default function App() {
       item_id: Number(item.id),
       type: form.type,
       quantity: Number(form.quantity),
+      volume: form.volume ? Number(form.volume) : null,
+      pack: form.pack ? Number(form.pack) : null,
       unit_price: Number(item.unit_price),
       brand: form.brand || null,
       unit: form.unit || null,
@@ -159,7 +163,7 @@ export default function App() {
       return;
     }
 
-    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "" });
+    setForm({ item_id: "", type: "IN", quantity: "", volume: "", pack: "", date: "", brand: "", unit: "" });
     setItemSearch("");
     setEditingId(null);
     await loadData();
@@ -308,7 +312,9 @@ export default function App() {
         <option value="OUT">OUT</option>
       </select>
 
-      <input type="number" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} />
+      <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} />
+      <input type="number" placeholder="Volume" value={form.volume} onChange={e => setForm({ ...form, volume: e.target.value })} />
+      <input type="number" placeholder="Pack" value={form.pack} onChange={e => setForm({ ...form, pack: e.target.value })} />
       <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
 
       <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
