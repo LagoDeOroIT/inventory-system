@@ -272,7 +272,7 @@ export default function App() {
           </table>
           {paginate(deletedPage, setDeletedPage, Math.ceil(deletedTransactions.length / PAGE_SIZE))}
         </>
-      )
+      )}
 
       {/* MONTHLY REPORT */}
       <h2 style={{ marginTop: 40 }}>Monthly Report</h2>
