@@ -342,8 +342,12 @@ export default function App() {
           <td style={thtd}>{t.type}</td>
           <td style={thtd}>{t.quantity}</td>
           <td style={thtd}>
-            <button onClick={() => editTransaction(t)}>Edit</button>
-            <button style={{ marginLeft: 8 }} onClick={() => requestDelete(t.id)}>Delete</button>
+            <button onClick={() => editTransaction(t)} title="Edit">✏️ Edit</button>
+            <button
+              style={{ marginLeft: 8 }}
+              onClick={() => requestDelete(t.id)}
+              title="Delete"
+            >🗑️ Delete</button>
           </td>
         </tr>
       ))}
