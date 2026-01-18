@@ -308,7 +308,7 @@ export default function App() {
       ))}
     </tbody>
   </table>
-
+)}
 
 
 {/* DELETE HISTORY */}
