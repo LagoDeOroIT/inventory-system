@@ -185,7 +185,7 @@ export default function App() {
 
       {/* TRANSACTIONS */}
 <h2 style={{ textAlign: "center", width: "100%" }}>Transactions History</h2>
-<div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}}>
+<div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
   <div style={{ flex: 1, minWidth: 420 }}>
     <h2 style={{ textAlign: "center" }}>IN</h2>
     <table style={{ ...tableStyle, fontSize: 13 }}>
