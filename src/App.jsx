@@ -27,9 +27,8 @@ export default function App() {
   const [page, setPage] = useState(1);
   const [deletedPage, setDeletedPage] = useState(1);
 
-  // UI state
-  const [showDeleted, setShowDeleted] = useState(true);
-  const [confirmModal, setConfirmModal] = useState(null);
+  // tabs
+  const [activeTab, setActiveTab] = useState("transactions");
 
   // form
   const [editingId, setEditingId] = useState(null);
@@ -49,35 +48,11 @@ export default function App() {
   const searchRef = useRef(null);
 
   // ================= AUTH =================
-  // ================= AUTH =================
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
-
-  // ================= TABS =================
-  const [activeTab, setActiveTab] = useState("transactions");
-
-  // ================= MONTHLY REPORT =================
-  const monthlyReport = transactions.reduce((acc, t) => {
-    if (!t.date) return acc;
-    const month = t.date.slice(0, 7);
-    acc[month] = (acc[month] || 0) + t.quantity * t.unit_price;
-    return acc;
-  }, {});
-
-  function exportCSV() {
-    const rows = [["Month", "Total"]];
-    Object.entries(monthlyReport).forEach(([m, v]) => rows.push([m, v]));
-    const csv = rows.map(r => r.join(",")).join("
-");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "monthly-report.csv";
-    a.click();
-  }
 
   // ================= LOAD DATA =================
   async function loadData() {
@@ -106,10 +81,9 @@ export default function App() {
     if (session) loadData();
   }, [session]);
 
-  // ================= SAVE TRANSACTION =================
+  // ================= SAVE =================
   async function saveTransaction() {
     if (!form.item_id || !form.quantity) return alert("Complete the form");
-
     const item = items.find(i => i.id === Number(form.item_id));
     if (!item) return alert("Item not found");
 
@@ -137,6 +111,15 @@ export default function App() {
     loadData();
   }
 
+  // ================= MONTHLY TOTALS =================
+  const monthlyTotals = transactions.reduce((acc, t) => {
+    if (!t.date) return acc;
+    const month = t.date.slice(0, 7);
+    acc[month] = acc[month] || { IN: 0, OUT: 0 };
+    acc[month][t.type] += t.quantity * t.unit_price;
+    return acc;
+  }, {});
+
   // ================= CLICK OUTSIDE =================
   useEffect(() => {
     const handler = e => searchRef.current && !searchRef.current.contains(e.target) && setDropdownOpen(false);
@@ -157,7 +140,14 @@ export default function App() {
     <div style={{ padding: 20 }}>
       <h1 style={{ textAlign: "center" }}>Inventory System</h1>
 
-      {/* TRANSACTION FORM */}
+      {/* TABS */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+        <button onClick={() => setActiveTab("transactions")}>Transactions</button>
+        <button onClick={() => setActiveTab("deleted")}>Delete History</button>
+        <button onClick={() => setActiveTab("report")}>Monthly Report</button>
+      </div>
+
+      {/* FORM */}
       <div ref={searchRef} style={{ position: "relative", width: 250 }}>
         <input
           value={itemSearch}
@@ -196,38 +186,55 @@ export default function App() {
       <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
       <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
 
-      {/* TRANSACTIONS */}
-      <h2 style={{ marginTop: 30 }}>Transactions</h2>
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thtd}>Date</th>
-            <th style={thtd}>Item</th>
-            <th style={thtd}>Brand</th>
-            <th style={thtd}>Qty</th>
-            <th style={thtd}>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {transactions.length === 0 && emptyRow(5, "No transactions")}
-          {transactions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(t => (
-            <tr key={t.id}>
-              <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-              <td style={thtd}>{t.items?.item_name}</td>
-              <td style={thtd}>{t.brand}</td>
-              <td style={thtd}>{t.quantity}</td>
-              <td style={thtd}>₱{(t.quantity * t.unit_price).toLocaleString("en-PH", { minimumFractionDigits: 2 })}</td>
+      {/* TRANSACTIONS TAB */}
+      {activeTab === "transactions" && (
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thtd}>Date</th>
+              <th style={thtd}>Item</th>
+              <th style={thtd}>Brand</th>
+              <th style={thtd}>Qty</th>
+              <th style={thtd}>Total</th>
+              <th style={thtd}>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {transactions.length === 0 && emptyRow(6, "No transactions")}
+            {transactions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(t => (
+              <tr key={t.id}>
+                <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+                <td style={thtd}>{t.items?.item_name}</td>
+                <td style={thtd}>{t.brand}</td>
+                <td style={thtd}>{t.quantity}</td>
+                <td style={thtd}>₱{(t.quantity * t.unit_price).toFixed(2)}</td>
+                <td style={thtd}>
+                  <button onClick={() => {
+                    setEditingId(t.id);
+                    setForm({
+                      item_id: t.item_id,
+                      type: t.type,
+                      quantity: t.quantity,
+                      date: t.date,
+                      brand: t.brand || "",
+                      unit: t.unit || "",
+                      volume_pack: t.volume_pack || "",
+                    });
+                    setItemSearch(t.items?.item_name || "");
+                  }}>✏️</button>
+                  <button onClick={async () => {
+                    await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", t.id);
+                    loadData();
+                  }}>🗑️</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
-      {/* DELETE HISTORY */}
-      <h2 style={{ marginTop: 40 }}>
-        Delete History <button onClick={() => setShowDeleted(v => !v)}>🗑️</button>
-      </h2>
-
-      {showDeleted && (
+      {/* DELETE TAB */}
+      {activeTab === "deleted" && (
         <table style={tableStyle}>
           <thead>
             <tr>
@@ -245,6 +252,29 @@ export default function App() {
                 <td style={thtd}>{t.items?.item_name}</td>
                 <td style={thtd}>{t.brand}</td>
                 <td style={thtd}>{t.quantity}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {/* REPORT TAB */}
+      {activeTab === "report" && (
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thtd}>Month</th>
+              <th style={thtd}>IN Total</th>
+              <th style={thtd}>OUT Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
+            {Object.entries(monthlyTotals).map(([m, v]) => (
+              <tr key={m}>
+                <td style={thtd}>{m}</td>
+                <td style={thtd}>₱{v.IN.toFixed(2)}</td>
+                <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
