@@ -37,6 +37,11 @@ export default function App() {
   const [reportMonth, setReportMonth] = useState("");
   const [confirmModal, setConfirmModal] = useState(null);
 
+  // Currency
+  const [currency, setCurrency] = useState("PHP");
+  const currencySymbol = currency === "PHP" ? "₱" : "$";
+  const formatMoney = (v) => `${currencySymbol}${Number(v || 0).toFixed(2)}`;
+
   // Form
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({
@@ -165,6 +170,12 @@ export default function App() {
 
       <h1 style={{ textAlign: "center" }}>Inventory System</h1>
 
+      <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 20 }}>
+        <span>Currency:</span>
+        <button onClick={() => setCurrency("PHP")} disabled={currency === "PHP"}>PHP (₱)</button>
+        <button onClick={() => setCurrency("USD")} disabled={currency === "USD"}>USD ($)</button>
+      </div>
+
       {/* FORM */}
       <div ref={searchRef} style={{ position: "relative", width: 250 }}>
         <input value={itemSearch} placeholder="Search item" onFocus={() => setDropdownOpen(true)} onChange={e => { setItemSearch(e.target.value); setDropdownOpen(true); }} />
@@ -192,7 +203,7 @@ export default function App() {
     <h2 style={{ textAlign: "center" }}>IN</h2>
     <table style={{ ...tableStyle, fontSize: 13 }}>
       <thead>
-        <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Vol</th><th style={thtd}>Qty</th><th style={thtd}>Act</th></tr>
+        <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Vol</th><th style={thtd}>Qty</th><th style={thtd}>Total Price</th><th style={thtd}>Act</th></tr>
       </thead>
       <tbody>
         {transactions.filter(t=>t.type==="IN").length===0 && emptyRow(7,"No IN transactions")}
@@ -205,8 +216,7 @@ export default function App() {
             <td style={thtd}>{t.brand}</td>
             <td style={thtd}>{t.unit}</td>
             <td style={thtd}>{t.volume_pack}</td>
-            <td style={thtd}>{t.quantity}</td>
-            <td style={thtd}>
+            
               <button onClick={()=>confirm("Edit this transaction?",()=>{
                 setEditingId(t.id);
                 setForm({ item_id:t.item_id,type:t.type,quantity:t.quantity,date:t.date,brand:t.brand||"",unit:t.unit||"",volume_pack:t.volume_pack||""});
@@ -246,7 +256,7 @@ export default function App() {
     <h2 style={{ textAlign: "center" }}>OUT</h2>
     <table style={{ ...tableStyle, fontSize: 13 }}>
       <thead>
-        <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Vol</th><th style={thtd}>Qty</th><th style={thtd}>Act</th></tr>
+        <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Vol</th><th style={thtd}>Qty</th><th style={thtd}>Total Price</th><th style={thtd}>Act</th></tr>
       </thead>
       <tbody>
         {transactions.filter(t=>t.type==="OUT").length===0 && emptyRow(7,"No OUT transactions")}
@@ -370,7 +380,7 @@ export default function App() {
             const rows = Object.values(grouped);
             if(!rows.length) return emptyRow(6,"No IN data");
             return rows.slice((reportPage-1)*REPORT_PAGE_SIZE,reportPage*REPORT_PAGE_SIZE).map((r,i)=>(
-              <tr key={i}><td style={thtd}>{r.name}</td><td style={thtd}>{r.brand}</td><td style={thtd}>{r.unit}</td><td style={thtd}>{r.volume}</td><td style={thtd}>{r.qty}</td><td style={thtd}>₱{r.total.toFixed(2)}</td></tr>
+              <tr key={i}><td style={thtd}>{r.name}</td><td style={thtd}>{r.brand}</td><td style={thtd}>{r.unit}</td><td style={thtd}>{r.volume}</td><td style={thtd}>{r.qty}</td><td style={thtd}>{formatMoney(r.total)}</td></tr>
             ));
           })()}
         </tbody>
@@ -396,7 +406,7 @@ export default function App() {
             const rows = Object.values(grouped);
             if(!rows.length) return emptyRow(6,"No OUT data");
             return rows.slice((reportPage-1)*REPORT_PAGE_SIZE,reportPage*REPORT_PAGE_SIZE).map((r,i)=>(
-              <tr key={i}><td style={thtd}>{r.name}</td><td style={thtd}>{r.brand}</td><td style={thtd}>{r.unit}</td><td style={thtd}>{r.volume}</td><td style={thtd}>{r.qty}</td><td style={thtd}>₱{r.total.toFixed(2)}</td></tr>
+              <tr key={i}><td style={thtd}>{r.name}</td><td style={thtd}>{r.brand}</td><td style={thtd}>{r.unit}</td><td style={thtd}>{r.volume}</td><td style={thtd}>{r.qty}</td><td style={thtd}>{formatMoney(r.total)}</td></tr>
             ));
           })()}
         </tbody>
