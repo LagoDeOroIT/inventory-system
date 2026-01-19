@@ -25,7 +25,8 @@ export default function App() {
   // Pagination
   const PAGE_SIZE = 5;
   const REPORT_PAGE_SIZE = 5;
-  const [page, setPage] = useState(1);
+  const [pageIn, setPageIn] = useState(1);
+  const [pageOut, setPageOut] = useState(1);
   const [deletedPage, setDeletedPage] = useState(1);
   const [reportPage, setReportPage] = useState(1);
 
@@ -194,7 +195,7 @@ export default function App() {
       </thead>
       <tbody>
         {transactions.filter(t=>t.type==="IN").length===0 && emptyRow(7,"No IN transactions")}
-        {transactions.filter(t=>t.type==="IN").slice((page-1)*PAGE_SIZE,page*PAGE_SIZE).map(t=> (
+        {transactions.filter(t=>t.type==="IN").slice((pageIn-1)*PAGE_SIZE,pageIn*PAGE_SIZE).map(t=> (
           <tr key={t.id}>
             <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
             <td style={thtd}>{t.items?.item_name}</td>
@@ -214,7 +215,7 @@ export default function App() {
         ))}
       </tbody>
     </table>
-    {paginate(page,setPage,Math.ceil(transactions.filter(t=>t.type==="IN").length/PAGE_SIZE))}
+    {paginate(pageIn,setPageIn,Math.ceil(transactions.filter(t=>t.type==="IN").length/PAGE_SIZE))}
   </div>
 
   <div style={{ flex: 1, minWidth: 420 }}>
@@ -225,7 +226,7 @@ export default function App() {
       </thead>
       <tbody>
         {transactions.filter(t=>t.type==="OUT").length===0 && emptyRow(7,"No OUT transactions")}
-        {transactions.filter(t=>t.type==="OUT").slice((page-1)*PAGE_SIZE,page*PAGE_SIZE).map(t=> (
+        {transactions.filter(t=>t.type==="OUT").slice((pageOut-1)*PAGE_SIZE,pageOut*PAGE_SIZE).map(t=> (
           <tr key={t.id}>
             <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
             <td style={thtd}>{t.items?.item_name}</td>
@@ -245,7 +246,7 @@ export default function App() {
         ))}
       </tbody>
     </table>
-    {paginate(page,setPage,Math.ceil(transactions.filter(t=>t.type==="OUT").length/PAGE_SIZE))}
+    {paginate(pageOut,setPageOut,Math.ceil(transactions.filter(t=>t.type==="OUT").length/PAGE_SIZE))}
   </div>
 </div>
 
