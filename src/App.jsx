@@ -195,37 +195,28 @@ export default function App() {
               <th style={thtd}>Item</th>
               <th style={thtd}>Brand</th>
               <th style={thtd}>Qty</th>
-              <th style={thtd}>Total</th>
               <th style={thtd}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {transactions.length === 0 && emptyRow(6, "No transactions")}
-            {transactions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(t => (
+            {deletedTransactions.length === 0 && emptyRow(5, "No deleted records")}
+            {deletedTransactions.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map(t => (
               <tr key={t.id}>
-                <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+                <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
                 <td style={thtd}>{t.items?.item_name}</td>
                 <td style={thtd}>{t.brand}</td>
                 <td style={thtd}>{t.quantity}</td>
-                <td style={thtd}>₱{(t.quantity * t.unit_price).toFixed(2)}</td>
                 <td style={thtd}>
-                  <button onClick={() => {
-                    setEditingId(t.id);
-                    setForm({
-                      item_id: t.item_id,
-                      type: t.type,
-                      quantity: t.quantity,
-                      date: t.date,
-                      brand: t.brand || "",
-                      unit: t.unit || "",
-                      volume_pack: t.volume_pack || "",
-                    });
-                    setItemSearch(t.items?.item_name || "");
-                  }}>✏️</button>
                   <button onClick={async () => {
-                    await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", t.id);
+                    if (!window.confirm("Restore this transaction?")) return;
+                    await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("id", t.id);
                     loadData();
-                  }}>🗑️</button>
+                  }}>♻️ Restore</button>
+                  <button onClick={async () => {
+                    if (!window.confirm("Permanently delete this transaction? This cannot be undone.")) return;
+                    await supabase.from("inventory_transactions").delete().eq("id", t.id);
+                    loadData();
+                  }}>❌ Delete</button>
                 </td>
               </tr>
             ))}
