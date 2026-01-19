@@ -52,7 +52,29 @@ export default function App() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
+    // ================= TABS =================
+  const [activeTab, setActiveTab] = useState("transactions");
+
+  // ================= MONTHLY REPORT =================
+  const monthlyReport = transactions.reduce((acc, t) => {
+    const month = t.date.slice(0, 7);
+    acc[month] = (acc[month] || 0) + t.quantity * t.unit_price;
+    return acc;
+  }, {});
+
+  function exportCSV() {
+    const rows = [["Month", "Total"]];
+    Object.entries(monthlyReport).forEach(([m, v]) => rows.push([m, v]));
+    const csv = rows.map(r => r.join(",")).join("
+");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "monthly-report.csv";
+    a.click();
+  }
+
+  return () => data.subscription.unsubscribe();
   }, []);
 
   // ================= LOAD DATA =================
