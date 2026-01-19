@@ -17,6 +17,65 @@ const emptyRow = (colSpan, text) => (
   </tr>
 );
 
+function ItemManager({ onAdded }) {
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [name, setName] = useState("");
+  const [brand, setBrand] = useState("");
+  const [price, setPrice] = useState("");
+
+  async function addOrUpdateItem() {
+    if (!name || !price) return alert("Item name and price required");
+
+    const payload = {
+      item_name: name,
+      brand: brand || null,
+      unit_price: Number(price),
+    };
+
+    const { error } = editingItemId
+      ? await supabase.from("items").update(payload).eq("id", editingItemId)
+      : await supabase.from("items").insert(payload);
+
+    if (error) return alert(error.message);
+
+    setEditingItemId(null);
+    setName("");
+    setBrand("");
+    setPrice("");
+    onAdded && onAdded();
+  }
+({ onAdded }) {
+  const [name, setName] = useState("");
+  const [brand, setBrand] = useState("");
+  const [price, setPrice] = useState("");
+
+  async function addItem() {
+    if (!name || !price) return alert("Item name and price required");
+
+    const { error } = await supabase.from("items").insert({
+      item_name: name,
+      brand: brand || null,
+      unit_price: Number(price),
+    });
+
+    if (error) return alert(error.message);
+
+    setName("");
+    setBrand("");
+    setPrice("");
+    onAdded && onAdded();
+  }
+
+  return (
+    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      <input placeholder="Item name (e.g. Cement, Beer)" value={name} onChange={e => setName(e.target.value)} />
+      <input placeholder="Brand" value={brand} onChange={e => setBrand(e.target.value)} />
+      <input type="number" placeholder="Unit price" value={price} onChange={e => setPrice(e.target.value)} />
+      <button onClick={addOrUpdateItem}>{editingItemId ? "Update Item" : "Add Item"}</button>
+    </div>
+  );
+}
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
@@ -168,6 +227,38 @@ export default function App() {
       )}
 
       <h1 style={{ textAlign: "center" }}>Inventory System</h1>
+
+      {/* ITEM MENU */}
+      <div style={{ border: "1px solid #ddd", padding: 15, marginBottom: 20 }}>
+        <h2>Item Menu (Add New Item)</h2>
+        <ItemManager onAdded={loadData} />
+
+      <table style={{ ...tableStyle, marginTop: 15, fontSize: 13 }}>
+        <thead>
+          <tr>
+            <th style={thtd}>Item</th>
+            <th style={thtd}>Brand</th>
+            <th style={thtd}>Unit Price</th>
+            <th style={thtd}>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.length === 0 && emptyRow(4, "No items yet")}
+          {items.map(i => (
+            <tr key={i.id}>
+              <td style={thtd}>{i.item_name}</td>
+              <td style={thtd}>{i.brand}</td>
+              <td style={thtd}>{formatMoney(i.unit_price)}</td>
+              <td style={thtd}>
+                <button onClick={() => {
+                  const mgr = document.querySelector('[data-item-manager]');
+                }}>✏️</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
 
       
 
