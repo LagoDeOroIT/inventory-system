@@ -1,12 +1,3 @@
-import React, { useEffect, useRef, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-// ================= SUPABASE CONFIG =================
-const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
-const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-// ================= STYLES =================
 const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: 10 };
 const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" };
 const footerTd = { ...thtd, fontWeight: "bold", background: "#f6f6f6" };
@@ -17,6 +8,8 @@ const emptyRow = (colSpan, text) => (
   </tr>
 );
 
+// ================= ITEM MANAGER =================
+function ItemManager({ onAdded, onEditRef }) {
 function ItemManager({ onAdded, onEdit }) {
   const [editingItemId, setEditingItemId] = useState(null);
   const [name, setName] = useState("");
@@ -24,6 +17,8 @@ function ItemManager({ onAdded, onEdit }) {
   const [price, setPrice] = useState("");
 
   useEffect(() => {
+    if (!onEditRef) return;
+    onEditRef.current = (item) => {
     if (!onEdit) return;
     onEdit.current = (item) => {
       setEditingItemId(item.id);
@@ -31,42 +26,27 @@ function ItemManager({ onAdded, onEdit }) {
       setBrand(item.brand || "");
       setPrice(item.unit_price);
     };
+  }, [onEditRef]);
   }, [onEdit]);
 
   async function addOrUpdateItem() {
     if (!name || !price) return alert("Item name and price required");
-
-    const payload = {
-      item_name: name,
-      brand: brand || null,
-      unit_price: Number(price),
-    };
-
-    const { error } = editingItemId
-      ? await supabase.from("items").update(payload).eq("id", editingItemId)
-      : await supabase.from("items").insert(payload);
-
-    if (error) return alert(error.message);
-
-    setEditingItemId(null);
-    setName("");
-    setBrand("");
-    setPrice("");
+@@ -55,7 +55,9 @@ function ItemManager({ onAdded, onEditRef }) {
     onAdded && onAdded();
   }
 
+  return (
 export default function App() {
 
 
     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
       <input placeholder="Item name" value={name} onChange={e => setName(e.target.value)} />
       <input placeholder="Brand" value={brand} onChange={e => setBrand(e.target.value)} />
-      <input type="number" placeholder="Unit price" value={price} onChange={e => setPrice(e.target.value)} />
-      <button onClick={addOrUpdateItem}>{editingItemId ? "Update Item" : "Add Item"}</button>
-    </div>
+@@ -65,17 +67,43 @@ function ItemManager({ onAdded, onEditRef }) {
   );
 }
 
+// ================= MAIN APP =================
   return (
     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
       <input placeholder="Item name (e.g. Cement, Beer)" value={name} onChange={e => setName(e.target.value)} />
@@ -82,6 +62,9 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
+
+  const editItemRef = useRef(null);
+
   const [deletedTransactions, setDeletedTransactions] = useState([]);
 
   // Pagination
@@ -100,6 +83,7 @@ export default function App() {
 
   // Currency (fixed to PHP)
   const currencySymbol = "₱";
+  const formatMoney = (v) => `${currencySymbol}${new Intl.NumberFormat("en-PH", { minimumFractionDigits: 2 }).format(Number(v || 0))}`;
   const formatMoney = (v) => `${currencySymbol}${new Intl.NumberFormat("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(v || 0))}`;
 
   // Form
@@ -107,10 +91,7 @@ export default function App() {
   const [form, setForm] = useState({
     item_id: "",
     type: "IN",
-    quantity: "",
-    date: "",
-    brand: "",
-    unit: "",
+@@ -86,6 +114,7 @@ export default function App() {
     volume_pack: "",
   });
 
@@ -118,17 +99,7 @@ export default function App() {
   const [itemSearch, setItemSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const searchRef = useRef(null);
-
-  // ================= AUTH =================
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
-  }, []);
-
-  // ================= LOAD DATA =================
-  async function loadData() {
-    const { data: itemsData } = await supabase.from("items").select("id, item_name, brand, unit_price");
+@@ -103,17 +132,25 @@ export default function App() {
     const { data: tx } = await supabase
       .from("inventory_transactions")
       .select("*, items(item_name)")
@@ -150,25 +121,23 @@ export default function App() {
     if (session) loadData();
   }, [session]);
 
+  // ================= SAVE TRANSACTION =================
   // ================= SAVE =================
   async function saveTransaction() {
     if (!form.item_id || !form.quantity) return alert("Complete the form");
 
-    const item = items.find(i => i.id === Number(form.item_id));
-    if (!item) return alert("Item not found");
-
-    const payload = {
-      date: form.date || new Date().toISOString().slice(0, 10),
-      item_id: Number(form.item_id),
+@@ -126,19 +163,42 @@ export default function App() {
       type: form.type,
       quantity: Number(form.quantity),
       unit_price: item.unit_price,
+      brand: item.brand,
       brand: form.brand || null,
       unit: form.unit || null,
       volume_pack: form.volume_pack || null,
       deleted: false,
     };
 
+    const { error } = await supabase.from("inventory_transactions").insert(payload);
     const { error } = editingId
       ? await supabase.from("inventory_transactions").update(payload).eq("id", editingId)
       : await supabase.from("inventory_transactions").insert(payload);
@@ -202,11 +171,7 @@ export default function App() {
   if (!session) {
     return (
       <div style={{ padding: 40 }}>
-        <h2>Inventory Login</h2>
-        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>Login with Google</button>
-      </div>
-    );
-  }
+@@ -150,95 +210,323 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
@@ -232,6 +197,16 @@ export default function App() {
 
       {/* ITEM MENU */}
       <div style={{ border: "1px solid #ddd", padding: 15, marginBottom: 20 }}>
+        <h2>Item Menu</h2>
+        <ItemManager onAdded={loadData} onEditRef={editItemRef} />
+
+        <table style={{ ...tableStyle, marginTop: 15, fontSize: 13 }}>
+          <thead>
+            <tr>
+              <th style={thtd}>Item</th>
+              <th style={thtd}>Brand</th>
+              <th style={thtd}>Unit Price</th>
+              <th style={thtd}>Action</th>
         <h2>Item Menu (Add New Item)</h2>
         {(() => {
   const editRef = useRef(null);
@@ -262,6 +237,25 @@ export default function App() {
                 }, true)}>🗑️</button>
               </td>
             </tr>
+          </thead>
+          <tbody>
+            {items.length === 0 && emptyRow(4, "No items yet")}
+            {items.map(i => (
+              <tr key={i.id}>
+                <td style={thtd}>{i.item_name}</td>
+                <td style={thtd}>{i.brand}</td>
+                <td style={thtd}>{formatMoney(i.unit_price)}</td>
+                <td style={thtd}>
+                  <button onClick={() => editItemRef.current(i)}>✏️</button>
+                  <button onClick={async () => {
+                    await supabase.from("items").delete().eq("id", i.id);
+                    loadData();
+                  }}>🗑️</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
           ))}
         </tbody>
       </table>
@@ -301,14 +295,26 @@ export default function App() {
       </table>
       </div>
 
+      {/* TRANSACTION FORM */}
       
 
       {/* FORM */}
       <div ref={searchRef} style={{ position: "relative", width: 250 }}>
+        <input
+          value={itemSearch}
+          placeholder="Search item"
+          onFocus={() => setDropdownOpen(true)}
+          onChange={e => { setItemSearch(e.target.value); setDropdownOpen(true); }}
+        />
         <input value={itemSearch} placeholder="Search item" onFocus={() => setDropdownOpen(true)} onChange={e => { setItemSearch(e.target.value); setDropdownOpen(true); }} />
         {dropdownOpen && (
           <div style={{ border: "1px solid #ccc", background: "#fff" }}>
             {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
+              <div key={i.id} onClick={() => {
+                setForm({ ...form, item_id: i.id });
+                setItemSearch(`${i.item_name} (${i.brand})`);
+                setDropdownOpen(false);
+              }}>{i.item_name} ({i.brand})</div>
               <div key={i.id} onClick={() => { setForm({ ...form, item_id: i.id }); setItemSearch(i.item_name); setDropdownOpen(false); }}>{i.item_name}</div>
             ))}
           </div>
@@ -321,9 +327,19 @@ export default function App() {
       <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}><option>IN</option><option>OUT</option></select>
       <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} />
       <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+      <button onClick={saveTransaction}>Save</button>
       <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
 
       {/* TRANSACTIONS */}
+      <h2 style={{ textAlign: "center", marginTop: 30 }}>Transactions</h2>
+      <table style={tableStyle}>
+        <thead>
+          <tr>
+            <th style={thtd}>Date</th>
+            <th style={thtd}>Item</th>
+            <th style={thtd}>Brand</th>
+            <th style={thtd}>Qty</th>
+            <th style={thtd}>Total</th>
 <h2 style={{ textAlign: "center", width: "100%" }}>Transactions History</h2>
 <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
   <div style={{ flex: 1, minWidth: 420 }}>
@@ -477,6 +493,16 @@ export default function App() {
           <tr><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Vol</th><th style={thtd}>Qty</th><th style={thtd}>Total</th></tr>
         </thead>
         <tbody>
+          {transactions.length === 0 && emptyRow(5, "No transactions")}
+          {transactions.map(t => (
+            <tr key={t.id}>
+              <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+              <td style={thtd}>{t.items?.item_name}</td>
+              <td style={thtd}>{t.brand}</td>
+              <td style={thtd}>{t.quantity}</td>
+              <td style={thtd}>{formatMoney(t.quantity * t.unit_price)}</td>
+            </tr>
+          ))}
           {(() => {
             const filtered = transactions.filter(t=>t.type==="IN" && (!reportMonth || t.date?.startsWith(reportMonth)));
             const grouped = {};
@@ -529,4 +555,3 @@ export default function App() {
 </div>
     </div>
   );
-}
