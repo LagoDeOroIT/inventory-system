@@ -17,7 +17,7 @@ const emptyRow = (colSpan, text) => (
   </tr>
 );
 
-function ItemManager({ onAdded }) {
+function ItemManager({ onAdded, onEdit }) {
   const [editingItemId, setEditingItemId] = useState(null);
   const [name, setName] = useState("");
   const [brand, setBrand] = useState("");
@@ -230,9 +230,14 @@ export default function App() {
               <td style={thtd}>{i.brand}</td>
               <td style={thtd}>{formatMoney(i.unit_price)}</td>
               <td style={thtd}>
-                <button onClick={() => {
-                  const mgr = document.querySelector('[data-item-manager]');
-                }}>✏️</button>
+                <button onClick={() => confirm("Edit this item?", () => {
+                  setEditingId(null);
+                  document.querySelector('input[placeholder="Item name (e.g. Cement, Beer)"]').value = i.item_name;
+                })}>✏️</button>
+                <button onClick={() => confirm("Delete this item?", async () => {
+                  await supabase.from("items").delete().eq("id", i.id);
+                  loadData();
+                }, true)}>🗑️</button>
               </td>
             </tr>
           ))}
