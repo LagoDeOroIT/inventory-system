@@ -23,6 +23,16 @@ function ItemManager({ onAdded, onEdit }) {
   const [brand, setBrand] = useState("");
   const [price, setPrice] = useState("");
 
+  useEffect(() => {
+    if (!onEdit) return;
+    onEdit.current = (item) => {
+      setEditingItemId(item.id);
+      setName(item.item_name);
+      setBrand(item.brand || "");
+      setPrice(item.unit_price);
+    };
+  }, [onEdit]);
+
   async function addOrUpdateItem() {
     if (!name || !price) return alert("Item name and price required");
 
@@ -44,6 +54,16 @@ function ItemManager({ onAdded, onEdit }) {
     setPrice("");
     onAdded && onAdded();
   }
+
+  return (
+    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      <input placeholder="Item name" value={name} onChange={e => setName(e.target.value)} />
+      <input placeholder="Brand" value={brand} onChange={e => setBrand(e.target.value)} />
+      <input type="number" placeholder="Unit price" value={price} onChange={e => setPrice(e.target.value)} />
+      <button onClick={addOrUpdateItem}>{editingItemId ? "Update Item" : "Add Item"}</button>
+    </div>
+  );
+}
 
   return (
     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -106,7 +126,7 @@ export default function App() {
 
   // ================= LOAD DATA =================
   async function loadData() {
-    const { data: itemsData } = await supabase.from("items").select("id, item_name, unit_price");
+    const { data: itemsData } = await supabase.from("items").select("id, item_name, brand, unit_price");
     const { data: tx } = await supabase
       .from("inventory_transactions")
       .select("*, items(item_name)")
@@ -211,7 +231,41 @@ export default function App() {
       {/* ITEM MENU */}
       <div style={{ border: "1px solid #ddd", padding: 15, marginBottom: 20 }}>
         <h2>Item Menu (Add New Item)</h2>
-        <ItemManager onAdded={loadData} />
+        {(() => {
+  const editRef = useRef(null);
+  return (
+    <>
+      <ItemManager onAdded={loadData} onEdit={editRef} />
+      <table style={{ ...tableStyle, marginTop: 15, fontSize: 13 }}>
+        <thead>
+          <tr>
+            <th style={thtd}>Item</th>
+            <th style={thtd}>Brand</th>
+            <th style={thtd}>Unit Price</th>
+            <th style={thtd}>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.length === 0 && emptyRow(4, "No items yet")}
+          {items.map(i => (
+            <tr key={i.id}>
+              <td style={thtd}>{i.item_name}</td>
+              <td style={thtd}>{i.brand}</td>
+              <td style={thtd}>{formatMoney(i.unit_price)}</td>
+              <td style={thtd}>
+                <button onClick={() => confirm("Edit this item?", () => editRef.current(i))}>✏️</button>
+                <button onClick={() => confirm("Delete this item?", async () => {
+                  await supabase.from("items").delete().eq("id", i.id);
+                  loadData();
+                }, true)}>🗑️</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  );
+})()}
 
       <table style={{ ...tableStyle, marginTop: 15, fontSize: 13 }}>
         <thead>
