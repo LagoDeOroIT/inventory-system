@@ -24,9 +24,9 @@ export default function App() {
 
   // pagination
   const PAGE_SIZE = 5;
-  // pagination
-  const PAGE_SIZE = 5;
   const [txPage, setTxPage] = useState(1);
+  const [deletedPage, setDeletedPage] = useState(1);
+  const [reportPage, setReportPage] = useState(1);
   const [deletedPage, setDeletedPage] = useState(1);
   const [reportPage, setReportPage] = useState(1);
   const [deletedPage, setDeletedPage] = useState(1);
@@ -215,6 +215,25 @@ export default function App() {
               <button onClick={() => {
                 setEditingId(t.id);
                 setForm({ ...t, item_id: t.item_id });
+                setItemSearch(t.items?.item_name || "");
+              }}>✏️ Edit</button>
+              <button onClick={async () => {
+                if (!window.confirm("Delete this transaction?")) return;
+                await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date() }).eq("id", t.id);
+                loadData();
+              }}>🗑️ Delete</button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    <div>
+      <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
+      <span> Page {txPage} </span>
+      <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
+    </div>
+  </>
+);
                 setItemSearch(t.items?.item_name || "");
               }}>✏️ Edit</button>
               <button onClick={async () => {
