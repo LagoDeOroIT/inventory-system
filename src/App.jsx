@@ -55,17 +55,9 @@ function ItemManager({ onAdded, onEdit }) {
     onAdded && onAdded();
   }
 
-  return (
-    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-      <input placeholder="Item name (e.g. Cement, Beer)" value={name} onChange={e => setName(e.target.value)} />
-      <input placeholder="Brand" value={brand} onChange={e => setBrand(e.target.value)} />
-      <input type="number" placeholder="Unit price" value={price} onChange={e => setPrice(e.target.value)} />
-      <button onClick={addOrUpdateItem}>{editingItemId ? "Update Item" : "Add Item"}</button>
-    </div>
-  );
-}
+export default function App() {
 
-return (
+
     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
       <input placeholder="Item name" value={name} onChange={e => setName(e.target.value)} />
       <input placeholder="Brand" value={brand} onChange={e => setBrand(e.target.value)} />
