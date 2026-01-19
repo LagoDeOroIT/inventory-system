@@ -206,7 +206,7 @@ export default function App() {
         <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Vol</th><th style={thtd}>Qty</th><th style={thtd}>Total Price</th><th style={thtd}>Act</th></tr>
       </thead>
       <tbody>
-        {transactions.filter(t=>t.type==="IN").length===0 && emptyRow(7,"No IN transactions")}
+        {transactions.filter(t=>t.type==="IN").length===0 && emptyRow(8,"No IN transactions")}
         {transactions.filter(t=>t.type==="IN")
           .slice((pageIn-1)*PAGE_SIZE,pageIn*PAGE_SIZE)
           .map(t=> (
@@ -216,7 +216,9 @@ export default function App() {
             <td style={thtd}>{t.brand}</td>
             <td style={thtd}>{t.unit}</td>
             <td style={thtd}>{t.volume_pack}</td>
-            
+            <td style={thtd}>{t.quantity}</td>
+            <td style={thtd}>{formatMoney(t.quantity * t.unit_price)}</td>
+            <td style={thtd}>
               <button onClick={()=>confirm("Edit this transaction?",()=>{
                 setEditingId(t.id);
                 setForm({ item_id:t.item_id,type:t.type,quantity:t.quantity,date:t.date,brand:t.brand||"",unit:t.unit||"",volume_pack:t.volume_pack||""});
@@ -226,27 +228,6 @@ export default function App() {
             </td>
           </tr>
         ))}
-        {(() => {
-          const rows = transactions.filter(t=>t.type==="IN");
-          if(!rows.length) return null;
-          const totalQty = rows.reduce((s,t)=>s+t.quantity,0);
-          const totalVal = rows.reduce((s,t)=>s+t.quantity*t.unit_price,0);
-          const avg = totalQty ? totalVal/totalQty : 0;
-          return (
-            <>
-              <tr>
-                <td colSpan={5} style={footerTd}>Grand Total</td>
-                <td style={footerTd}>{totalQty}</td>
-                <td style={footerTd}></td>
-              </tr>
-              <tr>
-                <td colSpan={5} style={footerTd}>Average Price</td>
-                <td style={footerTd}>₱{avg.toFixed(2)}</td>
-                <td style={footerTd}></td>
-              </tr>
-            </>
-          );
-        })()}
       </tbody>
     </table>
     {paginate(pageIn,setPageIn,Math.ceil(transactions.filter(t=>t.type==="IN").length/PAGE_SIZE))}
