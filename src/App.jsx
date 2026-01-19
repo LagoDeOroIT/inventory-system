@@ -22,14 +22,11 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
 
-  // pagination
+  // pagination (ONE declaration each)
   const PAGE_SIZE = 5;
   const [txPage, setTxPage] = useState(1);
   const [deletedPage, setDeletedPage] = useState(1);
   const [reportPage, setReportPage] = useState(1);
-  const [deletedPage, setDeletedPage] = useState(1);
-  const [reportPage, setReportPage] = useState(1);
-  const [deletedPage, setDeletedPage] = useState(1);
 
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
@@ -192,114 +189,92 @@ export default function App() {
 
       {/* TRANSACTIONS TAB */}
       {activeTab === "transactions" && (
-  <>
-    <table style={tableStyle}>
-      <thead>
-        <tr>
-          <th style={thtd}>Date</th>
-          <th style={thtd}>Item</th>
-          <th style={thtd}>Brand</th>
-          <th style={thtd}>Qty</th>
-          <th style={thtd}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {transactions.length === 0 && emptyRow(5, "No transactions")}
-        {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
-          <tr key={t.id}>
-            <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-            <td style={thtd}>{t.items?.item_name}</td>
-            <td style={thtd}>{t.brand}</td>
-            <td style={thtd}>{t.quantity}</td>
-            <td style={thtd}>
-              <button onClick={() => {
-                setEditingId(t.id);
-                setForm({ ...t, item_id: t.item_id });
-                setItemSearch(t.items?.item_name || "");
-              }}>✏️ Edit</button>
-              <button onClick={async () => {
-                if (!window.confirm("Delete this transaction?")) return;
-                await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date() }).eq("id", t.id);
-                loadData();
-              }}>🗑️ Delete</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-    <div>
-      <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
-      <span> Page {txPage} </span>
-      <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
-    </div>
-  </>
-);
-                setItemSearch(t.items?.item_name || "");
-              }}>✏️ Edit</button>
-              <button onClick={async () => {
-                if (!window.confirm("Delete this transaction?")) return;
-                await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date() }).eq("id", t.id);
-                loadData();
-              }}>🗑️ Delete</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-    <div>
-      <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
-      <span> Page {txPage} </span>
-      <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
-    </div>
-  </>
-)
-            {deletedTransactions.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map(t => (
-              <tr key={t.id}>
-                <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
-                <td style={thtd}>{t.items?.item_name}</td>
-                <td style={thtd}>{t.brand}</td>
-                <td style={thtd}>{t.quantity}</td>
-                <td style={thtd}>
-                  <button onClick={async () => {
-                    if (!window.confirm("Restore this transaction?")) return;
-                    await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("id", t.id);
-                    loadData();
-                  }}>♻️ Restore</button>
-                  <button onClick={async () => {
-                    if (!window.confirm("Permanently delete this transaction? This cannot be undone.")) return;
-                    await supabase.from("inventory_transactions").delete().eq("id", t.id);
-                    loadData();
-                  }}>❌ Delete</button>
-                </td>
+        <>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Date</th>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Qty</th>
+                <th style={thtd}>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {transactions.length === 0 && emptyRow(5, "No transactions")}
+              {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
+                <tr key={t.id}>
+                  <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.brand}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>
+                    <button onClick={() => {
+                      setEditingId(t.id);
+                      setForm({ ...t, item_id: t.item_id });
+                      setItemSearch(t.items?.item_name || "");
+                    }}>✏️ Edit</button>
+                    <button onClick={async () => {
+                      if (!window.confirm("Delete this transaction?")) return;
+                      await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date() }).eq("id", t.id);
+                      loadData();
+                    }}>🗑️ Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div>
+            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
+            <span> Page {txPage} </span>
+            <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
+          </div>
+        </>
       )}
 
       {/* DELETE TAB */}
       {activeTab === "deleted" && (
-        <table style={tableStyle}>
-          <thead>
-            <tr>
-              <th style={thtd}>Date</th>
-              <th style={thtd}>Item</th>
-              <th style={thtd}>Brand</th>
-              <th style={thtd}>Qty</th>
-            </tr>
-          </thead>
-          <tbody>
-            {deletedTransactions.length === 0 && emptyRow(4, "No deleted records")}
-            {deletedTransactions.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map(t => (
-              <tr key={t.id}>
-                <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
-                <td style={thtd}>{t.items?.item_name}</td>
-                <td style={thtd}>{t.brand}</td>
-                <td style={thtd}>{t.quantity}</td>
+        <>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Date</th>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Qty</th>
+                <th style={thtd}>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {deletedTransactions.length === 0 && emptyRow(5, "No deleted records")}
+              {deletedTransactions.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map(t => (
+                <tr key={t.id}>
+                  <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.brand}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>
+                    <button onClick={async () => {
+                      if (!window.confirm("Restore this transaction?")) return;
+                      await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("id", t.id);
+                      loadData();
+                    }}>♻️ Restore</button>
+                    <button onClick={async () => {
+                      if (!window.confirm("Permanently delete this transaction?")) return;
+                      await supabase.from("inventory_transactions").delete().eq("id", t.id);
+                      loadData();
+                    }}>❌ Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div>
+            <button disabled={deletedPage === 1} onClick={() => setDeletedPage(p => p - 1)}>Prev</button>
+            <span> Page {deletedPage} </span>
+            <button disabled={deletedPage * PAGE_SIZE >= deletedTransactions.length} onClick={() => setDeletedPage(p => p + 1)}>Next</button>
+          </div>
+        </>
       )}
 
       {/* REPORT TAB */}
@@ -314,7 +289,7 @@ export default function App() {
           </thead>
           <tbody>
             {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
-            {Object.entries(monthlyTotals).map(([m, v]) => (
+            {Object.entries(monthlyTotals).slice((reportPage - 1) * PAGE_SIZE, reportPage * PAGE_SIZE).map(([m, v]) => (
               <tr key={m}>
                 <td style={thtd}>{m}</td>
                 <td style={thtd}>₱{v.IN.toFixed(2)}</td>
@@ -324,7 +299,6 @@ export default function App() {
           </tbody>
         </table>
       )}
-
     </div>
   );
 }
