@@ -235,7 +235,7 @@ export default function App() {
         <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Vol</th><th style={thtd}>Qty</th><th style={thtd}>Total Price</th><th style={thtd}>Act</th></tr>
       </thead>
       <tbody>
-        {transactions.filter(t=>t.type==="OUT").length===0 && emptyRow(7,"No OUT transactions")}
+        {transactions.filter(t=>t.type==="OUT").length===0 && emptyRow(8,"No OUT transactions")}
         {transactions.filter(t=>t.type==="OUT").slice((pageOut-1)*PAGE_SIZE,pageOut*PAGE_SIZE).map(t=> (
           <tr key={t.id}>
             <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
@@ -244,6 +244,7 @@ export default function App() {
             <td style={thtd}>{t.unit}</td>
             <td style={thtd}>{t.volume_pack}</td>
             <td style={thtd}>{t.quantity}</td>
+            <td style={thtd}>{formatMoney(t.quantity * t.unit_price)}</td>
             <td style={thtd}>
               <button onClick={()=>confirm("Edit this transaction?",()=>{
                 setEditingId(t.id);
