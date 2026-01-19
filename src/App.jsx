@@ -9,6 +9,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // ================= STYLES =================
 const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: 10 };
 const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" };
+const footerTd = { ...thtd, fontWeight: "bold", background: "#f6f6f6" };
 
 const emptyRow = (colSpan, text) => (
   <tr>
@@ -193,32 +194,11 @@ export default function App() {
       <thead>
         <tr><th style={thtd}>Date</th><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Unit</th><th style={thtd}>Vol</th><th style={thtd}>Qty</th><th style={thtd}>Act</th></tr>
       </thead>
-      <tbody>
-        {transactions.filter(t=>t.type==="IN").length===0 && emptyRow(7,"No IN transactions")}
-        {transactions.filter(t=>t.type==="IN").slice((pageIn-1)*PAGE_SIZE,pageIn*PAGE_SIZE).map(t=> (
-          <tr key={t.id}>
-            <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-            <td style={thtd}>{t.items?.item_name}</td>
-            <td style={thtd}>{t.brand}</td>
-            <td style={thtd}>{t.unit}</td>
-            <td style={thtd}>{t.volume_pack}</td>
-            <td style={thtd}>{t.quantity}</td>
-            <td style={thtd}>
-              <button onClick={()=>confirm("Edit this transaction?",()=>{
-                setEditingId(t.id);
-                setForm({ item_id:t.item_id,type:t.type,quantity:t.quantity,date:t.date,brand:t.brand||"",unit:t.unit||"",volume_pack:t.volume_pack||""});
-                setItemSearch(t.items?.item_name||"");
-              })}>✏️</button>
-              <button onClick={()=>confirm("Delete transaction?",async()=>{await supabase.from("inventory_transactions").update({deleted:true}).eq("id",t.id);loadData();},true)}>🗑️</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+      <tbody>$&</tbody>
     {paginate(pageIn,setPageIn,Math.ceil(transactions.filter(t=>t.type==="IN").length/PAGE_SIZE))}
   </div>
 
-  <div style={{ flex: 1, minWidth: 420 }}>
+  <div style={{ flex: 1, minWidth: 420, borderLeft: "1px solid #e0e0e0", paddingLeft: 20 }}>
     <h2 style={{ textAlign: "center" }}>OUT</h2>
     <table style={{ ...tableStyle, fontSize: 13 }}>
       <thead>
