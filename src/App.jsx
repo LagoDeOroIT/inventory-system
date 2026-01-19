@@ -37,10 +37,9 @@ export default function App() {
   const [reportMonth, setReportMonth] = useState("");
   const [confirmModal, setConfirmModal] = useState(null);
 
-  // Currency
-  const [currency, setCurrency] = useState("PHP");
-  const currencySymbol = currency === "PHP" ? "₱" : "$";
-  const formatMoney = (v) => `${currencySymbol}${Number(v || 0).toFixed(2)}`;
+  // Currency (fixed to PHP)
+  const currencySymbol = "₱";
+  const formatMoney = (v) => `${currencySymbol}${new Intl.NumberFormat("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(v || 0))}`;
 
   // Form
   const [editingId, setEditingId] = useState(null);
@@ -170,11 +169,7 @@ export default function App() {
 
       <h1 style={{ textAlign: "center" }}>Inventory System</h1>
 
-      <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 20 }}>
-        <span>Currency:</span>
-        <button onClick={() => setCurrency("PHP")} disabled={currency === "PHP"}>PHP (₱)</button>
-        <button onClick={() => setCurrency("USD")} disabled={currency === "USD"}>USD ($)</button>
-      </div>
+      
 
       {/* FORM */}
       <div ref={searchRef} style={{ position: "relative", width: 250 }}>
