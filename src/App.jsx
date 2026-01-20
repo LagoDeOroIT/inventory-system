@@ -235,7 +235,7 @@ export default function App() {
       <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
     </div>
   </>
-})
+})}
 
       {/* DELETE TAB */}
       {activeTab === "deleted" && (
