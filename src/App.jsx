@@ -13,7 +13,9 @@ const editingRowStyle = { background: "#fff7ed" };
 
 const emptyRow = (colSpan, text) => (
   <tr>
-    <td colSpan={colSpan} style={{ textAlign: "center", padding: 12 }}>{text}</td>
+    <td colSpan={colSpan} style={{ textAlign: "center", padding: 12 }}>
+      {text}
+    </td>
   </tr>
 );
 
@@ -63,9 +65,21 @@ export default function App() {
 
   // ================= LOAD DATA =================
   async function loadData() {
-    const { data: itemsData } = await supabase.from("items").select("id, item_name, unit_price, brand");
-    const { data: tx } = await supabase.from("inventory_transactions").select("*, items(item_name)").eq("deleted", false).order("date", { ascending: false });
-    const { data: deletedTx } = await supabase.from("inventory_transactions").select("*, items(item_name)").eq("deleted", true).order("deleted_at", { ascending: false });
+    const { data: itemsData } = await supabase
+      .from("items")
+      .select("id, item_name, unit_price, brand");
+
+    const { data: tx } = await supabase
+      .from("inventory_transactions")
+      .select("*, items(item_name)")
+      .eq("deleted", false)
+      .order("date", { ascending: false });
+
+    const { data: deletedTx } = await supabase
+      .from("inventory_transactions")
+      .select("*, items(item_name)")
+      .eq("deleted", true)
+      .order("deleted_at", { ascending: false });
 
     setItems(itemsData || []);
     setTransactions(tx || []);
@@ -75,40 +89,6 @@ export default function App() {
   useEffect(() => {
     if (session) loadData();
   }, [session]);
-
-  function isFormChanged() {
-    if (!originalFormRef.current) return false;
-    return Object.keys(originalFormRef.current).some(k => String(originalFormRef.current[k] || "") !== String(form[k] || ""));
-  }
-
-  async function saveTransaction() {
-    if (!form.item_id || !form.quantity) return alert("Complete the form");
-    const item = items.find(i => i.id === Number(form.item_id));
-    if (!item) return alert("Item not found");
-
-    const payload = {
-      date: form.date || new Date().toISOString().slice(0, 10),
-      item_id: Number(form.item_id),
-      type: form.type,
-      quantity: Number(form.quantity),
-      unit_price: item.unit_price,
-      brand: form.brand || item.brand || null,
-      unit: form.unit || null,
-      volume_pack: form.volume_pack || null,
-      deleted: false,
-    };
-
-    const { error } = editingId
-      ? await supabase.from("inventory_transactions").update(payload).eq("id", editingId)
-      : await supabase.from("inventory_transactions").insert(payload);
-
-    if (error) return alert(error.message);
-
-    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", volume_pack: "" });
-    setEditingId(null);
-    originalFormRef.current = null;
-    loadData();
-  }
 
   if (!session) return <div style={{ padding: 20 }}>Please login</div>;
 
@@ -124,12 +104,29 @@ export default function App() {
       </div>
 
       {confirm && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
-          <div style={{ background: "#fff", padding: 24, borderRadius: 8, minWidth: 280 }}>
-            <p style={{ marginBottom: 16 }}>{confirm.message}</p>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 50,
+          }}
+        >
+          <div style={{ background: "#fff", padding: 24, borderRadius: 8 }}>
+            <p>{confirm.message}</p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
               <button onClick={closeConfirm}>Cancel</button>
-              <button onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
+              <button
+                onClick={() => {
+                  confirm.onConfirm();
+                  closeConfirm();
+                }}
+              >
+                Confirm
+              </button>
             </div>
           </div>
         </div>
@@ -137,7 +134,7 @@ export default function App() {
 
       {activeTab === "dashboard" && (
         <>
-          <h2 style={{ textAlign: "center", marginBottom: 10 }}>Stock Inventory</h2>
+          <h2 style={{ textAlign: "center" }}>Stock Inventory</h2>
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -148,8 +145,13 @@ export default function App() {
             </thead>
             <tbody>
               {items.length === 0 && emptyRow(3, "No items")}
-              {items.map(i => {
-                const stock = transactions.filter(t => t.item_id === i.id).reduce((s, t) => s + (t.type === "IN" ? t.quantity : -t.quantity), 0);
+              {items.map((i) => {
+                const stock = transactions
+                  .filter((t) => t.item_id === i.id)
+                  .reduce(
+                    (s, t) => s + (t.type === "IN" ? t.quantity : -t.quantity),
+                    0
+                  );
                 return (
                   <tr key={i.id}>
                     <td style={thtd}>{i.item_name}</td>
@@ -165,7 +167,7 @@ export default function App() {
 
       {activeTab === "transactions" && (
         <>
-          <h2 style={{ textAlign: "center", marginBottom: 10 }}>Transaction History</h2>
+          <h2 style={{ textAlign: "center" }}>Transaction History</h2>
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -179,39 +181,46 @@ export default function App() {
               {transactions.length === 0 && emptyRow(4, "No transactions")}
               {transactions
                 .slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE)
-                .map(t => (
-                  <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                .map((t) => (
+                  <tr
+                    key={t.id}
+                    style={editingId === t.id ? editingRowStyle : undefined}
+                  >
                     <td style={thtd}>{t.date}</td>
                     <td style={thtd}>{t.items?.item_name}</td>
                     <td style={thtd}>{t.quantity}</td>
                     <td style={thtd}>
                       <button
                         disabled={editingId !== null && editingId !== t.id}
-                        onClick={() => openConfirm("Edit this?", () => {
-                          originalFormRef.current = {
-                            item_id: t.item_id,
-                            type: t.type,
-                            quantity: String(t.quantity),
-                            date: t.date,
-                            brand: t.brand,
-                            unit: t.unit,
-                            volume_pack: t.volume_pack,
-                          };
-                          setEditingId(t.id);
-                          setForm(originalFormRef.current);
-                        })}
+                        onClick={() =>
+                          openConfirm("Edit this?", () => {
+                            originalFormRef.current = {
+                              item_id: t.item_id,
+                              type: t.type,
+                              quantity: String(t.quantity),
+                              date: t.date,
+                              brand: t.brand,
+                              unit: t.unit,
+                              volume_pack: t.volume_pack,
+                            };
+                            setEditingId(t.id);
+                            setForm(originalFormRef.current);
+                          })
+                        }
                       >
                         Edit
                       </button>
                       <button
                         disabled={editingId !== null}
-                        onClick={() => openConfirm("Delete this?", async () => {
-                          await supabase
-                            .from("inventory_transactions")
-                            .update({ deleted: true })
-                            .eq("id", t.id);
-                          loadData();
-                        })}
+                        onClick={() =>
+                          openConfirm("Delete this?", async () => {
+                            await supabase
+                              .from("inventory_transactions")
+                              .update({ deleted: true })
+                              .eq("id", t.id);
+                            loadData();
+                          })
+                        }
                       >
                         Delete
                       </button>
@@ -222,65 +231,23 @@ export default function App() {
           </table>
 
           <div style={{ marginTop: 10 }}>
-            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
+            <button disabled={txPage === 1} onClick={() => setTxPage((p) => p - 1)}>
+              Prev
+            </button>
             <span style={{ margin: "0 10px" }}>Page {txPage}</span>
             <button
               disabled={txPage * PAGE_SIZE >= transactions.length}
-              onClick={() => setTxPage(p => p + 1)}
+              onClick={() => setTxPage((p) => p + 1)}
             >
               Next
             </button>
           </div>
         </>
-      )}>Edit</button>
-                    <button disabled={editingId !== null} onClick={() => openConfirm("Delete this?", async () => {
-                      await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", t.id);
-                      loadData();
-                    })}>Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div style={{ marginTop: 10 }}>
-            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
-            <span style={{ margin: "0 10px" }}>Page {txPage}</span>
-            <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
-          </div>
-        </>
-      )}
-              {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
-                <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
-                  <td style={thtd}>{t.date}</td>
-                  <td style={thtd}>{t.items?.item_name}</td>
-                  <td style={thtd}>{t.quantity}</td>
-                  <td style={thtd}>
-                    <button onClick={() => openConfirm("Edit this?", () => {
-                      originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity) };
-                      setEditingId(t.id);
-                      setForm(originalFormRef.current);
-                    })}>Edit</button>
-                    <button onClick={() => openConfirm("Delete this?", async () => {
-                      await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", t.id);
-                      loadData();
-                    })}>Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div style={{ marginTop: 10 }}>
-            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
-            <span style={{ margin: "0 10px" }}>Page {txPage}</span>
-            <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
-          </div>
-        </>
       )}
 
       {activeTab === "deleted" && (
-        <h2 style={{ textAlign: "center", marginBottom: 10 }}>Deleted Records</h2>
         <>
+          <h2 style={{ textAlign: "center" }}>Deleted Records</h2>
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -290,26 +257,38 @@ export default function App() {
             </thead>
             <tbody>
               {deletedTransactions.length === 0 && emptyRow(2, "No deleted records")}
-              {deletedTransactions.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map(t => (
-                <tr key={t.id}>
-                  <td style={thtd}>{t.items?.item_name}</td>
-                  <td style={thtd}>{t.quantity}</td>
-                </tr>
-              ))}
+              {deletedTransactions
+                .slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE)
+                .map((t) => (
+                  <tr key={t.id}>
+                    <td style={thtd}>{t.items?.item_name}</td>
+                    <td style={thtd}>{t.quantity}</td>
+                  </tr>
+                ))}
             </tbody>
           </table>
 
           <div style={{ marginTop: 10 }}>
-            <button disabled={deletedPage === 1} onClick={() => setDeletedPage(p => p - 1)}>Prev</button>
+            <button
+              disabled={deletedPage === 1}
+              onClick={() => setDeletedPage((p) => p - 1)}
+            >
+              Prev
+            </button>
             <span style={{ margin: "0 10px" }}>Page {deletedPage}</span>
-            <button disabled={deletedPage * PAGE_SIZE >= deletedTransactions.length} onClick={() => setDeletedPage(p => p + 1)}>Next</button>
+            <button
+              disabled={deletedPage * PAGE_SIZE >= deletedTransactions.length}
+              onClick={() => setDeletedPage((p) => p + 1)}
+            >
+              Next
+            </button>
           </div>
         </>
       )}
 
       {activeTab === "monthly" && (
-        <h2 style={{ textAlign: "center", marginBottom: 10 }}>Monthly Report</h2>
         <>
+          <h2 style={{ textAlign: "center" }}>Monthly Report</h2>
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -333,9 +312,21 @@ export default function App() {
           </table>
 
           <div style={{ marginTop: 10 }}>
-            <button disabled={monthlyPage === 1} onClick={() => setMonthlyPage(p => p - 1)}>Prev</button>
+            <button
+              disabled={monthlyPage === 1}
+              onClick={() => setMonthlyPage((p) => p - 1)}
+            >
+              Prev
+            </button>
             <span style={{ margin: "0 10px" }}>Page {monthlyPage}</span>
-            <button disabled={monthlyPage * PAGE_SIZE >= Object.keys(monthlyReport).length} onClick={() => setMonthlyPage(p => p + 1)}>Next</button>
+            <button
+              disabled={
+                monthlyPage * PAGE_SIZE >= Object.keys(monthlyReport).length
+              }
+              onClick={() => setMonthlyPage((p) => p + 1)}
+            >
+              Next
+            </button>
           </div>
         </>
       )}
