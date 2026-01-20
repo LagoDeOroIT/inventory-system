@@ -9,6 +9,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // ================= STYLES =================
 const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: 10 };
 const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" };
+const editingRowStyle = { background: "#fff7ed" }; // highlight edited row
 
 const emptyRow = (colSpan, text) => (
   <tr>
@@ -270,7 +271,7 @@ export default function App() {
       <tbody>
         {transactions.length === 0 && emptyRow(6, "No transactions yet")}
         {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
-          <tr key={t.id}>
+          <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
             <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
             <td style={thtd}>{t.items?.item_name}</td>
             <td style={thtd}>{t.type}</td>
@@ -283,7 +284,7 @@ export default function App() {
                 setForm(originalFormRef.current);
                 setItemSearch(t.items?.item_name || "");
               })}>✏️</button>
-              <button onClick={() => openConfirm("Delete this transaction?", async () => {
+              <button disabled={!!editingId} title={editingId ? "Finish editing before deleting" : "Delete"} onClick={() => openConfirm("Delete this transaction?", async () => {
                 await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
                 loadData();
               })}>🗑️</button>
@@ -316,7 +317,7 @@ export default function App() {
             <tbody>
               {deletedTransactions.length === 0 && emptyRow(5, "No deleted records")}
               {deletedTransactions.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map(t => (
-                <tr key={t.id}>
+                <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                   <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
                   <td style={thtd}>{t.brand}</td>
