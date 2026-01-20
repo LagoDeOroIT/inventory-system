@@ -17,6 +17,12 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
+  // ===== CONFIRM MODAL STATE =====
+  const [confirm, setConfirm] = useState(null);
+  const openConfirm = (message, onConfirm) => {
+    setConfirm({ message, onConfirm });
+  };
+  const closeConfirm = () => setConfirm(null);
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -139,6 +145,19 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
+
+      {/* CONFIRM MODAL */}
+      {confirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "#fff", padding: 20, borderRadius: 6, width: 320 }}>
+            <p style={{ marginBottom: 20 }}>{confirm.message}</p>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <button onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
+              <button onClick={closeConfirm}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
       <h1 style={{ textAlign: "center" }}>Inventory System</h1>
 
       {/* TABS */}
@@ -214,11 +233,10 @@ export default function App() {
                       setForm({ ...t, item_id: t.item_id });
                       setItemSearch(t.items?.item_name || "");
                     }}>✏️ Edit</button>
-                    <button onClick={async () => {
-                      if (!window.confirm("Delete this transaction?")) return;
+                    <button onClick={() => openConfirm("Delete this transaction?", async () => {
                       await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date() }).eq("id", t.id);
                       loadData();
-                    }}>🗑️ Delete</button>
+                    })}>🗑️ Delete</button>
                   </td>
                 </tr>
               ))}
@@ -254,16 +272,14 @@ export default function App() {
                   <td style={thtd}>{t.brand}</td>
                   <td style={thtd}>{t.quantity}</td>
                   <td style={thtd}>
-                    <button onClick={async () => {
-                      if (!window.confirm("Restore this transaction?")) return;
+                    <button onClick={() => openConfirm("Restore this transaction?", async () => {
                       await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("id", t.id);
                       loadData();
-                    }}>♻️ Restore</button>
-                    <button onClick={async () => {
-                      if (!window.confirm("Permanently delete this transaction?")) return;
+                    })}>♻️ Restore</button>
+                    <button onClick={() => openConfirm("Permanently delete this transaction?", async () => {
                       await supabase.from("inventory_transactions").delete().eq("id", t.id);
                       loadData();
-                    }}>❌ Delete</button>
+                    })}>❌ Delete</button>
                   </td>
                 </tr>
               ))}
