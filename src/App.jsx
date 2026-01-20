@@ -138,7 +138,9 @@ export default function App() {
     return (
       <div style={{ padding: 40 }}>
         <h2>Inventory Login</h2>
-        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" }>Login with Google</button>
+        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google"  )>
+          Login with Google
+        </button>
       </div>
     );
   }
