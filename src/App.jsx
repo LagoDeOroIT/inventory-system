@@ -36,7 +36,8 @@ export default function App() {
   const [reportPage, setReportPage] = useState(1);
 
   // tabs
-  const [activeTab, setActiveTab] = useState("transactions");
+  // tabs / views
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   // form
   const [editingId, setEditingId] = useState(null);
@@ -155,7 +156,15 @@ export default function App() {
   return (
     <div style={{ padding: 20 }}>
       <h1 style={{ marginBottom: 4 }}>Inventory System</h1>
-      <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
+      <p style={{ marginTop: 0, color: "#555" }}>Stock dashboard & inventory control</p>
+
+      {/* DASHBOARD ACTION BUTTONS */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+        <button onClick={() => setActiveTab("dashboard")}>🏠 Dashboard</button>
+        <button onClick={() => setActiveTab("transactions")}>📄 Transactions</button>
+        <button onClick={() => setActiveTab("deleted")}>🗑️ Delete History</button>
+        <button onClick={() => setActiveTab("report")}>📊 Monthly Report</button>
+      </div>
 
       {/* TABS */}
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
@@ -214,30 +223,43 @@ export default function App() {
         </div>
       )}
 
+{/* DASHBOARD */
+{activeTab === "dashboard" && (
+  <>
+    <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
+      <h3>Add New Stock Item</h3>
+      <AddItemForm onSaved={loadData} supabase={supabase} />
+    </div>
+
+    <table style={tableStyle}>
+      <thead>
+        <tr>
+          <th style={thtd}>Item</th>
+          <th style={thtd}>Brand</th>
+          <th style={thtd}>Stock Qty</th>
+        </tr>
+      </thead>
+      <tbody>
+        {items.length === 0 && emptyRow(3, "No stock items")}
+        {items.map(i => {
+          const stock = transactions
+            .filter(t => t.item_id === i.id)
+            .reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
+          return (
+            <tr key={i.id}>
+              <td style={thtd}>{i.item_name}</td>
+              <td style={thtd}>{i.brand}</td>
+              <td style={thtd}>{stock}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </>
+)}
+
 {/* TRANSACTIONS TAB */}
 {activeTab === "transactions" && (
-  <>
-    {/* ADD / EDIT TRANSACTION */}
-    <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-      <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
-        <input
-          placeholder="Search item"
-          value={itemSearch}
-          onChange={e => {
-            setItemSearch(e.target.value);
-            setDropdownOpen(true);
-          }}
-        />
-        {dropdownOpen && itemSearch && (
-          <div style={{ position: "absolute", background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto" }}>
-            {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
-              <div key={i.id} style={{ padding: 6, cursor: "pointer" }} onClick={() => {
-                setForm(f => ({ ...f, item_id: i.id }));
-                setItemSearch(i.item_name);
-                setDropdownOpen(false);
-              }}>{i.item_name}</div>
-            ))}
           </div>
         )}
         <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
