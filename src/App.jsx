@@ -173,71 +173,8 @@ export default function App() {
 
 {/* TRANSACTIONS TAB */}
 {activeTab === "transactions" && (
-  <>
-    {/* ADD / EDIT TRANSACTION FORM */}
-    <div style={{ marginBottom: 20, padding: 12, border: "1px solid #ddd", borderRadius: 6 }}>
-      <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <input placeholder="Item ID" value={form.item_id} onChange={e => setForm({ ...form, item_id: e.target.value })} />
-        <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
-          <option value="IN">IN</option>
-          <option value="OUT">OUT</option>
-        </select>
-        <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} />
-        <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
-        <button onClick={() => openConfirm(editingId ? "Save changes?" : "Add this transaction?", saveTransaction)}>
-          {editingId ? "Save" : "Add"}
-        </button>
-      </div>
-    </div>
-    <table style={tableStyle}>
-      <thead>
-        <tr>
-          <th style={thtd}>Date</th>
-          <th style={thtd}>Item</th>
-          <th style={thtd}>Brand</th>
-          <th style={thtd}>Qty</th>
-          <th style={thtd}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {transactions.length === 0 && emptyRow(5, "No transactions")}
-        {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
-          <tr key={t.id}>
-            <td style={thtd}>{t.date}</td>
-            <td style={thtd}>{t.items?.item_name}</td>
-            <td style={thtd}>{t.brand}</td>
-            <td style={thtd}>{t.quantity}</td>
-            <td style={thtd}>
-              <button onClick={() => openConfirm("Edit this transaction?", () => {
-                setEditingId(t.id);
-                setForm({
-                  item_id: t.item_id,
-                  type: t.type,
-                  quantity: t.quantity,
-                  date: t.date,
-                  brand: t.brand || "",
-                  unit: t.unit || "",
-                  volume_pack: t.volume_pack || "",
-                });
-                setItemSearch(t.items?.item_name || "");
-              })}>✏️ Edit</button>
-              <button onClick={() => openConfirm("Delete this transaction?", async () => {
-                await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date() }).eq("id", t.id);
-                loadData();
-              })}>🗑️ Delete</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-    <div>
-      <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
-      <span> Page {txPage} </span>
-      <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
-    </div>
-  </>
-})}
+$1
+)}
 
       {/* DELETE TAB */}
       {activeTab === "deleted" && (
