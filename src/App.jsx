@@ -136,6 +136,7 @@ export default function App() {
       )}
 
       {activeTab === "dashboard" && (
+        <h2 style={{ textAlign: "center", marginBottom: 10 }}>Stock Inventory</h2>
         <table style={tableStyle}>
           <thead>
             <tr>
@@ -161,6 +162,7 @@ export default function App() {
       )}
 
       {activeTab === "transactions" && (
+        <h2 style={{ textAlign: "center", marginBottom: 10 }}>Transaction History</h2>
         <>
           <table style={tableStyle}>
             <thead>
@@ -203,6 +205,7 @@ export default function App() {
       )}
 
       {activeTab === "deleted" && (
+        <h2 style={{ textAlign: "center", marginBottom: 10 }}>Deleted Records</h2>
         <>
           <table style={tableStyle}>
             <thead>
@@ -231,6 +234,7 @@ export default function App() {
       )}
 
       {activeTab === "monthly" && (
+        <h2 style={{ textAlign: "center", marginBottom: 10 }}>Monthly Report</h2>
         <>
           <table style={tableStyle}>
             <thead>
