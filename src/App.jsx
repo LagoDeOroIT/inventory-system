@@ -148,91 +148,17 @@ export default function App() {
 
       {/* CONFIRM MODAL */}
       {confirm && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "#fff", padding: 20, borderRadius: 6, width: 320 }}>
-            <p style={{ marginBottom: 20 }}>{confirm.message}</p>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <button onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
-              <button onClick={closeConfirm}>Cancel</button>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
+            <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
+            <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
+              <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
             </div>
           </div>
         </div>
-      )}
-      <h1 style={{ textAlign: "center" }}>Inventory System</h1>
-
-      {/* TABS */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <button onClick={() => setActiveTab("transactions")}>Transactions</button>
-        <button onClick={() => setActiveTab("deleted")}>Delete History</button>
-        <button onClick={() => setActiveTab("report")}>Monthly Report</button>
-      </div>
-
-      {/* FORM */}
-      <div ref={searchRef} style={{ position: "relative", width: 250 }}>
-        <input
-          value={itemSearch}
-          placeholder="Search item"
-          onFocus={() => setDropdownOpen(true)}
-          onChange={e => { setItemSearch(e.target.value); setDropdownOpen(true); }}
-        />
-        {dropdownOpen && (
-          <div style={{ border: "1px solid #ccc", background: "#fff" }}>
-            {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
-              <div
-                key={i.id}
-                onClick={() => {
-                  setForm({ ...form, item_id: i.id, brand: i.brand || "" });
-                  setItemSearch(i.item_name);
-                  setDropdownOpen(false);
-                }}
-              >
-                {i.item_name}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <input placeholder="Brand" value={form.brand} onChange={e => setForm({ ...form, brand: e.target.value })} />
-      <input placeholder="Unit" value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })} />
-      <input placeholder="Volume / Pack" value={form.volume_pack} onChange={e => setForm({ ...form, volume_pack: e.target.value })} />
-
-      <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
-        <option>IN</option>
-        <option>OUT</option>
-      </select>
-
-      <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} />
-      <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
-      <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
-
-      {/* TRANSACTIONS TAB */}
-      {activeTab === "transactions" && (
-        <>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Date</th>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Brand</th>
-                <th style={thtd}>Qty</th>
-                <th style={thtd}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.length === 0 && emptyRow(5, "No transactions")}
-              {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
-                <tr key={t.id}>
-                  <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-                  <td style={thtd}>{t.items?.item_name}</td>
-                  <td style={thtd}>{t.brand}</td>
-                  <td style={thtd}>{t.quantity}</td>
-                  <td style={thtd}>
-                    <button onClick={() => {
-                      setEditingId(t.id);
-                      setForm({ ...t, item_id: t.item_id });
-                      setItemSearch(t.items?.item_name || "");
-                    }}>✏️ Edit</button>
+      )}>✏️ Edit</button>
                     <button onClick={() => openConfirm("Delete this transaction?", async () => {
                       await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date() }).eq("id", t.id);
                       loadData();
