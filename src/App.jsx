@@ -136,29 +136,31 @@ export default function App() {
       )}
 
       {activeTab === "dashboard" && (
-        <h2 style={{ textAlign: "center", marginBottom: 10 }}>Stock Inventory</h2>
-        <table style={tableStyle}>
-          <thead>
-            <tr>
-              <th style={thtd}>Item</th>
-              <th style={thtd}>Brand</th>
-              <th style={thtd}>Stock</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.length === 0 && emptyRow(3, "No items")}
-            {items.map(i => {
-              const stock = transactions.filter(t => t.item_id === i.id).reduce((s, t) => s + (t.type === "IN" ? t.quantity : -t.quantity), 0);
-              return (
-                <tr key={i.id}>
-                  <td style={thtd}>{i.item_name}</td>
-                  <td style={thtd}>{i.brand}</td>
-                  <td style={thtd}>{stock}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <>
+          <h2 style={{ textAlign: "center", marginBottom: 10 }}>Stock Inventory</h2>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.length === 0 && emptyRow(3, "No items")}
+              {items.map(i => {
+                const stock = transactions.filter(t => t.item_id === i.id).reduce((s, t) => s + (t.type === "IN" ? t.quantity : -t.quantity), 0);
+                return (
+                  <tr key={i.id}>
+                    <td style={thtd}>{i.item_name}</td>
+                    <td style={thtd}>{i.brand}</td>
+                    <td style={thtd}>{stock}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </>
       )}
 
       {activeTab === "transactions" && (
