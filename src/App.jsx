@@ -43,7 +43,16 @@ export default function App() {
 
   const PAGE_SIZE = 5;
   const [txPage, setTxPage] = useState(1);
+  const [monthlyPage, setMonthlyPage] = useState(1);
   const [deletedPage, setDeletedPage] = useState(1);
+
+  const monthlyReport = transactions.reduce((acc, t) => {
+    const m = t.date?.slice(0, 7);
+    if (!m) return acc;
+    acc[m] = acc[m] || { in: 0, out: 0 };
+    acc[m][t.type === "IN" ? "in" : "out"] += t.quantity;
+    return acc;
+  }, {});
 
   // ================= AUTH =================
   useEffect(() => {
@@ -118,6 +127,7 @@ export default function App() {
         <button onClick={() => setActiveTab("dashboard")}>Dashboard</button>
         <button onClick={() => setActiveTab("transactions")}>Transactions</button>
         <button onClick={() => setActiveTab("deleted")}>Deleted</button>
+        <button onClick={() => setActiveTab("monthly")}>Monthly Report</button>
       </div>
 
       {confirm && (
@@ -153,7 +163,13 @@ export default function App() {
             })}
           </tbody>
         </table>
-      )}
+
+          <div style={{ marginTop: 10 }}>
+            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
+            <span style={{ margin: "0 10px" }}>Page {txPage}</span>
+            <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
+          </div>
+        )}
 
       {activeTab === "transactions" && (
         <>
@@ -224,3 +240,35 @@ export default function App() {
     </div>
   );
 }
+
+      {activeTab === "monthly" && (
+        <>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Month</th>
+                <th style={thtd}>Total IN</th>
+                <th style={thtd}>Total OUT</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.keys(monthlyReport).length === 0 && emptyRow(3, "No data")}
+              {Object.entries(monthlyReport)
+                .slice((monthlyPage - 1) * PAGE_SIZE, monthlyPage * PAGE_SIZE)
+                .map(([m, v]) => (
+                  <tr key={m}>
+                    <td style={thtd}>{m}</td>
+                    <td style={thtd}>{v.in}</td>
+                    <td style={thtd}>{v.out}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+          <div style={{ marginTop: 10 }}>
+            <button disabled={monthlyPage === 1} onClick={() => setMonthlyPage(p => p - 1)}>Prev</button>
+            <span style={{ margin: "0 10px" }}>Page {monthlyPage}</span>
+            <button disabled={monthlyPage * PAGE_SIZE >= Object.keys(monthlyReport).length} onClick={() => setMonthlyPage(p => p + 1)}>Next</button>
+          </div>
+        </>
+      )}
+
