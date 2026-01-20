@@ -177,17 +177,62 @@ export default function App() {
             </thead>
             <tbody>
               {transactions.length === 0 && emptyRow(4, "No transactions")}
-              {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
-                <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
-                  <td style={thtd}>{t.date}</td>
-                  <td style={thtd}>{t.items?.item_name}</td>
-                  <td style={thtd}>{t.quantity}</td>
-                  <td style={thtd}>
-                    <button onClick={() => openConfirm("Edit this?", () => {
-                      originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity) };
-                      setEditingId(t.id);
-                      setForm(originalFormRef.current);
-                    })}>Edit</button>
+              {transactions
+                .slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE)
+                .map(t => (
+                  <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                    <td style={thtd}>{t.date}</td>
+                    <td style={thtd}>{t.items?.item_name}</td>
+                    <td style={thtd}>{t.quantity}</td>
+                    <td style={thtd}>
+                      <button
+                        disabled={editingId !== null && editingId !== t.id}
+                        onClick={() => openConfirm("Edit this?", () => {
+                          originalFormRef.current = {
+                            item_id: t.item_id,
+                            type: t.type,
+                            quantity: String(t.quantity),
+                            date: t.date,
+                            brand: t.brand,
+                            unit: t.unit,
+                            volume_pack: t.volume_pack,
+                          };
+                          setEditingId(t.id);
+                          setForm(originalFormRef.current);
+                        })}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        disabled={editingId !== null}
+                        onClick={() => openConfirm("Delete this?", async () => {
+                          await supabase
+                            .from("inventory_transactions")
+                            .update({ deleted: true })
+                            .eq("id", t.id);
+                          loadData();
+                        })}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+
+          <div style={{ marginTop: 10 }}>
+            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
+            <span style={{ margin: "0 10px" }}>Page {txPage}</span>
+            <button
+              disabled={txPage * PAGE_SIZE >= transactions.length}
+              onClick={() => setTxPage(p => p + 1)}
+            >
+              Next
+            </button>
+          </div>
+        </>
+      )}>Edit</button>
                     <button disabled={editingId !== null} onClick={() => openConfirm("Delete this?", async () => {
                       await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", t.id);
                       loadData();
