@@ -229,11 +229,11 @@ export default function App() {
             <td style={thtd}>{t.quantity}</td>
             <td style={thtd}>{t.brand}</td>
             <td style={thtd}>
-              <button onClick={() => {
+              <button onClick={() => openConfirm("Edit this transaction?", () => {
                 setEditingId(t.id);
                 setForm({ item_id: t.item_id, type: t.type, quantity: t.quantity, date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" });
                 setItemSearch(t.items?.item_name || "");
-              }}>✏️</button>
+              })}>✏️</button>
               <button onClick={() => openConfirm("Delete this transaction?", async () => {
                 await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
                 loadData();
