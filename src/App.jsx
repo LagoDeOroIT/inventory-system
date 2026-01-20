@@ -210,52 +210,7 @@ export default function App() {
       <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
     </div>
   </>
-)}
-
-
-                      onClick={() =>
-                        openConfirm("Edit this transaction?", () => {
-                          setEditingId(t.id);
-                          setForm({
-                            item_id: t.item_id,
-                            type: t.type,
-                            quantity: t.quantity,
-                            date: t.date,
-                            brand: t.brand || "",
-                            unit: t.unit || "",
-                            volume_pack: t.volume_pack || "",
-                          });
-                          setItemSearch(t.items?.item_name || "");
-                        })
-                      }
-                    >
-                      ✏️ Edit
-                    </button>
-                    <button
-                      onClick={() =>
-                        openConfirm("Delete this transaction?", async () => {
-                          await supabase
-                            .from("inventory_transactions")
-                            .update({ deleted: true, deleted_at: new Date() })
-                            .eq("id", t.id);
-                          loadData();
-                        })
-                      }
-                    >
-                      🗑️ Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div>
-            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
-            <span> Page {txPage} </span>
-            <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
-          </div>
-        </>
-      )}
+)}}
 
       {/* DELETE TAB */}
       {activeTab === "deleted" && (
