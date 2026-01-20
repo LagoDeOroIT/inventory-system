@@ -173,8 +173,10 @@ export default function App() {
 
 {/* TRANSACTIONS TAB */}
 {activeTab === "transactions" && (
-  <></>
-)
+  <>
+    {/* transactions UI goes here (unchanged) */}
+  </>
+)}
 
       {/* DELETE TAB */}
       {activeTab === "deleted" && (
