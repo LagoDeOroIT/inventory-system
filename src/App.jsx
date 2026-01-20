@@ -39,6 +39,7 @@ export default function App() {
 
   // form
   const [editingId, setEditingId] = useState(null);
+  const originalFormRef = useRef(null);
   const [form, setForm] = useState({
     item_id: "",
     type: "IN",
@@ -89,6 +90,11 @@ export default function App() {
   }, [session]);
 
   // ================= SAVE =================
+  function isFormChanged() {
+    if (!originalFormRef.current) return false;
+    return Object.keys(originalFormRef.current).some(k => String(originalFormRef.current[k] || "") !== String(form[k] || ""));
+  }
+
   async function saveTransaction() {
     if (!form.item_id || !form.quantity) return alert("Complete the form");
     const item = items.find(i => i.id === Number(form.item_id));
@@ -152,9 +158,45 @@ export default function App() {
 
       {/* TABS */}
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <button onClick={() => setActiveTab("transactions")} style={{ fontWeight: activeTab === "transactions" ? "bold" : "normal" }}>Transactions</button>
-        <button onClick={() => setActiveTab("deleted")} style={{ fontWeight: activeTab === "deleted" ? "bold" : "normal" }}>Deleted</button>
-        <button onClick={() => setActiveTab("report")} style={{ fontWeight: activeTab === "report" ? "bold" : "normal" }}>Monthly Report</button>
+        <button onClick={() => {
+          if (editingId && isFormChanged()) {
+            openConfirm("Discard unsaved changes?", () => {
+              setEditingId(null);
+              originalFormRef.current = null;
+              setActiveTab("transactions");
+            });
+          } else {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("transactions");
+          }
+        }} style={{ fontWeight: activeTab === "transactions" ? "bold" : "normal" }}>Transactions</button>
+        <button onClick={() => {
+          if (editingId && isFormChanged()) {
+            openConfirm("Discard unsaved changes?", () => {
+              setEditingId(null);
+              originalFormRef.current = null;
+              setActiveTab("deleted");
+            });
+          } else {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("deleted");
+          }
+        }} style={{ fontWeight: activeTab === "deleted" ? "bold" : "normal" }}>Deleted</button>
+        <button onClick={() => {
+          if (editingId && isFormChanged()) {
+            openConfirm("Discard unsaved changes?", () => {
+              setEditingId(null);
+              originalFormRef.current = null;
+              setActiveTab("report");
+            });
+          } else {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("report");
+          }
+        }} style={{ fontWeight: activeTab === "report" ? "bold" : "normal" }}>Monthly Report</button>
       </div>
 
       {/* CONFIRM MODAL */}
@@ -203,7 +245,13 @@ export default function App() {
         </select>
         <input type="number" placeholder="Qty" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
         <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-        <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
+        <button onClick={() => {
+          if (editingId && isFormChanged()) {
+            openConfirm("Save changes to this transaction?", saveTransaction);
+          } else {
+            saveTransaction();
+          }
+        }}>{editingId ? "Update" : "Save"}</button>
       </div>
     </div>
 
@@ -229,9 +277,10 @@ export default function App() {
             <td style={thtd}>{t.quantity}</td>
             <td style={thtd}>{t.brand}</td>
             <td style={thtd}>
-              <button onClick={() => openConfirm("Edit this transaction?", () => {
+              <button disabled={editingId && editingId !== t.id} title={editingId && editingId !== t.id ? "Finish current edit first" : "Edit"} onClick={() => openConfirm("Edit this transaction?", () => {
+                originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
                 setEditingId(t.id);
-                setForm({ item_id: t.item_id, type: t.type, quantity: t.quantity, date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" });
+                setForm(originalFormRef.current);
                 setItemSearch(t.items?.item_name || "");
               })}>✏️</button>
               <button onClick={() => openConfirm("Delete this transaction?", async () => {
