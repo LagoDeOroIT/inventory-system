@@ -145,6 +145,8 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
+      <h1 style={{ marginBottom: 4 }}>Inventory System</h1>
+      <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
 
       {/* TABS */}
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
@@ -170,6 +172,22 @@ export default function App() {
 {/* TRANSACTIONS TAB */}
 {activeTab === "transactions" && (
   <>
+    {/* ADD / EDIT TRANSACTION FORM */}
+    <div style={{ marginBottom: 20, padding: 12, border: "1px solid #ddd", borderRadius: 6 }}>
+      <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <input placeholder="Item ID" value={form.item_id} onChange={e => setForm({ ...form, item_id: e.target.value })} />
+        <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
+          <option value="IN">IN</option>
+          <option value="OUT">OUT</option>
+        </select>
+        <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} />
+        <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+        <button onClick={() => openConfirm(editingId ? "Save changes?" : "Add this transaction?", saveTransaction)}>
+          {editingId ? "Save" : "Add"}
+        </button>
+      </div>
+    </div>
     <table style={tableStyle}>
       <thead>
         <tr>
@@ -217,7 +235,7 @@ export default function App() {
       <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
     </div>
   </>
-)}}
+})
 
       {/* DELETE TAB */}
       {activeTab === "deleted" && (
