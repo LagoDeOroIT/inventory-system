@@ -160,6 +160,58 @@ export default function App() {
         </div>
       )}
 
+{/* TRANSACTIONS TAB */}
+{activeTab === "transactions" && (
+  <>
+    <table style={tableStyle}>
+      <thead>
+        <tr>
+          <th style={thtd}>Date</th>
+          <th style={thtd}>Item</th>
+          <th style={thtd}>Brand</th>
+          <th style={thtd}>Qty</th>
+          <th style={thtd}>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {transactions.length === 0 && emptyRow(5, "No transactions")}
+        {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
+          <tr key={t.id}>
+            <td style={thtd}>{t.date}</td>
+            <td style={thtd}>{t.items?.item_name}</td>
+            <td style={thtd}>{t.brand}</td>
+            <td style={thtd}>{t.quantity}</td>
+            <td style={thtd}>
+              <button onClick={() => openConfirm("Edit this transaction?", () => {
+                setEditingId(t.id);
+                setForm({
+                  item_id: t.item_id,
+                  type: t.type,
+                  quantity: t.quantity,
+                  date: t.date,
+                  brand: t.brand || "",
+                  unit: t.unit || "",
+                  volume_pack: t.volume_pack || "",
+                });
+                setItemSearch(t.items?.item_name || "");
+              })}>✏️ Edit</button>
+              <button onClick={() => openConfirm("Delete this transaction?", async () => {
+                await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date() }).eq("id", t.id);
+                loadData();
+              })}>🗑️ Delete</button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    <div>
+      <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
+      <span> Page {txPage} </span>
+      <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
+    </div>
+  </>
+)}
+
 <button
                       onClick={() =>
                         openConfirm("Edit this transaction?", () => {
