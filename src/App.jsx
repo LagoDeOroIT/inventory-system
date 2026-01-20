@@ -147,7 +147,7 @@ export default function App() {
     <div style={{ padding: 20 }}>
 
       {/* CONFIRM MODAL */}
-      {confirm && (
+            {confirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
           <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
             <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
@@ -158,11 +158,40 @@ export default function App() {
             </div>
           </div>
         </div>
-      )}>✏️ Edit</button>
-                    <button onClick={() => openConfirm("Delete this transaction?", async () => {
-                      await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date() }).eq("id", t.id);
-                      loadData();
-                    })}>🗑️ Delete</button>
+      )}
+
+<button
+                      onClick={() =>
+                        openConfirm("Edit this transaction?", () => {
+                          setEditingId(t.id);
+                          setForm({
+                            item_id: t.item_id,
+                            type: t.type,
+                            quantity: t.quantity,
+                            date: t.date,
+                            brand: t.brand || "",
+                            unit: t.unit || "",
+                            volume_pack: t.volume_pack || "",
+                          });
+                          setItemSearch(t.items?.item_name || "");
+                        })
+                      }
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      onClick={() =>
+                        openConfirm("Delete this transaction?", async () => {
+                          await supabase
+                            .from("inventory_transactions")
+                            .update({ deleted: true, deleted_at: new Date() })
+                            .eq("id", t.id);
+                          loadData();
+                        })
+                      }
+                    >
+                      🗑️ Delete
+                    </button>
                   </td>
                 </tr>
               ))}
