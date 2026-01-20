@@ -112,11 +112,158 @@ export default function App() {
 
   if (!session) {
     return (
-      <div style={{ padding: 40 }}>
-        <h2>Inventory Login</h2>
-        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>Login with Google</button>
+    <div style={{ padding: 20 }}>
+      <h1>Inventory System</h1>
+
+      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+        <button onClick={() => setActiveTab("dashboard")}>Dashboard</button>
+        <button onClick={() => setActiveTab("transactions")}>Transactions</button>
+        <button onClick={() => setActiveTab("deleted")}>Deleted</button>
+        <button onClick={() => setActiveTab("monthly")}>Monthly Report</button>
       </div>
-    );
+
+      {confirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "#fff", padding: 20 }}>
+            <p>{confirm.message}</p>
+            <button onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
+            <button onClick={closeConfirm}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "dashboard" && (
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thtd}>Item</th>
+              <th style={thtd}>Brand</th>
+              <th style={thtd}>Stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.length === 0 && emptyRow(3, "No items")}
+            {items.map(i => {
+              const stock = transactions
+                .filter(t => t.item_id === i.id)
+                .reduce((s, t) => s + (t.type === "IN" ? t.quantity : -t.quantity), 0);
+              return (
+                <tr key={i.id}>
+                  <td style={thtd}>{i.item_name}</td>
+                  <td style={thtd}>{i.brand}</td>
+                  <td style={thtd}>{stock}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+
+      {activeTab === "transactions" && (
+        <>
+          <div>
+            <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+              <option value="IN">IN</option>
+              <option value="OUT">OUT</option>
+            </select>
+            <input type="number" placeholder="Qty" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+            <button onClick={() => editingId && isFormChanged() ? openConfirm("Save changes?", saveTransaction) : saveTransaction()}>
+              {editingId ? "Update" : "Save"}
+            </button>
+          </div>
+
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Date</th>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Qty</th>
+                <th style={thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.length === 0 && emptyRow(4, "No transactions")}
+              {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
+                <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                  <td style={thtd}>{t.date}</td>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>
+                    <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this?", () => {
+                      originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity) };
+                      setEditingId(t.id);
+                      setForm(originalFormRef.current);
+                    })}>Edit</button>
+                    <button disabled={!!editingId} onClick={() => openConfirm("Delete this?", async () => {
+                      await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", t.id);
+                      loadData();
+                    })}>Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div style={{ marginTop: 10 }}>
+            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
+            <span style={{ margin: "0 10px" }}>Page {txPage}</span>
+            <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
+          </div>
+        </>
+      )}
+
+      {activeTab === "deleted" && (
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thtd}>Item</th>
+              <th style={thtd}>Qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            {deletedTransactions.length === 0 && emptyRow(2, "No deleted records")}
+            {deletedTransactions.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map(t => (
+              <tr key={t.id}>
+                <td style={thtd}>{t.items?.item_name}</td>
+                <td style={thtd}>{t.quantity}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {activeTab === "monthly" && (
+        <>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Month</th>
+                <th style={thtd}>Total IN</th>
+                <th style={thtd}>Total OUT</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.keys(monthlyReport).length === 0 && emptyRow(3, "No data")}
+              {Object.entries(monthlyReport)
+                .slice((monthlyPage - 1) * PAGE_SIZE, monthlyPage * PAGE_SIZE)
+                .map(([m, v]) => (
+                  <tr key={m}>
+                    <td style={thtd}>{m}</td>
+                    <td style={thtd}>{v.in}</td>
+                    <td style={thtd}>{v.out}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+          <div style={{ marginTop: 10 }}>
+            <button disabled={monthlyPage === 1} onClick={() => setMonthlyPage(p => p - 1)}>Prev</button>
+            <span style={{ margin: "0 10px" }}>Page {monthlyPage}</span>
+            <button disabled={monthlyPage * PAGE_SIZE >= Object.keys(monthlyReport).length} onClick={() => setMonthlyPage(p => p + 1)}>Next</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
   }
 
   return (
