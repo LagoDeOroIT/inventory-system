@@ -146,6 +146,13 @@ export default function App() {
   return (
     <div style={{ padding: 20 }}>
 
+      {/* TABS */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+        <button onClick={() => setActiveTab("transactions")} style={{ fontWeight: activeTab === "transactions" ? "bold" : "normal" }}>Transactions</button>
+        <button onClick={() => setActiveTab("deleted")} style={{ fontWeight: activeTab === "deleted" ? "bold" : "normal" }}>Deleted</button>
+        <button onClick={() => setActiveTab("report")} style={{ fontWeight: activeTab === "report" ? "bold" : "normal" }}>Monthly Report</button>
+      </div>
+
       {/* CONFIRM MODAL */}
             {confirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
