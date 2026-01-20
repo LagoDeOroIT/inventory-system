@@ -212,7 +212,7 @@ export default function App() {
   </>
 )}
 
-<button
+
                       onClick={() =>
                         openConfirm("Edit this transaction?", () => {
                           setEditingId(t.id);
