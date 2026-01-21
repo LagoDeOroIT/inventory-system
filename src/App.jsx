@@ -40,6 +40,20 @@ export default function App() {
   const PAGE_SIZE = 5;
   const [page, setPage] = useState(1);
 
+  const Pagination = ({ total }) => (
+    <div style={{ marginTop: 10, display: "flex", gap: 6 }}>
+      {Array.from({ length: Math.ceil(total / PAGE_SIZE) }).map((_, i) => (
+        <button
+          key={i}
+          onClick={() => setPage(i + 1)}
+          style={{ fontWeight: page === i + 1 ? "bold" : "normal" }}
+        >
+          {i + 1}
+        </button>
+      ))}
+    </div>
+  );
+
   const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
 
   useEffect(() => {
@@ -90,12 +104,29 @@ export default function App() {
           <table style={tableStyle}>
             <thead><tr><th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Stock</th></tr></thead>
             <tbody>
-              {paginate(items.filter(i => i.item_name.toLowerCase().includes(searchStock.toLowerCase()))).map(i => {
-                const stock = transactions.filter(t => t.item_id === i.id).reduce((s, t) => s + (t.type === "IN" ? t.quantity : -t.quantity), 0);
-                return <tr key={i.id}><td style={thtd}>{i.item_name}</td><td style={thtd}>{i.brand}</td><td style={thtd}>{stock}</td></tr>;
-              })}
+              {paginate(transactions.filter(t => t.items?.item_name?.toLowerCase().includes(searchTx.toLowerCase()))).map(t => (
+                <tr key={t.id}>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.type}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>
+                    <select onChange={async e => {
+                      const type = e.target.value;
+                      if (!type) return;
+                      await supabase.from("inventory_transactions").insert({ item_id: t.item_id, type, quantity: 1 });
+                      loadData();
+                    }}>
+                      <option value="">IN / OUT</option>
+                      <option value="IN">IN</option>
+                      <option value="OUT">OUT</option>
+                    </select>
+                    <button onClick={() => setConfirm({ title: "Delete", message: "Delete this transaction?", action: async () => { await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", t.id); loadData(); } })}>Delete</button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
+          <Pagination total={items.filter(i => i.item_name.toLowerCase().includes(searchStock.toLowerCase())).length} />
         </>
       )}
 
@@ -104,7 +135,7 @@ export default function App() {
           <h2 style={{ textAlign: "center" }}>Transactions (IN / OUT)</h2>
           <input placeholder="Search..." value={searchTx} onChange={e => setSearchTx(e.target.value)} />
           <table style={tableStyle}>
-            <thead><tr><th style={thtd}>Item</th><th style={thtd}>Type</th><th style={thtd}>Qty</th></tr></thead>
+            <thead><tr><th style={thtd}>Item</th><th style={thtd}>Type</th><th style={thtd}>Qty</th><th style={thtd}>Actions</th></tr></thead>
             <tbody>
               {paginate(transactions.filter(t => t.items?.item_name?.toLowerCase().includes(searchTx.toLowerCase()))).map(t => (
                 <tr key={t.id}><td style={thtd}>{t.items?.item_name}</td><td style={thtd}>{t.type}</td><td style={thtd}>{t.quantity}</td></tr>
