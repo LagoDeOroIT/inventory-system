@@ -9,13 +9,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 /* ================= STYLES ================= */
 const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: 10 };
 const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" };
-const cardStyle = {
-  border: "1px solid #ddd",
-  borderRadius: 6,
-  padding: 12,
-  minWidth: 180,
-};
-
+const cardStyle = { border: "1px solid #ddd", padding: 12, borderRadius: 6 };
 const PAGE_SIZE = 5;
 
 export default function App() {
@@ -39,18 +33,19 @@ export default function App() {
 
   const [txPage, setTxPage] = useState(1);
   const [deletedPage, setDeletedPage] = useState(1);
-  const [reportPage, setReportPage] = useState(1);
 
-  /* ================= ADD ITEM ================= */
+  /* ================= CONFIRM MODAL ================= */
+  const [confirm, setConfirm] = useState(null);
+  const openConfirm = (message, onConfirm) =>
+    setConfirm({ message, onConfirm });
+  const closeConfirm = () => setConfirm(null);
+
+  /* ================= FORMS ================= */
   const [newItem, setNewItem] = useState({
     item_name: "",
     brand: "",
     unit_price: "",
   });
-
-  /* ================= TRANSACTION FORM ================= */
-  const [editingId, setEditingId] = useState(null);
-  const originalFormRef = useRef(null);
 
   const [form, setForm] = useState({
     item_id: "",
@@ -59,6 +54,7 @@ export default function App() {
     date: "",
   });
 
+  const [editingId, setEditingId] = useState(null);
   const [itemSearch, setItemSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const searchRef = useRef(null);
@@ -91,31 +87,16 @@ export default function App() {
     if (session) loadData();
   }, [session]);
 
-  /* ================= CLICK OUTSIDE ================= */
-  useEffect(() => {
-    const handler = (e) =>
-      searchRef.current &&
-      !searchRef.current.contains(e.target) &&
-      setDropdownOpen(false);
-
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
   /* ================= ADD ITEM ================= */
   async function addItem() {
-    if (!newItem.item_name || !newItem.unit_price) {
-      alert("Item name and price required");
-      return;
-    }
+    if (!newItem.item_name || !newItem.unit_price)
+      return alert("Item name and price required");
 
-    const { error } = await supabase.from("items").insert({
+    await supabase.from("items").insert({
       item_name: newItem.item_name,
       brand: newItem.brand || null,
       unit_price: Number(newItem.unit_price),
     });
-
-    if (error) return alert(error.message);
 
     setNewItem({ item_name: "", brand: "", unit_price: "" });
     loadData();
@@ -123,31 +104,29 @@ export default function App() {
 
   /* ================= SAVE TRANSACTION ================= */
   async function saveTransaction() {
-    if (!form.item_id || !form.quantity) {
-      alert("Complete the form");
-      return;
-    }
+    if (!form.item_id || !form.quantity)
+      return alert("Complete the form");
 
     const item = items.find((i) => i.id === Number(form.item_id));
-    if (!item) return alert("Item not found");
+    if (!item) return;
 
     const payload = {
-      date: form.date || new Date().toISOString().slice(0, 10),
       item_id: Number(form.item_id),
       type: form.type,
       quantity: Number(form.quantity),
       unit_price: item.unit_price,
+      date: form.date || new Date().toISOString().slice(0, 10),
       deleted: false,
     };
 
-    const { error } = editingId
-      ? await supabase
-          .from("inventory_transactions")
-          .update(payload)
-          .eq("id", editingId)
-      : await supabase.from("inventory_transactions").insert(payload);
-
-    if (error) return alert(error.message);
+    if (editingId) {
+      await supabase
+        .from("inventory_transactions")
+        .update(payload)
+        .eq("id", editingId);
+    } else {
+      await supabase.from("inventory_transactions").insert(payload);
+    }
 
     setForm({ item_id: "", type: "IN", quantity: "", date: "" });
     setItemSearch("");
@@ -155,24 +134,15 @@ export default function App() {
     loadData();
   }
 
-  /* ================= STOCK COMPUTATION ================= */
+  /* ================= STOCK ================= */
   const stockByItem = items.map((item) => {
     const txs = transactions.filter((t) => t.item_id === item.id);
     const stock = txs.reduce(
-      (sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity),
+      (s, t) => s + (t.type === "IN" ? t.quantity : -t.quantity),
       0
     );
     return { ...item, stock };
   });
-
-  /* ================= REPORT ================= */
-  const monthlyTotals = transactions.reduce((acc, t) => {
-    const m = t.date?.slice(0, 7);
-    if (!m) return acc;
-    acc[m] = acc[m] || { IN: 0, OUT: 0 };
-    acc[m][t.type] += t.quantity * t.unit_price;
-    return acc;
-  }, {});
 
   /* ================= LOGIN ================= */
   if (!session) {
@@ -190,21 +160,14 @@ export default function App() {
     );
   }
 
-  /* ================= UI ================= */
   return (
     <div style={{ padding: 20 }}>
       <h1>Inventory System</h1>
 
-      {/* TABS */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+      {/* ================= TABS ================= */}
+      <div style={{ display: "flex", gap: 8 }}>
         {["dashboard", "transactions", "deleted", "report"].map((t) => (
-          <button
-            key={t}
-            onClick={() => setActiveTab(t)}
-            style={{
-              fontWeight: activeTab === t ? "bold" : "normal",
-            }}
-          >
+          <button key={t} onClick={() => setActiveTab(t)}>
             {t.toUpperCase()}
           </button>
         ))}
@@ -213,67 +176,37 @@ export default function App() {
       {/* ================= DASHBOARD ================= */}
       {activeTab === "dashboard" && (
         <>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <div style={cardStyle}>
-              <p>Total Items</p>
-              <h2>{items.length}</h2>
-            </div>
+          <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
             <div style={cardStyle}>
               <p>Low Stock (≤5)</p>
               <h2>{stockByItem.filter((i) => i.stock <= 5).length}</h2>
             </div>
           </div>
 
-          <h3 style={{ marginTop: 20 }}>Add New Item</h3>
-          <div style={{ display: "flex", gap: 8 }}>
-            <input
-              placeholder="Item name"
-              value={newItem.item_name}
-              onChange={(e) =>
-                setNewItem({ ...newItem, item_name: e.target.value })
-              }
-            />
-            <input
-              placeholder="Brand"
-              value={newItem.brand}
-              onChange={(e) =>
-                setNewItem({ ...newItem, brand: e.target.value })
-              }
-            />
-            <input
-              type="number"
-              placeholder="Unit price"
-              value={newItem.unit_price}
-              onChange={(e) =>
-                setNewItem({ ...newItem, unit_price: e.target.value })
-              }
-            />
-            <button onClick={addItem}>Add</button>
-          </div>
-
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Brand</th>
-                <th style={thtd}>Stock</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stockByItem.map((i) => (
-                <tr
-                  key={i.id}
-                  style={{
-                    background: i.stock <= 5 ? "#fff7ed" : "transparent",
-                  }}
-                >
-                  <td style={thtd}>{i.item_name}</td>
-                  <td style={thtd}>{i.brand}</td>
-                  <td style={thtd}>{i.stock}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <h3>Add New Item</h3>
+          <input
+            placeholder="Item name"
+            value={newItem.item_name}
+            onChange={(e) =>
+              setNewItem({ ...newItem, item_name: e.target.value })
+            }
+          />
+          <input
+            placeholder="Brand"
+            value={newItem.brand}
+            onChange={(e) =>
+              setNewItem({ ...newItem, brand: e.target.value })
+            }
+          />
+          <input
+            type="number"
+            placeholder="Price"
+            value={newItem.unit_price}
+            onChange={(e) =>
+              setNewItem({ ...newItem, unit_price: e.target.value })
+            }
+          />
+          <button onClick={addItem}>Add</button>
         </>
       )}
 
@@ -281,70 +214,93 @@ export default function App() {
       {activeTab === "transactions" && (
         <>
           <h3>Add / Edit Transaction</h3>
-          <div ref={searchRef} style={{ display: "flex", gap: 8 }}>
-            <input
-              placeholder="Search item"
-              value={itemSearch}
-              onChange={(e) => {
-                setItemSearch(e.target.value);
-                setDropdownOpen(true);
-              }}
-            />
-            {dropdownOpen && itemSearch && (
-              <div
-                style={{
-                  position: "absolute",
-                  background: "#fff",
-                  border: "1px solid #ccc",
-                  maxHeight: 150,
-                  overflow: "auto",
-                }}
-              >
-                {items
-                  .filter((i) =>
-                    i.item_name
-                      .toLowerCase()
-                      .includes(itemSearch.toLowerCase())
-                  )
-                  .map((i) => (
-                    <div
-                      key={i.id}
-                      style={{ padding: 6, cursor: "pointer" }}
-                      onClick={() => {
-                        setForm({ ...form, item_id: i.id });
-                        setItemSearch(i.item_name);
-                        setDropdownOpen(false);
-                      }}
-                    >
-                      {i.item_name}
-                    </div>
-                  ))}
-              </div>
-            )}
-            <select
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value })}
-            >
-              <option value="IN">IN</option>
-              <option value="OUT">OUT</option>
-            </select>
-            <input
-              type="number"
-              placeholder="Qty"
-              value={form.quantity}
-              onChange={(e) =>
-                setForm({ ...form, quantity: e.target.value })
-              }
-            />
-            <input
-              type="date"
-              value={form.date}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
-            />
-            <button onClick={saveTransaction}>
-              {editingId ? "Update" : "Save"}
-            </button>
-          </div>
+
+          <input
+            placeholder="Item ID"
+            value={form.item_id}
+            onChange={(e) =>
+              setForm({ ...form, item_id: e.target.value })
+            }
+          />
+
+          <select
+            value={form.type}
+            onChange={(e) =>
+              setForm({ ...form, type: e.target.value })
+            }
+          >
+            <option value="IN">IN</option>
+            <option value="OUT">OUT</option>
+          </select>
+
+          <input
+            type="number"
+            placeholder="Qty"
+            value={form.quantity}
+            onChange={(e) =>
+              setForm({ ...form, quantity: e.target.value })
+            }
+          />
+
+          <button onClick={saveTransaction}>
+            {editingId ? "Update" : "Save"}
+          </button>
+
+          {/* TABLE */}
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Date</th>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Type</th>
+                <th style={thtd}>Qty</th>
+                <th style={thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions
+                .slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE)
+                .map((t) => (
+                  <tr key={t.id}>
+                    <td style={thtd}>{t.date}</td>
+                    <td style={thtd}>{t.items?.item_name}</td>
+                    <td style={thtd}>{t.type}</td>
+                    <td style={thtd}>{t.quantity}</td>
+                    <td style={thtd}>
+                      <button
+                        onClick={() =>
+                          openConfirm("Edit this transaction?", () => {
+                            setForm({
+                              item_id: t.item_id,
+                              type: t.type,
+                              quantity: t.quantity,
+                              date: t.date,
+                            });
+                            setEditingId(t.id);
+                          })
+                        }
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          openConfirm("Delete this transaction?", async () => {
+                            await supabase
+                              .from("inventory_transactions")
+                              .update({ deleted: true })
+                              .eq("id", t.id);
+                            loadData();
+                          })
+                        }
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
         </>
       )}
 
@@ -365,24 +321,31 @@ export default function App() {
                 <td style={thtd}>{t.quantity}</td>
                 <td style={thtd}>
                   <button
-                    onClick={async () => {
-                      await supabase
-                        .from("inventory_transactions")
-                        .update({ deleted: false })
-                        .eq("id", t.id);
-                      loadData();
-                    }}
+                    onClick={() =>
+                      openConfirm("Restore this record?", async () => {
+                        await supabase
+                          .from("inventory_transactions")
+                          .update({ deleted: false })
+                          .eq("id", t.id);
+                        loadData();
+                      })
+                    }
                   >
                     Restore
                   </button>
                   <button
-                    onClick={async () => {
-                      await supabase
-                        .from("inventory_transactions")
-                        .delete()
-                        .eq("id", t.id);
-                      loadData();
-                    }}
+                    onClick={() =>
+                      openConfirm(
+                        "Delete permanently?",
+                        async () => {
+                          await supabase
+                            .from("inventory_transactions")
+                            .delete()
+                            .eq("id", t.id);
+                          loadData();
+                        }
+                      )
+                    }
                   >
                     Delete Permanently
                   </button>
@@ -393,26 +356,43 @@ export default function App() {
         </table>
       )}
 
-      {/* ================= REPORT ================= */}
-      {activeTab === "report" && (
-        <table style={tableStyle}>
-          <thead>
-            <tr>
-              <th style={thtd}>Month</th>
-              <th style={thtd}>IN</th>
-              <th style={thtd}>OUT</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(monthlyTotals).map(([m, v]) => (
-              <tr key={m}>
-                <td style={thtd}>{m}</td>
-                <td style={thtd}>₱{v.IN.toFixed(2)}</td>
-                <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* ================= CONFIRM MODAL ================= */}
+      {confirm && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: 20,
+              borderRadius: 6,
+              width: 320,
+            }}
+          >
+            <p>{confirm.message}</p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                style={{ flex: 1 }}
+                onClick={() => {
+                  confirm.onConfirm();
+                  closeConfirm();
+                }}
+              >
+                Confirm
+              </button>
+              <button style={{ flex: 1 }} onClick={closeConfirm}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
