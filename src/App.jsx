@@ -350,11 +350,27 @@ export default function App() {
           </div>
                   ))}
                 </div>
-              
+              )}
+              <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+                <option value="IN">IN</option>
+                <option value="OUT">OUT</option>
+              </select>
+              <input type="number" placeholder="Qty" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+              <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+              <button onClick={() => {
+                if (editingId && isFormChanged()) {
+                  openConfirm("Save changes to this transaction?", saveTransaction);
+                } else {
+                  saveTransaction();
+                }
+              }}>{editingId ? "Update" : "Save"}</button>
+            </div>
+          </div>
 
           
 
-        <table style={tableStyle}>
+        {/* TABLE */}
+<table style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Date</th>
