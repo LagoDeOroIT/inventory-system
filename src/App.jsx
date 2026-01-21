@@ -102,6 +102,14 @@ export default function App() {
     const item = items.find(i => i.id === Number(form.item_id));
     if (!item) return alert("Item not found");
 
+    if (form.type === "OUT") {
+      const stockItem = stockInventory.find(i => i.id === item.id);
+      if (stockItem && Number(form.quantity) > stockItem.stock) {
+        alert("Cannot OUT more than available stock");
+        return;
+      }
+    }
+
     const payload = {
       date: form.date || new Date().toISOString().slice(0, 10),
       item_id: Number(form.item_id),
@@ -317,26 +325,7 @@ export default function App() {
           </div>
 
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-          <h3>Add New Item</h3>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <input
-              placeholder="Item name"
-              value={newItem.item_name}
-              onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))}
-            />
-            <input
-              placeholder="Brand"
-              value={newItem.brand}
-              onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))}
-            />
-            <input
-              type="number"
-              placeholder="Unit price"
-              value={newItem.unit_price}
-              onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))}
-            />
-            <button onClick={addNewItem}>Add Item</button>
-          </div>
+          
         </div>
 
         <table style={tableStyle}>
@@ -453,6 +442,16 @@ export default function App() {
 
       {activeTab === "stock" && (
         <>
+          <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
+            <h3>Add New Item</h3>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
+              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
+              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
+              <button onClick={addNewItem}>Add Item</button>
+            </div>
+          </div>
+
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -461,17 +460,28 @@ export default function App() {
                 <th style={thtd}>Current Stock</th>
                 <th style={thtd}>Unit Price</th>
                 <th style={thtd}>Stock Value</th>
+                <th style={thtd}>Edit</th>
               </tr>
             </thead>
             <tbody>
-              {stockInventory.length === 0 && emptyRow(5, "No stock data")}
+              {stockInventory.length === 0 && emptyRow(6, "No stock data")}
               {stockInventory.map(i => (
-                <tr key={i.id}>
+                <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
                   <td style={thtd}>{i.item_name}</td>
                   <td style={thtd}>{i.brand}</td>
                   <td style={thtd}>{i.stock}</td>
                   <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
                   <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
+                  <td style={thtd}>
+                    <button onClick={async () => {
+                      const newPrice = prompt("New unit price", i.unit_price);
+                      const newBrand = prompt("New brand", i.brand || "");
+                      if (newPrice !== null) {
+                        await supabase.from("items").update({ unit_price: Number(newPrice), brand: newBrand || null }).eq("id", i.id);
+                        loadData();
+                      }
+                    }}>✏️ Edit</button>
+                  </td>
                 </tr>
               ))}
             </tbody>
