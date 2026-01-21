@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
-const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
+const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x"
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ================= STYLES =================
