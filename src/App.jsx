@@ -198,7 +198,7 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h1 style={{ marginBottom: 4 }}>Inventory System</h1>
+      <h1 style={{ textAlign: "center" }} style={{ marginBottom: 4 }}>Lago De Oro Inventory System</h1>
       <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
 
       {/* TABS */}
@@ -286,7 +286,11 @@ export default function App() {
       {/* TRANSACTIONS TAB */}
       {activeTab === "transactions" && (
         <>
-          <h2 style={{ marginBottom: 12 }}>Transactions History</h2>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
+  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Total records: {transactions.length}</div>
+  <hr style={{ marginTop: 8 }} />
+</div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
@@ -375,7 +379,11 @@ export default function App() {
 
       {activeTab === "deleted" && (
         <>
-          <h2 style={{ marginBottom: 12 }}>Delete History</h2>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>🗑️ Delete History</h2>
+  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
+  <hr style={{ marginTop: 8 }} />
+</div>
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -418,7 +426,11 @@ export default function App() {
 
       {activeTab === "report" && (
         <>
-          <h2 style={{ marginBottom: 12 }}>Monthly Report</h2>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📊 Monthly Report</h2>
+  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Months tracked: {Object.keys(monthlyTotals).length}</div>
+  <hr style={{ marginTop: 8 }} />
+</div>
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -445,7 +457,13 @@ export default function App() {
 
       {activeTab === "stock" && (
         <>
-          <h2 style={{ marginBottom: 12 }}>Stock Inventory</h2>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📦 Stock Inventory</h2>
+  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>
+    Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
+  </div>
+  <hr style={{ marginTop: 8 }} />
+</div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <h3>Add New Item</h3>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
