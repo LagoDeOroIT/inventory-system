@@ -167,7 +167,12 @@ export default function App() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 16 }}>
             <Card><CardContent><p>Total Items</p><h2>{items.length}</h2></CardContent></Card>
             <Card><CardContent><p>Total Stock Value</p><h2>₱{totalStockValue.toFixed(2)}</h2></CardContent></Card>
-            <Card><CardContent><p>Low Stock Items</p><h2>{stockByItem.filter(i => i.stock <= 5).length}</h2></CardContent></Card>
+            <Card>
+  <CardContent>
+    <p>Low Stock Items</p>
+    <h2>{stockByItem.filter(i => i.stock <= 5).length}</h2>
+  </CardContent>
+</Card>
           </div>
 
           {/* STOCK TABLE */}
