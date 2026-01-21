@@ -29,6 +29,10 @@ export default function App() {
   const [editingId, setEditingId] = useState(null);
   const originalFormRef = useRef(null);
 
+  const [searchStock, setSearchStock] = useState("");
+  const [searchTx, setSearchTx] = useState("");
+  const [searchDeleted, setSearchDeleted] = useState("");
+
   const [form, setForm] = useState({
     item_id: "",
     type: "IN",
@@ -40,7 +44,8 @@ export default function App() {
   });
 
   const [confirm, setConfirm] = useState(null);
-  const openConfirm = (message, onConfirm) => setConfirm({ message, onConfirm });
+  const openConfirm = (title, message, color, onConfirm) =>
+    setConfirm({ title, message, color, onConfirm });
   const closeConfirm = () => setConfirm(null);
 
   const PAGE_SIZE = 5;
@@ -56,14 +61,12 @@ export default function App() {
     return acc;
   }, {});
 
-  // ================= AUTH =================
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
 
-  // ================= LOAD DATA =================
   async function loadData() {
     const { data: itemsData } = await supabase
       .from("items")
@@ -92,6 +95,18 @@ export default function App() {
 
   if (!session) return <div style={{ padding: 20 }}>Please login</div>;
 
+  const filteredItems = items.filter((i) =>
+    i.item_name.toLowerCase().includes(searchStock.toLowerCase())
+  );
+
+  const filteredTx = transactions.filter((t) =>
+    t.items?.item_name?.toLowerCase().includes(searchTx.toLowerCase())
+  );
+
+  const filteredDeleted = deletedTransactions.filter((t) =>
+    t.items?.item_name?.toLowerCase().includes(searchDeleted.toLowerCase())
+  );
+
   return (
     <div style={{ padding: 20 }}>
       <h1>Inventory System</h1>
@@ -104,37 +119,23 @@ export default function App() {
       </div>
 
       {confirm && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.6)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 50,
-          }}
-        >
-          <div style={{ background: "#fff", padding: 24, borderRadius: 8 }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+          <div style={{ background: "#fff", padding: 24, borderRadius: 10, width: 320, borderTop: `6px solid ${confirm.color}` }}>
+            <h3 style={{ marginTop: 0, color: confirm.color }}>{confirm.title}</h3>
             <p>{confirm.message}</p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
               <button onClick={closeConfirm}>Cancel</button>
-              <button
-                onClick={() => {
-                  confirm.onConfirm();
-                  closeConfirm();
-                }}
-              >
-                Confirm
-              </button>
+              <button style={{ background: confirm.color, color: "#fff" }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* STOCK INVENTORY */}
       {activeTab === "dashboard" && (
         <>
           <h2 style={{ textAlign: "center" }}>Stock Inventory</h2>
+          <input placeholder="Search item..." value={searchStock} onChange={(e) => setSearchStock(e.target.value)} />
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -144,14 +145,11 @@ export default function App() {
               </tr>
             </thead>
             <tbody>
-              {items.length === 0 && emptyRow(3, "No items")}
-              {items.map((i) => {
+              {filteredItems.length === 0 && emptyRow(3, "No items")}
+              {filteredItems.map((i) => {
                 const stock = transactions
                   .filter((t) => t.item_id === i.id)
-                  .reduce(
-                    (s, t) => s + (t.type === "IN" ? t.quantity : -t.quantity),
-                    0
-                  );
+                  .reduce((s, t) => s + (t.type === "IN" ? t.quantity : -t.quantity), 0);
                 return (
                   <tr key={i.id}>
                     <td style={thtd}>{i.item_name}</td>
@@ -165,9 +163,11 @@ export default function App() {
         </>
       )}
 
+      {/* TRANSACTIONS */}
       {activeTab === "transactions" && (
         <>
           <h2 style={{ textAlign: "center" }}>Transaction History</h2>
+          <input placeholder="Search transaction..." value={searchTx} onChange={(e) => setSearchTx(e.target.value)} />
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -178,114 +178,54 @@ export default function App() {
               </tr>
             </thead>
             <tbody>
-              {transactions.length === 0 && emptyRow(4, "No transactions")}
-              {transactions
-                .slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE)
-                .map((t) => (
-                  <tr
-                    key={t.id}
-                    style={editingId === t.id ? editingRowStyle : undefined}
-                  >
-                    <td style={thtd}>{t.date}</td>
-                    <td style={thtd}>{t.items?.item_name}</td>
-                    <td style={thtd}>{t.quantity}</td>
-                    <td style={thtd}>
-                      <button
-                        disabled={editingId !== null && editingId !== t.id}
-                        onClick={() =>
-                          openConfirm("Edit this?", () => {
-                            originalFormRef.current = {
-                              item_id: t.item_id,
-                              type: t.type,
-                              quantity: String(t.quantity),
-                              date: t.date,
-                              brand: t.brand,
-                              unit: t.unit,
-                              volume_pack: t.volume_pack,
-                            };
-                            setEditingId(t.id);
-                            setForm(originalFormRef.current);
-                          })
-                        }
-                      >
-                        Edit
-                      </button>
-                      <button
-                        disabled={editingId !== null}
-                        onClick={() =>
-                          openConfirm("Delete this?", async () => {
-                            await supabase
-                              .from("inventory_transactions")
-                              .update({ deleted: true })
-                              .eq("id", t.id);
-                            loadData();
-                          })
-                        }
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+              {filteredTx.length === 0 && emptyRow(4, "No transactions")}
+              {filteredTx.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map((t) => (
+                <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                  <td style={thtd}>{t.date}</td>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>
+                    <button disabled={editingId !== null && editingId !== t.id} onClick={() => openConfirm("Edit", "Edit this transaction?", "#f59e0b", () => {})}>Edit</button>
+                    <button disabled={editingId !== null} onClick={() => openConfirm("Delete", "Delete this transaction?", "#dc2626", async () => { await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", t.id); loadData(); })}>Delete</button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
-
-          <div style={{ marginTop: 10 }}>
-            <button disabled={txPage === 1} onClick={() => setTxPage((p) => p - 1)}>
-              Prev
-            </button>
-            <span style={{ margin: "0 10px" }}>Page {txPage}</span>
-            <button
-              disabled={txPage * PAGE_SIZE >= transactions.length}
-              onClick={() => setTxPage((p) => p + 1)}
-            >
-              Next
-            </button>
-          </div>
         </>
       )}
 
+      {/* DELETED */}
       {activeTab === "deleted" && (
         <>
-          <h2 style={{ textAlign: "center" }}>Deleted Records</h2>
+          <h2 style={{ textAlign: "center" }}>Deleted History</h2>
+          <input placeholder="Search deleted..." value={searchDeleted} onChange={(e) => setSearchDeleted(e.target.value)} />
           <table style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Item</th>
                 <th style={thtd}>Qty</th>
+                <th style={thtd}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {deletedTransactions.length === 0 && emptyRow(2, "No deleted records")}
-              {deletedTransactions
-                .slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE)
-                .map((t) => (
-                  <tr key={t.id}>
-                    <td style={thtd}>{t.items?.item_name}</td>
-                    <td style={thtd}>{t.quantity}</td>
-                  </tr>
-                ))}
+              {filteredDeleted.length === 0 && emptyRow(3, "No deleted records")}
+              {filteredDeleted.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map((t) => (
+                <tr key={t.id}>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>
+                    <button onClick={() => openConfirm("Restore", "Restore this record?", "#16a34a", async () => { await supabase.from("inventory_transactions").update({ deleted: false }).eq("id", t.id); loadData(); })}>Restore</button>
+                    <button onClick={() => openConfirm("Permanent Delete", "This cannot be undone. Continue?", "#b91c1c", async () => { await supabase.from("inventory_transactions").delete().eq("id", t.id); loadData(); })}>Delete</button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
-
-          <div style={{ marginTop: 10 }}>
-            <button
-              disabled={deletedPage === 1}
-              onClick={() => setDeletedPage((p) => p - 1)}
-            >
-              Prev
-            </button>
-            <span style={{ margin: "0 10px" }}>Page {deletedPage}</span>
-            <button
-              disabled={deletedPage * PAGE_SIZE >= deletedTransactions.length}
-              onClick={() => setDeletedPage((p) => p + 1)}
-            >
-              Next
-            </button>
-          </div>
         </>
       )}
 
+      {/* MONTHLY */}
       {activeTab === "monthly" && (
         <>
           <h2 style={{ textAlign: "center" }}>Monthly Report</h2>
@@ -299,35 +239,15 @@ export default function App() {
             </thead>
             <tbody>
               {Object.keys(monthlyReport).length === 0 && emptyRow(3, "No data")}
-              {Object.entries(monthlyReport)
-                .slice((monthlyPage - 1) * PAGE_SIZE, monthlyPage * PAGE_SIZE)
-                .map(([m, v]) => (
-                  <tr key={m}>
-                    <td style={thtd}>{m}</td>
-                    <td style={thtd}>{v.in}</td>
-                    <td style={thtd}>{v.out}</td>
-                  </tr>
-                ))}
+              {Object.entries(monthlyReport).slice((monthlyPage - 1) * PAGE_SIZE, monthlyPage * PAGE_SIZE).map(([m, v]) => (
+                <tr key={m}>
+                  <td style={thtd}>{m}</td>
+                  <td style={thtd}>{v.in}</td>
+                  <td style={thtd}>{v.out}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
-
-          <div style={{ marginTop: 10 }}>
-            <button
-              disabled={monthlyPage === 1}
-              onClick={() => setMonthlyPage((p) => p - 1)}
-            >
-              Prev
-            </button>
-            <span style={{ margin: "0 10px" }}>Page {monthlyPage}</span>
-            <button
-              disabled={
-                monthlyPage * PAGE_SIZE >= Object.keys(monthlyReport).length
-              }
-              onClick={() => setMonthlyPage((p) => p + 1)}
-            >
-              Next
-            </button>
-          </div>
         </>
       )}
     </div>
