@@ -169,7 +169,7 @@ export default function App() {
       <h1 style={{ marginBottom: 4 }}>Inventory System</h1>
       <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
 
-      {{/* TABS */}
+      {/* TABS */}
 <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
 
 <button
