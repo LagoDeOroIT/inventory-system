@@ -198,14 +198,14 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
-      <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <h1 style={{ marginBottom: 4 }}>Lago De Oro Inventory System</h1>
-        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
+      <div style={{ textAlign: "center", marginBottom: 8 }}>
+        <h1 style={{ marginBottom: 2, fontSize: 26 }}>Lago De Oro Inventory System</h1>
+        <p style={{ marginTop: 0, color: "#555", fontSize: 13 }}>Manage stock IN / OUT and reports</p>
       </div>
 
       {/* TABS */}
-<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
-  <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
+<div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+  <div style={{ display: "flex", gap: 8, padding: 6, background: "#f3f4f6", borderRadius: 999 }}>
     <button
       onClick={() => {
         if (editingId && isFormChanged()) {
@@ -221,13 +221,13 @@ export default function App() {
         }
       }}
       style={{
-        padding: "8px 16px",
+        padding: "6px 14px",
         borderRadius: 999,
         border: "none",
         cursor: "pointer",
         background: activeTab === "transactions" ? "#1f2937" : "transparent",
         color: activeTab === "transactions" ? "#fff" : "#374151",
-        fontWeight: 500,
+        fontWeight: 500, fontSize: 14,
       }}
     >
       📄 Transactions
@@ -248,13 +248,13 @@ export default function App() {
         }
       }}
       style={{
-        padding: "8px 16px",
+        padding: "6px 14px",
         borderRadius: 999,
         border: "none",
         cursor: "pointer",
         background: activeTab === "deleted" ? "#1f2937" : "transparent",
         color: activeTab === "deleted" ? "#fff" : "#374151",
-        fontWeight: 500,
+        fontWeight: 500, fontSize: 14,
       }}
     >
       🗑️ Deleted History
@@ -275,13 +275,13 @@ export default function App() {
         }
       }}
       style={{
-        padding: "8px 16px",
+        padding: "6px 14px",
         borderRadius: 999,
         border: "none",
         cursor: "pointer",
         background: activeTab === "report" ? "#1f2937" : "transparent",
         color: activeTab === "report" ? "#fff" : "#374151",
-        fontWeight: 500,
+        fontWeight: 500, fontSize: 14,
       }}
     >
       📊 Monthly Report
@@ -290,13 +290,13 @@ export default function App() {
     <button
       onClick={() => setActiveTab("stock")}
       style={{
-        padding: "8px 16px",
+        padding: "6px 14px",
         borderRadius: 999,
         border: "none",
         cursor: "pointer",
         background: activeTab === "stock" ? "#1f2937" : "transparent",
         color: activeTab === "stock" ? "#fff" : "#374151",
-        fontWeight: 500,
+        fontWeight: 500, fontSize: 14,
       }}
     >
       📦 Stock Inventory
@@ -321,10 +321,10 @@ export default function App() {
       {/* TRANSACTIONS TAB */}
       {activeTab === "transactions" && (
         <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 4 }}>
   <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Total records: {transactions.length}</div>
-  <hr style={{ marginTop: 8 }} />
+  <hr style={{ marginTop: 4 }} />
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
@@ -412,10 +412,10 @@ export default function App() {
 
       {activeTab === "deleted" && (
         <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 4 }}>
   <h2 style={{ marginBottom: 4, textAlign: "center" }}>🗑️ Delete History</h2>
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
-  <hr style={{ marginTop: 8 }} />
+  <hr style={{ marginTop: 4 }} />
 </div>
           <table style={tableStyle}>
             <thead>
@@ -459,10 +459,10 @@ export default function App() {
 
       {activeTab === "report" && (
         <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 4 }}>
   <h2 style={{ marginBottom: 4, textAlign: "center" }}>📊 Monthly Report</h2>
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Months tracked: {Object.keys(monthlyTotals).length}</div>
-  <hr style={{ marginTop: 8 }} />
+  <hr style={{ marginTop: 4 }} />
 </div>
           <table style={tableStyle}>
             <thead>
@@ -490,12 +490,12 @@ export default function App() {
 
       {activeTab === "stock" && (
         <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 4 }}>
   <h2 style={{ marginBottom: 4, textAlign: "center" }}>📦 Stock Inventory</h2>
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>
     Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
   </div>
-  <hr style={{ marginTop: 8 }} />
+  <hr style={{ marginTop: 4 }} />
 </div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <h3>Add New Item</h3>
