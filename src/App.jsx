@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// ================= SUPABASE CONFIG =================
+/* ================= SUPABASE CONFIG ================= */
 const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
 const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// ================= STYLES =================
+/* ================= STYLES ================= */
 const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: 10 };
 const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" };
-const editingRowStyle = { background: "#fff7ed" }; // highlight edited row
+const lowStockStyle = { background: "#fee2e2" };
 
 const emptyRow = (colSpan, text) => (
   <tr>
@@ -17,53 +17,23 @@ const emptyRow = (colSpan, text) => (
   </tr>
 );
 
+const LOW_STOCK_THRESHOLD = 5;
+
+/* ================= APP ================= */
 export default function App() {
-  // ===== CONFIRM MODAL STATE =====
-  const [confirm, setConfirm] = useState(null);
-  const openConfirm = (message, onConfirm) => {
-    setConfirm({ message, onConfirm });
-  };
-  const closeConfirm = () => setConfirm(null);
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [deletedTransactions, setDeletedTransactions] = useState([]);
+  const [activeTab, setActiveTab] = useState("dashboard");
 
-  // pagination (ONE declaration each)
-  const PAGE_SIZE = 5;
-  const [txPage, setTxPage] = useState(1);
-  const [deletedPage, setDeletedPage] = useState(1);
-  const [reportPage, setReportPage] = useState(1);
-
-  // tabs
-  const [activeTab, setActiveTab] = useState("transactions");
-
-  // form
-  const [editingId, setEditingId] = useState(null);
-  const originalFormRef = useRef(null);
-  const [form, setForm] = useState({
-    item_id: "",
-    type: "IN",
-    quantity: "",
-    date: "",
-    brand: "",
-    unit: "",
-    volume_pack: "",
-  });
-
-  // item search
-  const [itemSearch, setItemSearch] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const searchRef = useRef(null);
-
-  // ================= AUTH =================
+  /* ================= AUTH ================= */
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
 
-  // ================= LOAD DATA =================
+  /* ================= LOAD DATA ================= */
   async function loadData() {
     const { data: itemsData } = await supabase
       .from("items")
@@ -72,74 +42,48 @@ export default function App() {
     const { data: tx } = await supabase
       .from("inventory_transactions")
       .select("*, items(item_name)")
-      .eq("deleted", false)
-      .order("date", { ascending: false });
-
-    const { data: deletedTx } = await supabase
-      .from("inventory_transactions")
-      .select("*, items(item_name)")
-      .eq("deleted", true)
-      .order("deleted_at", { ascending: false });
+      .eq("deleted", false);
 
     setItems(itemsData || []);
     setTransactions(tx || []);
-    setDeletedTransactions(deletedTx || []);
   }
 
   useEffect(() => {
     if (session) loadData();
   }, [session]);
 
-  // ================= SAVE =================
-  function isFormChanged() {
-    if (!originalFormRef.current) return false;
-    return Object.keys(originalFormRef.current).some(k => String(originalFormRef.current[k] || "") !== String(form[k] || ""));
-  }
+  /* ================= DASHBOARD COMPUTATION ================= */
+  const stockMap = {};
 
-  async function saveTransaction() {
-    if (!form.item_id || !form.quantity) return alert("Complete the form");
-    const item = items.find(i => i.id === Number(form.item_id));
-    if (!item) return alert("Item not found");
+  transactions.forEach(t => {
+    if (!stockMap[t.item_id]) {
+      const item = items.find(i => i.id === t.item_id);
+      stockMap[t.item_id] = {
+        item_id: t.item_id,
+        item_name: item?.item_name || "",
+        brand: item?.brand || "Unbranded",
+        inQty: 0,
+        outQty: 0,
+      };
+    }
+    if (t.type === "IN") stockMap[t.item_id].inQty += t.quantity;
+    if (t.type === "OUT") stockMap[t.item_id].outQty += t.quantity;
+  });
 
-    const payload = {
-      date: form.date || new Date().toISOString().slice(0, 10),
-      item_id: Number(form.item_id),
-      type: form.type,
-      quantity: Number(form.quantity),
-      unit_price: item.unit_price,
-      brand: form.brand || item.brand || null,
-      unit: form.unit || null,
-      volume_pack: form.volume_pack || null,
-      deleted: false,
-    };
+  const stockList = Object.values(stockMap).map(s => ({
+    ...s,
+    quantity: s.inQty - s.outQty,
+  }));
 
-    const { error } = editingId
-      ? await supabase.from("inventory_transactions").update(payload).eq("id", editingId)
-      : await supabase.from("inventory_transactions").insert(payload);
-
-    if (error) return alert(error.message);
-
-    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", volume_pack: "" });
-    setItemSearch("");
-    setEditingId(null);
-    loadData();
-  }
-
-  // ================= MONTHLY TOTALS =================
-  const monthlyTotals = transactions.reduce((acc, t) => {
-    if (!t.date) return acc;
-    const month = t.date.slice(0, 7);
-    acc[month] = acc[month] || { IN: 0, OUT: 0 };
-    acc[month][t.type] += t.quantity * t.unit_price;
+  const groupedByBrand = stockList.reduce((acc, item) => {
+    acc[item.brand] = acc[item.brand] || [];
+    acc[item.brand].push(item);
     return acc;
   }, {});
 
-  // ================= CLICK OUTSIDE =================
-  useEffect(() => {
-    const handler = e => searchRef.current && !searchRef.current.contains(e.target) && setDropdownOpen(false);
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  const totalIN = stockList.reduce((a, b) => a + b.inQty, 0);
+  const totalOUT = stockList.reduce((a, b) => a + b.outQty, 0);
+  const totalStock = stockList.reduce((a, b) => a + b.quantity, 0);
 
   if (!session) {
     return (
@@ -154,70 +98,86 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
-      {/* TABS */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <button
-          onClick={() => setActiveTab("dashboard")}
-          style={{ fontWeight: activeTab === "dashboard" ? "bold" : "normal" }}
-        >
-          Dashboard
-        </button>
-        <button
-          onClick={() => setActiveTab("transactions")}
-          style={{ fontWeight: activeTab === "transactions" ? "bold" : "normal" }}
-        >
-          Transactions
-        </button>
-        <button
-          onClick={() => setActiveTab("deleted")}
-          style={{ fontWeight: activeTab === "deleted" ? "bold" : "normal" }}
-        >
-          Deleted
-        </button>
-        <button
-          onClick={() => setActiveTab("report")}
-          style={{ fontWeight: activeTab === "report" ? "bold" : "normal" }}
-        >
-          Monthly Report
-        </button>
+      <h1>Inventory System</h1>
+
+      {/* ================= TABS ================= */}
+      <div style={{ display: "flex", gap: 10 }}>
+        <button onClick={() => setActiveTab("dashboard")}>Dashboard</button>
+        <button onClick={() => setActiveTab("transactions")}>Transactions</button>
+        <button onClick={() => setActiveTab("report")}>Monthly Report</button>
       </div>
 
-      {/* DASHBOARD TAB */}
+      {/* ================= DASHBOARD ================= */}
       {activeTab === "dashboard" && (
         <>
           <h2>Main Stock Inventory</h2>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Brand</th>
-                <th style={thtd}>Total IN</th>
-                <th style={thtd}>Total OUT</th>
-                <th style={thtd}>Current Stock</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.length === 0 && emptyRow(5, "No items available")}
-              {items.map(item => {
-                const related = transactions.filter(t => t.item_id === item.id);
-                const totalIn = related.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
-                const totalOut = related.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
-                return (
-                  <tr key={item.id}>
-                    <td style={thtd}>{item.item_name}</td>
-                    <td style={thtd}>{item.brand}</td>
-                    <td style={thtd}>{totalIn}</td>
-                    <td style={thtd}>{totalOut}</td>
-                    <td style={thtd}><strong>{totalIn - totalOut}</strong></td>
+
+          {/* TOTALS */}
+          <div style={{ display: "flex", gap: 20, marginBottom: 15 }}>
+            <strong>Total IN: {totalIN}</strong>
+            <strong>Total OUT: {totalOUT}</strong>
+            <strong>Total STOCK: {totalStock}</strong>
+          </div>
+
+          {/* GROUPED TABLE */}
+          {Object.keys(groupedByBrand).length === 0 && (
+            <p>No stock data</p>
+          )}
+
+          {Object.entries(groupedByBrand).map(([brand, items]) => (
+            <div key={brand} style={{ marginBottom: 20 }}>
+              <h3>{brand}</h3>
+              <table style={tableStyle}>
+                <thead>
+                  <tr>
+                    <th style={thtd}>Item</th>
+                    <th style={thtd}>IN</th>
+                    <th style={thtd}>OUT</th>
+                    <th style={thtd}>Quantity</th>
+                    <th style={thtd}>Actions</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {items.map(i => (
+                    <tr
+                      key={i.item_id}
+                      style={i.quantity <= LOW_STOCK_THRESHOLD ? lowStockStyle : null}
+                    >
+                      <td style={thtd}>
+                        {i.item_name}
+                        {i.quantity <= LOW_STOCK_THRESHOLD && (
+                          <span style={{ color: "red", marginLeft: 6 }}>
+                            ⚠ Low Stock
+                          </span>
+                        )}
+                      </td>
+                      <td style={thtd}>{i.inQty}</td>
+                      <td style={thtd}>{i.outQty}</td>
+                      <td style={thtd}>{i.quantity}</td>
+                      <td style={thtd}>
+                        <button onClick={() => setActiveTab("transactions")}>
+                          ✏️ Edit
+                        </button>
+                        <button
+                          onClick={async () => {
+                            await supabase
+                              .from("inventory_transactions")
+                              .update({ deleted: true })
+                              .eq("item_id", i.item_id);
+                            loadData();
+                          }}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
         </>
       )}
-
-      {/* FULL UI CONTINUES EXACTLY AS PROVIDED */}
     </div>
   );
 }
