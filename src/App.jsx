@@ -8,7 +8,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ================= STYLES =================
 const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: 10 };
-const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" };
+const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" }
 const editingRowStyle = { background: "#fff7ed" }; // highlight edited row
 
 const emptyRow = (colSpan, text) => (
