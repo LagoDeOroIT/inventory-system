@@ -38,6 +38,7 @@ export default function App() {
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
 
+
   // form
   const [editingId, setEditingId] = useState(null);
   const originalFormRef = useRef(null);
@@ -125,6 +126,17 @@ export default function App() {
     loadData();
   }
 
+  // ================= STOCK INVENTORY =================
+  const stockInventory = items.map(item => {
+    const related = transactions.filter(t => t.item_id === item.id);
+    const qtyIn = related.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
+    const qtyOut = related.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
+    return {
+      ...item,
+      stock: qtyIn - qtyOut,
+    };
+  });
+
   // ================= MONTHLY TOTALS =================
   const monthlyTotals = transactions.reduce((acc, t) => {
     if (!t.date) return acc;
@@ -164,32 +176,6 @@ export default function App() {
             openConfirm("Discard unsaved changes?", () => {
               setEditingId(null);
               originalFormRef.current = null;
-              setActiveTab("transactions");
-            });
-          } else {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("transactions");
-          }
-        }} style={{ fontWeight: activeTab === "transactions" ? "bold" : "normal" }}>Transactions</button>
-        <button onClick={() => {
-          if (editingId && isFormChanged()) {
-            openConfirm("Discard unsaved changes?", () => {
-              setEditingId(null);
-              originalFormRef.current = null;
-              setActiveTab("deleted");
-            });
-          } else {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("deleted");
-          }
-        }} style={{ fontWeight: activeTab === "deleted" ? "bold" : "normal" }}>Deleted</button>
-        <button onClick={() => {
-          if (editingId && isFormChanged()) {
-            openConfirm("Discard unsaved changes?", () => {
-              setEditingId(null);
-              originalFormRef.current = null;
               setActiveTab("report");
             });
           } else {
@@ -198,10 +184,11 @@ export default function App() {
             setActiveTab("report");
           }
         }} style={{ fontWeight: activeTab === "report" ? "bold" : "normal" }}>Monthly Report</button>
+        <button onClick={() => setActiveTab("stock")} style={{ fontWeight: activeTab === "stock" ? "bold" : "normal" }}>Stock Inventory</button>
       </div>
 
       {/* CONFIRM MODAL */}
-            {confirm && (
+      {confirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
           <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
             <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
@@ -214,94 +201,91 @@ export default function App() {
         </div>
       )}
 
-{/* TRANSACTIONS TAB */}
-{activeTab === "transactions" && (
-  <>
-    {/* ADD / EDIT TRANSACTION */}
-    <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-      <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
-        <input
-          placeholder="Search item"
-          value={itemSearch}
-          onChange={e => {
-            setItemSearch(e.target.value);
-            setDropdownOpen(true);
-          }}
-        />
-        {dropdownOpen && itemSearch && (
-          <div style={{ position: "absolute", background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto" }}>
-            {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
-              <div key={i.id} style={{ padding: 6, cursor: "pointer" }} onClick={() => {
-                setForm(f => ({ ...f, item_id: i.id }));
-                setItemSearch(i.item_name);
-                setDropdownOpen(false);
-              }}>{i.item_name}</div>
-            ))}
+      {/* TRANSACTIONS TAB */}
+      {activeTab === "transactions" && (
+        <>
+          <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
+            <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
+              <input
+                placeholder="Search item"
+                value={itemSearch}
+                onChange={e => {
+                  setItemSearch(e.target.value);
+                  setDropdownOpen(true);
+                }}
+              />
+              {dropdownOpen && itemSearch && (
+                <div style={{ position: "absolute", background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto" }}>
+                  {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
+                    <div key={i.id} style={{ padding: 6, cursor: "pointer" }} onClick={() => {
+                      setForm(f => ({ ...f, item_id: i.id }));
+                      setItemSearch(i.item_name);
+                      setDropdownOpen(false);
+                    }}>{i.item_name}</div>
+                  ))}
+                </div>
+              )}
+              <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+                <option value="IN">IN</option>
+                <option value="OUT">OUT</option>
+              </select>
+              <input type="number" placeholder="Qty" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+              <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+              <button onClick={() => {
+                if (editingId && isFormChanged()) {
+                  openConfirm("Save changes to this transaction?", saveTransaction);
+                } else {
+                  saveTransaction();
+                }
+              }}>{editingId ? "Update" : "Save"}</button>
+            </div>
           </div>
-        )}
-        <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-          <option value="IN">IN</option>
-          <option value="OUT">OUT</option>
-        </select>
-        <input type="number" placeholder="Qty" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
-        <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-        <button onClick={() => {
-          if (editingId && isFormChanged()) {
-            openConfirm("Save changes to this transaction?", saveTransaction);
-          } else {
-            saveTransaction();
-          }
-        }}>{editingId ? "Update" : "Save"}</button>
-      </div>
-    </div>
 
-    {/* TRANSACTIONS TABLE */}
-    <table style={tableStyle}>
-      <thead>
-        <tr>
-          <th style={thtd}>Date</th>
-          <th style={thtd}>Item</th>
-          <th style={thtd}>Type</th>
-          <th style={thtd}>Qty</th>
-          <th style={thtd}>Brand</th>
-          <th style={thtd}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {transactions.length === 0 && emptyRow(6, "No transactions yet")}
-        {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
-          <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
-            <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-            <td style={thtd}>{t.items?.item_name}</td>
-            <td style={thtd}>{t.type}</td>
-            <td style={thtd}>{t.quantity}</td>
-            <td style={thtd}>{t.brand}</td>
-            <td style={thtd}>
-              <button disabled={editingId && editingId !== t.id} title={editingId && editingId !== t.id ? "Finish current edit first" : "Edit"} onClick={() => openConfirm("Edit this transaction?", () => {
-                originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                setEditingId(t.id);
-                setForm(originalFormRef.current);
-                setItemSearch(t.items?.item_name || "");
-              })}>✏️ Edit</button>
-              <button disabled={!!editingId} title={editingId ? "Finish editing before deleting" : "Delete"} onClick={() => openConfirm("Delete this transaction?", async () => {
-                await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
-                loadData();
-              })}>🗑️ Delete</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-    <div>
-      <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
-      <span> Page {txPage} </span>
-      <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
-    </div>
-  </>
-)}
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Date</th>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Type</th>
+                <th style={thtd}>Qty</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.length === 0 && emptyRow(6, "No transactions yet")}
+              {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
+                <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                  <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.type}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>{t.brand}</td>
+                  <td style={thtd}>
+                    <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
+                      originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+                      setEditingId(t.id);
+                      setForm(originalFormRef.current);
+                      setItemSearch(t.items?.item_name || "");
+                    })}>✏️ Edit</button>
+                    <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
+                      await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
+                      loadData();
+                    })}>🗑️ Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div>
+            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
+            <span> Page {txPage} </span>
+            <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
+          </div>
+        </>
+      )}
 
-      {/* DELETE TAB */}
       {activeTab === "deleted" && (
         <>
           <table style={tableStyle}>
@@ -317,7 +301,7 @@ export default function App() {
             <tbody>
               {deletedTransactions.length === 0 && emptyRow(5, "No deleted records")}
               {deletedTransactions.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map(t => (
-                <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                <tr key={t.id}>
                   <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
                   <td style={thtd}>{t.brand}</td>
@@ -344,7 +328,6 @@ export default function App() {
         </>
       )}
 
-      {/* REPORT TAB */}
       {activeTab === "report" && (
         <table style={tableStyle}>
           <thead>
@@ -356,6 +339,42 @@ export default function App() {
           </thead>
           <tbody>
             {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
+            {Object.entries(monthlyTotals).slice((reportPage - 1) * PAGE_SIZE, reportPage * PAGE_SIZE).map(([m, v]) => (
+              <tr key={m}>
+                <td style={thtd}>{m}</td>
+                <td style={thtd}>₱{v.IN.toFixed(2)}</td>
+                <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {activeTab === "stock" && (
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thtd}>Item</th>
+              <th style={thtd}>Brand</th>
+              <th style={thtd}>Current Stock</th>
+              <th style={thtd}>Unit Price</th>
+              <th style={thtd}>Stock Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stockInventory.length === 0 && emptyRow(5, "No stock data")}
+            {stockInventory.map(i => (
+              <tr key={i.id}>
+                <td style={thtd}>{i.item_name}</td>
+                <td style={thtd}>{i.brand}</td>
+                <td style={thtd}>{i.stock}</td>
+                <td style={thtd}>₱{Number(i.unit_price).toFixed(2)}</td>
+                <td style={thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )
             {Object.entries(monthlyTotals).slice((reportPage - 1) * PAGE_SIZE, reportPage * PAGE_SIZE).map(([m, v]) => (
               <tr key={m}>
                 <td style={thtd}>{m}</td>
