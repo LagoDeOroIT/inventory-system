@@ -426,53 +426,57 @@ export default function App() {
       )}
 
       {activeTab === "report" && (
-        <table style={tableStyle}>
-          <thead>
-            <tr>
-              <th style={thtd}>Month</th>
-              <th style={thtd}>IN Total</th>
-              <th style={thtd}>OUT Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
-            {Object.entries(monthlyTotals).slice((reportPage - 1) * PAGE_SIZE, reportPage * PAGE_SIZE).map(([m, v]) => (
-              <tr key={m}>
-                <td style={thtd}>{m}</td>
-                <td style={thtd}>₱{v.IN.toFixed(2)}</td>
-                <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
+        <>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Month</th>
+                <th style={thtd}>IN Total</th>
+                <th style={thtd}>OUT Total</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
+              {Object.entries(monthlyTotals)
+                .slice((reportPage - 1) * PAGE_SIZE, reportPage * PAGE_SIZE)
+                .map(([m, v]) => (
+                  <tr key={m}>
+                    <td style={thtd}>{m}</td>
+                    <td style={thtd}>₱{v.IN.toFixed(2)}</td>
+                    <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
         </>
       )}
 
       {activeTab === "stock" && (
         <>
-        <table style={tableStyle}>
-          <thead>
-            <tr>
-              <th style={thtd}>Item</th>
-              <th style={thtd}>Brand</th>
-              <th style={thtd}>Current Stock</th>
-              <th style={thtd}>Unit Price</th>
-              <th style={thtd}>Stock Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stockInventory.length === 0 && emptyRow(5, "No stock data")}
-            {stockInventory.map(i => (
-              <tr key={i.id}>
-                <td style={thtd}>{i.item_name}</td>
-                <td style={thtd}>{i.brand}</td>
-                <td style={thtd}>{i.stock}</td>
-                <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-                <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Current Stock</th>
+                <th style={thtd}>Unit Price</th>
+                <th style={thtd}>Stock Value</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {stockInventory.length === 0 && emptyRow(5, "No stock data")}
+              {stockInventory.map(i => (
+                <tr key={i.id}>
+                  <td style={thtd}>{i.item_name}</td>
+                  <td style={thtd}>{i.brand}</td>
+                  <td style={thtd}>{i.stock}</td>
+                  <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+                  <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
       )}
     </div>
   );
