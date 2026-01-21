@@ -326,8 +326,8 @@ export default function App() {
   <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
-          <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
+          <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 8, borderRadius: 6 }}>
+            <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 16 }}>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
               <input
                 placeholder="Search item"
@@ -495,8 +495,8 @@ export default function App() {
   </div>
   <hr style={{ marginTop: 8 }} />
 </div>
-          <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <h3>Add New Item</h3>
+          <div style={{ marginBottom: 12, border: "1px solid #ddd", padding: 8, borderRadius: 6 }}>
+            <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 16 }}>Add New Item</h3>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
