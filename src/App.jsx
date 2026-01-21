@@ -204,72 +204,105 @@ export default function App() {
       </div>
 
       {/* TABS */}
-<div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
+  <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("transactions");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("transactions");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "transactions" ? "#1f2937" : "transparent",
+        color: activeTab === "transactions" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📄 Transactions
+    </button>
 
-<button
-          onClick={() => {
-            if (editingId && isFormChanged()) {
-              openConfirm("Discard unsaved changes?", () => {
-                setEditingId(null);
-                originalFormRef.current = null;
-                setActiveTab("transactions");
-              });
-            } else {
-              setEditingId(null);
-              originalFormRef.current = null;
-              setActiveTab("transactions");
-            }
-          }}
-          style={{ fontWeight: activeTab === "transactions" ? "bold" : "normal" }}
-        >
-          Transactions
-        </button>
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("deleted");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("deleted");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "deleted" ? "#1f2937" : "transparent",
+        color: activeTab === "deleted" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      🗑️ Deleted History
+    </button>
 
-        <button
-          onClick={() => {
-            if (editingId && isFormChanged()) {
-              openConfirm("Discard unsaved changes?", () => {
-                setEditingId(null);
-                originalFormRef.current = null;
-                setActiveTab("deleted");
-              });
-            } else {
-              setEditingId(null);
-              originalFormRef.current = null;
-              setActiveTab("deleted");
-            }
-          }}
-          style={{ fontWeight: activeTab === "deleted" ? "bold" : "normal" }}
-        >
-          Deleted History
-        </button>
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("report");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("report");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "report" ? "#1f2937" : "transparent",
+        color: activeTab === "report" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📊 Monthly Report
+    </button>
 
-        <button
-          onClick={() => {
-            if (editingId && isFormChanged()) {
-              openConfirm("Discard unsaved changes?", () => {
-                setEditingId(null);
-                originalFormRef.current = null;
-                setActiveTab("report");
-              });
-            } else {
-              setEditingId(null);
-              originalFormRef.current = null;
-              setActiveTab("report");
-            }
-          }}
-          style={{ fontWeight: activeTab === "report" ? "bold" : "normal" }}
-        >
-          Monthly Report
-        </button>
-
-        <button
-          onClick={() => setActiveTab("stock")}
-          style={{ fontWeight: activeTab === "stock" ? "bold" : "normal" }}
-        >
-          Stock Inventory
-        </button>
-      </div>
+    <button
+      onClick={() => setActiveTab("stock")}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "stock" ? "#1f2937" : "transparent",
+        color: activeTab === "stock" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📦 Stock Inventory
+    </button>
+  </div>
+</div>
 
       {/* CONFIRM MODAL */}
       {confirm && (
