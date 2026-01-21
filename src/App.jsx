@@ -318,10 +318,7 @@ export default function App() {
             </div>
           </div>
         </div>
-              </div>
-            )}
-
-      {/* TRANSACTIONS TAB */}
+      )}      {/* TRANSACTIONS TAB */}
       {activeTab === "transactions" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
