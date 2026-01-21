@@ -169,22 +169,71 @@ export default function App() {
       <h1 style={{ marginBottom: 4 }}>Inventory System</h1>
       <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
 
-      {/* TABS */}
+      {{/* TABS */}
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <button onClick={() => {
-          if (editingId && isFormChanged()) {
-            openConfirm("Discard unsaved changes?", () => {
+        <button
+          onClick={() => {
+            if (editingId && isFormChanged()) {
+              openConfirm("Discard unsaved changes?", () => {
+                setEditingId(null);
+                originalFormRef.current = null;
+                setActiveTab("transactions");
+              });
+            } else {
+              setEditingId(null);
+              originalFormRef.current = null;
+              setActiveTab("transactions");
+            }
+          }}
+          style={{ fontWeight: activeTab === "transactions" ? "bold" : "normal" }}
+        >
+          Transactions
+        </button>
+
+        <button
+          onClick={() => {
+            if (editingId && isFormChanged()) {
+              openConfirm("Discard unsaved changes?", () => {
+                setEditingId(null);
+                originalFormRef.current = null;
+                setActiveTab("deleted");
+              });
+            } else {
+              setEditingId(null);
+              originalFormRef.current = null;
+              setActiveTab("deleted");
+            }
+          }}
+          style={{ fontWeight: activeTab === "deleted" ? "bold" : "normal" }}
+        >
+          Deleted History
+        </button>
+
+        <button
+          onClick={() => {
+            if (editingId && isFormChanged()) {
+              openConfirm("Discard unsaved changes?", () => {
+                setEditingId(null);
+                originalFormRef.current = null;
+                setActiveTab("report");
+              });
+            } else {
               setEditingId(null);
               originalFormRef.current = null;
               setActiveTab("report");
-            });
-          } else {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("report");
-          }
-        }} style={{ fontWeight: activeTab === "report" ? "bold" : "normal" }}>Monthly Report</button>
-        <button onClick={() => setActiveTab("stock")} style={{ fontWeight: activeTab === "stock" ? "bold" : "normal" }}>Stock Inventory</button>
+            }
+          }}
+          style={{ fontWeight: activeTab === "report" ? "bold" : "normal" }}
+        >
+          Monthly Report
+        </button>
+
+        <button
+          onClick={() => setActiveTab("stock")}
+          style={{ fontWeight: activeTab === "stock" ? "bold" : "normal" }}
+        >
+          Stock Inventory
+        </button>
       </div>
 
       {/* CONFIRM MODAL */}
