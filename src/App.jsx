@@ -41,6 +41,7 @@ export default function App() {
 
   // form
   const [editingId, setEditingId] = useState(null);
+  const [showTransactionForm, setShowTransactionForm] = useState(false);
   const originalFormRef = useRef(null);
   const [form, setForm] = useState({
     item_id: "",
@@ -136,6 +137,7 @@ export default function App() {
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
   const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
+  const [showNewItemForm, setShowNewItemForm] = useState(false);
 
   async function addNewItem() {
     if (!newItem.item_name || !newItem.unit_price) {
@@ -187,10 +189,33 @@ export default function App() {
 
   if (!session) {
     return (
-      <div style={{ padding: 40 }}>
+      <div style={{ padding: 40, maxWidth: 360, margin: "0 auto" }}>
         <h2>Inventory Login</h2>
-        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>
-          Login with Google
+        <input
+          type="email"
+          placeholder="Email"
+          value={form.email || ""}
+          onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+          style={{ width: "100%", marginBottom: 8 }}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={form.password || ""}
+          onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+          style={{ width: "100%", marginBottom: 12 }}
+        />
+        <button
+          style={{ width: "100%" }}
+          onClick={async () => {
+            const { error } = await supabase.auth.signInWithPassword({
+              email: form.email,
+              password: form.password,
+            });
+            if (error) alert(error.message);
+          }}
+        >
+          Login
         </button>
       </div>
     );
@@ -198,349 +223,12 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
-      <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
-        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
+            <h1 style={{ textAlign: "center" }}>Lago De Oro Inventory System</h1>
+      <p style={{ textAlign: "center", color: "#555" }}>You are logged in.</p>
+
+      <div style={{ marginTop: 20, textAlign: "center" }}>
+        <button onClick={() => supabase.auth.signOut()}>Logout</button>
       </div>
-
-      {/* TABS */}
-<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
-  <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("transactions");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("transactions");
-        }
-      }}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "transactions" ? "#1f2937" : "transparent",
-        color: activeTab === "transactions" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      📄 Transactions
-    </button>
-
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("deleted");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("deleted");
-        }
-      }}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "deleted" ? "#1f2937" : "transparent",
-        color: activeTab === "deleted" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      🗑️ Deleted History
-    </button>
-
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("report");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("report");
-        }
-      }}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "report" ? "#1f2937" : "transparent",
-        color: activeTab === "report" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      📊 Monthly Report
-    </button>
-
-    <button
-      onClick={() => setActiveTab("stock")}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "stock" ? "#1f2937" : "transparent",
-        color: activeTab === "stock" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      📦 Stock Inventory
-    </button>
-  </div>
-</div>
-
-      {/* CONFIRM MODAL */}
-      {confirm && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
-            <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
-            <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-              <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
-              <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TRANSACTIONS TAB */}
-      {activeTab === "transactions" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
-  <hr style={{ marginTop: 8 }} />
-</div>
-          <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
-              <input
-                placeholder="Search item"
-                value={itemSearch}
-                onChange={e => {
-                  setItemSearch(e.target.value);
-                  setDropdownOpen(true);
-                }}
-              />
-              {dropdownOpen && itemSearch && (
-                <div style={{ position: "absolute", background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto" }}>
-                  {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
-                    <div key={i.id} style={{ padding: 6, cursor: "pointer" }} onClick={() => {
-                      setForm(f => ({ ...f, item_id: i.id }));
-                      setItemSearch(i.item_name);
-                      setDropdownOpen(false);
-                    }}>{i.item_name}</div>
-                  ))}
-                </div>
-              )}
-              <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                <option value="IN">IN</option>
-                <option value="OUT">OUT</option>
-              </select>
-              <input type="number" placeholder="Qty" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
-              <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-              <button onClick={() => {
-                if (editingId && isFormChanged()) {
-                  openConfirm("Save changes to this transaction?", saveTransaction);
-                } else {
-                  saveTransaction();
-                }
-              }}>{editingId ? "Update" : "Save"}</button>
-            </div>
-          </div>
-
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Date</th>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Type</th>
-                <th style={thtd}>Qty</th>
-                <th style={thtd}>Brand</th>
-                <th style={thtd}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.length === 0 && emptyRow(6, "No transactions yet")}
-              {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
-                <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
-                  <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-                  <td style={thtd}>{t.items?.item_name}</td>
-                  <td style={thtd}>{t.type}</td>
-                  <td style={thtd}>{t.quantity}</td>
-                  <td style={thtd}>{t.brand}</td>
-                  <td style={thtd}>
-                    <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
-                      originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                      setEditingId(t.id);
-                      setForm(originalFormRef.current);
-                      setItemSearch(t.items?.item_name || "");
-                    })}>✏️ Edit</button>
-                    <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
-                      await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
-                      loadData();
-                    })}>🗑️ Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div>
-            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
-            <span> Page {txPage} </span>
-            <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
-          </div>
-        </>
-      )}
-
-      {activeTab === "deleted" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>🗑️ Delete History</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
-  <hr style={{ marginTop: 8 }} />
-</div>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Date</th>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Brand</th>
-                <th style={thtd}>Qty</th>
-                <th style={thtd}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {deletedTransactions.length === 0 && emptyRow(5, "No deleted records")}
-              {deletedTransactions.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map(t => (
-                <tr key={t.id}>
-                  <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
-                  <td style={thtd}>{t.items?.item_name}</td>
-                  <td style={thtd}>{t.brand}</td>
-                  <td style={thtd}>{t.quantity}</td>
-                  <td style={thtd}>
-                    <button onClick={() => openConfirm("Restore this transaction?", async () => {
-                      await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("id", t.id);
-                      loadData();
-                    })}>♻️ Restore</button>
-                    <button onClick={() => openConfirm("Permanently delete this transaction?", async () => {
-                      await supabase.from("inventory_transactions").delete().eq("id", t.id);
-                      loadData();
-                    })}>❌ Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div>
-            <button disabled={deletedPage === 1} onClick={() => setDeletedPage(p => p - 1)}>Prev</button>
-            <span> Page {deletedPage} </span>
-            <button disabled={deletedPage * PAGE_SIZE >= deletedTransactions.length} onClick={() => setDeletedPage(p => p + 1)}>Next</button>
-          </div>
-        </>
-      )}
-
-      {activeTab === "report" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📊 Monthly Report</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Months tracked: {Object.keys(monthlyTotals).length}</div>
-  <hr style={{ marginTop: 8 }} />
-</div>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Month</th>
-                <th style={thtd}>IN Total</th>
-                <th style={thtd}>OUT Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
-              {Object.entries(monthlyTotals)
-                .slice((reportPage - 1) * PAGE_SIZE, reportPage * PAGE_SIZE)
-                .map(([m, v]) => (
-                  <tr key={m}>
-                    <td style={thtd}>{m}</td>
-                    <td style={thtd}>₱{v.IN.toFixed(2)}</td>
-                    <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </>
-      )}
-
-      {activeTab === "stock" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📦 Stock Inventory</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>
-    Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
-  </div>
-  <hr style={{ marginTop: 8 }} />
-</div>
-          <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <h3>Add New Item</h3>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
-              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
-              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
-              <button onClick={addNewItem}>Add Item</button>
-            </div>
-          </div>
-
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Brand</th>
-                <th style={thtd}>Current Stock</th>
-                <th style={thtd}>Unit Price</th>
-                <th style={thtd}>Stock Value</th>
-                <th style={thtd}>Edit</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stockInventory.length === 0 && emptyRow(6, "No stock data")}
-              {stockInventory.map(i => (
-                <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
-                  <td style={thtd}>{i.item_name}</td>
-                  <td style={thtd}>{i.brand}</td>
-                  <td style={thtd}>{i.stock}</td>
-                  <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-                  <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
-                  <td style={thtd}>
-                    <button onClick={async () => {
-                      const newPrice = prompt("New unit price", i.unit_price);
-                      const newBrand = prompt("New brand", i.brand || "");
-                      if (newPrice !== null) {
-                        await supabase.from("items").update({ unit_price: Number(newPrice), brand: newBrand || null }).eq("id", i.id);
-                        loadData();
-                      }
-                    }}>✏️ Edit</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
-      )}
     </div>
   );
 }
