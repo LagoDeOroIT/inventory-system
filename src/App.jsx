@@ -334,19 +334,7 @@ export default function App() {
             <button onClick={() => setShowAddTx(v => !v)} style={{ marginBottom: 8 }}>
               {showAddTx ? "➖ Hide Add Transaction" : "➕ Add Transaction"}
             </button>
-            {showAddTx && (
-              <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-                <h3 style={{ marginTop: 0 }}>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
-                  <input placeholder="Search item" value={itemSearch} onChange={e => { setItemSearch(e.target.value); setDropdownOpen(true); }} />
-                  {dropdownOpen && itemSearch && (
-                    <div style={{ position: "absolute", background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto" }}>
-                      {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
-                        <div key={i.id} style={{ padding: 6, cursor: "pointer" }} onClick={() => { setForm(f => ({ ...f, item_id: i.id })); setItemSearch(i.item_name); setDropdownOpen(false); }}>{i.item_name}</div>
-                      ))}
-                    </div>
-                  
-            )}
+            {showAddTx && (\n  <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 6, position: "relative" }}>\n    <h3 style={{ marginTop: 0 }}>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>\n\n    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>\n      <input\n        placeholder="Search item"\n        value={itemSearch}\n        onChange={e => { setItemSearch(e.target.value); setDropdownOpen(true); }}\n      />\n\n      {dropdownOpen && itemSearch && (\n        <div style={{ position: "absolute", top: 70, background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto", zIndex: 10 }}>\n          {items\n            .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))\n            .map(i => (\n              <div\n                key={i.id}\n                style={{ padding: 6, cursor: "pointer" }}\n                onClick={() => {\n                  setForm(f => ({ ...f, item_id: i.id }));\n                  setItemSearch(i.item_name);\n                  setDropdownOpen(false);\n                }}\n              >\n                {i.item_name}\n              </div>\n            ))}\n        </div>\n      )}\n\n      <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>\n        <option value="IN">IN</option>\n        <option value="OUT">OUT</option>\n      </select>\n\n      <input\n        type="number"\n        placeholder="Qty"\n        value={form.quantity}\n        onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}\n      />\n\n      <input\n        type="date"\n        value={form.date}\n        onChange={e => setForm(f => ({ ...f, date: e.target.value }))}\n      />\n\n      <button\n        onClick={() => {\n          if (editingId && isFormChanged()) {\n            openConfirm("Save changes to this transaction?", saveTransaction);\n          } else {\n            saveTransaction();\n          }\n        }}\n      >\n        {editingId ? "Update" : "Save"}\n      </button>\n    </div>\n  </div>\n)}
           </div>
                   ))}
                 </div>
@@ -420,7 +408,6 @@ export default function App() {
             <h2 style={{ marginBottom: 4, textAlign: "center" }}>🗑️ Delete History</h2>
             <input placeholder="Search deleted items" style={{ display: "block", margin: "0 auto 6px" }} onChange={e => setDeletedTransactions(d => d.filter(x => x.items?.item_name?.toLowerCase().includes(e.target.value.toLowerCase())))} />
             <hr />
-          </div>
   <hr style={{ marginTop: 4 }} />
 </div>
           <table style={tableStyle}>
@@ -472,7 +459,6 @@ export default function App() {
               {Object.keys(monthlyTotals).map(m => <option key={m}>{m}</option>)}
             </select>
             <hr />
-          </div>
   <hr style={{ marginTop: 4 }} />
 </div>
           <table style={tableStyle}>
