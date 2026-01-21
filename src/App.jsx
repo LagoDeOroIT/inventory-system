@@ -170,8 +170,9 @@ export default function App() {
       <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
 
       {{/* TABS */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <button
+<div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+
+<button
           onClick={() => {
             if (editingId && isFormChanged()) {
               openConfirm("Discard unsaved changes?", () => {
