@@ -126,6 +126,30 @@ export default function App() {
     loadData();
   }
 
+  // ================= ADD NEW ITEM (STOCK TAB) =================
+  const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
+
+  async function addNewItem() {
+    if (!newItem.item_name || !newItem.unit_price) {
+      alert("Item name and unit price are required");
+      return;
+    }
+
+    const { error } = await supabase.from("items").insert({
+      item_name: newItem.item_name,
+      brand: newItem.brand || null,
+      unit_price: Number(newItem.unit_price),
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setNewItem({ item_name: "", brand: "", unit_price: "" });
+    loadData();
+  }
+
   // ================= STOCK INVENTORY =================
   const stockInventory = items.map(item => {
     const related = transactions.filter(t => t.item_id === item.id);
@@ -292,7 +316,30 @@ export default function App() {
             </div>
           </div>
 
-          <table style={tableStyle}>
+          <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
+          <h3>Add New Item</h3>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <input
+              placeholder="Item name"
+              value={newItem.item_name}
+              onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))}
+            />
+            <input
+              placeholder="Brand"
+              value={newItem.brand}
+              onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))}
+            />
+            <input
+              type="number"
+              placeholder="Unit price"
+              value={newItem.unit_price}
+              onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))}
+            />
+            <button onClick={addNewItem}>Add Item</button>
+          </div>
+        </div>
+
+        <table style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Date</th>
@@ -401,6 +448,7 @@ export default function App() {
       )}
 
       {activeTab === "stock" && (
+        <>
         <table style={tableStyle}>
           <thead>
             <tr>
