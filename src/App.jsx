@@ -223,10 +223,88 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
-            <h1 style={{ textAlign: "center" }}>Lago De Oro Inventory System</h1>
+      <h1 style={{ textAlign: "center" }}>Lago De Oro Inventory System</h1>
       <p style={{ textAlign: "center", color: "#555" }}>You are logged in.</p>
 
-      <div style={{ marginTop: 20, textAlign: "center" }}>
+      {/* Tabs */}
+      <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 20 }}>
+        <button onClick={() => setActiveTab("transactions")}>Transactions</button>
+        <button onClick={() => setActiveTab("stock")}>Stock</button>
+        <button onClick={() => setActiveTab("reports")}>Reports</button>
+      </div>
+
+      {/* TRANSACTIONS TAB */}
+      {activeTab === "transactions" && (
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thtd}>Date</th>
+              <th style={thtd}>Item</th>
+              <th style={thtd}>Type</th>
+              <th style={thtd}>Qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            {transactions.length === 0 && emptyRow(4, "No transactions")}
+            {transactions.map(t => (
+              <tr key={t.id}>
+                <td style={thtd}>{t.date}</td>
+                <td style={thtd}>{t.items?.item_name}</td>
+                <td style={thtd}>{t.type}</td>
+                <td style={thtd}>{t.quantity}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {/* STOCK TAB */}
+      {activeTab === "stock" && (
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thtd}>Item</th>
+              <th style={thtd}>Brand</th>
+              <th style={thtd}>Stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stockInventory.length === 0 && emptyRow(3, "No stock data")}
+            {stockInventory.map(i => (
+              <tr key={i.id}>
+                <td style={thtd}>{i.item_name}</td>
+                <td style={thtd}>{i.brand}</td>
+                <td style={thtd}>{i.stock}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {/* REPORTS TAB */}
+      {activeTab === "reports" && (
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thtd}>Month</th>
+              <th style={thtd}>IN Total</th>
+              <th style={thtd}>OUT Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No reports")}
+            {Object.entries(monthlyTotals).map(([month, v]) => (
+              <tr key={month}>
+                <td style={thtd}>{month}</td>
+                <td style={thtd}>{v.IN}</td>
+                <td style={thtd}>{v.OUT}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <div style={{ marginTop: 30, textAlign: "center" }}>
         <button onClick={() => supabase.auth.signOut()}>Logout</button>
       </div>
     </div>
