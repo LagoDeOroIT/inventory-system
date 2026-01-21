@@ -42,9 +42,9 @@ export default function App() {
   // form (hide / show toggles)
   const [showAddTransaction, setShowAddTransaction] = useState(true);
   const [showAddItem, setShowAddItem] = useState(true);
-  const [showAddItem, setShowAddItem] = useState(true);
 
   // form
+
   const [editingId, setEditingId] = useState(null);
   const originalFormRef = useRef(null);
   const [form, setForm] = useState({
