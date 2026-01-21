@@ -38,9 +38,6 @@ export default function App() {
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
 
-  // modal state (Add Transaction)
-  const [showTxModal, setShowTxModal] = useState(false);
-
 
   // form
   const [editingId, setEditingId] = useState(null);
@@ -330,59 +327,42 @@ export default function App() {
   <hr style={{ marginTop: 8 }} />
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <button
-            onClick={() => setShowTxModal(true)}
-            style={{
-              padding: "10px 18px",
-              borderRadius: 6,
-              border: "none",
-              background: "#1f2937",
-              color: "#fff",
-              cursor: "pointer",
-              fontWeight: 600,
-            }}
-          >
-            ➕ Add Transaction
-          </button>
-
-          {showTxModal && (
-            <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-              <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 520, boxShadow: "0 20px 40px rgba(0,0,0,0.25)" }}>
-                <h3 style={{ marginTop: 0 }}>Add Transaction</h3>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
-                  <input
-                    placeholder="Search item"
-                    value={itemSearch}
-                    onChange={e => {
-                      setItemSearch(e.target.value);
-                      setDropdownOpen(true);
-                    }}
-                  />
-                  {dropdownOpen && itemSearch && (
-                    <div style={{ position: "absolute", background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto" }}>
-                      {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
-                        <div key={i.id} style={{ padding: 6, cursor: "pointer" }} onClick={() => {
-                          setForm(f => ({ ...f, item_id: i.id }));
-                          setItemSearch(i.item_name);
-                          setDropdownOpen(false);
-                        }}>{i.item_name}</div>
-                      ))}
-                    </div>
-                  )}
-                  <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                    <option value="IN">IN</option>
-                    <option value="OUT">OUT</option>
-                  </select>
-                  <input type="number" placeholder="Qty" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
-                  <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+            <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
+              <input
+                placeholder="Search item"
+                value={itemSearch}
+                onChange={e => {
+                  setItemSearch(e.target.value);
+                  setDropdownOpen(true);
+                }}
+              />
+              {dropdownOpen && itemSearch && (
+                <div style={{ position: "absolute", background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto" }}>
+                  {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
+                    <div key={i.id} style={{ padding: 6, cursor: "pointer" }} onClick={() => {
+                      setForm(f => ({ ...f, item_id: i.id }));
+                      setItemSearch(i.item_name);
+                      setDropdownOpen(false);
+                    }}>{i.item_name}</div>
+                  ))}
                 </div>
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 }}>
-                  <button onClick={() => setShowTxModal(false)} style={{ padding: "8px 14px" }}>Cancel</button>
-                  <button onClick={() => { saveTransaction(); setShowTxModal(false); }} style={{ padding: "8px 14px", background: "#1f2937", color: "#fff", border: "none", borderRadius: 4 }}>Save</button>
-                </div>
-              </div>
+              )}
+              <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+                <option value="IN">IN</option>
+                <option value="OUT">OUT</option>
+              </select>
+              <input type="number" placeholder="Qty" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+              <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+              <button onClick={() => {
+                if (editingId && isFormChanged()) {
+                  openConfirm("Save changes to this transaction?", saveTransaction);
+                } else {
+                  saveTransaction();
+                }
+              }}>{editingId ? "Update" : "Save"}</button>
             </div>
-          )
+          </div>
 
           <table style={tableStyle}>
             <thead>
