@@ -373,7 +373,7 @@ export default function App() {
           )}
           </div>
 
-          <table style={tableStyle}>table style={tableStyle}>
+          <table style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Date</th>
@@ -517,7 +517,8 @@ export default function App() {
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
               <button onClick={addNewItem}>Add Item</button>
-            </div>
+                        </div>
+          )}
           </div>
 
           <table style={tableStyle}>
