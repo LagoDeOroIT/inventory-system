@@ -322,8 +322,8 @@ export default function App() {
       {activeTab === "transactions" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Total records: {transactions.length}</div>
+  <h2 style={{ marginBottom: 4, textAlign: "center", fontSize: 18 }}>📄 Transactions History</h2>
+  <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
