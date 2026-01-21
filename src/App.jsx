@@ -364,11 +364,7 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-          
-        </div>
-
-        <table style={tableStyle}>
+          <table style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Date</th>
