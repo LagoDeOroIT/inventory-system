@@ -363,4 +363,18 @@ export default function App() {
           </thead>
           <tbody>
             {stockInventory.length === 0 && emptyRow(5, "No stock data")}
-            
+            {stockInventory.map(i => (
+              <tr key={i.id}>
+                <td style={thtd}>{i.item_name}</td>
+                <td style={thtd}>{i.brand}</td>
+                <td style={thtd}>{i.stock}</td>
+                <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+                <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
