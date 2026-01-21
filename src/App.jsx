@@ -41,7 +41,7 @@ export default function App() {
 
   // form
   const [editingId, setEditingId] = useState(null);
-  const [showTransactionForm, setShowTransactionForm] = useState(true);
+  const [showTransactionForm, setShowTransactionForm] = useState(false);
   const originalFormRef = useRef(null);
   const [form, setForm] = useState({
     item_id: "",
@@ -137,7 +137,7 @@ export default function App() {
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
   const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
-  const [showNewItemForm, setShowNewItemForm] = useState(true);
+  const [showNewItemForm, setShowNewItemForm] = useState(false);
 
   async function addNewItem() {
     if (!newItem.item_name || !newItem.unit_price) {
@@ -318,7 +318,8 @@ export default function App() {
             </div>
           </div>
         </div>
-      )}
+              </div>
+            )}
 
       {/* TRANSACTIONS TAB */}
       {activeTab === "transactions" && (
@@ -330,12 +331,16 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 8, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 16 }}>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
-              <button onClick={() => setShowTransactionForm(s => !s)} style={{ fontSize: 12 }}>
-                {showTransactionForm ? "Hide" : "Show"}
-              </button>
+              <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 16 }}>Transactions</h3>
+              <button onClick={() => setShowTransactionForm(true)} style={{ fontSize: 12 }}>➕ Add Transaction</button>
             </div>
             {showTransactionForm && (
+              <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ background: "#fff", padding: 16, borderRadius: 8, minWidth: 420 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <strong>{editingId ? "Edit Transaction" : "Add Transaction"}</strong>
+                    <button onClick={() => { setShowTransactionForm(false); setEditingId(null); }}>✕</button>
+                  </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
               <input
                 placeholder="Search item"
@@ -506,12 +511,16 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 12, border: "1px solid #ddd", padding: 8, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 16 }}>Add New Item</h3>
-              <button onClick={() => setShowNewItemForm(s => !s)} style={{ fontSize: 12 }}>
-                {showNewItemForm ? "Hide" : "Show"}
-              </button>
+              <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: 16 }}>Items</h3>
+              <button onClick={() => setShowNewItemForm(true)} style={{ fontSize: 12 }}>➕ Add New Item</button>
             </div>
             {showNewItemForm && (
+              <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ background: "#fff", padding: 16, borderRadius: 8, minWidth: 420 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <strong>Add New Item</strong>
+                    <button onClick={() => setShowNewItemForm(false)}>✕</button>
+                  </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
