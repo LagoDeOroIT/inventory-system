@@ -286,6 +286,7 @@ export default function App() {
       {/* TRANSACTIONS TAB */}
       {activeTab === "transactions" && (
         <>
+          <h2 style={{ marginBottom: 12 }}>Transactions History</h2>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
@@ -374,6 +375,7 @@ export default function App() {
 
       {activeTab === "deleted" && (
         <>
+          <h2 style={{ marginBottom: 12 }}>Delete History</h2>
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -416,6 +418,7 @@ export default function App() {
 
       {activeTab === "report" && (
         <>
+          <h2 style={{ marginBottom: 12 }}>Monthly Report</h2>
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -442,6 +445,7 @@ export default function App() {
 
       {activeTab === "stock" && (
         <>
+          <h2 style={{ marginBottom: 12 }}>Stock Inventory</h2>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <h3>Add New Item</h3>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
