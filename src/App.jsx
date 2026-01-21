@@ -38,6 +38,9 @@ export default function App() {
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
 
+  // modal state (Add Transaction)
+  const [showTxModal, setShowTxModal] = useState(false);
+
 
   // form
   const [editingId, setEditingId] = useState(null);
