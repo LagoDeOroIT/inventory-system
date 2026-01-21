@@ -117,56 +117,8 @@ export default function App() {
 
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
         <button onClick={() => setActiveTab("dashboard")}>Dashboard</button>
-        <button onClick={() => setShowAddItem(true)}>Transactions</button>
-        <button onClick={() => setActiveTab("deleted")}>Deleted</button>
-        <button onClick={() => setActiveTab("monthly")}>Monthly Report</button>
-      </div>
-
-      {showAddItem && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60 }}>
-          <div style={{ background: "#fff", padding: 24, borderRadius: 12, width: 360, borderTop: "6px solid #2563eb" }}>
-            <h3 style={{ marginTop: 0, color: "#2563eb" }}>Add New Item</h3>
-            <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem({ ...newItem, item_name: e.target.value })} style={{ width: "100%", marginBottom: 8 }} />
-            <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem({ ...newItem, brand: e.target.value })} style={{ width: "100%", marginBottom: 8 }} />
-            <input placeholder="Unit price" type="number" value={newItem.unit_price} onChange={e => setNewItem({ ...newItem, unit_price: e.target.value })} style={{ width: "100%", marginBottom: 16 }} />
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-              <button onClick={() => setShowAddItem(false)}>Cancel</button>
-              <button style={{ background: "#2563eb", color: "#fff" }} onClick={async () => {
-                await supabase.from("items").insert({
-                  item_name: newItem.item_name,
-                  brand: newItem.brand,
-                  unit_price: Number(newItem.unit_price)
-                });
-                setNewItem({ item_name: "", brand: "", unit_price: "" });
-                setShowAddItem(false);
-                loadData();
-              }}>Save</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {confirm && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
-          <div style={{ background: "#fff", padding: 24, borderRadius: 10, width: 320, borderTop: `6px solid ${confirm.color}` }}>
-            <h3 style={{ marginTop: 0, color: confirm.color }}>{confirm.title}</h3>
-            <p>{confirm.message}</p>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-              <button onClick={closeConfirm}>Cancel</button>
-              <button style={{ background: confirm.color, color: "#fff" }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* STOCK INVENTORY */}
-      {activeTab === "dashboard" && (
-        <>
-          <h2 style={{ textAlign: "center" }}>Stock Inventory</h2>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <input placeholder="Search item..." value={searchStock} onChange={(e) => setSearchStock(e.target.value)} />
-            <button
-              onClick={() => setActiveTab("transactions")}
+        <button
+              onClick={() => setShowAddItem(true)}
               style={{ background: "#2563eb", color: "#fff", padding: "6px 12px", borderRadius: 6 }}
             >
               + Add New Item
