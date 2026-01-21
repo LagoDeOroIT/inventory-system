@@ -134,10 +134,6 @@ export default function App() {
     loadData();
   }
 
-  // ================= COLLAPSIBLE STATES =================
-  const [showAddTx, setShowAddTx] = useState(false);
-  const [showAddItem, setShowAddItem] = useState(false);
-
   // ================= ADD NEW ITEM (STOCK TAB) =================
   const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
 
@@ -202,14 +198,14 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
-      <div style={{ textAlign: "center", marginBottom: 8 }}>
-        <h1 style={{ marginBottom: 2, fontSize: 26 }}>Lago De Oro Inventory System</h1>
-        <p style={{ marginTop: 0, color: "#555", fontSize: 13 }}>Manage stock IN / OUT and reports</p>
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <h1 style={{ marginBottom: 4 }}>Lago De Oro Inventory System</h1>
+        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
       </div>
 
       {/* TABS */}
-<div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-  <div style={{ display: "flex", gap: 8, padding: 6, background: "#f3f4f6", borderRadius: 999 }}>
+<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
+  <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
     <button
       onClick={() => {
         if (editingId && isFormChanged()) {
@@ -225,13 +221,13 @@ export default function App() {
         }
       }}
       style={{
-        padding: "6px 14px",
+        padding: "8px 16px",
         borderRadius: 999,
         border: "none",
         cursor: "pointer",
         background: activeTab === "transactions" ? "#1f2937" : "transparent",
         color: activeTab === "transactions" ? "#fff" : "#374151",
-        fontWeight: 500, fontSize: 14,
+        fontWeight: 500,
       }}
     >
       📄 Transactions
@@ -252,13 +248,13 @@ export default function App() {
         }
       }}
       style={{
-        padding: "6px 14px",
+        padding: "8px 16px",
         borderRadius: 999,
         border: "none",
         cursor: "pointer",
         background: activeTab === "deleted" ? "#1f2937" : "transparent",
         color: activeTab === "deleted" ? "#fff" : "#374151",
-        fontWeight: 500, fontSize: 14,
+        fontWeight: 500,
       }}
     >
       🗑️ Deleted History
@@ -279,13 +275,13 @@ export default function App() {
         }
       }}
       style={{
-        padding: "6px 14px",
+        padding: "8px 16px",
         borderRadius: 999,
         border: "none",
         cursor: "pointer",
         background: activeTab === "report" ? "#1f2937" : "transparent",
         color: activeTab === "report" ? "#fff" : "#374151",
-        fontWeight: 500, fontSize: 14,
+        fontWeight: 500,
       }}
     >
       📊 Monthly Report
@@ -294,13 +290,13 @@ export default function App() {
     <button
       onClick={() => setActiveTab("stock")}
       style={{
-        padding: "6px 14px",
+        padding: "8px 16px",
         borderRadius: 999,
         border: "none",
         cursor: "pointer",
         background: activeTab === "stock" ? "#1f2937" : "transparent",
         color: activeTab === "stock" ? "#fff" : "#374151",
-        fontWeight: 500, fontSize: 14,
+        fontWeight: 500,
       }}
     >
       📦 Stock Inventory
@@ -325,112 +321,30 @@ export default function App() {
       {/* TRANSACTIONS TAB */}
       {activeTab === "transactions" && (
         <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 4 }}>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
   <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Total records: {transactions.length}</div>
-  <hr style={{ marginTop: 4 }} />
+  <hr style={{ marginTop: 8 }} />
 </div>
-          <div style={{ marginBottom: 12 }}>
-            <button onClick={() => setShowAddTx(v => !v)} style={{ marginBottom: 8 }}>
-              {showAddTx ? "➖ Hide Add Transaction" : "➕ Add Transaction"}
-            </button>
-            {showAddTx && (
-  <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 6, position: "relative" }}>
-    <h3 style={{ marginTop: 0 }}>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
-
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
-      <input
-        placeholder="Search item"
-        value={itemSearch}
-        onChange={e => { setItemSearch(e.target.value); setDropdownOpen(true); }}
-      />
-
-      {dropdownOpen && itemSearch && (
-        <div style={{ position: "absolute", top: 70, background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto", zIndex: 10 }}>
-          {items
-            .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
-            .map(i => (
-              <div
-                key={i.id}
-                style={{ padding: 6, cursor: "pointer" }}
-                onClick={() => {
-                  setForm(f => ({ ...f, item_id: i.id }));
-                  setItemSearch(i.item_name);
-                  setDropdownOpen(false);
+          <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
+            <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
+              <input
+                placeholder="Search item"
+                value={itemSearch}
+                onChange={e => {
+                  setItemSearch(e.target.value);
+                  setDropdownOpen(true);
                 }}
-              >
-                {i.item_name}
-              </div>
-            ))}
-        </div>
-      )}
-
-      <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-        <option value="IN">IN</option>
-        <option value="OUT">OUT</option>
-      </select>
-
-      <input
-        type="number"
-        placeholder="Qty"
-        value={form.quantity}
-        onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
-      />
-
-      <input
-        type="date"
-        value={form.date}
-        onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-      />
-
-      <button
-        onClick={() => {
-          if (editingId && isFormChanged()) {
-            openConfirm("Save changes to this transaction?", saveTransaction);
-          } else {
-            saveTransaction();
-          }
-        }}
-      >
-        {editingId ? "Update" : "Save"}
-      </button>
-    </div>
-  </div>
-)}
-
-      <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-        <option value="IN">IN</option>
-        <option value="OUT">OUT</option>
-      </select>
-
-      <input
-        type="number"
-        placeholder="Qty"
-        value={form.quantity}
-        onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
-      />
-
-      <input
-        type="date"
-        value={form.date}
-        onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-      />
-
-      <button
-        onClick={() => {
-          if (editingId && isFormChanged()) {
-            openConfirm("Save changes to this transaction?", saveTransaction);
-          } else {
-            saveTransaction();
-          }
-        }}
-      >
-        {editingId ? "Update" : "Save"}
-      </button>
-    </div>
-  </div>
-)}
-          </div>
+              />
+              {dropdownOpen && itemSearch && (
+                <div style={{ position: "absolute", background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto" }}>
+                  {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
+                    <div key={i.id} style={{ padding: 6, cursor: "pointer" }} onClick={() => {
+                      setForm(f => ({ ...f, item_id: i.id }));
+                      setItemSearch(i.item_name);
+                      setDropdownOpen(false);
+                    }}>{i.item_name}</div>
                   ))}
                 </div>
               )}
@@ -450,10 +364,11 @@ export default function App() {
             </div>
           </div>
 
+          <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
           
+        </div>
 
-        {/* TABLE */}
-<table style={tableStyle}>
+        <table style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Date</th>
@@ -499,11 +414,10 @@ export default function App() {
 
       {activeTab === "deleted" && (
         <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 4 }}>
-            <h2 style={{ marginBottom: 4, textAlign: "center" }}>🗑️ Delete History</h2>
-            <input placeholder="Search deleted items" style={{ display: "block", margin: "0 auto 6px" }} onChange={e => setDeletedTransactions(d => d.filter(x => x.items?.item_name?.toLowerCase().includes(e.target.value.toLowerCase())))} />
-            <hr />
-  <hr style={{ marginTop: 4 }} />
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>🗑️ Delete History</h2>
+  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
+  <hr style={{ marginTop: 8 }} />
 </div>
           <table style={tableStyle}>
             <thead>
@@ -547,14 +461,10 @@ export default function App() {
 
       {activeTab === "report" && (
         <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 4 }}>
-            <h2 style={{ marginBottom: 4, textAlign: "center" }}>📊 Monthly Report</h2>
-            <select style={{ display: "block", margin: "0 auto 6px" }} onChange={e => setReportPage(1)}>
-              <option value="">All Months</option>
-              {Object.keys(monthlyTotals).map(m => <option key={m}>{m}</option>)}
-            </select>
-            <hr />
-  <hr style={{ marginTop: 4 }} />
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📊 Monthly Report</h2>
+  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Months tracked: {Object.keys(monthlyTotals).length}</div>
+  <hr style={{ marginTop: 8 }} />
 </div>
           <table style={tableStyle}>
             <thead>
@@ -582,29 +492,21 @@ export default function App() {
 
       {activeTab === "stock" && (
         <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 4 }}>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
   <h2 style={{ marginBottom: 4, textAlign: "center" }}>📦 Stock Inventory</h2>
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>
     Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
   </div>
-  <hr style={{ marginTop: 4 }} />
+  <hr style={{ marginTop: 8 }} />
 </div>
-          <div style={{ marginBottom: 12 }}>
-            <button onClick={() => setShowAddItem(v => !v)} style={{ marginBottom: 8 }}>
-              {showAddItem ? "➖ Hide Add Item" : "➕ Add New Item"}
-            </button>
-            {showAddItem && (
-              <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-                <h3 style={{ marginTop: 0 }}>Add New Item</h3>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
-                  <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
-                  <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
-                  <button onClick={addNewItem}>Add Item</button>
-                </div>
-              </div>
-            )}
-          </div>
+          <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
+            <h3>Add New Item</h3>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
+              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
+              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
+              <button onClick={addNewItem}>Add Item</button>
+            </div>
           </div>
 
           <table style={tableStyle}>
