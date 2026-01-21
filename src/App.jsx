@@ -135,7 +135,15 @@ export default function App() {
       {activeTab === "dashboard" && (
         <>
           <h2 style={{ textAlign: "center" }}>Stock Inventory</h2>
-          <input placeholder="Search item..." value={searchStock} onChange={(e) => setSearchStock(e.target.value)} />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <input placeholder="Search item..." value={searchStock} onChange={(e) => setSearchStock(e.target.value)} />
+            <button
+              onClick={() => setActiveTab("transactions")}
+              style={{ background: "#2563eb", color: "#fff", padding: "6px 12px", borderRadius: 6 }}
+            >
+              + Add New Item
+            </button>
+          </div>
           <table style={tableStyle}>
             <thead>
               <tr>
