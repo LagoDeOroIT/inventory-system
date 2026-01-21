@@ -152,9 +152,49 @@ export default function App() {
       {/* DASHBOARD TAB */}
       {activeTab === "dashboard" && (
         <>
+          {/* ADD NEW ITEM */}
+          <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 8 }}>
+            <h3>Add New Item</h3>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(i => ({ ...i, item_name: e.target.value }))} />
+              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(i => ({ ...i, brand: e.target.value }))} />
+              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(i => ({ ...i, unit_price: e.target.value }))} />
+              <button onClick={addItem}>Add Item</button>
+            </div>
+          </div>
+
+          {/* KPI CARDS */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 16 }}>
             <Card><CardContent><p>Total Items</p><h2>{items.length}</h2></CardContent></Card>
             <Card><CardContent><p>Total Stock Value</p><h2>₱{totalStockValue.toFixed(2)}</h2></CardContent></Card>
+            <Card><CardContent><p>Low Stock Items</p><h2>{stockByItem.filter(i => i.stock <= 5).length}</h2></CardContent></Card>
+          </div>
+
+          {/* STOCK TABLE */}
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Stock</th>
+                <th style={thtd}>Unit Price</th>
+                <th style={thtd}>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stockByItem.map(i => (
+                <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : {}}>
+                  <td style={thtd}>{i.item_name}</td>
+                  <td style={thtd}>{i.brand}</td>
+                  <td style={thtd}>{i.stock}</td>
+                  <td style={thtd}>₱{i.unit_price.toFixed(2)}</td>
+                  <td style={thtd}>₱{i.value.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}</h2></CardContent></Card>
             <Card><CardContent><p>Low Stock Items</p><h2>{stockByItem.filter(i => i.stock <= 5).length}</h2></CardContent></Card>
           </div>
 
