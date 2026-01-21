@@ -1,398 +1,235 @@
-import React, { useEffect, useRef, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { useState, useMemo } from "react";
 
-/* ================= SUPABASE ================= */
-const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
-const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
-const supabase = createClient(supabaseUrl, supabaseKey);
+/* ---------- HELPERS ---------- */
+const confirmAction = (msg) => window.confirm(msg);
 
-/* ================= STYLES ================= */
-const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: 10 };
-const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" };
-const cardStyle = { border: "1px solid #ddd", padding: 12, borderRadius: 6 };
-const PAGE_SIZE = 5;
+const paginate = (data, page, size) =>
+  data.slice((page - 1) * size, page * size);
 
+/* ---------- APP ---------- */
 export default function App() {
-  /* ================= AUTH ================= */
-  const [session, setSession] = useState(null);
+  const [tab, setTab] = useState("dashboard");
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) =>
-      setSession(s)
-    );
-    return () => data.subscription.unsubscribe();
-  }, []);
+  const [items, setItems] = useState([
+    { id: 1, name: "Cement", brand: "ABC", price: 250 },
+    { id: 2, name: "Steel", brand: "XYZ", price: 500 },
+  ]);
 
-  /* ================= STATE ================= */
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [transactions, setTransactions] = useState([
+    { id: 1, date: "2026-01-21", itemId: 2, type: "OUT", qty: 16 },
+    { id: 2, date: "2026-01-21", itemId: 1, type: "IN", qty: 1 },
+    { id: 3, date: "2026-01-20", itemId: 1, type: "IN", qty: 10 },
+  ]);
 
-  const [items, setItems] = useState([]);
-  const [transactions, setTransactions] = useState([]);
-  const [deletedTransactions, setDeletedTransactions] = useState([]);
+  const [deleted, setDeleted] = useState([]);
+
+  const [newItem, setNewItem] = useState({ name: "", brand: "", price: "" });
+  const [txForm, setTxForm] = useState({ itemId: "", type: "IN", qty: "", date: "" });
 
   const [txPage, setTxPage] = useState(1);
-  const [deletedPage, setDeletedPage] = useState(1);
+  const [delPage, setDelPage] = useState(1);
 
-  /* ================= CONFIRM MODAL ================= */
-  const [confirm, setConfirm] = useState(null);
-  const openConfirm = (message, onConfirm) =>
-    setConfirm({ message, onConfirm });
-  const closeConfirm = () => setConfirm(null);
+  const PAGE_SIZE = 5;
 
-  /* ================= FORMS ================= */
-  const [newItem, setNewItem] = useState({
-    item_name: "",
-    brand: "",
-    unit_price: "",
-  });
-
-  const [form, setForm] = useState({
-    item_id: "",
-    type: "IN",
-    quantity: "",
-    date: "",
-  });
-
-  const [editingId, setEditingId] = useState(null);
-  const [itemSearch, setItemSearch] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const searchRef = useRef(null);
-
-  /* ================= LOAD DATA ================= */
-  async function loadData() {
-    const { data: itemsData } = await supabase
-      .from("items")
-      .select("*")
-      .order("item_name");
-
-    const { data: tx } = await supabase
-      .from("inventory_transactions")
-      .select("*, items(item_name)")
-      .eq("deleted", false)
-      .order("date", { ascending: false });
-
-    const { data: deletedTx } = await supabase
-      .from("inventory_transactions")
-      .select("*, items(item_name)")
-      .eq("deleted", true)
-      .order("deleted_at", { ascending: false });
-
-    setItems(itemsData || []);
-    setTransactions(tx || []);
-    setDeletedTransactions(deletedTx || []);
-  }
-
-  useEffect(() => {
-    if (session) loadData();
-  }, [session]);
-
-  /* ================= ADD ITEM ================= */
-  async function addItem() {
-    if (!newItem.item_name || !newItem.unit_price)
-      return alert("Item name and price required");
-
-    await supabase.from("items").insert({
-      item_name: newItem.item_name,
-      brand: newItem.brand || null,
-      unit_price: Number(newItem.unit_price),
+  /* ---------- STOCK CALC ---------- */
+  const stock = useMemo(() => {
+    return items.map((i) => {
+      const ins = transactions
+        .filter((t) => t.itemId === i.id && t.type === "IN")
+        .reduce((a, b) => a + b.qty, 0);
+      const outs = transactions
+        .filter((t) => t.itemId === i.id && t.type === "OUT")
+        .reduce((a, b) => a + b.qty, 0);
+      const qty = ins - outs;
+      return { ...i, qty, value: qty * i.price };
     });
+  }, [items, transactions]);
 
-    setNewItem({ item_name: "", brand: "", unit_price: "" });
-    loadData();
-  }
+  const lowStockCount = stock.filter((i) => i.qty <= 5).length;
 
-  /* ================= SAVE TRANSACTION ================= */
-  async function saveTransaction() {
-    if (!form.item_id || !form.quantity)
-      return alert("Complete the form");
+  /* ---------- ACTIONS ---------- */
+  const addItem = () => {
+    if (!newItem.name || !newItem.price) return;
+    setItems([...items, { id: Date.now(), ...newItem, price: +newItem.price }]);
+    setNewItem({ name: "", brand: "", price: "" });
+  };
 
-    const item = items.find((i) => i.id === Number(form.item_id));
-    if (!item) return;
+  const addTransaction = () => {
+    if (!txForm.itemId || !txForm.qty || !txForm.date) return;
+    setTransactions([
+      ...transactions,
+      { id: Date.now(), ...txForm, qty: +txForm.qty },
+    ]);
+    setTxForm({ itemId: "", type: "IN", qty: "", date: "" });
+  };
 
-    const payload = {
-      item_id: Number(form.item_id),
-      type: form.type,
-      quantity: Number(form.quantity),
-      unit_price: item.unit_price,
-      date: form.date || new Date().toISOString().slice(0, 10),
-      deleted: false,
-    };
+  const deleteTx = (tx) => {
+    if (!confirmAction("Confirm delete?")) return;
+    setTransactions(transactions.filter((t) => t.id !== tx.id));
+    setDeleted([...deleted, tx]);
+  };
 
-    if (editingId) {
-      await supabase
-        .from("inventory_transactions")
-        .update(payload)
-        .eq("id", editingId);
-    } else {
-      await supabase.from("inventory_transactions").insert(payload);
-    }
+  const restoreTx = (tx) => {
+    if (!confirmAction("Confirm restore?")) return;
+    setDeleted(deleted.filter((d) => d.id !== tx.id));
+    setTransactions([...transactions, tx]);
+  };
 
-    setForm({ item_id: "", type: "IN", quantity: "", date: "" });
-    setItemSearch("");
-    setEditingId(null);
-    loadData();
-  }
+  const deleteForever = (tx) => {
+    if (!confirmAction("Delete permanently?")) return;
+    setDeleted(deleted.filter((d) => d.id !== tx.id));
+  };
 
-  /* ================= STOCK ================= */
-  const stockByItem = items.map((item) => {
-    const txs = transactions.filter((t) => t.item_id === item.id);
-    const stock = txs.reduce(
-      (s, t) => s + (t.type === "IN" ? t.quantity : -t.quantity),
-      0
-    );
-    return { ...item, stock };
-  });
+  /* ---------- REPORT ---------- */
+  const report = useMemo(() => {
+    const map = {};
+    transactions.forEach((t) => {
+      const month = t.date.slice(0, 7);
+      map[month] = (map[month] || 0) + (t.type === "IN" ? t.qty : -t.qty);
+    });
+    return Object.entries(map);
+  }, [transactions]);
 
-  /* ================= LOGIN ================= */
-  if (!session) {
-    return (
-      <div style={{ padding: 40 }}>
-        <h2>Inventory Login</h2>
-        <button
-          onClick={() =>
-            supabase.auth.signInWithOAuth({ provider: "google" })
-          }
-        >
-          Login with Google
-        </button>
-      </div>
-    );
-  }
-
+  /* ---------- UI ---------- */
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: 20, fontFamily: "Arial" }}>
       <h1>Inventory System</h1>
 
-      {/* ================= TABS ================= */}
-      <div style={{ display: "flex", gap: 8 }}>
-        {["dashboard", "transactions", "deleted", "report"].map((t) => (
-          <button key={t} onClick={() => setActiveTab(t)}>
-            {t.toUpperCase()}
-          </button>
-        ))}
-      </div>
+      {["dashboard", "transactions", "deleted", "report"].map((t) => (
+        <button key={t} onClick={() => setTab(t)} style={{ marginRight: 6 }}>
+          {t.toUpperCase()}
+        </button>
+      ))}
 
-      {/* ================= DASHBOARD ================= */}
-      {activeTab === "dashboard" && (
+      {/* ---------- DASHBOARD ---------- */}
+      {tab === "dashboard" && (
         <>
-          <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
-            <div style={cardStyle}>
-              <p>Low Stock (≤5)</p>
-              <h2>{stockByItem.filter((i) => i.stock <= 5).length}</h2>
-            </div>
+          <div style={{ marginTop: 20 }}>
+            <strong>Low Stock (≤5)</strong>
+            <h2>{lowStockCount}</h2>
           </div>
 
           <h3>Add New Item</h3>
-          <input
-            placeholder="Item name"
-            value={newItem.item_name}
-            onChange={(e) =>
-              setNewItem({ ...newItem, item_name: e.target.value })
-            }
-          />
-          <input
-            placeholder="Brand"
-            value={newItem.brand}
-            onChange={(e) =>
-              setNewItem({ ...newItem, brand: e.target.value })
-            }
-          />
-          <input
-            type="number"
-            placeholder="Price"
-            value={newItem.unit_price}
-            onChange={(e) =>
-              setNewItem({ ...newItem, unit_price: e.target.value })
-            }
-          />
+          <input placeholder="Item name" value={newItem.name}
+            onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
+          <input placeholder="Brand" value={newItem.brand}
+            onChange={(e) => setNewItem({ ...newItem, brand: e.target.value })} />
+          <input type="number" placeholder="Price" value={newItem.price}
+            onChange={(e) => setNewItem({ ...newItem, price: e.target.value })} />
           <button onClick={addItem}>Add</button>
-        </>
-      )}
 
-      {/* ================= TRANSACTIONS ================= */}
-      {activeTab === "transactions" && (
-        <>
-          <h3>Add / Edit Transaction</h3>
-
-          <input
-            placeholder="Item ID"
-            value={form.item_id}
-            onChange={(e) =>
-              setForm({ ...form, item_id: e.target.value })
-            }
-          />
-
-          <select
-            value={form.type}
-            onChange={(e) =>
-              setForm({ ...form, type: e.target.value })
-            }
-          >
-            <option value="IN">IN</option>
-            <option value="OUT">OUT</option>
-          </select>
-
-          <input
-            type="number"
-            placeholder="Qty"
-            value={form.quantity}
-            onChange={(e) =>
-              setForm({ ...form, quantity: e.target.value })
-            }
-          />
-
-          <button onClick={saveTransaction}>
-            {editingId ? "Update" : "Save"}
-          </button>
-
-          {/* TABLE */}
-          <table style={tableStyle}>
+          <h3>Stock Inventory</h3>
+          <table border="1" width="100%">
             <thead>
               <tr>
-                <th style={thtd}>Date</th>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Type</th>
-                <th style={thtd}>Qty</th>
-                <th style={thtd}>Actions</th>
+                <th>Item</th><th>Brand</th><th>Qty</th><th>Value</th>
               </tr>
             </thead>
             <tbody>
-              {transactions
-                .slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE)
-                .map((t) => (
-                  <tr key={t.id}>
-                    <td style={thtd}>{t.date}</td>
-                    <td style={thtd}>{t.items?.item_name}</td>
-                    <td style={thtd}>{t.type}</td>
-                    <td style={thtd}>{t.quantity}</td>
-                    <td style={thtd}>
-                      <button
-                        onClick={() =>
-                          openConfirm("Edit this transaction?", () => {
-                            setForm({
-                              item_id: t.item_id,
-                              type: t.type,
-                              quantity: t.quantity,
-                              date: t.date,
-                            });
-                            setEditingId(t.id);
-                          })
-                        }
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          openConfirm("Delete this transaction?", async () => {
-                            await supabase
-                              .from("inventory_transactions")
-                              .update({ deleted: true })
-                              .eq("id", t.id);
-                            loadData();
-                          })
-                        }
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+              {stock.map((i) => (
+                <tr key={i.id} style={i.qty <= 5 ? { background: "#fee2e2" } : {}}>
+                  <td>{i.name}</td>
+                  <td>{i.brand}</td>
+                  <td>{i.qty}</td>
+                  <td>₱{i.value}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </>
       )}
 
-      {/* ================= DELETED ================= */}
-      {activeTab === "deleted" && (
-        <table style={tableStyle}>
-          <thead>
-            <tr>
-              <th style={thtd}>Item</th>
-              <th style={thtd}>Qty</th>
-              <th style={thtd}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {deletedTransactions.map((t) => (
-              <tr key={t.id}>
-                <td style={thtd}>{t.items?.item_name}</td>
-                <td style={thtd}>{t.quantity}</td>
-                <td style={thtd}>
-                  <button
-                    onClick={() =>
-                      openConfirm("Restore this record?", async () => {
-                        await supabase
-                          .from("inventory_transactions")
-                          .update({ deleted: false })
-                          .eq("id", t.id);
-                        loadData();
-                      })
-                    }
-                  >
-                    Restore
-                  </button>
-                  <button
-                    onClick={() =>
-                      openConfirm(
-                        "Delete permanently?",
-                        async () => {
-                          await supabase
-                            .from("inventory_transactions")
-                            .delete()
-                            .eq("id", t.id);
-                          loadData();
-                        }
-                      )
-                    }
-                  >
-                    Delete Permanently
-                  </button>
-                </td>
-              </tr>
+      {/* ---------- TRANSACTIONS ---------- */}
+      {tab === "transactions" && (
+        <>
+          <h3>Add / Edit Transaction</h3>
+          <select value={txForm.itemId}
+            onChange={(e) => setTxForm({ ...txForm, itemId: +e.target.value })}>
+            <option value="">Select item</option>
+            {items.map((i) => (
+              <option key={i.id} value={i.id}>{i.name}</option>
             ))}
-          </tbody>
-        </table>
+          </select>
+
+          <select value={txForm.type}
+            onChange={(e) => setTxForm({ ...txForm, type: e.target.value })}>
+            <option>IN</option>
+            <option>OUT</option>
+          </select>
+
+          <input type="number" placeholder="Qty" value={txForm.qty}
+            onChange={(e) => setTxForm({ ...txForm, qty: e.target.value })} />
+          <input type="date" value={txForm.date}
+            onChange={(e) => setTxForm({ ...txForm, date: e.target.value })} />
+          <button onClick={addTransaction}>Save</button>
+
+          <table border="1" width="100%">
+            <thead>
+              <tr>
+                <th>Date</th><th>Item</th><th>Type</th><th>Qty</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginate(transactions, txPage, PAGE_SIZE).map((t) => (
+                <tr key={t.id}>
+                  <td>{t.date}</td>
+                  <td>{items.find(i => i.id === t.itemId)?.name}</td>
+                  <td>{t.type}</td>
+                  <td>{t.qty}</td>
+                  <td>
+                    <button onClick={() => deleteTx(t)}>Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <button disabled={txPage === 1} onClick={() => setTxPage(txPage - 1)}>Prev</button>
+          <button onClick={() => setTxPage(txPage + 1)}>Next</button>
+        </>
       )}
 
-      {/* ================= CONFIRM MODAL ================= */}
-      {confirm && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              padding: 20,
-              borderRadius: 6,
-              width: 320,
-            }}
-          >
-            <p>{confirm.message}</p>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button
-                style={{ flex: 1 }}
-                onClick={() => {
-                  confirm.onConfirm();
-                  closeConfirm();
-                }}
-              >
-                Confirm
-              </button>
-              <button style={{ flex: 1 }} onClick={closeConfirm}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* ---------- DELETED ---------- */}
+      {tab === "deleted" && (
+        <>
+          <table border="1" width="100%">
+            <thead>
+              <tr><th>Item</th><th>Qty</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {paginate(deleted, delPage, PAGE_SIZE).map((t) => (
+                <tr key={t.id}>
+                  <td>{items.find(i => i.id === t.itemId)?.name}</td>
+                  <td>{t.qty}</td>
+                  <td>
+                    <button onClick={() => restoreTx(t)}>Restore</button>
+                    <button onClick={() => deleteForever(t)}>Delete Permanently</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <button disabled={delPage === 1} onClick={() => setDelPage(delPage - 1)}>Prev</button>
+          <button onClick={() => setDelPage(delPage + 1)}>Next</button>
+        </>
+      )}
+
+      {/* ---------- REPORT ---------- */}
+      {tab === "report" && (
+        <>
+          <h3>Monthly Report</h3>
+          <table border="1" width="100%">
+            <thead>
+              <tr><th>Month</th><th>Net Qty</th></tr>
+            </thead>
+            <tbody>
+              {report.map(([m, q]) => (
+                <tr key={m}><td>{m}</td><td>{q}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </>
       )}
     </div>
   );
