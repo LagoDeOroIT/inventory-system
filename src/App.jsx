@@ -8,13 +8,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ================= SIMPLE UI COMPONENTS =================
 function Card({ children }) {
-  return (
-    <div style={{ background: "#fff", borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
-      {children}
-    </div>
-  );
+  return <div style={{ background: "#fff", borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>{children}</div>;
 }
-
 function CardContent({ children }) {
   return <div style={{ padding: 16 }}>{children}</div>;
 }
@@ -47,14 +42,7 @@ export default function App() {
   const [editingId, setEditingId] = useState(null);
   const originalFormRef = useRef(null);
 
-  const [form, setForm] = useState({
-    item_id: "",
-    type: "IN",
-    quantity: "",
-    date: "",
-    brand: "",
-  });
-
+  const [form, setForm] = useState({ item_id: "", type: "IN", quantity: "", date: "", brand: "" });
   const [itemSearch, setItemSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const searchRef = useRef(null);
@@ -87,23 +75,17 @@ export default function App() {
     setDeletedTransactions(deletedTx || []);
   }
 
-  useEffect(() => {
-    if (session) loadData();
-  }, [session]);
+  useEffect(() => { if (session) loadData(); }, [session]);
 
-  // ================= DASHBOARD STOCK =================
+  // ================= DASHBOARD =================
   const stockByItem = useMemo(() => {
     const map = {};
-    items.forEach(i => {
-      map[i.id] = { ...i, stock: 0, value: 0 };
-    });
-
+    items.forEach(i => map[i.id] = { ...i, stock: 0, value: 0 });
     transactions.forEach(t => {
       if (!map[t.item_id]) return;
       map[t.item_id].stock += t.type === "IN" ? t.quantity : -t.quantity;
       map[t.item_id].value = map[t.item_id].stock * map[t.item_id].unit_price;
     });
-
     return Object.values(map);
   }, [items, transactions]);
 
@@ -149,9 +131,7 @@ export default function App() {
     return (
       <div style={{ padding: 40 }}>
         <h2>Inventory Login</h2>
-        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>
-          Login with Google
-        </button>
+        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>Login with Google</button>
       </div>
     );
   }
@@ -163,16 +143,13 @@ export default function App() {
       {/* TABS */}
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
         {["dashboard", "transactions", "deleted", "report"].map(t => (
-          <button key={t} onClick={() => {
-            setActiveTab(t);
-            setTxPage(1); setDeletedPage(1); setReportPage(1);
-          }} style={{ fontWeight: activeTab === t ? "bold" : "normal" }}>
+          <button key={t} onClick={() => { setActiveTab(t); setTxPage(1); setDeletedPage(1); setReportPage(1); }} style={{ fontWeight: activeTab === t ? "bold" : "normal" }}>
             {t.toUpperCase()}
           </button>
         ))}
       </div>
 
-      {/* DASHBOARD */}
+      {/* DASHBOARD TAB */}
       {activeTab === "dashboard" && (
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 16 }}>
@@ -206,7 +183,103 @@ export default function App() {
         </>
       )}
 
-      {/* TRANSACTIONS, DELETED, REPORT TABS REMAIN UNCHANGED */}
+      {/* TRANSACTIONS TAB */}
+      {activeTab === "transactions" && (
+        <>
+          <div style={{ marginBottom: 16 }}>
+            <input placeholder="Item ID" value={form.item_id} onChange={e => setForm(f => ({ ...f, item_id: e.target.value }))} />
+            <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}><option>IN</option><option>OUT</option></select>
+            <input type="number" placeholder="Qty" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+            <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
+          </div>
+
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Date</th>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Type</th>
+                <th style={thtd}>Qty</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.length === 0 && emptyRow(6, "No transactions")}
+              {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
+                <tr key={t.id} style={editingId === t.id ? editingRowStyle : {}}>
+                  <td style={thtd}>{t.date}</td>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.type}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>{t.brand}</td>
+                  <td style={thtd}>
+                    <button onClick={() => { setEditingId(t.id); setForm({ item_id: t.item_id, type: t.type, quantity: t.quantity, date: t.date, brand: t.brand || "" }); }}>Edit</button>
+                    <button onClick={async () => { await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id); loadData(); }}>Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div>
+            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
+            <span> Page {txPage} </span>
+            <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
+          </div>
+        </>
+      )}
+
+      {/* DELETED TAB */}
+      {activeTab === "deleted" && (
+        <>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Qty</th>
+                <th style={thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deletedTransactions.length === 0 && emptyRow(3, "No deleted records")}
+              {deletedTransactions.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map(t => (
+                <tr key={t.id}>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>
+                    <button onClick={async () => { await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("id", t.id); loadData(); }}>Restore</button>
+                    <button onClick={async () => { await supabase.from("inventory_transactions").delete().eq("id", t.id); loadData(); }}>Delete Permanently</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+
+      {/* REPORT TAB */}
+      {activeTab === "report" && (
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thtd}>Month</th>
+              <th style={thtd}>IN</th>
+              <th style={thtd}>OUT</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(transactions.reduce((a, t) => {
+              const m = t.date?.slice(0, 7); if (!m) return a;
+              a[m] = a[m] || { IN: 0, OUT: 0 };
+              a[m][t.type] += t.quantity * t.unit_price;
+              return a;
+            }, {})).map(([m, v]) => (
+              <tr key={m}><td style={thtd}>{m}</td><td style={thtd}>₱{v.IN.toFixed(2)}</td><td style={thtd}>₱{v.OUT.toFixed(2)}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
