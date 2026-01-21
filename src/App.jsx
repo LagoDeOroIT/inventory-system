@@ -363,40 +363,4 @@ export default function App() {
           </thead>
           <tbody>
             {stockInventory.length === 0 && emptyRow(5, "No stock data")}
-            {stockInventory.map(i => (
-              <tr key={i.id}>
-                <td style={thtd}>{i.item_name}</td>
-                <td style={thtd}>{i.brand}</td>
-                <td style={thtd}>{i.stock}</td>
-                <td style={thtd}>₱{Number(i.unit_price).toFixed(2)}</td>
-                <td style={thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-            {stockInventory.map(i => (
-              <tr key={i.id}>
-                <td style={thtd}>{i.item_name}</td>
-                <td style={thtd}>{i.brand}</td>
-                <td style={thtd}>{i.stock}</td>
-                <td style={thtd}>₱{Number(i.unit_price).toFixed(2)}</td>
-                <td style={thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )
-            {Object.entries(monthlyTotals).slice((reportPage - 1) * PAGE_SIZE, reportPage * PAGE_SIZE).map(([m, v]) => (
-              <tr key={m}>
-                <td style={thtd}>{m}</td>
-                <td style={thtd}>₱{v.IN.toFixed(2)}</td>
-                <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  );
-}
+            
