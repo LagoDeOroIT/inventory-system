@@ -4,8 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 // ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
 const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
-const supabase = createClient(supabaseUrl, supabaseKey);
-
+const supabase = createClient(supabaseUrl, supabaseKey)
 // ================= STYLES =================
 const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: 10 };
 const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" };
