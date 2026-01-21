@@ -134,6 +134,10 @@ export default function App() {
     loadData();
   }
 
+  // ================= COLLAPSIBLE STATES =================
+  const [showAddTx, setShowAddTx] = useState(false);
+  const [showAddItem, setShowAddItem] = useState(false);
+
   // ================= ADD NEW ITEM (STOCK TAB) =================
   const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
 
@@ -326,25 +330,33 @@ export default function App() {
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Total records: {transactions.length}</div>
   <hr style={{ marginTop: 4 }} />
 </div>
-          <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
-              <input
-                placeholder="Search item"
-                value={itemSearch}
-                onChange={e => {
-                  setItemSearch(e.target.value);
-                  setDropdownOpen(true);
-                }}
-              />
-              {dropdownOpen && itemSearch && (
-                <div style={{ position: "absolute", background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto" }}>
-                  {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
-                    <div key={i.id} style={{ padding: 6, cursor: "pointer" }} onClick={() => {
-                      setForm(f => ({ ...f, item_id: i.id }));
-                      setItemSearch(i.item_name);
-                      setDropdownOpen(false);
-                    }}>{i.item_name}</div>
+          <div style={{ marginBottom: 12 }}>
+            <button onClick={() => setShowAddTx(v => !v)} style={{ marginBottom: 8 }}>
+              {showAddTx ? "➖ Hide Add Transaction" : "➕ Add Transaction"}
+            </button>
+            {showAddTx && (
+              <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
+                <h3 style={{ marginTop: 0 }}>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
+                  <input placeholder="Search item" value={itemSearch} onChange={e => { setItemSearch(e.target.value); setDropdownOpen(true); }} />
+                  {dropdownOpen && itemSearch && (
+                    <div style={{ position: "absolute", background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto" }}>
+                      {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
+                        <div key={i.id} style={{ padding: 6, cursor: "pointer" }} onClick={() => { setForm(f => ({ ...f, item_id: i.id })); setItemSearch(i.item_name); setDropdownOpen(false); }}>{i.item_name}</div>
+                      ))}
+                    </div>
+                  )}
+                  <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+                    <option value="IN">IN</option>
+                    <option value="OUT">OUT</option>
+                  </select>
+                  <input type="number" placeholder="Qty" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+                  <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+                  <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
+                </div>
+              </div>
+            )}
+          </div>
                   ))}
                 </div>
               )}
@@ -413,8 +425,10 @@ export default function App() {
       {activeTab === "deleted" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 4 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>🗑️ Delete History</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
+            <h2 style={{ marginBottom: 4, textAlign: "center" }}>🗑️ Delete History</h2>
+            <input placeholder="Search deleted items" style={{ display: "block", margin: "0 auto 6px" }} onChange={e => setDeletedTransactions(d => d.filter(x => x.items?.item_name?.toLowerCase().includes(e.target.value.toLowerCase())))} />
+            <hr />
+          </div>
   <hr style={{ marginTop: 4 }} />
 </div>
           <table style={tableStyle}>
@@ -460,8 +474,13 @@ export default function App() {
       {activeTab === "report" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 4 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📊 Monthly Report</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Months tracked: {Object.keys(monthlyTotals).length}</div>
+            <h2 style={{ marginBottom: 4, textAlign: "center" }}>📊 Monthly Report</h2>
+            <select style={{ display: "block", margin: "0 auto 6px" }} onChange={e => setReportPage(1)}>
+              <option value="">All Months</option>
+              {Object.keys(monthlyTotals).map(m => <option key={m}>{m}</option>)}
+            </select>
+            <hr />
+          </div>
   <hr style={{ marginTop: 4 }} />
 </div>
           <table style={tableStyle}>
@@ -497,14 +516,22 @@ export default function App() {
   </div>
   <hr style={{ marginTop: 4 }} />
 </div>
-          <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <h3>Add New Item</h3>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
-              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
-              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
-              <button onClick={addNewItem}>Add Item</button>
-            </div>
+          <div style={{ marginBottom: 12 }}>
+            <button onClick={() => setShowAddItem(v => !v)} style={{ marginBottom: 8 }}>
+              {showAddItem ? "➖ Hide Add Item" : "➕ Add New Item"}
+            </button>
+            {showAddItem && (
+              <div style={{ border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
+                <h3 style={{ marginTop: 0 }}>Add New Item</h3>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
+                  <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
+                  <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
+                  <button onClick={addNewItem}>Add Item</button>
+                </div>
+              </div>
+            )}
+          </div>
           </div>
 
           <table style={tableStyle}>
