@@ -44,6 +44,10 @@ export default function App() {
   });
 
   const [confirm, setConfirm] = useState(null);
+
+  // ADD NEW ITEM POPUP
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
   const openConfirm = (title, message, color, onConfirm) =>
     setConfirm({ title, message, color, onConfirm });
   const closeConfirm = () => setConfirm(null);
@@ -113,10 +117,34 @@ export default function App() {
 
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
         <button onClick={() => setActiveTab("dashboard")}>Dashboard</button>
-        <button onClick={() => setActiveTab("transactions")}>Transactions</button>
+        <button onClick={() => setShowAddItem(true)}>Transactions</button>
         <button onClick={() => setActiveTab("deleted")}>Deleted</button>
         <button onClick={() => setActiveTab("monthly")}>Monthly Report</button>
       </div>
+
+      {showAddItem && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60 }}>
+          <div style={{ background: "#fff", padding: 24, borderRadius: 12, width: 360, borderTop: "6px solid #2563eb" }}>
+            <h3 style={{ marginTop: 0, color: "#2563eb" }}>Add New Item</h3>
+            <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem({ ...newItem, item_name: e.target.value })} style={{ width: "100%", marginBottom: 8 }} />
+            <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem({ ...newItem, brand: e.target.value })} style={{ width: "100%", marginBottom: 8 }} />
+            <input placeholder="Unit price" type="number" value={newItem.unit_price} onChange={e => setNewItem({ ...newItem, unit_price: e.target.value })} style={{ width: "100%", marginBottom: 16 }} />
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <button onClick={() => setShowAddItem(false)}>Cancel</button>
+              <button style={{ background: "#2563eb", color: "#fff" }} onClick={async () => {
+                await supabase.from("items").insert({
+                  item_name: newItem.item_name,
+                  brand: newItem.brand,
+                  unit_price: Number(newItem.unit_price)
+                });
+                setNewItem({ item_name: "", brand: "", unit_price: "" });
+                setShowAddItem(false);
+                loadData();
+              }}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
