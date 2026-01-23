@@ -132,6 +132,8 @@ export default function App() {
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
   const [stockEditItem, setStockEditItem] = useState(null);
+  const [isEditingItem, setIsEditingItem] = useState(false);
+  const [stockEditItem, setStockEditItem] = useState(null);
   const [stockEditForm, setStockEditForm] = useState({ unit_price: "", brand: "" });
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
@@ -142,18 +144,36 @@ export default function App() {
       return;
     }
 
-    const { error } = await supabase.from("items").insert({
-      item_name: newItem.item_name,
-      brand: newItem.brand || null,
-      unit_price: Number(newItem.unit_price),
-    });
+    if (isEditingItem && stockEditItem) {
+      const { error } = await supabase
+        .from("items")
+        .update({
+          item_name: newItem.item_name,
+          brand: newItem.brand || null,
+          unit_price: Number(newItem.unit_price),
+        })
+        .eq("id", stockEditItem.id);
 
-    if (error) {
-      alert(error.message);
-      return;
+      if (error) {
+        alert(error.message);
+        return;
+      }
+    } else {
+      const { error } = await supabase.from("items").insert({
+        item_name: newItem.item_name,
+        brand: newItem.brand || null,
+        unit_price: Number(newItem.unit_price),
+      });
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
     }
 
     setNewItem({ item_name: "", brand: "", unit_price: "" });
+    setStockEditItem(null);
+    setIsEditingItem(false);
     loadData();
   }
 
@@ -199,16 +219,7 @@ export default function App() {
     <div style={{ padding: 20 }}>
 
       {/* STOCK EDIT MODAL */}
-      {stockEditItem && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }}>
-          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360 }}>
-            <h3>Edit Item</h3>
-
-            <input
-              placeholder="Brand"
-              value={stockEditForm.brand}
-              onChange={e => setStockEditForm(f => ({ ...f, brand: e.target.value }))}
-            />
+                  />
 
             <input
               type="number"
@@ -620,7 +631,7 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>Add New Item</h3>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add New Item"}</h3>
               <button
                 onClick={() => setShowAddItem(v => !v)}
                 style={{
@@ -671,10 +682,16 @@ export default function App() {
                   <td style={thtd}>
                     <button
                       style={{ marginRight: 6 }}
-                      onClick={() => {
+                      onClick={() => openConfirm("Edit this item?", () => {
+                        setIsEditingItem(true);
                         setStockEditItem(i);
-                        setStockEditForm({ unit_price: i.unit_price, brand: i.brand || "" });
-                      }}
+                        setNewItem({
+                          item_name: i.item_name,
+                          brand: i.brand || "",
+                          unit_price: i.unit_price,
+                        });
+                        setShowAddItem(true);
+                      })}
                     >✏️ Edit</button>
                     <button
                       onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
