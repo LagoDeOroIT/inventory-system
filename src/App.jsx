@@ -218,34 +218,23 @@ export default function App() {
   return (
     <div style={{ padding: 20 }}>
 
-      {confirm && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}>
-          <div style={{ background: "#fff", padding: 20, borderRadius: 8, width: 320 }}>
-            <p style={{ marginBottom: 16 }}>{confirm.message}</p>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-              <button onClick={closeConfirm}>Cancel</button>
-              <button
-                style={{ background: "#1f2937", color: "#fff", border: "none", padding: "6px 12px", borderRadius: 6 }}
-                onClick={() => {
-                  confirm.onConfirm();
-                  closeConfirm();
-                }}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-
-      
+      {/* MAIN HEADER */}
       <div style={{ textAlign: "center", marginBottom: 16 }}>
         <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
         <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
       </div>
 
-      
+      {/* 
+          </div>
+        </div>
+      )}
+
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
+        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
+      </div>
+
+      {/* TABS */}
 <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
   <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
     <button
@@ -349,30 +338,18 @@ export default function App() {
       {/* CONFIRM MODAL */}
       {confirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "#fff", padding: 24, borderRadius: 10, width: 380, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
-            <h3 style={{ marginTop: 0, marginBottom: 12 }}>Confirm Action</h3>
+          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
+            <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
             <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
-            <div style={{ display: "flex", gap: 12 }}>
-              <button
-                style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "10px 0", borderRadius: 6, border: "none", fontWeight: 600, cursor: "pointer" }}
-                onClick={() => {
-                  confirm.onConfirm();
-                  closeConfirm();
-                }}
-              >
-                Confirm
-              </button>
-              <button
-                style={{ flex: 1, background: "#e5e7eb", padding: "10px 0", borderRadius: 6, border: "none", fontWeight: 500, cursor: "pointer" }}
-                onClick={closeConfirm}
-              >
-                Cancel
-              </button>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
+              <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* TRANSACTIONS TAB */}
       {activeTab === "transactions" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
@@ -461,8 +438,14 @@ export default function App() {
                       <td style={thtd}>{t.quantity}</td>
                       <td style={thtd}>{t.brand}</td>
                       <td style={thtd}>
-                        <button disabled={editingId && editingId !== t.id} onClick=}>✏️ Edit</button>
-                        <button disabled={!!editingId} onClick=.eq("id", t.id);
+                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
+                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+                          setEditingId(t.id);
+                          setForm(originalFormRef.current);
+                          setItemSearch(t.items?.item_name || "");
+                        })}>✏️ Edit</button>
+                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
+                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
                           loadData();
                         })}>🗑️ Delete</button>
                       </td>
@@ -494,8 +477,14 @@ export default function App() {
                       <td style={thtd}>{t.quantity}</td>
                       <td style={thtd}>{t.brand}</td>
                       <td style={thtd}>
-                        <button disabled={editingId && editingId !== t.id} onClick=}>✏️ Edit</button>
-                        <button disabled={!!editingId} onClick=.eq("id", t.id);
+                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
+                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+                          setEditingId(t.id);
+                          setForm(originalFormRef.current);
+                          setItemSearch(t.items?.item_name || "");
+                        })}>✏️ Edit</button>
+                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
+                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
                           loadData();
                         })}>🗑️ Delete</button>
                       </td>
@@ -560,7 +549,8 @@ export default function App() {
                   <td style={thtd}>{t.brand}</td>
                   <td style={thtd}>{t.quantity}</td>
                   <td style={thtd}>
-                    <button onClick=.eq("id", t.id);
+                    <button onClick={() => openConfirm("Restore this transaction?", async () => {
+                      await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("id", t.id);
                       loadData();
                     })}>♻️ Restore</button>
                     <button onClick={() => openConfirm("Permanently delete this transaction?", async () => {
@@ -620,7 +610,7 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Register New Stock Item"}</h3>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add Transaction (In / Out)"}</h3>
               <button
                 onClick={() => setShowAddItem(v => !v)}
                 style={{
@@ -642,7 +632,7 @@ export default function App() {
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
-              <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Register Item"}</button>
+              <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
                         </div>
           )}
           </div>
