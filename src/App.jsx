@@ -308,8 +308,8 @@ export default function App() {
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
               <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
               <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
-                        </div>
-          )}
+                                      </div>
+            )}
           </div>
         </div>
       )}
@@ -330,7 +330,7 @@ export default function App() {
               </button>
             </div>
             {showForm && (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
               <input
                 placeholder="Search item"
                 value={itemSearch}
