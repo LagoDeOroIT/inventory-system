@@ -359,9 +359,24 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>
-  {editingId ? `Edit ${form.type} Transaction` : `Add ${form.type} Transaction`}
-</h3>
+              <button
+                onClick={() => {
+                  setForm(f => ({ ...f, type: "IN" }));
+                  setShowForm(true);
+                }}
+                style={{
+                  background: "#1f2937",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "8px 14px",
+                  cursor: "pointer",
+                  fontSize: 14,
+                  fontWeight: 600,
+                }}
+              >
+                ➕ Add Transaction (IN / OUT)
+              </button>
               <button
                 onClick={() => setShowForm(v => !v)}
                 style={{
