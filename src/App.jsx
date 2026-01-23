@@ -131,22 +131,19 @@ export default function App() {
   }
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
-  
-  const [isEditingItem, setIsEditingItem] = useState(false);
-  
-  
+
   const [showAddItem, setShowAddItem] = useState(false);
   const [isEditingItem, setIsEditingItem] = useState(false);
   const [editingItemId, setEditingItemId] = useState(null);
+  const [stockEditItem, setStockEditItem] = useState(null);
 
   const [newItem, setNewItem] = useState({
     item_name: "",
     brand: "",
     unit_price: "",
   });
-  const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
 
-  async function addNewItem() {
+  async function handleSaveItem() {
     if (!newItem.item_name || !newItem.unit_price) {
       alert("Item name and unit price are required");
       return;
@@ -162,10 +159,7 @@ export default function App() {
         })
         .eq("id", stockEditItem.id);
 
-      if (error) {
-        alert(error.message);
-        return;
-      }
+      if (error) return alert(error.message);
     } else {
       const { error } = await supabase.from("items").insert({
         item_name: newItem.item_name,
@@ -173,15 +167,13 @@ export default function App() {
         unit_price: Number(newItem.unit_price),
       });
 
-      if (error) {
-        alert(error.message);
-        return;
-      }
+      if (error) return alert(error.message);
     }
 
     setNewItem({ item_name: "", brand: "", unit_price: "" });
-    setStockEditItem(null);
     setIsEditingItem(false);
+    setStockEditItem(null);
+    setShowAddItem(false);
     loadData();
   }
 
@@ -361,7 +353,7 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add New Item"}</h3>
               <button
                 onClick={() => setShowForm(v => !v)}
                 style={{
