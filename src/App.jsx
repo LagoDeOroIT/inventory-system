@@ -197,7 +197,7 @@ export default function App() {
   }
 
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
       <div style={{ textAlign: "center", marginBottom: 16 }}>
         <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
         <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
@@ -322,7 +322,7 @@ export default function App() {
       {activeTab === "transactions" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center", fontSize: 22 }}>📄 Transactions History</h2>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
   <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
@@ -411,7 +411,7 @@ export default function App() {
       {activeTab === "deleted" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center", fontSize: 22 }}>🗑️ Delete History</h2>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>🗑️ Delete History</h2>
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
@@ -458,7 +458,7 @@ export default function App() {
       {activeTab === "report" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center", fontSize: 22 }}>📊 Monthly Report</h2>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📊 Monthly Report</h2>
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Months tracked: {Object.keys(monthlyTotals).length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
@@ -489,7 +489,7 @@ export default function App() {
       {activeTab === "stock" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center", fontSize: 22 }}>📦 Stock Inventory</h2>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📦 Stock Inventory</h2>
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>
     Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
   </div>
