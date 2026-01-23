@@ -414,6 +414,8 @@ export default function App() {
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
+          )}
+
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
@@ -497,7 +499,7 @@ export default function App() {
             {showAddItem ? "Hide Add New Item" : "Show Add New Item"}
           </button>
           {showAddItem && (
-          <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }>
+          <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <h3>Add New Item</h3>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
