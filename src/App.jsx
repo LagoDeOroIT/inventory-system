@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react"; 
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -28,12 +28,6 @@ export default function App() {
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
-
-  // pagination (ONE declaration each)
-  const PAGE_SIZE = 5;
-  const [txPage, setTxPage] = useState(1);
-  const [deletedPage, setDeletedPage] = useState(1);
-  const [reportPage, setReportPage] = useState(1);
 
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
@@ -377,7 +371,7 @@ export default function App() {
             </thead>
             <tbody>
               {transactions.length === 0 && emptyRow(6, "No transactions yet")}
-              {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
+              {transactions.map(t => (
                 <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                   <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
@@ -400,11 +394,7 @@ export default function App() {
               ))}
             </tbody>
           </table>
-          <div>
-            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
-            <span> Page {txPage} </span>
-            <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
-          </div>
+          
         </>
       )}
 
@@ -427,7 +417,7 @@ export default function App() {
             </thead>
             <tbody>
               {deletedTransactions.length === 0 && emptyRow(5, "No deleted records")}
-              {deletedTransactions.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map(t => (
+              {deletedTransactions.map(t => (
                 <tr key={t.id}>
                   <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
@@ -447,11 +437,7 @@ export default function App() {
               ))}
             </tbody>
           </table>
-          <div>
-            <button disabled={deletedPage === 1} onClick={() => setDeletedPage(p => p - 1)}>Prev</button>
-            <span> Page {deletedPage} </span>
-            <button disabled={deletedPage * PAGE_SIZE >= deletedTransactions.length} onClick={() => setDeletedPage(p => p + 1)}>Next</button>
-          </div>
+          
         </>
       )}
 
@@ -473,7 +459,6 @@ export default function App() {
             <tbody>
               {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
               {Object.entries(monthlyTotals)
-                .slice((reportPage - 1) * PAGE_SIZE, reportPage * PAGE_SIZE)
                 .map(([m, v]) => (
                   <tr key={m}>
                     <td style={thtd}>{m}</td>
