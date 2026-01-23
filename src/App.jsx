@@ -45,7 +45,6 @@ export default function App() {
     unit: "",
     volume_pack: "",
   });
-  const [showAddTransaction, setShowAddTransaction] = useState(true);
 
   // item search
   const [itemSearch, setItemSearch] = useState("");
@@ -131,7 +130,6 @@ export default function App() {
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
   const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
-  const [showAddItem, setShowAddItem] = useState(true);
 
   async function addNewItem() {
     if (!newItem.item_name || !newItem.unit_price) {
@@ -322,10 +320,6 @@ export default function App() {
   <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
-          <button onClick={() => setShowAddTransaction(s => !s)} style={{ marginBottom: 12 }}>
-            {showAddTransaction ? "Hide Add Transaction" : "Show Add Transaction"}
-          </button>
-          {showAddTransaction && (
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
@@ -363,7 +357,6 @@ export default function App() {
               }}>{editingId ? "Update" : "Save"}</button>
             </div>
           </div>
-          )}
 
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
@@ -414,8 +407,6 @@ export default function App() {
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
-          )}
-
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
@@ -495,10 +486,6 @@ export default function App() {
   </div>
   <hr style={{ marginTop: 8 }} />
 </div>
-          <button onClick={() => setShowAddItem(s => !s)} style={{ marginBottom: 12 }}>
-            {showAddItem ? "Hide Add New Item" : "Show Add New Item"}
-          </button>
-          {showAddItem && (
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <h3>Add New Item</h3>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -507,8 +494,6 @@ export default function App() {
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
               <button onClick={addNewItem}>Add Item</button>
             </div>
-          </div>
-          )}
           </div>
 
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
