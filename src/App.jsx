@@ -131,11 +131,19 @@ export default function App() {
   }
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
-  const [stockEditItem, setStockEditItem] = useState(null);
+  
   const [isEditingItem, setIsEditingItem] = useState(false);
-  const [stockEditItem, setStockEditItem] = useState(null);
-  const [stockEditForm, setStockEditForm] = useState({ unit_price: "", brand: "" });
+  
+  
   const [showAddItem, setShowAddItem] = useState(false);
+  const [isEditingItem, setIsEditingItem] = useState(false);
+  const [editingItemId, setEditingItemId] = useState(null);
+
+  const [newItem, setNewItem] = useState({
+    item_name: "",
+    brand: "",
+    unit_price: "",
+  });
   const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
 
   async function addNewItem() {
@@ -218,34 +226,7 @@ export default function App() {
   return (
     <div style={{ padding: 20 }}>
 
-      {/* STOCK EDIT MODAL */}
-                  />
-
-            <input
-              type="number"
-              placeholder="Unit Price"
-              value={stockEditForm.unit_price}
-              onChange={e => setStockEditForm(f => ({ ...f, unit_price: e.target.value }))}
-            />
-
-            <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-              <button
-                onClick={async () => {
-                  await supabase
-                    .from("items")
-                    .update({
-                      brand: stockEditForm.brand || null,
-                      unit_price: Number(stockEditForm.unit_price),
-                    })
-                    .eq("id", stockEditItem.id);
-
-                  setStockEditItem(null);
-                  loadData();
-                }}
-              >Save</button>
-
-              <button onClick={() => setStockEditItem(null)}>Cancel</button>
-            </div>
+      {/* 
           </div>
         </div>
       )}
@@ -631,7 +612,7 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add New Item"}</h3>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "{isEditingItem ? "Edit Item" : "Add New Item"}"}</h3>
               <button
                 onClick={() => setShowAddItem(v => !v)}
                 style={{
@@ -653,7 +634,7 @@ export default function App() {
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
-              <button onClick={addNewItem}>Add Item</button>
+              <button onClick={handleSaveItem}>Add Item</button>
                         </div>
           )}
           </div>
