@@ -359,9 +359,16 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Record Inventory Transaction (In / Out)
+              <h3 style={{ margin: 0 }}>
+  {isEditingItem
+    ? "Edit Item"
+    : "Record Inventory Transaction (In / Out)"}
+</h3>
 
-*Log stock movements such as receiving, issuing, returns, and adjustments. Ensures real-time inventory accuracy.*"}</h3>
+<p style={{ marginTop: 4, color: "#666", fontSize: 14 }}>
+  Log stock movements such as receiving, issuing, returns, and adjustments.
+  Ensures real-time inventory accuracy.
+</p>
               <button
                 onClick={() => setShowForm(v => !v)}
                 style={{
