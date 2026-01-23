@@ -327,12 +327,14 @@ export default function App() {
               <button
                 onClick={() => setShowForm(v => !v)}
                 style={{
-                  background: "#f3f4f6",
-                  border: "1px solid #d1d5db",
+                  background: showForm ? "#dc2626" : "#16a34a",
+                  color: "#fff",
+                  border: "none",
                   borderRadius: 6,
-                  padding: "4px 10px",
+                  padding: "6px 12px",
                   cursor: "pointer",
                   fontSize: 12,
+                  fontWeight: 600,
                 }}
               >
                 {showForm ? "Hide" : "Show"}
