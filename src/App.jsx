@@ -35,7 +35,7 @@ export default function App() {
 
 
   // form
-  const [showForm, setForm] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const originalFormRef = useRef(null);
   const [form, setForm] = useState({
@@ -132,7 +132,7 @@ export default function App() {
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
 
-  const [showAddItem, setAddItem] = useState(false);
+  const [showAddItem, setShowAddItem] = useState(false);
   const [isEditingItem, setIsEditingItem] = useState(false);
   const [editingItemId, setEditingItemId] = useState(null);
   const [stockEditItem, setStockEditItem] = useState(null);
@@ -173,7 +173,7 @@ export default function App() {
     setNewItem({ item_name: "", brand: "", unit_price: "" });
     setIsEditingItem(false);
     setStockEditItem(null);
-    setAddItem(false);
+    setShowAddItem(false);
     loadData();
   }
 
@@ -218,23 +218,13 @@ export default function App() {
   return (
     <div style={{ padding: 20 }}>
 
-      {/* MAIN HEADER */}
+      
       <div style={{ textAlign: "center", marginBottom: 16 }}>
         <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
         <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
       </div>
 
-      {/* 
-          </div>
-        </div>
-      )}
-
-      <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
-        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
-      </div>
-
-      {/* TABS */}
+      
 <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
   <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
     <button
@@ -335,21 +325,7 @@ export default function App() {
   </div>
 </div>
 
-      {/* CONFIRM MODAL */}
-      {confirm && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
-            <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
-            <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-              <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
-              <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TRANSACTIONS TAB */}
+      
       {activeTab === "transactions" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
@@ -361,7 +337,7 @@ export default function App() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add Transaction (In / Out)"}</h3>
               <button
-                onClick={() => setForm(v => !v)}
+                onClick={() => setShowForm(v => !v)}
                 style={{
                   background: "#1f2937",
                   color: "#fff",
@@ -373,7 +349,7 @@ export default function App() {
                   fontWeight: 600,
                 }}
               >
-                {showForm ? "" : ""}
+                {showForm ? "Hide" : "Show"}
               </button>
             </div>
             {showForm && (
@@ -612,7 +588,7 @@ export default function App() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add Transaction (In / Out)"}</h3>
               <button
-                onClick={() => setAddItem(v => !v)}
+                onClick={() => setShowAddItem(v => !v)}
                 style={{
                   background: "#1f2937",
                   color: "#fff",
@@ -624,7 +600,7 @@ export default function App() {
                   fontWeight: 600,
                 }}
               >
-                {showAddItem ? "" : ""}
+                {showAddItem ? "Hide" : "Show"}
               </button>
             </div>
             {showAddItem && (
@@ -669,7 +645,7 @@ export default function App() {
                           brand: i.brand || "",
                           unit_price: i.unit_price,
                         });
-                        setAddItem(true);
+                        setShowAddItem(true);
                       })}
                     >✏️ Edit</button>
                     <button
