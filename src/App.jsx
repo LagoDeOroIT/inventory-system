@@ -316,8 +316,9 @@ export default function App() {
               <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
             </div>
           </div>
-        </div>
-      )}
+          </div>
+        </>
+      )
 
       {/* TRANSACTIONS TAB */}
       {activeTab === "transactions" && (
