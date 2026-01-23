@@ -197,7 +197,9 @@ export default function App() {
   }
 
   return (
-    <div style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
+    <>
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "#fff", zIndex: 20 }}>
+      <div style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
       <div style={{ textAlign: "center", marginBottom: 16 }}>
         <h1 style={{ marginBottom: 4, fontSize: 32 }}><span style="font-size:32px">Lago De Oro Inventory System</span></h1>
         <p style={{ marginTop: 0, color: "#555" }}><span style="font-size:14px">Manage stock IN / OUT and reports</span></p>
@@ -377,7 +379,7 @@ export default function App() {
             </thead>
             <tbody>
               {transactions.length === 0 && emptyRow(6, "No transactions yet")}
-              {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
+              {transactions.map(t => (
                 <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                   <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
@@ -400,11 +402,7 @@ export default function App() {
               ))}
             </tbody>
           </table>
-          <div>
-            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
-            <span> Page {txPage} </span>
-            <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
-          </div>
+          
         </>
       )}
 
@@ -427,7 +425,7 @@ export default function App() {
             </thead>
             <tbody>
               {deletedTransactions.length === 0 && emptyRow(5, "No deleted records")}
-              {deletedTransactions.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map(t => (
+              {deletedTransactions.map(t => (
                 <tr key={t.id}>
                   <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
@@ -447,11 +445,7 @@ export default function App() {
               ))}
             </tbody>
           </table>
-          <div>
-            <button disabled={deletedPage === 1} onClick={() => setDeletedPage(p => p - 1)}>Prev</button>
-            <span> Page {deletedPage} </span>
-            <button disabled={deletedPage * PAGE_SIZE >= deletedTransactions.length} onClick={() => setDeletedPage(p => p + 1)}>Next</button>
-          </div>
+          
         </>
       )}
 
@@ -473,7 +467,7 @@ export default function App() {
             <tbody>
               {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
               {Object.entries(monthlyTotals)
-                .slice((reportPage - 1) * PAGE_SIZE, reportPage * PAGE_SIZE)
+                
                 .map(([m, v]) => (
                   <tr key={m}>
                     <td style={thtd}>{m}</td>
@@ -542,5 +536,11 @@ export default function App() {
         </>
       )}
     </div>
+        </div>
+    </div>
+
+    <div style={{ marginTop: 260, maxWidth: 1200, marginLeft: "auto", marginRight: "auto", maxHeight: "calc(100vh - 260px)", overflowY: "auto", padding: 20 }}>
+      {activeTab === "transactions" || activeTab === "deleted" || activeTab === "report" || activeTab === "stock" ? null : null}
+    </div>
+    </>
   );
-}
