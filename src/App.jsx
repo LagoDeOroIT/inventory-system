@@ -359,7 +359,9 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add New Item"}</h3>
+              <h3 style={{ margin: 0 }}>
+  {editingId ? `Edit ${form.type} Transaction` : `Add ${form.type} Transaction`}
+</h3>
               <button
                 onClick={() => setShowForm(v => !v)}
                 style={{
@@ -409,7 +411,7 @@ export default function App() {
                 } else {
                   saveTransaction();
                 }
-              }}>{editingId ? "Update" : "Save"}</button>
+              }}>{editingId ? `Update ${form.type}` : `Add ${form.type}`}</button>
                         </div>
           )}
           </div>
