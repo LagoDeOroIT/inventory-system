@@ -461,14 +461,8 @@ export default function App() {
                       <td style={thtd}>{t.quantity}</td>
                       <td style={thtd}>{t.brand}</td>
                       <td style={thtd}>
-                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
-                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                          setEditingId(t.id);
-                          setForm(originalFormRef.current);
-                          setItemSearch(t.items?.item_name || "");
-                        })}>✏️ Edit</button>
-                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
-                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
+                        <button disabled={editingId && editingId !== t.id} onClick=}>✏️ Edit</button>
+                        <button disabled={!!editingId} onClick=.eq("id", t.id);
                           loadData();
                         })}>🗑️ Delete</button>
                       </td>
@@ -500,14 +494,8 @@ export default function App() {
                       <td style={thtd}>{t.quantity}</td>
                       <td style={thtd}>{t.brand}</td>
                       <td style={thtd}>
-                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
-                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                          setEditingId(t.id);
-                          setForm(originalFormRef.current);
-                          setItemSearch(t.items?.item_name || "");
-                        })}>✏️ Edit</button>
-                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
-                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
+                        <button disabled={editingId && editingId !== t.id} onClick=}>✏️ Edit</button>
+                        <button disabled={!!editingId} onClick=.eq("id", t.id);
                           loadData();
                         })}>🗑️ Delete</button>
                       </td>
@@ -572,8 +560,7 @@ export default function App() {
                   <td style={thtd}>{t.brand}</td>
                   <td style={thtd}>{t.quantity}</td>
                   <td style={thtd}>
-                    <button onClick={() => openConfirm("Restore this transaction?", async () => {
-                      await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("id", t.id);
+                    <button onClick=.eq("id", t.id);
                       loadData();
                     })}>♻️ Restore</button>
                     <button onClick={() => openConfirm("Permanently delete this transaction?", async () => {
