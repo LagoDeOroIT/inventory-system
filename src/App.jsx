@@ -358,6 +358,7 @@ export default function App() {
             </div>
           </div>
 
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -394,6 +395,7 @@ export default function App() {
               ))}
             </tbody>
           </table>
+        </div>
           
         </>
       )}
@@ -405,6 +407,7 @@ export default function App() {
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -437,6 +440,7 @@ export default function App() {
               ))}
             </tbody>
           </table>
+        </div>
           
         </>
       )}
@@ -448,6 +452,7 @@ export default function App() {
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Months tracked: {Object.keys(monthlyTotals).length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -468,6 +473,7 @@ export default function App() {
                 ))}
             </tbody>
           </table>
+        </div>
         </>
       )}
 
@@ -490,6 +496,7 @@ export default function App() {
             </div>
           </div>
 
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
               <tr>
@@ -524,6 +531,7 @@ export default function App() {
               ))}
             </tbody>
           </table>
+        </div>
         </>
       )}
     </div>
