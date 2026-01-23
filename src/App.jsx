@@ -359,24 +359,32 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add New Item"}</h3>
               <button
-                onClick={() => setShowForm(v => !v)}
+                onClick={() => setShowForm(true)}
                 style={{
                   background: "#1f2937",
                   color: "#fff",
                   border: "none",
-                  borderRadius: 6,
-                  padding: "6px 12px",
+                  borderRadius: 8,
+                  padding: "10px 16px",
                   cursor: "pointer",
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: 600,
                 }}
               >
-                {showForm ? "Hide" : "Show"}
+                ➕ Add New Transaction
               </button>
             </div>
+
             {showForm && (
+              <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+                <div style={{ background: "#fff", padding: 20, borderRadius: 8, width: 520 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <h3 style={{ margin: 0 }}>Add Transaction</h3>
+                    <button onClick={() => setShowForm(false)}>✖</button>
+                  </div>
+
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
               <input
                 placeholder="Search item"
