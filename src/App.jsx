@@ -346,7 +346,33 @@ export default function App() {
   </div>
 </div>
 
-      
+      {/* CONFIRM MODAL */}
+      {confirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "#fff", padding: 24, borderRadius: 10, width: 380, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
+            <h3 style={{ marginTop: 0, marginBottom: 12 }}>Confirm Action</h3>
+            <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "10px 0", borderRadius: 6, border: "none", fontWeight: 600, cursor: "pointer" }}
+                onClick={() => {
+                  confirm.onConfirm();
+                  closeConfirm();
+                }}
+              >
+                Confirm
+              </button>
+              <button
+                style={{ flex: 1, background: "#e5e7eb", padding: "10px 0", borderRadius: 6, border: "none", fontWeight: 500, cursor: "pointer" }}
+                onClick={closeConfirm}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeTab === "transactions" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
