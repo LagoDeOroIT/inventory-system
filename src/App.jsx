@@ -32,6 +32,9 @@ export default function App() {
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
 
+  // toggle add transaction form
+  const [showForm, setShowForm] = useState(true);
+
 
   // form
   const [editingId, setEditingId] = useState(null);
@@ -321,6 +324,14 @@ export default function App() {
   <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
+          {/* TOGGLE BUTTON */}
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+            <button onClick={() => setShowForm(s => !s)}>
+              {showForm ? "Hide" : "Show"} Add Transaction
+            </button>
+          </div>
+
+          {showForm && (
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
@@ -358,6 +369,7 @@ export default function App() {
               }}>{editingId ? "Update" : "Save"}</button>
             </div>
           </div>
+          )}
 
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
