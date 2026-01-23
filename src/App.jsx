@@ -330,36 +330,7 @@ export default function App() {
       </div>
     </div>
   </div>
-)
-              style={{
-                background: showForm ? "#e5e7eb" : "#1f2937",
-                color: showForm ? "#111827" : "#fff",
-                border: "1px solid #d1d5db",
-                padding: "6px 12px",
-                borderRadius: 6,
-                fontSize: 12,
-                cursor: "pointer",
-              }}
-            >
-              {showForm ? "Hide" : "Show"}
-            </button>
-          </div>
-
-          {showForm && (
-          <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8, background: "#fafafa" }}>
-            
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
-              <input
-                placeholder="Search item"
-                value={itemSearch}
-                onChange={e => {
-                  setItemSearch(e.target.value);
-                  setDropdownOpen(true);
-                }}
-              />
-              {dropdownOpen && itemSearch && (
-                <div style={{ position: "absolute", background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto" }}>
-                  {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
+)}).map(i => (
                     <div key={i.id} style={{ padding: 6, cursor: "pointer" }} onClick={() => {
                       setForm(f => ({ ...f, item_id: i.id }));
                       setItemSearch(i.item_name);
