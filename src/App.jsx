@@ -379,10 +379,10 @@ export default function App() {
           )}
           </div>
 
-          <div style={{ display: "flex", gap: 16, maxHeight: 400, overflowY: "auto" }}>
+          <div style={{ display: "flex", gap: 16 }}>
 
             {/* IN TRANSACTIONS */}
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
               <table style={tableStyle}>
                 <thead>
@@ -421,7 +421,7 @@ export default function App() {
             </div>
 
             {/* OUT TRANSACTIONS */}
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
               <table style={tableStyle}>
                 <thead>
