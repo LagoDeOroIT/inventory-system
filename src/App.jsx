@@ -508,6 +508,8 @@ export default function App() {
               <button onClick={addNewItem}>Add Item</button>
             </div>
           </div>
+          )}
+          </div>
 
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
