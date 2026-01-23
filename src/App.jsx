@@ -359,7 +359,9 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "<button onClick={\(\) => setShowTransactionModal\(true\)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Add IN/OUT Transactions</button>"}</h3>
+              <h3 style={{ margin: 0 }}>
+  {isEditingItem ? "Edit Item" : "Add IN/OUT Transactions"}
+</h3>
               <button
                 onClick={() => setShowForm(v => !v)}
                 style={{
