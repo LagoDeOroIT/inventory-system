@@ -380,43 +380,84 @@ export default function App() {
           </div>
 
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Date</th>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Type</th>
-                <th style={thtd}>Qty</th>
-                <th style={thtd}>Brand</th>
-                <th style={thtd}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.length === 0 && emptyRow(6, "No transactions yet")}
-              {transactions.map(t => (
-                <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
-                  <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-                  <td style={thtd}>{t.items?.item_name}</td>
-                  <td style={thtd}>{t.type}</td>
-                  <td style={thtd}>{t.quantity}</td>
-                  <td style={thtd}>{t.brand}</td>
-                  <td style={thtd}>
-                    <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
-                      originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                      setEditingId(t.id);
-                      setForm(originalFormRef.current);
-                      setItemSearch(t.items?.item_name || "");
-                    })}>✏️ Edit</button>
-                    <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
-                      await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
-                      loadData();
-                    })}>🗑️ Delete</button>
-                  </td>
+
+            {/* IN TRANSACTIONS */}
+            <h4 style={{ marginTop: 0 }}>⬇️ IN Transactions</h4>
+            <table style={tableStyle}>
+              <thead>
+                <tr>
+                  <th style={thtd}>Date</th>
+                  <th style={thtd}>Item</th>
+                  <th style={thtd}>Qty</th>
+                  <th style={thtd}>Brand</th>
+                  <th style={thtd}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {transactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
+                {transactions.filter(t => t.type === "IN").map(t => (
+                  <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                    <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+                    <td style={thtd}>{t.items?.item_name}</td>
+                    <td style={thtd}>{t.quantity}</td>
+                    <td style={thtd}>{t.brand}</td>
+                    <td style={thtd}>
+                      <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
+                        originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+                        setEditingId(t.id);
+                        setForm(originalFormRef.current);
+                        setItemSearch(t.items?.item_name || "");
+                      })}>✏️ Edit</button>
+                      <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
+                        await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
+                        loadData();
+                      })}>🗑️ Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <hr style={{ margin: "24px 0" }} />
+
+            {/* OUT TRANSACTIONS */}
+            <h4>⬆️ OUT Transactions</h4>
+            <table style={tableStyle}>
+              <thead>
+                <tr>
+                  <th style={thtd}>Date</th>
+                  <th style={thtd}>Item</th>
+                  <th style={thtd}>Qty</th>
+                  <th style={thtd}>Brand</th>
+                  <th style={thtd}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
+                {transactions.filter(t => t.type === "OUT").map(t => (
+                  <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                    <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+                    <td style={thtd}>{t.items?.item_name}</td>
+                    <td style={thtd}>{t.quantity}</td>
+                    <td style={thtd}>{t.brand}</td>
+                    <td style={thtd}>
+                      <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
+                        originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+                        setEditingId(t.id);
+                        setForm(originalFormRef.current);
+                        setItemSearch(t.items?.item_name || "");
+                      })}>✏️ Edit</button>
+                      <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
+                        await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
+                        loadData();
+                      })}>🗑️ Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+          </div>
           
         </>
       )}
