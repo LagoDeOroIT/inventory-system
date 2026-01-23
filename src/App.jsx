@@ -689,3 +689,97 @@ export default function App() {
     </div>
   );
 }
+
+
+## Add Transaction (In / Out) – Updated Design
+
+```html
+<div class="add-transaction">
+  <div class="add-transaction-header">
+    <span>Add Transaction (In / Out)</span>
+    <button class="btn-hide">Hide</button>
+  </div>
+
+  <div class="add-transaction-form">
+    <input type="text" placeholder="Search item" />
+
+    <select>
+      <option>IN</option>
+      <option>OUT</option>
+    </select>
+
+    <input type="number" placeholder="Qty" />
+
+    <input type="date" />
+
+    <button class="btn-save">Save</button>
+  </div>
+</div>
+```
+
+```css
+.add-transaction {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-family: Arial, sans-serif;
+}
+
+.add-transaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.add-transaction-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.add-transaction-form input,
+.add-transaction-form select {
+  height: 36px;
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.add-transaction-form input[type="text"] {
+  width: 220px;
+}
+
+.add-transaction-form input[type="number"] {
+  width: 80px;
+}
+
+.add-transaction-form input[type="date"] {
+  width: 150px;
+}
+
+.btn-save {
+  height: 36px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-hide {
+  height: 30px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 6px;
+  background: #111827;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+```
