@@ -218,7 +218,38 @@ export default function App() {
   return (
     <div style={{ padding: 20 }}>
 
-      {{/* TABS */
+      {/* MAIN HEADER */}
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
+        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
+      </div>
+
+      {/* 
+          </div>
+        </div>
+      )}
+
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
+        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
+      </div>
+
+      {/* TABS */}
+<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
+  <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("transactions");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("transactions");
+        }
       }}
       style={{
         padding: "8px 16px",
@@ -328,37 +359,7 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <button
-                onClick={() => {
-                  setForm(f => ({ ...f, type: "IN" }));
-                  setShowForm(true);
-                }}
-                style={{
-                  background: "#1f2937",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 6,
-                  padding: "8px 14px",
-                  cursor: "pointer",
-                  fontSize: 14,
-                  fontWeight: 600,
-                }}
-              >
-                ➕ <button
-  onClick={() => setShowTransactionForm(v => !v)}
-  style={{
-    padding: '8px 14px',
-    backgroundColor: '#1f2937',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 6,
-    cursor: 'pointer'
-  }}
->
-  {showTransactionForm ? 'Hide Transaction Form' : 'Add Transaction (IN / OUT)'}
-</button>
-
-              </button>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add New Item"}</h3>
               <button
                 onClick={() => setShowForm(v => !v)}
                 style={{
@@ -366,13 +367,15 @@ export default function App() {
                   color: "#fff",
                   border: "none",
                   borderRadius: 6,
-                  padding: "6px 12px",setShowFormsor: "pointer",
+                  padding: "6px 12px",
+                  cursor: "pointer",
                   fontSize: 12,
                   fontWeight: 600,
                 }}
               >
                 {showForm ? "Hide" : "Show"}
-        showForm         </div>
+              </button>
+            </div>
             {showForm && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
               <input
@@ -406,7 +409,7 @@ export default function App() {
                 } else {
                   saveTransaction();
                 }
-              }}>{editingId ? `Update ${form.type}` : `Add ${form.type}`}</button>
+              }}>{editingId ? "Update" : "Save"}</button>
                         </div>
           )}
           </div>
@@ -607,45 +610,28 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div
-  style={{
-    marginBottom: 16,
-    border: "1px solid #ddd",
-    padding: 12,
-    borderRadius: 6,
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  }}
->
-  <h3 style={{ margin: 0 }}>Transactions</h3>
-
-  <div style={{ display: "flex", gap: 8 }}>
-    <button
-      onClick={() => {
-        setTransactionType("IN");
-        setShowTransactionForm(true);
-      }}
-    >
-      Add IN Transaction
-    </button>
-
-    <button
-      onClick={() => {
-        setTransactionType("OUT");
-        setShowTransactionForm(true);
-      }}
-    >
-      Add OUT Transaction
-    </button>
-  </div>
-</div>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add New Item"}</h3>
+              <button
+                onClick={() => setShowAddItem(v => !v)}
+                style={{
+                  background: "#1f2937",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "6px 12px",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                {showAddItem ? "Hide" : "Show"}
+              </button>
             </div>
             {showAddItem && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
-              <input plnewItem.bsetShowFormetNewItem(n => ({ ...n, brand: e.target.value }))} />
-              <input type="number" placeholder="Unit price" value={newItem.unit_price} setShowFormtem(n => ({ ...n, unit_price: e.target.value }))} />
+              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
+              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
               <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
                         </div>
           )}
