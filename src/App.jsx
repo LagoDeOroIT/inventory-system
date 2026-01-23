@@ -393,14 +393,59 @@ export default function App() {
         alignItems: "center",
       }}
     >
-      <input
-        placeholder="Search item"
-        value={itemSearch}
-        onChange={e => {
-          setItemSearch(e.target.value);
-          setDropdownOpen(true);
-        }}
-      />
+      <div style={{ position: "relative" }}>
+  <input
+    placeholder="Search item"
+    value={itemSearch}
+    onChange={e => {
+      setItemSearch(e.target.value);
+      setDropdownOpen(true);
+    }}
+    onFocus={() => setDropdownOpen(true)}
+    style={{ width: "100%" }}
+  />
+
+  {dropdownOpen && filteredItems.length > 0 && (
+    <div
+      style={{
+        position: "absolute",
+        top: "100%",
+        left: 0,
+        right: 0,
+        background: "#fff",
+        border: "1px solid #e5e7eb",
+        borderRadius: 6,
+        marginTop: 4,
+        maxHeight: 220,
+        overflowY: "auto",
+        zIndex: 20,
+        boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
+      }}
+    >
+      {filteredItems.map(item => (
+        <div
+          key={item.id}
+          onClick={() => {
+            setSelectedItem(item);
+            setItemSearch(item.name);
+            setDropdownOpen(false);
+          }}
+          style={{
+            padding: "8px 10px",
+            cursor: "pointer",
+            fontSize: 14,
+            borderBottom: "1px solid #f3f4f6",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = "#f9fafb")}
+          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+        >
+          <div style={{ fontWeight: 500 }}>{item.name}</div>
+          <div style={{ fontSize: 12, color: "#6b7280" }}>{item.brand}</div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
       <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
         <option value="IN">IN</option>
         <option value="OUT">OUT</option>
