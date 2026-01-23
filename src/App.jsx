@@ -218,38 +218,7 @@ export default function App() {
   return (
     <div style={{ padding: 20 }}>
 
-      {/* MAIN HEADER */}
-      <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
-        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
-      </div>
-
-      {/* 
-          </div>
-        </div>
-      )}
-
-      <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
-        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
-      </div>
-
-      {/* TABS */}
-<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
-  <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("transactions");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("transactions");
-        }
+      {{/* TABS */
       }}
       style={{
         padding: "8px 16px",
@@ -397,15 +366,13 @@ export default function App() {
                   color: "#fff",
                   border: "none",
                   borderRadius: 6,
-                  padding: "6px 12px",
-                  cursor: "pointer",
+                  padding: "6px 12px",setShowFormsor: "pointer",
                   fontSize: 12,
                   fontWeight: 600,
                 }}
               >
                 {showForm ? "Hide" : "Show"}
-              </button>
-            </div>
+        showForm         </div>
             {showForm && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
               <input
@@ -677,8 +644,8 @@ export default function App() {
             {showAddItem && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
-              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
-              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
+              <input plnewItem.bsetShowFormetNewItem(n => ({ ...n, brand: e.target.value }))} />
+              <input type="number" placeholder="Unit price" value={newItem.unit_price} setShowFormtem(n => ({ ...n, unit_price: e.target.value }))} />
               <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
                         </div>
           )}
