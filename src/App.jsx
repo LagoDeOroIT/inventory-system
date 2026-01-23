@@ -28,6 +28,7 @@ export default function App() {
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
+  const [deletedSearch, setDeletedSearch] = useState("");([]);
 
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
@@ -471,6 +472,20 @@ export default function App() {
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <input
+              placeholder="Search deleted items, brand, or quantity"
+              value={deletedSearch}
+              onChange={e => setDeletedSearch(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                width: 320,
+                borderRadius: 6,
+                border: "1px solid #d1d5db",
+                fontSize: 14,
+              }}
+            />
+          </div>
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
@@ -484,7 +499,16 @@ export default function App() {
             </thead>
             <tbody>
               {deletedTransactions.length === 0 && emptyRow(5, "No deleted records")}
-              {deletedTransactions.map(t => (
+              {deletedTransactions
+                .filter(t => {
+                  const q = deletedSearch.toLowerCase();
+                  return (
+                    t.items?.item_name?.toLowerCase().includes(q) ||
+                    t.brand?.toLowerCase().includes(q) ||
+                    String(t.quantity).includes(q)
+                  );
+                })
+                .map(t => (
                 <tr key={t.id}>
                   <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
