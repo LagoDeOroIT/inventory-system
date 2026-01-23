@@ -640,22 +640,39 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add New Item"}</h3>
-              <button
-                onClick={() => setShowAddItem(v => !v)}
-                style={{
-                  background: "#1f2937",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 6,
-                  padding: "6px 12px",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}
-              >
-                {showAddItem ? "Hide" : "Show"}
-              </button>
+              <div
+  style={{
+    marginBottom: 16,
+    border: "1px solid #ddd",
+    padding: 12,
+    borderRadius: 6,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  }}
+>
+  <h3 style={{ margin: 0 }}>Transactions</h3>
+
+  <div style={{ display: "flex", gap: 8 }}>
+    <button
+      onClick={() => {
+        setTransactionType("IN");
+        setShowTransactionForm(true);
+      }}
+    >
+      Add IN Transaction
+    </button>
+
+    <button
+      onClick={() => {
+        setTransactionType("OUT");
+        setShowTransactionForm(true);
+      }}
+    >
+      Add OUT Transaction
+    </button>
+  </div>
+</div>
             </div>
             {showAddItem && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
