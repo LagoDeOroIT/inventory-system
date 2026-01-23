@@ -335,7 +335,7 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add Transaction (In / Out)"}</h3>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Register New Stock Item"}</h3>
               <button
                 onClick={() => setShowForm(v => !v)}
                 style={{
@@ -586,7 +586,7 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add Transaction (In / Out)"}</h3>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Register New Stock Item"}</h3>
               <button
                 onClick={() => setShowAddItem(v => !v)}
                 style={{
