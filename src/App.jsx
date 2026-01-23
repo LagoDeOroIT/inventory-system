@@ -131,6 +131,8 @@ export default function App() {
   }
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
+  const [stockEditItem, setStockEditItem] = useState(null);
+  const [stockEditForm, setStockEditForm] = useState({ unit_price: "", brand: "" });
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
 
@@ -612,7 +614,7 @@ export default function App() {
                 <th style={thtd}>Current Stock</th>
                 <th style={thtd}>Unit Price</th>
                 <th style={thtd}>Stock Value</th>
-                <th style={thtd}>Edit</th>
+                <th style={thtd}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -625,14 +627,19 @@ export default function App() {
                   <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
                   <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
                   <td style={thtd}>
-                    <button onClick={async () => {
-                      const newPrice = prompt("New unit price", i.unit_price);
-                      const newBrand = prompt("New brand", i.brand || "");
-                      if (newPrice !== null) {
-                        await supabase.from("items").update({ unit_price: Number(newPrice), brand: newBrand || null }).eq("id", i.id);
+                    <button
+                      style={{ marginRight: 6 }}
+                      onClick={() => {
+                        setStockEditItem(i);
+                        setStockEditForm({ unit_price: i.unit_price, brand: i.brand || "" });
+                      }}
+                    >✏️ Edit</button>
+                    <button
+                      onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
+                        await supabase.from("items").delete().eq("id", i.id);
                         loadData();
-                      }
-                    }}>✏️ Edit</button>
+                      })}
+                    >🗑️ Delete</button>
                   </td>
                 </tr>
               ))}
