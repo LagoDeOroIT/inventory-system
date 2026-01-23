@@ -28,7 +28,7 @@ export default function App() {
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
-  const [deletedSearch, setDeletedSearch] = useState("");([]);
+  const [deletedSearch, setDeletedSearch] = useState("");
 
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
@@ -197,6 +197,48 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
+
+      {/* STOCK EDIT MODAL */}
+      {stockEditItem && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000 }}>
+          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360 }}>
+            <h3>Edit Item</h3>
+
+            <input
+              placeholder="Brand"
+              value={stockEditForm.brand}
+              onChange={e => setStockEditForm(f => ({ ...f, brand: e.target.value }))}
+            />
+
+            <input
+              type="number"
+              placeholder="Unit Price"
+              value={stockEditForm.unit_price}
+              onChange={e => setStockEditForm(f => ({ ...f, unit_price: e.target.value }))}
+            />
+
+            <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+              <button
+                onClick={async () => {
+                  await supabase
+                    .from("items")
+                    .update({
+                      brand: stockEditForm.brand || null,
+                      unit_price: Number(stockEditForm.unit_price),
+                    })
+                    .eq("id", stockEditItem.id);
+
+                  setStockEditItem(null);
+                  loadData();
+                }}
+              >Save</button>
+
+              <button onClick={() => setStockEditItem(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ textAlign: "center", marginBottom: 16 }}>
         <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
         <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
