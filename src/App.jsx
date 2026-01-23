@@ -1,4 +1,4 @@
-import React, { useState } from "react"; 
+import React, { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -18,18 +18,6 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
-  const [showTransactionModal, setShowTransactionModal] = useState(false);
-
-  // ===== LOAD DATA (FIXED POSITION) =====
-  const loadData = async () => {
-    const { data: itemsData } = await supabase
-      .from("items")
-      .select("id, item_name, unit_price, brand");
-
-    if (itemsData) {
-      setItems(itemsData);
-    }
-  };
   // ===== CONFIRM MODAL STATE =====
   const [confirm, setConfirm] = useState(null);
   const openConfirm = (message, onConfirm) => {
@@ -69,8 +57,7 @@ export default function App() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return (
-  <>) => data.subscription.unsubscribe();
+    return () => data.subscription.unsubscribe();
   }, []);
 
   // ================= LOAD DATA =================
@@ -225,8 +212,7 @@ export default function App() {
           Login with Google
         </button>
       </div>
-  </>
-);
+    );
   }
 
   return (
@@ -373,9 +359,7 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>
-  {isEditingItem ? "Edit Item" : "Add IN/OUT Transactions"}
-</h3>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add New Item"}</h3>
               <button
                 onClick={() => setShowForm(v => !v)}
                 style={{
@@ -705,40 +689,3 @@ export default function App() {
     </div>
   );
 }
-
-{/* Transaction Modal */}
-{showTransactionModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Add IN/OUT Transaction</h2>
-        <button onClick={() => setShowTransactionModal(false)} className="text-gray-500 hover:text-gray-800">✕</button>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium">Transaction Type</label>
-          <select className="w-full border rounded-lg px-3 py-2">
-            <option value="IN">IN</option>
-            <option value="OUT">OUT</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium">Item</label>
-          <input type="text" placeholder="Search item" className="w-full border rounded-lg px-3 py-2" />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium">Quantity</label>
-          <input type="number" placeholder="Qty" className="w-full border rounded-lg px-3 py-2" />
-        </div>
-      </div>
-
-      <div className="flex justify-end gap-2 mt-6">
-        <button onClick={() => setShowTransactionModal(false)} className="px-4 py-2 rounded-lg border">Cancel</button>
-        <button className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Save</button>
-      </div>
-    </div>
-  </div>
-)}
