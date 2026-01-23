@@ -208,226 +208,7 @@ export default function App() {
     return (
       <div style={{ padding: 40 }}>
         <h2>Inventory Login</h2>
-        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>
-          Login with Google
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ padding: 20 }}>
-
-      {/* MAIN HEADER */}
-      <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
-        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
-      </div>
-
-      {/* 
-          </div>
-        </div>
-      )}
-
-      <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
-        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
-      </div>
-
-      {/* TABS */}
-<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
-  <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("transactions");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("transactions");
-        }
-      }}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "transactions" ? "#1f2937" : "transparent",
-        color: activeTab === "transactions" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      📄 Transactions
-    </button>
-
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("deleted");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("deleted");
-        }
-      }}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "deleted" ? "#1f2937" : "transparent",
-        color: activeTab === "deleted" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      🗑️ Deleted History
-    </button>
-
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("report");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("report");
-        }
-      }}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "report" ? "#1f2937" : "transparent",
-        color: activeTab === "report" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      📊 Monthly Report
-    </button>
-
-    <button
-      onClick={() => setActiveTab("stock")}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "stock" ? "#1f2937" : "transparent",
-        color: activeTab === "stock" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      📦 Stock Inventory
-    </button>
-  </div>
-</div>
-
-      {/* CONFIRM MODAL */}
-      {confirm && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
-            <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
-            <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-              <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
-              <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TRANSACTIONS TAB */}
-      {activeTab === "transactions" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
-  <hr style={{ marginTop: 8 }} />
-</div>
-          <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 12, background: "#fafafa" }}>
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-    <h3 style={{ margin: 0, fontSize: 18 }}>Add Transaction (In / Out)</h3>
-    <button
-      onClick={() => setShowForm(v => !v)}
-      style={{
-        background: "#1f2937",
-        color: "#fff",
-        border: "none",
-        borderRadius: 999,
-        padding: "6px 14px",
-        cursor: "pointer",
-        fontSize: 12,
-        fontWeight: 600,
-      }}
-    >
-      {showForm ? "Hide" : "Show"}
-    </button>
-  </div>
-
-  {showForm && (
-    <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr auto", gap: 10, alignItems: "end" }} ref={searchRef}>
-      <div style={{ position: "relative" }}>
-        <label style={{ fontSize: 12, color: "#555" }}>Item</label>
-        <input
-          placeholder="Search item"
-          value={itemSearch}
-          onChange={e => {
-            setItemSearch(e.target.value);
-            setDropdownOpen(true);
-          }}
-          style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db" }}
-        />
-        {dropdownOpen && itemSearch && (
-          <div style={{ position: "absolute", zIndex: 10, background: "#fff", border: "1px solid #ccc", width: "100%", maxHeight: 160, overflowY: "auto", borderRadius: 6 }}>
-            {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
-              <div
-                key={i.id}
-                style={{ padding: 8, cursor: "pointer" }}
-                onClick={() => {
-                  setForm(f => ({ ...f, item_id: i.id }));
-                  setItemSearch(i.item_name);
-                  setDropdownOpen(false);
-                }}
-              >
-                {i.item_name}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <label style={{ fontSize: 12, color: "#555" }}>Type</label>
-        <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} style={{ width: "100%", padding: 8, borderRadius: 6 }}>
-          <option value="IN">Stock In</option>
-          <option value="OUT">Stock Out</option>
-        </select>
-      </div>
-
-      <div>
-        <label style={{ fontSize: 12, color: "#555" }}>Quantity</label>
-        <input type="number" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} style={{ width: "100%", padding: 8, borderRadius: 6 }} />
-      </div>
-
-      <div>
-        <label style={{ fontSize: 12, color: "#555" }}>Date</label>
-        <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} style={{ width: "100%", padding: 8, borderRadius: 6 }} />
-      </div>
-
-      <button
+        <button
         onClick={() => {
           if (editingId && isFormChanged()) {
             openConfirm("Save changes to this transaction?", saveTransaction);
@@ -435,7 +216,16 @@ export default function App() {
             saveTransaction();
           }
         }}
-        style={{ background: "#2563eb", color: "#fff", border: "none", borderRadius: 8, padding: "10px 18px", fontWeight: 600 }}
+        style={{
+          background: "#2563eb",
+          color: "#fff",
+          border: "none",
+          borderRadius: 10,
+          padding: "10px 22px",
+          fontWeight: 600,
+          height: 42,
+          alignSelf: "flex-end",
+        }}
       >
         {editingId ? "Update" : "Save"}
       </button>
