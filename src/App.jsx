@@ -608,10 +608,16 @@ export default function App() {
       )}
     </div>
         </div>
-    </div>
-
-    <div style={{ marginTop: 260, maxWidth: 1200, marginLeft: "auto", marginRight: "auto", maxHeight: "calc(100vh - 260px)", overflowY: "auto", padding: 20 }}>
-      {activeTab === "transactions" || activeTab === "deleted" || activeTab === "report" || activeTab === "stock" ? null : null}
-    </div>
+    <div
+  style={{
+    marginTop: 260,
+    maxWidth: 1200,
+    marginLeft: "auto",
+    marginRight: "auto",
+    maxHeight: "calc(100vh - 260px)",
+    overflowY: "auto",
+    padding: 20,
+  }}
+>
     </>
   );
