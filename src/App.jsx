@@ -314,6 +314,7 @@ export default function App() {
 
       {/* TRANSACTIONS TAB */}
       {activeTab === "transactions" && (
+        
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
   <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
