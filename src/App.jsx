@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react"; 
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -218,6 +218,17 @@ export default function App() {
   return (
     <div style={{ padding: 20 }}>
 
+      {/* MAIN HEADER */}
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
+        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
+      </div>
+
+      {/* 
+          </div>
+        </div>
+      )}
+
       <div style={{ textAlign: "center", marginBottom: 16 }}>
         <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
         <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
@@ -348,181 +359,25 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add New Item"}</h3>
               <button
-                onClick={() => setShowForm(true)}
+                onClick={() => setShowForm(v => !v)}
                 style={{
                   background: "#1f2937",
                   color: "#fff",
                   border: "none",
-                  borderRadius: 8,
-                  padding: "10px 16px",
+                  borderRadius: 6,
+                  padding: "6px 12px",
                   cursor: "pointer",
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: 600,
                 }}
               >
-                ➕ Add New Transaction
+                {showForm ? "Hide" : "Show"}
               </button>
             </div>
-
             {showForm && (
-  <div
-    style={{
-      position: "fixed",
-      inset: 0,
-      background: "rgba(0,0,0,0.55)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 1000,
-    }}
-  >
-    <div style={{ background: "#fff", padding: 20, borderRadius: 8, width: 520, position: "relative" }}>
-      <button
-        onClick={() => setShowForm(false)}
-        style={{ position: "absolute", top: 10, right: 10, border: "none", background: "transparent", cursor: "pointer" }}
-      >
-        ✖
-      </button>
-
-      <h3 style={{ marginTop: 0 }}>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
-
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", position: "relative" }} ref={searchRef}>
-        <input
-          placeholder="Search item"
-          value={itemSearch}
-          onChange={e => {
-            setItemSearch(e.target.value);
-            setDropdownOpen(true);
-          }}
-        />
-
-        {dropdownOpen && itemSearch && (
-          <div style={{ position: "absolute", top: 36, left: 0, right: 0, background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflowY: "auto", zIndex: 10 }}>
-            {items
-              .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
-              .map(i => (
-                <div
-                  key={i.id}
-                  style={{ padding: 6, cursor: "pointer" }}
-                  onClick={() => {
-                    setForm(f => ({ ...f, item_id: i.id }));
-                    setItemSearch(i.item_name);
-                    setDropdownOpen(false);
-                  }}
-                >
-                  {i.item_name}
-                </div>
-              ))}
-          </div>
-        )}
-
-        <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-          <option value="IN">IN</option>
-          <option value="OUT">OUT</option>
-        </select>
-
-        <input
-          type="number"
-          placeholder="Qty"
-          value={form.quantity}
-          onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
-        />
-
-        <input
-          type="date"
-          value={form.date}
-          onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-        />
-
-        <button
-          onClick={() => {
-            if (editingId && isFormChanged()) {
-              openConfirm("Save changes to this transaction?", saveTransaction);
-            } else {
-              saveTransaction();
-            }
-            setShowForm(false);
-          }}
-        >
-          {editingId ? "Update" : "Save"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}>✖</button>
-</div>
-
-<div
-  style={{ display: "flex", gap: 8, flexWrap: "wrap", position: "relative" }}
-  ref={searchRef}
->>
-        <input
-          placeholder="Search item"
-          value={itemSearch}
-          onChange={e => {
-            setItemSearch(e.target.value);
-            setDropdownOpen(true);
-          }}
-        />
-
-        {dropdownOpen && itemSearch && (
-          <div style={{ position: "absolute", top: 40, left: 0, right: 0, background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto", zIndex: 10 }}>
-            {items
-              .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
-              .map(i => (
-                <div
-                  key={i.id}
-                  style={{ padding: 6, cursor: "pointer" }}
-                  onClick={() => {
-                    setForm(f => ({ ...f, item_id: i.id }));
-                    setItemSearch(i.item_name);
-                    setDropdownOpen(false);
-                  }}
-                >
-                  {i.item_name}
-                </div>
-              ))}
-          </div>
-        )}
-
-        <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-          <option value="IN">IN</option>
-          <option value="OUT">OUT</option>
-        </select>
-
-        <input
-          type="number"
-          placeholder="Qty"
-          value={form.quantity}
-          onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
-        />
-
-        <input
-          type="date"
-          value={form.date}
-          onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-        />
-
-        <button
-          onClick={() => {
-            if (editingId && isFormChanged()) {
-              openConfirm("Save changes to this transaction?", saveTransaction);
-            } else {
-              saveTransaction();
-            }
-            setShowForm(false);
-          }}
-        >
-          {editingId ? "Update" : "Save"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}>✖</button>
-                  </div>
-
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", position: "relative" }} ref={searchRef}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
               <input
                 placeholder="Search item"
                 value={itemSearch}
