@@ -35,7 +35,6 @@ export default function App() {
 
   // form
   const [editingId, setEditingId] = useState(null);
-  const [showForm, setShowForm] = useState(true);
   const originalFormRef = useRef(null);
   const [form, setForm] = useState({
     item_id: "",
@@ -308,8 +307,7 @@ export default function App() {
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
               <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
               <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
-                                      </div>
-            )}
+            </div>
           </div>
         </div>
       )}
@@ -323,14 +321,8 @@ export default function App() {
   <hr style={{ marginTop: 8 }} />
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
-              <button onClick={() => setShowForm(s => !s)}>
-                {showForm ? "Hide" : "Show"}
-              </button>
-            </div>
-            {showForm && (
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
+            <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
               <input
                 placeholder="Search item"
                 value={itemSearch}
@@ -364,10 +356,9 @@ export default function App() {
                 }
               }}>{editingId ? "Update" : "Save"}</button>
             </div>
-)
-}
+          </div>
 
-<div style={{ maxHeight: 400, overflowY: "auto" }}>
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
               <tr>
