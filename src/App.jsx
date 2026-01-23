@@ -61,7 +61,78 @@ export default function App() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
+    return (
+  <>
+    {/* FIXED HEADER */}
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        background: "#fff",
+        zIndex: 20,
+      }}
+    >
+      <div style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 16 }}>
+          <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
+          <p style={{ marginTop: 0, color: "#555", fontSize: 14 }}>
+            Manage stock IN / OUT and reports
+          </p>
+        </div>
+
+        {/* TABS */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
+          <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
+            <button onClick={() => setActiveTab("transactions")}>📄 Transactions</button>
+            <button onClick={() => setActiveTab("deleted")}>🗑️ Deleted History</button>
+            <button onClick={() => setActiveTab("report")}>📊 Monthly Report</button>
+            <button onClick={() => setActiveTab("stock")}>📦 Stock Inventory</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* SCROLLABLE CONTENT */}
+    <div
+      style={{
+        marginTop: 240,
+        maxWidth: 1200,
+        marginLeft: "auto",
+        marginRight: "auto",
+        maxHeight: "calc(100vh - 240px)",
+        overflowY: "auto",
+        padding: 20,
+      }}
+    >
+      {activeTab === "transactions" && (
+        <>
+          <h2 style={{ textAlign: "center" }}>📄 Transactions History</h2>
+          {/* TRANSACTIONS TABLE CONTENT REMAINS BELOW */}
+        </>
+      )}
+
+      {activeTab === "deleted" && (
+        <>
+          <h2 style={{ textAlign: "center" }}>🗑️ Delete History</h2>
+        </>
+      )}
+
+      {activeTab === "report" && (
+        <>
+          <h2 style={{ textAlign: "center" }}>📊 Monthly Report</h2>
+        </>
+      )}
+
+      {activeTab === "stock" && (
+        <>
+          <h2 style={{ textAlign: "center" }}>📦 Stock Inventory</h2>
+        </>
+      )}
+    </div>
+  </>
+);
   }, []);
 
   // ================= LOAD DATA =================
