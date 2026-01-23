@@ -366,14 +366,97 @@ export default function App() {
             </div>
 
             {showForm && (
-  <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-    <div style={{ background: "#fff", padding: 20, borderRadius: 8, width: 520 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <h3 style={{ margin: 0 }}>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
-        <button onClick={() => setShowForm(false)}>✖</button>
-      </div>
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.55)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1000,
+    }}
+  >
+    <div style={{ background: "#fff", padding: 20, borderRadius: 8, width: 520, position: "relative" }}>
+      <button
+        onClick={() => setShowForm(false)}
+        style={{ position: "absolute", top: 10, right: 10, border: "none", background: "transparent", cursor: "pointer" }}
+      >
+        ✖
+      </button>
+
+      <h3 style={{ marginTop: 0 }}>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", position: "relative" }} ref={searchRef}>
+        <input
+          placeholder="Search item"
+          value={itemSearch}
+          onChange={e => {
+            setItemSearch(e.target.value);
+            setDropdownOpen(true);
+          }}
+        />
+
+        {dropdownOpen && itemSearch && (
+          <div style={{ position: "absolute", top: 36, left: 0, right: 0, background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflowY: "auto", zIndex: 10 }}>
+            {items
+              .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
+              .map(i => (
+                <div
+                  key={i.id}
+                  style={{ padding: 6, cursor: "pointer" }}
+                  onClick={() => {
+                    setForm(f => ({ ...f, item_id: i.id }));
+                    setItemSearch(i.item_name);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  {i.item_name}
+                </div>
+              ))}
+          </div>
+        )}
+
+        <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+          <option value="IN">IN</option>
+          <option value="OUT">OUT</option>
+        </select>
+
+        <input
+          type="number"
+          placeholder="Qty"
+          value={form.quantity}
+          onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
+        />
+
+        <input
+          type="date"
+          value={form.date}
+          onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+        />
+
+        <button
+          onClick={() => {
+            if (editingId && isFormChanged()) {
+              openConfirm("Save changes to this transaction?", saveTransaction);
+            } else {
+              saveTransaction();
+            }
+            setShowForm(false);
+          }}
+        >
+          {editingId ? "Update" : "Save"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}>✖</button>
+</div>
+
+<div
+  style={{ display: "flex", gap: 8, flexWrap: "wrap", position: "relative" }}
+  ref={searchRef}
+>>
         <input
           placeholder="Search item"
           value={itemSearch}
