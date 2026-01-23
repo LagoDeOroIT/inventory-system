@@ -325,15 +325,27 @@ export default function App() {
   <hr style={{ marginTop: 8 }} />
 </div>
           {/* TOGGLE BUTTON */}
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-            <button onClick={() => setShowForm(s => !s)}>
-              {showForm ? "Hide" : "Show"} Add Transaction
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <h3 style={{ margin: 0, fontWeight: 600 }}>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
+            <button
+              onClick={() => setShowForm(s => !s)}
+              style={{
+                background: showForm ? "#e5e7eb" : "#1f2937",
+                color: showForm ? "#111827" : "#fff",
+                border: "1px solid #d1d5db",
+                padding: "6px 12px",
+                borderRadius: 6,
+                fontSize: 12,
+                cursor: "pointer",
+              }}
+            >
+              {showForm ? "Hide" : "Show"}
             </button>
           </div>
 
           {showForm && (
-          <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
+          <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8, background: "#fafafa" }}>
+            
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
               <input
                 placeholder="Search item"
