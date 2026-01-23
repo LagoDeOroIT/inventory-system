@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";  
+import React, { useEffect, useRef, useState } from "react";   
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -357,64 +357,64 @@ export default function App() {
   <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
-          <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add Transaction (In / Out)"}</h3>
-              <button
-                onClick={() => setShowForm(v => !v)}
-                style={{
-                  background: "#1f2937",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 6,
-                  padding: "6px 12px",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}
-              >
-                {showForm ? "Hide" : "Show"}
-              </button>
-            </div>
-            {showForm && (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
-              <input
-                placeholder="Search item"
-                value={itemSearch}
-                onChange={e => {
-                  setItemSearch(e.target.value);
-                  setDropdownOpen(true);
-                }}
-              />
-              {dropdownOpen && itemSearch && (
-                <div style={{ position: "absolute", background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto" }}>
-                  {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
-                    <div key={i.id} style={{ padding: 6, cursor: "pointer" }} onClick={() => {
-                      setForm(f => ({ ...f, item_id: i.id }));
-                      setItemSearch(i.item_name);
-                      setDropdownOpen(false);
-                    }}>{i.item_name}</div>
-                  ))}
-                </div>
-              )}
-              <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                <option value="IN">IN</option>
-                <option value="OUT">OUT</option>
-              </select>
-              <input type="number" placeholder="Qty" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
-              <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-              <button onClick={() => {
-                if (editingId && isFormChanged()) {
-                  openConfirm("Save changes to this transaction?", saveTransaction);
-                } else {
-                  saveTransaction();
-                }
-              }}>{editingId ? "Update" : "Save"}</button>
-                        </div>
-          )}
-          </div>
+          <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div>
+      <h3 style={{ margin: 0 }}>Record Inventory Transaction</h3>
+      <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+        Log incoming and outgoing stock movements for accurate inventory tracking.
+      </p>
+    </div>
+    <button
+      onClick={() => setShowForm(v => !v)}
+      style={{
+        background: "#1f2937",
+        color: "#fff",
+        border: "none",
+        borderRadius: 6,
+        padding: "6px 14px",
+        cursor: "pointer",
+        fontSize: 12,
+        fontWeight: 600,
+      }}
+    >
+      {showForm ? "Hide" : "Add Transaction"}
+    </button>
+  </div>
 
-          <div style={{ display: "flex", gap: 16 }}>
+  {showForm && (
+    <div
+      ref={searchRef}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "2fr 1fr 1fr 1fr auto",
+        gap: 10,
+        marginTop: 12,
+        alignItems: "center",
+      }}
+    >
+      <input
+        placeholder="Search item"
+        value={itemSearch}
+        onChange={e => {
+          setItemSearch(e.target.value);
+          setDropdownOpen(true);
+        }}
+      />
+      <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+        <option value="IN">IN</option>
+        <option value="OUT">OUT</option>
+      </select>
+      <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+      <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+      <button onClick={saveTransaction}>
+        {editingId ? "Update" : "Save"}
+      </button>
+    </div>
+  )}
+</div>
+
+<div style={{ display: "flex", gap: 16 }}>
 
             {/* IN TRANSACTIONS */}
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
@@ -610,7 +610,12 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add New Stock Item"}</h3>
+              <div>
+  <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
+  <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+    Register a new product or supply into the inventory system.
+  </p>
+</div>
               <button
                 onClick={() => setShowAddItem(v => !v)}
                 style={{
