@@ -30,7 +30,10 @@ export default function App() {
   const [deletedTransactions, setDeletedTransactions] = useState([]);
 
   // pagination (ONE declaration each)
-  // pagination removed
+  const PAGE_SIZE = 5;
+  const [txPage, setTxPage] = useState(1);
+  const [deletedPage, setDeletedPage] = useState(1);
+  const [reportPage, setReportPage] = useState(1);
 
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
@@ -195,20 +198,111 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "#fff", zIndex: 100, paddingBottom: 12 }}>
       <div style={{ textAlign: "center", marginBottom: 16 }}>
         <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
         <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
       </div>
 
       {/* TABS */}
-<div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
   <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
-    {/* tabs unchanged */}
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("transactions");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("transactions");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "transactions" ? "#1f2937" : "transparent",
+        color: activeTab === "transactions" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📄 Transactions
+    </button>
+
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("deleted");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("deleted");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "deleted" ? "#1f2937" : "transparent",
+        color: activeTab === "deleted" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      🗑️ Deleted History
+    </button>
+
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("report");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("report");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "report" ? "#1f2937" : "transparent",
+        color: activeTab === "report" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📊 Monthly Report
+    </button>
+
+    <button
+      onClick={() => setActiveTab("stock")}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "stock" ? "#1f2937" : "transparent",
+        color: activeTab === "stock" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📦 Stock Inventory
+    </button>
   </div>
 </div>
-</div>
-<div style={{ marginTop: 160 }}>
 
       {/* CONFIRM MODAL */}
       {confirm && (
@@ -270,8 +364,7 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ maxHeight: "60vh", overflowY: "auto", border: "1px solid #ddd" }}>
-<table style={tableStyle}>
+          <table style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Date</th>
@@ -284,7 +377,7 @@ export default function App() {
             </thead>
             <tbody>
               {transactions.length === 0 && emptyRow(6, "No transactions yet")}
-              {transactions.map(t => (
+              {transactions.slice((txPage - 1) * PAGE_SIZE, txPage * PAGE_SIZE).map(t => (
                 <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                   <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
@@ -307,8 +400,11 @@ export default function App() {
               ))}
             </tbody>
           </table>
-</div>
-          
+          <div>
+            <button disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>Prev</button>
+            <span> Page {txPage} </span>
+            <button disabled={txPage * PAGE_SIZE >= transactions.length} onClick={() => setTxPage(p => p + 1)}>Next</button>
+          </div>
         </>
       )}
 
@@ -319,8 +415,7 @@ export default function App() {
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
-          <div style={{ maxHeight: "60vh", overflowY: "auto", border: "1px solid #ddd" }}>
-<table style={tableStyle}>
+          <table style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Date</th>
@@ -332,7 +427,7 @@ export default function App() {
             </thead>
             <tbody>
               {deletedTransactions.length === 0 && emptyRow(5, "No deleted records")}
-              {deletedTransactions.map(t => (
+              {deletedTransactions.slice((deletedPage - 1) * PAGE_SIZE, deletedPage * PAGE_SIZE).map(t => (
                 <tr key={t.id}>
                   <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
@@ -352,8 +447,11 @@ export default function App() {
               ))}
             </tbody>
           </table>
-</div>
-          
+          <div>
+            <button disabled={deletedPage === 1} onClick={() => setDeletedPage(p => p - 1)}>Prev</button>
+            <span> Page {deletedPage} </span>
+            <button disabled={deletedPage * PAGE_SIZE >= deletedTransactions.length} onClick={() => setDeletedPage(p => p + 1)}>Next</button>
+          </div>
         </>
       )}
 
@@ -364,8 +462,7 @@ export default function App() {
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Months tracked: {Object.keys(monthlyTotals).length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
-          <div style={{ maxHeight: "60vh", overflowY: "auto", border: "1px solid #ddd" }}>
-<table style={tableStyle}>
+          <table style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Month</th>
@@ -375,7 +472,9 @@ export default function App() {
             </thead>
             <tbody>
               {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
-              {Object.entries(monthlyTotals).map(([m, v]) => (
+              {Object.entries(monthlyTotals)
+                .slice((reportPage - 1) * PAGE_SIZE, reportPage * PAGE_SIZE)
+                .map(([m, v]) => (
                   <tr key={m}>
                     <td style={thtd}>{m}</td>
                     <td style={thtd}>₱{v.IN.toFixed(2)}</td>
@@ -384,7 +483,6 @@ export default function App() {
                 ))}
             </tbody>
           </table>
-</div>
         </>
       )}
 
@@ -407,8 +505,7 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ maxHeight: "60vh", overflowY: "auto", border: "1px solid #ddd" }}>
-<table style={tableStyle}>
+          <table style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Item</th>
@@ -442,7 +539,6 @@ export default function App() {
               ))}
             </tbody>
           </table>
-</div>
         </>
       )}
     </div>
