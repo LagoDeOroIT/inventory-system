@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react"; 
+import React, { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -34,6 +34,7 @@ export default function App() {
 
 
   // form
+  const [showForm, setShowForm] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const originalFormRef = useRef(null);
   const [form, setForm] = useState({
@@ -321,7 +322,23 @@ export default function App() {
   <hr style={{ marginTop: 8 }} />
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <h3>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ margin: 0 }}>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
+              <button
+                onClick={() => setShowForm(v => !v)}
+                style={{
+                  background: "#f3f4f6",
+                  border: "1px solid #d1d5db",
+                  borderRadius: 6,
+                  padding: "4px 10px",
+                  cursor: "pointer",
+                  fontSize: 12,
+                }}
+              >
+                {showForm ? "Hide" : "Show"}
+              </button>
+            </div>
+            {showForm && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
               <input
                 placeholder="Search item"
@@ -355,7 +372,8 @@ export default function App() {
                   saveTransaction();
                 }
               }}>{editingId ? "Update" : "Save"}</button>
-            </div>
+                        </div>
+          )}
           </div>
 
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
