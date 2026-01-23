@@ -218,6 +218,27 @@ export default function App() {
   return (
     <div style={{ padding: 20 }}>
 
+      {confirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}>
+          <div style={{ background: "#fff", padding: 20, borderRadius: 8, width: 320 }}>
+            <p style={{ marginBottom: 16 }}>{confirm.message}</p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button onClick={closeConfirm}>Cancel</button>
+              <button
+                style={{ background: "#1f2937", color: "#fff", border: "none", padding: "6px 12px", borderRadius: 6 }}
+                onClick={() => {
+                  confirm.onConfirm();
+                  closeConfirm();
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       
       <div style={{ textAlign: "center", marginBottom: 16 }}>
         <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
