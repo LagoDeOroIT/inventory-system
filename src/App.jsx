@@ -58,7 +58,8 @@ export default function App() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
+    return (
+  <>) => data.subscription.unsubscribe();
   }, []);
 
   // ================= LOAD DATA =================
@@ -213,7 +214,8 @@ export default function App() {
           Login with Google
         </button>
       </div>
-    );
+  </>
+);
   }
 
   return (
