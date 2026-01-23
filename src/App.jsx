@@ -689,3 +689,35 @@ export default function App() {
     </div>
   );
 }
+
+
+// =============================
+// Inventory Stock Bar Chart
+// =============================
+// Shows current stock per item and auto-updates when inventory data changes
+
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+
+export function InventoryStockChart({ items }) {
+  const chartData = items.map(item => ({
+    name: item.name,
+    stock: Number(item.quantity) || 0,
+  }));
+
+  return (
+    <div className="w-full h-[350px] mt-6 rounded-2xl bg-white shadow p-4">
+      <h2 className="text-lg font-semibold mb-4">Stock per Item</h2>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData}>
+          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="stock" radius={[8, 8, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// 👉 Usage:
+// <InventoryStockChart items={inventoryItems} />
