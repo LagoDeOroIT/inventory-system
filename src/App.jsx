@@ -199,8 +199,8 @@ export default function App() {
   return (
     <div style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
       <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
-        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
+        <h1 style={{ marginBottom: 4, fontSize: 32 }}><span style="font-size:32px">Lago De Oro Inventory System</span></h1>
+        <p style={{ marginTop: 0, color: "#555" }}><span style="font-size:14px">Manage stock IN / OUT and reports</span></p>
       </div>
 
       {/* TABS */}
