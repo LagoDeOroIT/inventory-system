@@ -359,7 +359,9 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Record Inventory Transaction (In / Out)"}</h3>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Record Inventory Transaction (In / Out)
+
+*Log stock movements such as receiving, issuing, returns, and adjustments. Ensures real-time inventory accuracy.*"}</h3>
               <button
                 onClick={() => setShowForm(v => !v)}
                 style={{
@@ -610,7 +612,9 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Create New Inventory Item"}</h3>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Create New Inventory Item
+
+*Register a new product, supply, or asset into the inventory system with complete classification and tracking details.*"}</h3>
               <button
                 onClick={() => setShowAddItem(v => !v)}
                 style={{
