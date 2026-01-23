@@ -357,62 +357,91 @@ export default function App() {
   <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
   <hr style={{ marginTop: 8 }} />
 </div>
-          <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add Transaction (In / Out)"}</h3>
-              <button
-                onClick={() => setShowForm(v => !v)}
-                style={{
-                  background: "#1f2937",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 6,
-                  padding: "6px 12px",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: 600,
+          <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 12, background: "#fafafa" }}>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+    <h3 style={{ margin: 0, fontSize: 18 }}>Add Transaction (In / Out)</h3>
+    <button
+      onClick={() => setShowForm(v => !v)}
+      style={{
+        background: "#1f2937",
+        color: "#fff",
+        border: "none",
+        borderRadius: 999,
+        padding: "6px 14px",
+        cursor: "pointer",
+        fontSize: 12,
+        fontWeight: 600,
+      }}
+    >
+      {showForm ? "Hide" : "Show"}
+    </button>
+  </div>
+
+  {showForm && (
+    <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr auto", gap: 10, alignItems: "end" }} ref={searchRef}>
+      <div style={{ position: "relative" }}>
+        <label style={{ fontSize: 12, color: "#555" }}>Item</label>
+        <input
+          placeholder="Search item"
+          value={itemSearch}
+          onChange={e => {
+            setItemSearch(e.target.value);
+            setDropdownOpen(true);
+          }}
+          style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db" }}
+        />
+        {dropdownOpen && itemSearch && (
+          <div style={{ position: "absolute", zIndex: 10, background: "#fff", border: "1px solid #ccc", width: "100%", maxHeight: 160, overflowY: "auto", borderRadius: 6 }}>
+            {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
+              <div
+                key={i.id}
+                style={{ padding: 8, cursor: "pointer" }}
+                onClick={() => {
+                  setForm(f => ({ ...f, item_id: i.id }));
+                  setItemSearch(i.item_name);
+                  setDropdownOpen(false);
                 }}
               >
-                {showForm ? "Hide" : "Show"}
-              </button>
-            </div>
-            {showForm && (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} ref={searchRef}>
-              <input
-                placeholder="Search item"
-                value={itemSearch}
-                onChange={e => {
-                  setItemSearch(e.target.value);
-                  setDropdownOpen(true);
-                }}
-              />
-              {dropdownOpen && itemSearch && (
-                <div style={{ position: "absolute", background: "#fff", border: "1px solid #ccc", maxHeight: 150, overflow: "auto" }}>
-                  {items.filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i => (
-                    <div key={i.id} style={{ padding: 6, cursor: "pointer" }} onClick={() => {
-                      setForm(f => ({ ...f, item_id: i.id }));
-                      setItemSearch(i.item_name);
-                      setDropdownOpen(false);
-                    }}>{i.item_name}</div>
-                  ))}
-                </div>
-              )}
-              <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                <option value="IN">IN</option>
-                <option value="OUT">OUT</option>
-              </select>
-              <input type="number" placeholder="Qty" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
-              <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-              <button onClick={() => {
-                if (editingId && isFormChanged()) {
-                  openConfirm("Save changes to this transaction?", saveTransaction);
-                } else {
-                  saveTransaction();
-                }
-              }}>{editingId ? "Update" : "Save"}</button>
-                        </div>
-          )}
+                {i.item_name}
+              </div>
+            ))}
           </div>
+        )}
+      </div>
+
+      <div>
+        <label style={{ fontSize: 12, color: "#555" }}>Type</label>
+        <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} style={{ width: "100%", padding: 8, borderRadius: 6 }}>
+          <option value="IN">Stock In</option>
+          <option value="OUT">Stock Out</option>
+        </select>
+      </div>
+
+      <div>
+        <label style={{ fontSize: 12, color: "#555" }}>Quantity</label>
+        <input type="number" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} style={{ width: "100%", padding: 8, borderRadius: 6 }} />
+      </div>
+
+      <div>
+        <label style={{ fontSize: 12, color: "#555" }}>Date</label>
+        <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} style={{ width: "100%", padding: 8, borderRadius: 6 }} />
+      </div>
+
+      <button
+        onClick={() => {
+          if (editingId && isFormChanged()) {
+            openConfirm("Save changes to this transaction?", saveTransaction);
+          } else {
+            saveTransaction();
+          }
+        }}
+        style={{ background: "#2563eb", color: "#fff", border: "none", borderRadius: 8, padding: "10px 18px", fontWeight: 600 }}
+      >
+        {editingId ? "Update" : "Save"}
+      </button>
+    </div>
+  )}
+</div>
 
           <div style={{ display: "flex", gap: 16 }}>
 
