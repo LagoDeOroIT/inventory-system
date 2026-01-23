@@ -34,7 +34,7 @@ export default function App() {
 
 
   // form
-  const [showForm, setShowForm] = useState(true);
+  const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const originalFormRef = useRef(null);
   const [form, setForm] = useState({
