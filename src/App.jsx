@@ -19,6 +19,17 @@ const emptyRow = (colSpan, text) => (
 
 export default function App() {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+
+  // ===== LOAD DATA (FIXED POSITION) =====
+  const loadData = async () => {
+    const { data: itemsData } = await supabase
+      .from("items")
+      .select("id, item_name, unit_price, brand");
+
+    if (itemsData) {
+      setItems(itemsData);
+    }
+  };
   // ===== CONFIRM MODAL STATE =====
   const [confirm, setConfirm] = useState(null);
   const openConfirm = (message, onConfirm) => {
