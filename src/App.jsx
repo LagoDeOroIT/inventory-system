@@ -364,9 +364,8 @@ export default function App() {
                 }
               }}>{editingId ? "Update" : "Save"}</button>
             </div>
-          </div>
 
-          <div style={{ maxHeight: 400, overflowY: "auto" }}>
+<div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
               <tr>
