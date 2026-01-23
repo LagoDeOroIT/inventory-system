@@ -208,23 +208,160 @@ export default function App() {
     return (
       <div style={{ padding: 40 }}>
         <h2>Inventory Login</h2>
-        <button
-                onClick={() => {
-                  setShowForm(v => !v);
-                }}
-                style={{
-                  background: "#1f2937",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 6,
-                  padding: "8px 14px",
-                  cursor: "pointer",
-                  fontSize: 14,
-                  fontWeight: 600,
-                }}
-              >
-                {showForm ? "Hide Transaction Form" : "Add Transaction (IN / OUT)"}
-              </button>setShowForm(v => !v)}
+        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>
+          Login with Google
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: 20 }}>
+
+      {/* MAIN HEADER */}
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
+        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
+      </div>
+
+      {/* 
+          </div>
+        </div>
+      )}
+
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
+        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
+      </div>
+
+      {/* TABS */}
+<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
+  <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("transactions");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("transactions");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "transactions" ? "#1f2937" : "transparent",
+        color: activeTab === "transactions" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📄 Transactions
+    </button>
+
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("deleted");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("deleted");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "deleted" ? "#1f2937" : "transparent",
+        color: activeTab === "deleted" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      🗑️ Deleted History
+    </button>
+
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("report");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("report");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "report" ? "#1f2937" : "transparent",
+        color: activeTab === "report" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📊 Monthly Report
+    </button>
+
+    <button
+      onClick={() => setActiveTab("stock")}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "stock" ? "#1f2937" : "transparent",
+        color: activeTab === "stock" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📦 Stock Inventory
+    </button>
+  </div>
+</div>
+
+      {/* CONFIRM MODAL */}
+      {confirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
+            <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
+            <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
+              <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TRANSACTIONS TAB */}
+      {activeTab === "transactions" && (
+        <>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
+  <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
+  <hr style={{ marginTop: 8 }} />
+</div>
+          <div style={{ marginBottom: 20, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add New Item"}</h3>
+              <button
+                onClick={() => setShowForm(v => !v)}
                 style={{
                   background: "#1f2937",
                   color: "#fff",
@@ -272,7 +409,7 @@ export default function App() {
                 } else {
                   saveTransaction();
                 }
-              }}>{editingId ? `Update ${form.type}` : `Add ${form.type}`}</button>
+              }}>{editingId ? "Update" : "Save"}</button>
                         </div>
           )}
           </div>
@@ -473,41 +610,22 @@ export default function App() {
 </div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div
-  style={{
-    marginBottom: 16,
-    border: "1px solid #ddd",
-    padding: 12,
-    borderRadius: 6,
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  }}
->
-  <h3 style={{ margin: 0 }}>Transactions</h3>
-
-  <div style={{ display: "flex", gap: 8 }}>
-    <button
-      onClick={() => {
-        
-        setShowForm(true);
-      }}
-    >
-      Add IN Transaction
-    </button>
-
-    <button
-      onClick={() => {
-        setForm(f => ({ ...f, type: "OUT" }));
-        setShowForm(true);
-      }}("OUT");
-        setShowForm(true);
-      }}
-    >
-      Add OUT Transaction
-    </button>
-  </div>
-</div>
+              <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add New Item"}</h3>
+              <button
+                onClick={() => setShowAddItem(v => !v)}
+                style={{
+                  background: "#1f2937",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "6px 12px",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                {showAddItem ? "Hide" : "Show"}
+              </button>
             </div>
             {showAddItem && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
