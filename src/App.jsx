@@ -375,7 +375,20 @@ export default function App() {
                   fontWeight: 600,
                 }}
               >
-                ➕ Add Transaction (IN / OUT)
+                ➕ <button
+  onClick={() => setShowTransactionForm(v => !v)}
+  style={{
+    padding: '8px 14px',
+    backgroundColor: '#1f2937',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer'
+  }}
+>
+  {showTransactionForm ? 'Hide Transaction Form' : 'Add Transaction (IN / OUT)'}
+</button>
+
               </button>
               <button
                 onClick={() => setShowForm(v => !v)}
