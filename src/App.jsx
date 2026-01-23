@@ -130,6 +130,7 @@ export default function App() {
   }
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
+  const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
 
   async function addNewItem() {
@@ -507,13 +508,32 @@ export default function App() {
   <hr style={{ marginTop: 8 }} />
 </div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <h3>Add New Item</h3>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ margin: 0 }}>Add New Item</h3>
+              <button
+                onClick={() => setShowAddItem(v => !v)}
+                style={{
+                  background: "#1f2937",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "6px 12px",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                {showAddItem ? "Hide" : "Show"}
+              </button>
+            </div>
+            {showAddItem && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
               <button onClick={addNewItem}>Add Item</button>
-            </div>
+                        </div>
+          )}
           </div>
 
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
