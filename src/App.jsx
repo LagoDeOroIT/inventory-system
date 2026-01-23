@@ -35,7 +35,7 @@ export default function App() {
 
 
   // form
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const originalFormRef = useRef(null);
   const [form, setForm] = useState({
@@ -132,7 +132,7 @@ export default function App() {
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
 
-  const [showAddItem, setShowAddItem] = useState(false);
+  const [showAddItem, setAddItem] = useState(false);
   const [isEditingItem, setIsEditingItem] = useState(false);
   const [editingItemId, setEditingItemId] = useState(null);
   const [stockEditItem, setStockEditItem] = useState(null);
@@ -173,7 +173,7 @@ export default function App() {
     setNewItem({ item_name: "", brand: "", unit_price: "" });
     setIsEditingItem(false);
     setStockEditItem(null);
-    setShowAddItem(false);
+    setAddItem(false);
     loadData();
   }
 
@@ -361,7 +361,7 @@ export default function App() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add Transaction (In / Out)"}</h3>
               <button
-                onClick={() => setShowForm(v => !v)}
+                onClick={() => setForm(v => !v)}
                 style={{
                   background: "#1f2937",
                   color: "#fff",
@@ -373,7 +373,7 @@ export default function App() {
                   fontWeight: 600,
                 }}
               >
-                {showForm ? "Hide" : "Show"}
+                {showForm ? "" : ""}
               </button>
             </div>
             {showForm && (
@@ -612,7 +612,7 @@ export default function App() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h3 style={{ margin: 0 }}>{isEditingItem ? "Edit Item" : "Add Transaction (In / Out)"}</h3>
               <button
-                onClick={() => setShowAddItem(v => !v)}
+                onClick={() => setAddItem(v => !v)}
                 style={{
                   background: "#1f2937",
                   color: "#fff",
@@ -624,7 +624,7 @@ export default function App() {
                   fontWeight: 600,
                 }}
               >
-                {showAddItem ? "Hide" : "Show"}
+                {showAddItem ? "" : ""}
               </button>
             </div>
             {showAddItem && (
@@ -669,7 +669,7 @@ export default function App() {
                           brand: i.brand || "",
                           unit_price: i.unit_price,
                         });
-                        setShowAddItem(true);
+                        setAddItem(true);
                       })}
                     >✏️ Edit</button>
                     <button
