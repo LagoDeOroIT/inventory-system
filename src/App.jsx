@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react"; 
+import React, { useState } from "react"; 
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -18,6 +18,7 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
   // ===== CONFIRM MODAL STATE =====
   const [confirm, setConfirm] = useState(null);
   const openConfirm = (message, onConfirm) => {
