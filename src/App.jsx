@@ -372,10 +372,49 @@ export default function App() {
       
       {activeTab === "transactions" && (
         <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
-  <hr style={{ marginTop: 8 }} />
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 12 }}>
+  <h2 style={{ marginBottom: 6, textAlign: "center" }}>📦 Stock Inventory</h2>
+
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <label style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>Stock Room:</label>
+      <select
+        value={selectedRoom}
+        onChange={e => setSelectedRoom(e.target.value)}
+        style={{
+          padding: "6px 10px",
+          borderRadius: 6,
+          border: "1px solid #d1d5db",
+          fontSize: 14,
+          background: "#fff",
+          minWidth: 180,
+        }}
+      >
+        <option value="ALL">All Rooms</option>
+        <option value="L1">L1</option>
+        <option value="L2 Room 1">L2 Room 1</option>
+        <option value="L2 Room 2">L2 Room 2</option>
+        <option value="L2 Room 3">L2 Room 3</option>
+        <option value="L2 Room 4">L2 Room 4</option>
+        <option value="L3">L3</option>
+        <option value="L4">L4</option>
+        <option value="L5">L5</option>
+        <option value="L6">L6</option>
+        <option value="L7">L7</option>
+        <option value="Maintenance B1">Maintenance B1</option>
+        <option value="Maintenance B2">Maintenance B2</option>
+        <option value="Maintenance B3">Maintenance B3</option>
+        <option value="Ski Stock Room">Ski Stock Room</option>
+        <option value="Quarry Stock Room">Quarry Stock Room</option>
+      </select>
+    </div>
+
+    <div style={{ fontSize: 13, color: "#555" }}>
+      Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
+    </div>
+  </div>
+
+  <hr style={{ marginTop: 10 }} />
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
