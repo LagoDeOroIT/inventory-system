@@ -733,3 +733,60 @@ export default function App() {
     </div>
   );
 }
+
+// 🔍 SEARCH SUGGESTIONS (autocomplete)
+const searchInput = document.getElementById("search");
+let suggestionBox = document.getElementById("search-suggestions");
+
+// Create suggestion box if it doesn't exist
+if (!suggestionBox && searchInput) {
+  suggestionBox = document.createElement("div");
+  suggestionBox.id = "search-suggestions";
+  suggestionBox.style.border = "1px solid #ddd";
+  suggestionBox.style.maxHeight = "180px";
+  suggestionBox.style.overflowY = "auto";
+  suggestionBox.style.position = "absolute";
+  suggestionBox.style.background = "#fff";
+  suggestionBox.style.zIndex = "1000";
+  suggestionBox.style.width = searchInput.offsetWidth + "px";
+  searchInput.parentNode.appendChild(suggestionBox);
+}
+
+function showSuggestions(value) {
+  if (!suggestionBox) return;
+
+  suggestionBox.innerHTML = "";
+  if (!value) return;
+
+  const matches = inventoryItems
+    ?.filter(item => item.name?.toLowerCase().includes(value.toLowerCase()))
+    .slice(0, 5) || [];
+
+  if (matches.length === 0) return;
+
+  matches.forEach(item => {
+    const div = document.createElement("div");
+    div.textContent = item.name;
+    div.style.padding = "8px";
+    div.style.cursor = "pointer";
+
+    div.onclick = () => {
+      searchInput.value = item.name;
+      suggestionBox.innerHTML = "";
+    };
+
+    div.onmouseover = () => (div.style.background = "#f0f0f0");
+    div.onmouseout = () => (div.style.background = "#fff");
+
+    suggestionBox.appendChild(div);
+  });
+}
+
+if (searchInput) {
+  searchInput.addEventListener("input", e => showSuggestions(e.target.value));
+  searchInput.addEventListener("focus", e => showSuggestions(e.target.value));
+  document.addEventListener("click", e => {
+    if (!searchInput.contains(e.target)) suggestionBox.innerHTML = "";
+  });
+}
+
