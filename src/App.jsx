@@ -1,3 +1,7 @@
+// 🔧 FIX: prevent white screen on Search
+// Ensure filteredItems is always defined before use
+let filteredItems = [];
+
 import React, { useEffect, useRef, useState } from "react";   
 import { createClient } from "@supabase/supabase-js";
 
