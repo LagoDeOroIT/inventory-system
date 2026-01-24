@@ -46,6 +46,7 @@ export default function App() {
     brand: "",
     unit: "",
     volume_pack: "",
+    room: "L1", // stock room
   });
 
   // item search
@@ -107,6 +108,7 @@ export default function App() {
     }
 
     const payload = {
+      room: form.room,
       date: form.date || new Date().toISOString().slice(0, 10),
       item_id: Number(form.item_id),
       type: form.type,
@@ -391,6 +393,10 @@ export default function App() {
           setDropdownOpen(true);
         }}
       />
+      <select value={form.room} onChange={e => setForm(f => ({ ...f, room: e.target.value }))}>
+        <option value="L1">L1</option>
+        <option value="L2">L2</option>
+      </select>
       <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
         <option value="IN">IN</option>
         <option value="OUT">OUT</option>
@@ -414,6 +420,7 @@ export default function App() {
                   <tr>
                     <th style={thtd}>Date</th>
                     <th style={thtd}>Item</th>
+                    <th style={thtd}>Room</th>
                     <th style={thtd}>Qty</th>
                     <th style={thtd}>Brand</th>
                     <th style={thtd}>Actions</th>
@@ -425,6 +432,7 @@ export default function App() {
                     <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                       <td style={thtd}>{t.items?.item_name}</td>
+                      <td style={thtd}>{t.room}</td>
                       <td style={thtd}>{t.quantity}</td>
                       <td style={thtd}>{t.brand}</td>
                       <td style={thtd}>
@@ -455,6 +463,7 @@ export default function App() {
                   <tr>
                     <th style={thtd}>Date</th>
                     <th style={thtd}>Item</th>
+                    <th style={thtd}>Room</th>
                     <th style={thtd}>Qty</th>
                     <th style={thtd}>Brand</th>
                     <th style={thtd}>Actions</th>
@@ -466,6 +475,7 @@ export default function App() {
                     <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                       <td style={thtd}>{t.items?.item_name}</td>
+                      <td style={thtd}>{t.room}</td>
                       <td style={thtd}>{t.quantity}</td>
                       <td style={thtd}>{t.brand}</td>
                       <td style={thtd}>
@@ -520,6 +530,7 @@ export default function App() {
               <tr>
                 <th style={thtd}>Date</th>
                 <th style={thtd}>Item</th>
+                    <th style={thtd}>Room</th>
                 <th style={thtd}>Brand</th>
                 <th style={thtd}>Qty</th>
                 <th style={thtd}>Actions</th>
@@ -540,6 +551,7 @@ export default function App() {
                 <tr key={t.id}>
                   <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
+                      <td style={thtd}>{t.room}</td>
                   <td style={thtd}>{t.brand}</td>
                   <td style={thtd}>{t.quantity}</td>
                   <td style={thtd}>
@@ -641,6 +653,7 @@ export default function App() {
             <thead>
               <tr>
                 <th style={thtd}>Item</th>
+                    <th style={thtd}>Room</th>
                 <th style={thtd}>Brand</th>
                 <th style={thtd}>Current Stock</th>
                 <th style={thtd}>Unit Price</th>
