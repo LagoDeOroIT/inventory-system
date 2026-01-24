@@ -562,54 +562,86 @@ export default function App() {
       )}
 
       {activeTab === "report" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-            <h2 style={{ marginBottom: 4, textAlign: "center" }}>📊 Monthly Report</h2>
-            <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>
-              Months tracked: {Object.keys(monthlyTotals).length}
+  <>
+    <div
+      style={{
+        position: "sticky",
+        top: 0,
+        background: "#fff",
+        zIndex: 5,
+        paddingBottom: 8,
+      }}
+    >
+      <h2 style={{ marginBottom: 4, textAlign: "center" }}>
+        📊 Monthly Report
+      </h2>
+      <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>
+        Months tracked: {Object.keys(monthlyTotals).length}
+      </div>
+      <hr style={{ marginTop: 8 }} />
+    </div>
+
+    <div style={{ padding: 16 }}>
+      {Object.keys(monthlyTotals).length === 0 && (
+        <div style={{ textAlign: "center", padding: 20 }}>No data</div>
+      )}
+
+      {Object.entries(monthlyTotals).map(([month, v]) => {
+        const max = Math.max(v.IN, v.OUT, 1);
+        return (
+          <div key={month} style={{ marginBottom: 20 }}>
+            <strong>{month}</strong>
+
+            <div style={{ marginTop: 6 }}>
+              <div style={{ fontSize: 12 }}>IN: {v.IN}</div>
+              <div
+                style={{
+                  height: 14,
+                  width: `${(v.IN / max) * 100}%`,
+                  background: "#22c55e",
+                  borderRadius: 4,
+                }}
+              />
             </div>
-            <hr style={{ marginTop: 8 }} />
+
+            <div style={{ marginTop: 6 }}>
+              <div style={{ fontSize: 12 }}>OUT: {v.OUT}</div>
+              <div
+                style={{
+                  height: 14,
+                  width: `${(v.OUT / max) * 100}%`,
+                  background: "#ef4444",
+                  borderRadius: 4,
+                }}
+              />
+            </div>
           </div>
+        );
+      })}
 
-          <div style={{ padding: 16 }}>
-            {Object.keys(monthlyTotals).length === 0 && (
-              <div style={{ textAlign: "center", padding: 20 }}>No data</div>
-            )}
+      {/* TABLE GOES INSIDE THE SAME TAB */}
+      <table style={{ width: "100%", marginTop: 24 }}>
+        <thead>
+          <tr>
+            <th style={thtd}>Month</th>
+            <th style={thtd}>IN</th>
+            <th style={thtd}>OUT</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(monthlyTotals).map(([m, v]) => (
+            <tr key={m}>
+              <td style={thtd}>{m}</td>
+              <td style={thtd}>₱{v.IN.toFixed(2)}</td>
+              <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </>
+)}
 
-            {Object.entries(monthlyTotals).map(([month, v]) => {
-              const max = Math.max(v.IN, v.OUT, 1);
-              return (
-                <div key={month} style={{ marginBottom: 20 }}>
-                  <strong>{month}</strong>
-
-                  <div style={{ marginTop: 6 }}>
-                    <div style={{ fontSize: 12 }}>IN: {v.IN}</div>
-                    <div style={{ height: 14, width: `${(v.IN / max) * 100}%`, background: "#22c55e", borderRadius: 4 }} />
-                  </div>
-
-                  <div style={{ marginTop: 6 }}>
-                    <div style={{ fontSize: 12 }}>OUT: {v.OUT}</div>
-                    <div style={{ height: 14, width: `${(v.OUT / max) * 100}%`, background: "#ef4444", borderRadius: 4 }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
-              {Object.entries(monthlyTotals)
-                .map(([m, v]) => (
-                  <tr key={m}>
-                    <td style={thtd}>{m}</td>
-                    <td style={thtd}>₱{v.IN.toFixed(2)}</td>
-                    <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-        </>
-      )}
 
       {activeTab === "stock" && (
         <>
