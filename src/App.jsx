@@ -26,6 +26,8 @@ export default function App() {
   const closeConfirm = () => setConfirm(null);
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
+  const [stockRooms, setStockRooms] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState("");
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [deletedSearch, setDeletedSearch] = useState("");
@@ -40,6 +42,7 @@ export default function App() {
   const originalFormRef = useRef(null);
   const [form, setForm] = useState({
     item_id: "",
+    stock_room_id: "",
     type: "IN",
     quantity: "",
     date: "",
@@ -66,21 +69,28 @@ export default function App() {
       .from("items")
       .select("id, item_name, unit_price, brand");
 
+    const { data: rooms } = await supabase
+      .from("stock_rooms")
+      .select("id, name")
+      .order("name");
+
     const { data: tx } = await supabase
       .from("inventory_transactions")
-      .select("*, items(item_name)")
+      .select("*, items(item_name), stock_rooms(name)")
       .eq("deleted", false)
       .order("date", { ascending: false });
 
     const { data: deletedTx } = await supabase
       .from("inventory_transactions")
-      .select("*, items(item_name)")
+      .select("*, items(item_name), stock_rooms(name)")
       .eq("deleted", true)
       .order("deleted_at", { ascending: false });
 
     setItems(itemsData || []);
+    setStockRooms(rooms || []);
     setTransactions(tx || []);
     setDeletedTransactions(deletedTx || []);
+  }
   }
 
   useEffect(() => {
@@ -94,14 +104,25 @@ export default function App() {
   }
 
   async function saveTransaction() {
-    if (!form.item_id || !form.quantity) return alert("Complete the form");
+    if (!form.item_id || !form.quantity || !form.stock_room_id) {
+      alert("Item, stock room, and quantity are required");
+      return;
+    }
+
     const item = items.find(i => i.id === Number(form.item_id));
     if (!item) return alert("Item not found");
 
     if (form.type === "OUT") {
-      const stockItem = stockInventory.find(i => i.id === item.id);
-      if (stockItem && Number(form.quantity) > stockItem.stock) {
-        alert("Cannot OUT more than available stock");
+      const related = transactions.filter(
+        t => t.item_id === item.id && t.stock_room_id === form.stock_room_id
+      );
+      const stock = related.reduce(
+        (s, t) => s + (t.type === "IN" ? t.quantity : -t.quantity),
+        0
+      );
+
+      if (Number(form.quantity) > stock) {
+        alert("Cannot OUT more than available stock in this room");
         return;
       }
     }
@@ -109,6 +130,7 @@ export default function App() {
     const payload = {
       date: form.date || new Date().toISOString().slice(0, 10),
       item_id: Number(form.item_id),
+      stock_room_id: form.stock_room_id,
       type: form.type,
       quantity: Number(form.quantity),
       unit_price: item.unit_price,
@@ -124,10 +146,11 @@ export default function App() {
 
     if (error) return alert(error.message);
 
-    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", volume_pack: "" });
+    setForm({ item_id: "", stock_room_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", volume_pack: "" });
     setItemSearch("");
     setEditingId(null);
     loadData();
+  }
   }
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
@@ -179,6 +202,16 @@ export default function App() {
 
   // ================= STOCK INVENTORY =================
   const stockInventory = items.map(item => {
+    const related = transactions.filter(
+      t => t.item_id === item.id && (!selectedRoom || t.stock_room_id === selectedRoom)
+    );
+    const qtyIn = related.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
+    const qtyOut = related.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
+    return {
+      ...item,
+      stock: qtyIn - qtyOut,
+    };
+  });(item => {
     const related = transactions.filter(t => t.item_id === item.id);
     const qtyIn = related.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
     const qtyOut = related.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
@@ -320,7 +353,20 @@ export default function App() {
         fontWeight: 500,
       }}
     >
-      📦 Stock Inventory
+      📦 Stock Inventory</h2>
+<div className="filter-bar">
+  <label>Filter by Stock Room</label>
+  <select
+    value={selectedRoom}
+    onChange={e => setSelectedRoom(e.target.value)}
+    className="select"
+  >
+    <option value="">All rooms</option>
+    {stockRooms.map(r => (
+      <option key={r.id} value={r.id}>{r.name}</option>
+    ))}
+  </select>
+</div>
     </button>
   </div>
 </div>
@@ -383,6 +429,19 @@ export default function App() {
         alignItems: "center",
       }}
     >
+      <div className="field">
+  <label>Stock Room</label>
+  <select
+    value={form.stock_room_id}
+    onChange={e => setForm(f => ({ ...f, stock_room_id: e.target.value }))}
+    className="select"
+  >
+    <option value="">Select stock room</option>
+    {stockRooms.map(r => (
+      <option key={r.id} value={r.id}>{r.name}</option>
+    ))}
+  </select>
+</div>
       <input
         placeholder="Search item"
         value={itemSearch}
@@ -689,133 +748,4 @@ export default function App() {
   );
 }
 
----
 
-## Stock Room Structure (Updated)
-
-To support **items stored in different stock rooms**, the system should use a **Stock Rooms table** and relate items to it.
-
-### Stock Rooms List
-- L1
-- L2 Room 1
-- L2 Room 2
-- L2 Room 3
-- L2 Room 4
-- L3
-- L4
-- L5
-- L6
-- L7
-- Maintenance Bodega 1
-- Maintenance Bodega 2
-- Maintenance Bodega 3
-- Ski Wakepark
-- Quarry Stock Room
-
----
-
-## Database Design (Supabase)
-
-### 1. `stock_rooms` table
-```sql
-create table stock_rooms (
-  id uuid primary key default uuid_generate_v4(),
-  name text not null unique,
-  location text,
-  created_at timestamp default now()
-);
-```
-
-### 2. `items` table (master item list)
-```sql
-create table items (
-  id uuid primary key default uuid_generate_v4(),
-  name text not null,
-  category text,
-  unit text,
-  created_at timestamp default now()
-);
-```
-
-### 3. `inventory` table (item per stock room)
-> This is the key table that answers: **which item is in which stock room, and how many**
-
-```sql
-create table inventory (
-  id uuid primary key default uuid_generate_v4(),
-  item_id uuid references items(id) on delete cascade,
-  stock_room_id uuid references stock_rooms(id) on delete cascade,
-  quantity numeric not null default 0,
-  min_stock numeric default 0,
-  updated_at timestamp default now(),
-  unique (item_id, stock_room_id)
-);
-```
-
----
-
-## How This Works (Important Concept)
-
-- **One item can exist in multiple stock rooms**
-- Each stock room has its **own quantity** for that item
-- Example:
-
-| Item | Stock Room | Qty |
-|----|----|----|
-| Cement | L1 | 50 |
-| Cement | L2 Room 1 | 20 |
-| Cement | Quarry Stock Room | 200 |
-
-This avoids duplication and keeps reporting clean.
-
----
-
-## React Logic (Simplified)
-
-### Load stock rooms
-```ts
-const { data: stockRooms } = await supabase
-  .from('stock_rooms')
-  .select('*')
-  .order('name');
-```
-
-### Add item to a stock room
-```ts
-await supabase.from('inventory').insert({
-  item_id,
-  stock_room_id,
-  quantity
-});
-```
-
-### View inventory per stock room
-```ts
-await supabase
-  .from('inventory')
-  .select(`
-    quantity,
-    items ( name, unit ),
-    stock_rooms ( name )
-  `)
-  .eq('stock_room_id', selectedRoomId);
-```
-
----
-
-## UI Recommendation
-
-- Dropdown: **Select Stock Room**
-- Table: Items + Quantity
-- Button: ➕ Add Item to This Room
-- Filter: Low stock alerts per room
-
----
-
-If you want next:
-- ✅ Auto‑generate all stock rooms
-- ✅ Stock transfer between rooms
-- ✅ Stock movement history
-- ✅ Per‑room reports (PDF / Excel)
-
-Just tell me which one you want next.
