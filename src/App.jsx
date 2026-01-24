@@ -655,9 +655,9 @@ export default function App() {
       Bar height represents total stock value per item
     </div>
   </div>
-  </div>
-</div>
-          <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
+
+{/* ───────────────── Inventory Panels ───────────────── */}
+<div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
   <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
