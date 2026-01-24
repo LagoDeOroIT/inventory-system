@@ -218,23 +218,13 @@ export default function App() {
   return (
     <div style={{ padding: 20 }}>
 
-      {/* MAIN HEADER */}
+      
       <div style={{ textAlign: "center", marginBottom: 16 }}>
         <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
         <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
       </div>
 
-      {/* 
-          </div>
-        </div>
-      )}
-
-      <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
-        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
-      </div>
-
-      {/* TABS */}
+      
 <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
   <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
     <button
@@ -335,7 +325,7 @@ export default function App() {
   </div>
 </div>
 
-      {/* CONFIRM MODAL */}
+      
       {confirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
           <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
@@ -349,7 +339,7 @@ export default function App() {
         </div>
       )}
 
-      {/* TRANSACTIONS TAB */}
+      
       {activeTab === "transactions" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
@@ -416,7 +406,7 @@ export default function App() {
 
 <div style={{ display: "flex", gap: 16 }}>
 
-            {/* IN TRANSACTIONS */}
+            
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
               <table style={tableStyle}>
@@ -443,6 +433,8 @@ export default function App() {
                           setEditingId(t.id);
                           setForm(originalFormRef.current);
                           setItemSearch(t.items?.item_name || "");
+                          setShowForm(true);
+                          setActiveTab("transactions");
                         })}>✏️ Edit</button>
                         <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
                           await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
@@ -455,7 +447,7 @@ export default function App() {
               </table>
             </div>
 
-            {/* OUT TRANSACTIONS */}
+            
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
               <table style={tableStyle}>
@@ -482,6 +474,8 @@ export default function App() {
                           setEditingId(t.id);
                           setForm(originalFormRef.current);
                           setItemSearch(t.items?.item_name || "");
+                          setShowForm(true);
+                          setActiveTab("transactions");
                         })}>✏️ Edit</button>
                         <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
                           await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
