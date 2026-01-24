@@ -141,45 +141,67 @@ export default function App() {
 
   // NOTE: single source of truth for new item state
   const [newItem, setNewItem] = useState({
-    item_name: "",
-    brand: "",
-    unit_price: "",
-    room: "",
-  });
+  item_name: "",
+  brand: "",
+  unit_price: "",
+  room: "L1",
+});
 
   async function handleSaveItem() {
-    if (!newItem.item_name || !newItem.unit_price) {
-      alert("Item name and unit price are required");
-      return;
-    }
+  if (!newItem.item_name || !newItem.unit_price) {
+    alert("Item name and unit price are required");
+    return;
+  }
 
-    if (isEditingItem && stockEditItem) {
-      const { error } = await supabase
-        .from("items")
-        .update({
-          item_name: newItem.item_name,
-          brand: newItem.brand || null,
-          unit_price: Number(newItem.unit_price),
-        })
-        .eq("id", stockEditItem.id);
+  // 1️⃣ Save or update item
+  let itemId = null;
 
-      if (error) return alert(error.message);
-    } else {
-      const { error } = await supabase.from("items").insert({
+  if (isEditingItem && stockEditItem) {
+    const { error } = await supabase
+      .from("items")
+      .update({
         item_name: newItem.item_name,
         brand: newItem.brand || null,
         unit_price: Number(newItem.unit_price),
-      });
+      })
+      .eq("id", stockEditItem.id);
 
-      if (error) return alert(error.message);
-    }
+    if (error) return alert(error.message);
+    itemId = stockEditItem.id;
+  } else {
+    const { data, error } = await supabase
+      .from("items")
+      .insert({
+        item_name: newItem.item_name,
+        brand: newItem.brand || null,
+        unit_price: Number(newItem.unit_price),
+      })
+      .select()
+      .single();
 
-    setNewItem({ item_name: "", brand: "", unit_price: "" });
-    setIsEditingItem(false);
-    setStockEditItem(null);
-    setShowAddItem(false);
-    loadData();
+    if (error) return alert(error.message);
+    itemId = data.id;
+
+    // 2️⃣ Auto-create initial IN transaction (Option A)
+    await supabase.from("inventory_transactions").insert({
+      item_id: itemId,
+      room: newItem.room,
+      type: "IN",
+      quantity: 0,
+      unit_price: Number(newItem.unit_price),
+      brand: newItem.brand || null,
+      date: new Date().toISOString().slice(0, 10),
+      deleted: false,
+    });
   }
+
+  // reset form
+  setNewItem({ item_name: "", brand: "", unit_price: "", room: "L1" });
+  setIsEditingItem(false);
+  setStockEditItem(null);
+  setShowAddItem(false);
+  loadData();
+}
 
   // ================= STOCK INVENTORY =================
   // NOTE: selectedRoom state is declared once only
@@ -691,9 +713,26 @@ export default function App() {
             {showAddItem && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
-              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
-              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
-              <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
+<input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
+<input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
+<select value={newItem.room} onChange={e => setNewItem(n => ({ ...n, room: e.target.value }))}>
+  <option value="L1">L1</option>
+  <option value="L2 Room 1">L2 Room 1</option>
+  <option value="L2 Room 2">L2 Room 2</option>
+  <option value="L2 Room 3">L2 Room 3</option>
+  <option value="L2 Room 4">L2 Room 4</option>
+  <option value="L3">L3</option>
+  <option value="L4">L4</option>
+  <option value="L5">L5</option>
+  <option value="L6">L6</option>
+  <option value="L7">L7</option>
+  <option value="Maintenance B1">Maintenance B1</option>
+  <option value="Maintenance B2">Maintenance B2</option>
+  <option value="Maintenance B3">Maintenance B3</option>
+  <option value="Ski Stock Room">Ski Stock Room</option>
+  <option value="Quarry Stock Room">Quarry Stock Room</option>
+</select>
+<button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
                         </div>
           )}
           </div>
