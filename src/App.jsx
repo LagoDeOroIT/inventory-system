@@ -1,3 +1,25 @@
+// 🔧 EDIT ACTION FIX
+// Automatically open form when Edit is clicked
+function openEditForm(item) {
+  const form = document.getElementById("inventory-form");
+  if (!form) return;
+
+  // Show form
+  form.style.display = "block";
+
+  // Populate fields safely
+  document.getElementById("item-name").value = item.name || "";
+  document.getElementById("item-quantity").value = item.quantity || "";
+  document.getElementById("item-department").value = item.department || "";
+  document.getElementById("item-location").value = item.location || "";
+
+  // Store editing ID
+  form.dataset.editingId = item.id;
+
+  // Scroll into view for better UX
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 // 🔧 FIX: prevent white screen on Search
 // Ensure filteredItems is always defined before use
 let filteredItems = [];
@@ -7,7 +29,11 @@ function renderNoResults() {
   const container = document.getElementById("inventory-list");
   if (!container) return;
 
-  container.innerHTML = `\n    <div style="padding:16px; text-align:center; color:#666; font-style:italic;">\n      No results found\n    </div>\n  `;
+  container.innerHTML = `
+    <div style="padding:16px; text-align:center; color:#666; font-style:italic;">
+      No results found
+    </div>
+  `;
 }
 
 
