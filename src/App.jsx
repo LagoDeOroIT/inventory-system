@@ -644,11 +644,29 @@ export default function App() {
             </div>
 
             {showAddItem && (
-  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-    <input
-      placeholder="Item name"
-      value={newItem.item_name}
-      onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))}
+  <div style={{ marginBottom: 16, padding: 12, border: "1px solid #ddd", borderRadius: 6 }}>
+    <h3>Add New Item</h3>
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <input
+        placeholder="Item name"
+        value={newItem.name}
+        onChange={e => setNewItem(n => ({ ...n, name: e.target.value }))}
+      />
+      <input
+        placeholder="Brand"
+        value={newItem.brand}
+        onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))}
+      />
+      <input
+        type="number"
+        placeholder="Unit price"
+        value={newItem.unit_price}
+        onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))}
+      />
+      <button onClick={handleAddItem}>Save</button>
+    </div>
+  </div>
+)
     />
     <input
       placeholder="Brand"
