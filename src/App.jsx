@@ -688,3 +688,134 @@ export default function App() {
     </div>
   );
 }
+
+---
+
+## Stock Room Structure (Updated)
+
+To support **items stored in different stock rooms**, the system should use a **Stock Rooms table** and relate items to it.
+
+### Stock Rooms List
+- L1
+- L2 Room 1
+- L2 Room 2
+- L2 Room 3
+- L2 Room 4
+- L3
+- L4
+- L5
+- L6
+- L7
+- Maintenance Bodega 1
+- Maintenance Bodega 2
+- Maintenance Bodega 3
+- Ski Wakepark
+- Quarry Stock Room
+
+---
+
+## Database Design (Supabase)
+
+### 1. `stock_rooms` table
+```sql
+create table stock_rooms (
+  id uuid primary key default uuid_generate_v4(),
+  name text not null unique,
+  location text,
+  created_at timestamp default now()
+);
+```
+
+### 2. `items` table (master item list)
+```sql
+create table items (
+  id uuid primary key default uuid_generate_v4(),
+  name text not null,
+  category text,
+  unit text,
+  created_at timestamp default now()
+);
+```
+
+### 3. `inventory` table (item per stock room)
+> This is the key table that answers: **which item is in which stock room, and how many**
+
+```sql
+create table inventory (
+  id uuid primary key default uuid_generate_v4(),
+  item_id uuid references items(id) on delete cascade,
+  stock_room_id uuid references stock_rooms(id) on delete cascade,
+  quantity numeric not null default 0,
+  min_stock numeric default 0,
+  updated_at timestamp default now(),
+  unique (item_id, stock_room_id)
+);
+```
+
+---
+
+## How This Works (Important Concept)
+
+- **One item can exist in multiple stock rooms**
+- Each stock room has its **own quantity** for that item
+- Example:
+
+| Item | Stock Room | Qty |
+|----|----|----|
+| Cement | L1 | 50 |
+| Cement | L2 Room 1 | 20 |
+| Cement | Quarry Stock Room | 200 |
+
+This avoids duplication and keeps reporting clean.
+
+---
+
+## React Logic (Simplified)
+
+### Load stock rooms
+```ts
+const { data: stockRooms } = await supabase
+  .from('stock_rooms')
+  .select('*')
+  .order('name');
+```
+
+### Add item to a stock room
+```ts
+await supabase.from('inventory').insert({
+  item_id,
+  stock_room_id,
+  quantity
+});
+```
+
+### View inventory per stock room
+```ts
+await supabase
+  .from('inventory')
+  .select(`
+    quantity,
+    items ( name, unit ),
+    stock_rooms ( name )
+  `)
+  .eq('stock_room_id', selectedRoomId);
+```
+
+---
+
+## UI Recommendation
+
+- Dropdown: **Select Stock Room**
+- Table: Items + Quantity
+- Button: ➕ Add Item to This Room
+- Filter: Low stock alerts per room
+
+---
+
+If you want next:
+- ✅ Auto‑generate all stock rooms
+- ✅ Stock transfer between rooms
+- ✅ Stock movement history
+- ✅ Per‑room reports (PDF / Excel)
+
+Just tell me which one you want next.
