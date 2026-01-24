@@ -383,101 +383,25 @@ export default function App() {
   </div>
 
   {showForm && (
-  <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-    <div style={{ background: "#fff", padding: 20, borderRadius: 8, width: 700, maxWidth: "95%", boxShadow: "0 10px 30px rgba(0,0,0,0.25)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <h3 style={{ margin: 0 }}>New Transaction</h3>
-        <button
-          onClick={() => setShowForm(false)}
-          style={{ border: "none", background: "transparent", fontSize: 18, cursor: "pointer" }}
-        >
-          ✕
-        </button>
-      </div>
-
-      <div
-        ref={searchRef}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "2fr 1fr 1fr 1fr auto",
-          gap: 10,
-          alignItems: "center",
+    <div
+      ref={searchRef}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "2fr 1fr 1fr 1fr auto",
+        gap: 10,
+        marginTop: 12,
+        alignItems: "center",
+      }}
+    >
+      <input
+        placeholder="Search item"
+        value={itemSearch}
+        onChange={e => {
+          setItemSearch(e.target.value);
+          setDropdownOpen(true);
         }}
-      >
-        <input
-          placeholder="Search item"
-          value={itemSearch}
-          onChange={e => {
-            setItemSearch(e.target.value);
-            setDropdownOpen(true);
-          }}
-        />
-
-        <select
-          value={form.type}
-          onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-        >
-          <option value="IN">IN</option>
-          <option value="OUT">OUT</option>
-        </select>
-
-        <input
-          type="number"
-          placeholder="Quantity"
-          value={form.quantity}
-          onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
-        />
-
-        <input
-          type="date"
-          value={form.date}
-          onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-        />
-
-        <button
-          onClick={() => {
-            saveTransaction();
-            setShowForm(false);
-          }}
-        >
-          {editingId ? "Update" : "Save"}
-        </button>
-      </div>
-    </div>
-  </div>
-)} style={{ border: "none", background: "transparent", fontSize: 18, cursor: "pointer" }}>✕</button>
-      </div>
-
-      <div
-        ref={searchRef}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "2fr 1fr 1fr 1fr auto",
-          gap: 10,
-          alignItems: "center",
-        }}
-      >
-        <input
-          placeholder="Search item"
-          value={itemSearch}
-          onChange={e => {
-            setItemSearch(e.target.value);
-            setDropdownOpen(true);
-          }}
-        />
-        <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-          <option value="IN">IN</option>
-          <option value="OUT">OUT</option>
-        </select>
-        <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
-        <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-        <button onClick={() => { saveTransaction(); setShowForm(false); }}>
-          {editingId ? "Update" : "Save"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}>
+      />
+      <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
         <option value="IN">IN</option>
         <option value="OUT">OUT</option>
       </select>
