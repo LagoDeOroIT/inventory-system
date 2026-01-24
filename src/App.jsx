@@ -562,90 +562,36 @@ export default function App() {
       )}
 
       {activeTab === "report" && (
-  <>
-    {/* HEADER */}
-    <div
-      style={{
-        position: "sticky",
-        top: 0,
-        background: "#fff",
-        zIndex: 5,
-        paddingBottom: 8,
-      }}
-    >
-      <h2 style={{ marginBottom: 4, textAlign: "center" }}>
-        📊 Monthly Report
-      </h2>
-      <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>
-        Months tracked: {Object.keys(monthlyTotals).length}
-      </div>
-      <hr style={{ marginTop: 8 }} />
-    </div>
-
-    {/* BAR SUMMARY */}
-    <div style={{ padding: 16 }}>
-      {Object.keys(monthlyTotals).length === 0 && (
-        <div style={{ textAlign: "center", padding: 20 }}>No data</div>
+        <>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📊 Monthly Report</h2>
+  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Months tracked: {Object.keys(monthlyTotals).length}</div>
+  <hr style={{ marginTop: 8 }} />
+</div>
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Month</th>
+                <th style={thtd}>IN Total</th>
+                <th style={thtd}>OUT Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
+              {Object.entries(monthlyTotals)
+                .map(([m, v]) => (
+                  <tr key={m}>
+                    <td style={thtd}>{m}</td>
+                    <td style={thtd}>₱{v.IN.toFixed(2)}</td>
+                    <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+        </>
       )}
-
-      {Object.entries(monthlyTotals).map(([month, v]) => {
-        const max = Math.max(v.IN, v.OUT, 1);
-        return (
-          <div key={month} style={{ marginBottom: 20 }}>
-            <strong>{month}</strong>
-
-            <div style={{ marginTop: 6 }}>
-              <div style={{ fontSize: 12 }}>IN: {v.IN}</div>
-              <div
-                style={{
-                  height: 14,
-                  width: `${(v.IN / max) * 100}%`,
-                  background: "#22c55e",
-                  borderRadius: 4,
-                }}
-              />
-            </div>
-
-            <div style={{ marginTop: 6 }}>
-              <div style={{ fontSize: 12 }}>OUT: {v.OUT}</div>
-              <div
-                style={{
-                  height: 14,
-                  width: `${(v.OUT / max) * 100}%`,
-                  background: "#ef4444",
-                  borderRadius: 4,
-                }}
-              />
-            </div>
-          </div>
-        );
-      })}
-    </div>
-
-    {/* TABLE */}
-    <div style={{ padding: 16 }}>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
-            <th style={thtd}>Month</th>
-            <th style={thtd}>IN</th>
-            <th style={thtd}>OUT</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Object.entries(monthlyTotals).map(([m, v]) => (
-            <tr key={m}>
-              <td style={thtd}>{m}</td>
-              <td style={thtd}>₱{v.IN.toFixed(2)}</td>
-              <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </>
-)}
-
 
       {activeTab === "stock" && (
         <>
@@ -742,107 +688,3 @@ export default function App() {
     </div>
   );
 }
-
-// =============================
-// Monthly Report – Auto-calculated Items In / Out + Filters
-// =============================
-
-import { useMemo } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import { Card, CardContent } from "@/components/ui/card";
-
-// stockMovements example:
-// [{ date: '2025-01-15', type: 'IN' | 'OUT', quantity: number }]
-
-function aggregateMonthly(stockMovements, year, month) {
-  const map = {};
-
-  stockMovements.forEach((m) => {
-    const d = new Date(m.date);
-    if (d.getFullYear() !== year) return;
-    if (month !== "ALL" && d.getMonth() !== month) return;
-
-    const key = d.toLocaleString("default", { month: "short" });
-
-    if (!map[key]) {
-      map[key] = { month: key, itemsIn: 0, itemsOut: 0 };
-    }
-
-    if (m.type === "IN") map[key].itemsIn += m.quantity;
-    if (m.type === "OUT") map[key].itemsOut += m.quantity;
-  });
-
-  return Object.values(map);
-}
-
-export function MonthlyReport({ stockMovements }) {
-  const currentYear = new Date().getFullYear();
-  const [year, setYear] = useState(currentYear);
-  const [month, setMonth] = useState("ALL");
-
-  const data = useMemo(
-    () => aggregateMonthly(stockMovements, year, month),
-    [stockMovements, year, month]
-  );
-
-  return (
-    <Card className="w-full shadow-md rounded-2xl">
-      <CardContent className="p-4">
-        <div className="flex flex-wrap gap-4 mb-4 items-center">
-          <h2 className="text-xl font-semibold flex-1">
-            Total Items In / Out per Month
-          </h2>
-
-          <select
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-            className="border rounded-xl px-3 py-1"
-          >
-            {[2024, 2025, 2026].map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
-
-          <select
-            value={month}
-            onChange={(e) =>
-              setMonth(e.target.value === "ALL" ? "ALL" : Number(e.target.value))
-            }
-            className="border rounded-xl px-3 py-1"
-          >
-            <option value="ALL">All Months</option>
-            {Array.from({ length: 12 }).map((_, i) => (
-              <option key={i} value={i}>
-                {new Date(0, i).toLocaleString("default", { month: "long" })}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="w-full h-[320px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 20, right: 20, bottom: 5 }}>
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="itemsIn" name="Items In" />
-              <Bar dataKey="itemsOut" name="Items Out" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// Usage:
-// <MonthlyReport stockMovements={stockMovements} />
