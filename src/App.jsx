@@ -180,8 +180,11 @@ export default function App() {
   }
 
   // ================= STOCK INVENTORY =================
+  const [selectedRoom, setSelectedRoom] = useState("ALL");
   const stockInventory = items.map(item => {
-    const related = transactions.filter(t => t.item_id === item.id);
+    const related = transactions.filter(t =>
+      t.item_id === item.id && (selectedRoom === "ALL" || t.room === selectedRoom)
+    );
     const qtyIn = related.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
     const qtyOut = related.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
     return {
@@ -473,15 +476,17 @@ export default function App() {
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
               <table style={tableStyle}>
                 <thead>
-                  <tr>
-                    <th style={thtd}>Date</th>
-                    <th style={thtd}>Item</th>
-                    <th style={thtd}>Room</th>
-                    <th style={thtd}>Qty</th>
-                    <th style={thtd}>Brand</th>
-                    <th style={thtd}>Actions</th>
+                    <tr>
+                      <th style={thtd}>Item</th>
+                          {selectedRoom === "ALL" && <th style={thtd}>Room</th>}
+                      <th style={thtd}>Brand</th>
+                      <th style={thtd}>Current Stock</th>
+                      <th style={thtd}>Unit Price</th>
+                      <th style={thtd}>Stock Value</th>
+                      <th style={thtd}>Actions</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {transactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
                   {transactions.filter(t => t.type === "OUT").map(t => (
@@ -622,6 +627,26 @@ export default function App() {
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
   <h2 style={{ marginBottom: 4, textAlign: "center" }}>📦 Stock Inventory</h2>
+  <div style={{ display: "flex", justifyContent: "center", marginTop: 8 }}>
+    <select value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
+      <option value="ALL">All Rooms</option>
+      <option value="L1">L1</option>
+      <option value="L2 Room 1">L2 Room 1</option>
+      <option value="L2 Room 2">L2 Room 2</option>
+      <option value="L2 Room 3">L2 Room 3</option>
+      <option value="L2 Room 4">L2 Room 4</option>
+      <option value="L3">L3</option>
+      <option value="L4">L4</option>
+      <option value="L5">L5</option>
+      <option value="L6">L6</option>
+      <option value="L7">L7</option>
+      <option value="Maintenance B1">Maintenance B1</option>
+      <option value="Maintenance B2">Maintenance B2</option>
+      <option value="Maintenance B3">Maintenance B3</option>
+      <option value="Ski Stock Room">Ski Stock Room</option>
+      <option value="Quarry Stock Room">Quarry Stock Room</option>
+    </select>
+  </div>
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>
     Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
   </div>
@@ -666,7 +691,7 @@ export default function App() {
             <thead>
               <tr>
                 <th style={thtd}>Item</th>
-                    <th style={thtd}>Room</th>
+                {selectedRoom === "ALL" && <th style={thtd}>Room</th>}
                 <th style={thtd}>Brand</th>
                 <th style={thtd}>Current Stock</th>
                 <th style={thtd}>Unit Price</th>
@@ -674,15 +699,20 @@ export default function App() {
                 <th style={thtd}>Actions</th>
               </tr>
             </thead>
+
             <tbody>
-              {stockInventory.length === 0 && emptyRow(6, "No stock data")}
+              {stockInventory.length === 0 &&
+                emptyRow(selectedRoom === "ALL" ? 7 : 6, "No stock data")}
+
               {stockInventory.map(i => (
                 <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
-                  <td style={thtd}>{i.item_name}</td>
-                  <td style={thtd}>{i.brand}</td>
-                  <td style={thtd}>{i.stock}</td>
-                  <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-                  <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
+                <td style={thtd}>{i.item_name}</td>
+                {selectedRoom === "ALL" && <td style={thtd}>{selectedRoom}</td>}
+                <td style={thtd}>{i.brand}</td>
+                <td style={thtd}>{i.stock}</td>
+                <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+                <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
+
                   <td style={thtd}>
                     <button
                       style={{ marginRight: 6 }}
