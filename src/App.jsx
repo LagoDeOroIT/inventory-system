@@ -699,9 +699,7 @@ export default function App() {
           </table>
         </div>
         </>
-      )}
-          </div> {/* end main content */}
+      )      </div> {/* end main content */}
     </div>   {/* end layout */}
   );
 }
-
