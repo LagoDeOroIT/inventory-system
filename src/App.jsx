@@ -151,7 +151,6 @@ export default function App() {
     setEditingId(null);
     loadData();
   }
-  }
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
 
