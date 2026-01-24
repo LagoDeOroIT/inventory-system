@@ -1,4 +1,3 @@
-import { Sidebar } from "./components/Sidebar";
 import React, { useEffect, useRef, useState } from "react";   
 import { createClient } from "@supabase/supabase-js";
 
@@ -19,11 +18,6 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
-  const [roomContext, setRoomContext] = useState({
-  room: null,
-  action: null,
-});
-
   // ===== CONFIRM MODAL STATE =====
   const [confirm, setConfirm] = useState(null);
   const openConfirm = (message, onConfirm) => {
@@ -222,16 +216,7 @@ export default function App() {
   }
 
   return (
-  <div style={{ display: "flex", minHeight: "100vh" }}>
-    
-    {/* SIDEBAR */}
-    <Sidebar
-      onSelect={(room, action) => setRoomContext({ room, action })}
-    />
-
-    {/* MAIN CONTENT */}
-    <div style={{ flex: 1, padding: 20 }}>
-
+    <div style={{ padding: 20 }}>
 
       
       <div style={{ textAlign: "center", marginBottom: 16 }}>
@@ -611,21 +596,20 @@ export default function App() {
       {activeTab === "stock" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-            <h2 style={{ marginBottom: 4, textAlign: "center" }}>📦 Stock Inventory</h2>
-            <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>
-              Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
-            </div>
-            <hr style={{ marginTop: 8 }} />
-          </div>
-
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📦 Stock Inventory</h2>
+  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>
+    Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
+  </div>
+  <hr style={{ marginTop: 8 }} />
+</div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
-                <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
-                  Register a new product or supply into the inventory system.
-                </p>
-              </div>
+  <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
+  <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+    Register a new product or supply into the inventory system.
+  </p>
+</div>
               <button
                 onClick={() => setShowAddItem(v => !v)}
                 style={{
@@ -642,95 +626,9 @@ export default function App() {
                 {showAddItem ? "Hide" : "Show"}
               </button>
             </div>
-
             {showAddItem && (
-  <div style={{ marginBottom: 16, padding: 12, border: "1px solid #ddd", borderRadius: 6 }}>
-    <h3>Add New Item</h3>
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-      <input
-        placeholder="Item name"
-        value={newItem.name}
-        onChange={e => setNewItem(n => ({ ...n, name: e.target.value }))}
-      />
-      <input
-        placeholder="Brand"
-        value={newItem.brand}
-        onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))}
-      />
-      <input
-        type="number"
-        placeholder="Unit price"
-        value={newItem.unit_price}
-        onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))}
-      />
-      <button onClick={handleAddItem}>Save</button>
-    </div>
-  </div>
-)
-    />
-    <input
-      placeholder="Brand"
-      value={newItem.brand}
-      onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))}
-    />
-    <input
-      type="number"
-      placeholder="Unit price"
-      value={newItem.unit_price}
-      onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))}
-    />
-    <button onClick={handleSaveItem}>
-      {isEditingItem ? "Update Item" : "Add Item"}
-    </button>
-  </div>
-)} />
-                <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
-                <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
-                <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
-              </div>
-            )}
-          </div>
-
-          <div style={{ maxHeight: 400, overflowY: "auto" }}>
-            <table style={tableStyle}>
-              <thead>
-                <tr>
-                  <th style={thtd}>Item</th>
-                  <th style={thtd}>Brand</th>
-                  <th style={thtd}>Current Stock</th>
-                  <th style={thtd}>Unit Price</th>
-                  <th style={thtd}>Stock Value</th>
-                  <th style={thtd}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stockInventory.length === 0 && emptyRow(6, "No stock data")}
-                {stockInventory.map(i => (
-                  <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
-                    <td style={thtd}>{i.item_name}</td>
-                    <td style={thtd}>{i.brand}</td>
-                    <td style={thtd}>{i.stock}</td>
-                    <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-                    <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
-                    <td style={thtd}>
-                      <button style={{ marginRight: 6 }} onClick={() => openConfirm("Edit this item?", () => {
-                        setIsEditingItem(true);
-                        setStockEditItem(i);
-                        setNewItem({ item_name: i.item_name, brand: i.brand || "", unit_price: i.unit_price });
-                        setShowAddItem(true);
-                      })}>✏️ Edit</button>
-                      <button onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
-                        await supabase.from("items").delete().eq("id", i.id);
-                        loadData();
-                      })}>🗑️ Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      ))} />
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
               <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
@@ -786,7 +684,7 @@ export default function App() {
           </table>
         </div>
         </>
-      )      </div> {/* end main content */}
-    </div>   {/* end layout */}
+      )}
+    </div>
   );
 }
