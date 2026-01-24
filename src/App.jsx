@@ -395,7 +395,20 @@ export default function App() {
       />
       <select value={form.room} onChange={e => setForm(f => ({ ...f, room: e.target.value }))}>
         <option value="L1">L1</option>
-        <option value="L2">L2</option>
+        <option value="L2 Room 1">L2 Room 1</option>
+        <option value="L2 Room 2">L2 Room 2</option>
+        <option value="L2 Room 3">L2 Room 3</option>
+        <option value="L2 Room 4">L2 Room 4</option>
+        <option value="L3">L3</option>
+        <option value="L4">L4</option>
+        <option value="L5">L5</option>
+        <option value="L6">L6</option>
+        <option value="L7">L7</option>
+        <option value="Maintenance B1">Maintenance B1</option>
+        <option value="Maintenance B2">Maintenance B2</option>
+        <option value="Maintenance B3">Maintenance B3</option>
+        <option value="Ski Stock Room">Ski Stock Room</option>
+        <option value="Quarry Stock Room">Quarry Stock Room</option>
       </select>
       <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
         <option value="IN">IN</option>
