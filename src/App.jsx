@@ -19,6 +19,11 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
+  const [roomContext, setRoomContext] = useState({
+  room: null,
+  action: null,
+});
+
   // ===== CONFIRM MODAL STATE =====
   const [confirm, setConfirm] = useState(null);
   const openConfirm = (message, onConfirm) => {
@@ -217,7 +222,16 @@ export default function App() {
   }
 
   return (
-    <div style={{ padding: 20 }}>
+  <div style={{ display: "flex", minHeight: "100vh" }}>
+    
+    {/* SIDEBAR */}
+    <Sidebar
+      onSelect={(room, action) => setRoomContext({ room, action })}
+    />
+
+    {/* MAIN CONTENT */}
+    <div style={{ flex: 1, padding: 20 }}>
+
 
       
       <div style={{ textAlign: "center", marginBottom: 16 }}>
@@ -686,6 +700,8 @@ export default function App() {
         </div>
         </>
       )}
-    </div>
+          </div> {/* end main content */}
+    </div>   {/* end layout */}
   );
 }
+
