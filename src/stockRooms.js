@@ -1,0 +1,17 @@
+export const STOCK_ROOMS = [
+  { id: "L1", name: "L1 Stock Room" },
+  { id: "L2-R1", name: "L2 Room 1" },
+  { id: "L2-R2", name: "L2 Room 2" },
+  { id: "L2-R3", name: "L2 Room 3" },
+  { id: "L2-R4", name: "L2 Room 4" },
+  { id: "L3", name: "L3 Stock Room" },
+  { id: "L4", name: "L4 Stock Room" },
+  { id: "L5", name: "L5 Stock Room" },
+  { id: "L6", name: "L6 Stock Room" },
+  { id: "L7", name: "L7 Stock Room" },
+  { id: "MAINT-B1", name: "Maintenance B1" },
+  { id: "MAINT-B2", name: "Maintenance B2" },
+  { id: "MAINT-B3", name: "Maintenance B3" },
+  { id: "SKI", name: "Ski Wakepark Stock Room" },
+  { id: "QUARRY", name: "Quarry Stock Room" },
+];
