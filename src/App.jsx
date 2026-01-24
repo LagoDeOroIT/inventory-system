@@ -601,6 +601,61 @@ export default function App() {
     Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
   </div>
   <hr style={{ marginTop: 8 }} />
+
+  {/* 📊 Stock Level Graph */}
+  <div style={{ marginTop: 16, marginBottom: 20, padding: 12, border: "1px solid #e5e7eb", borderRadius: 8 }}>
+    <h3 style={{ marginTop: 0, marginBottom: 8 }}>📊 Stock Levels (Visual)</h3>
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 160 }}>
+      {stockInventory.map(i => (
+        <div key={i.id} style={{ flex: 1, textAlign: "center" }}>
+          <div
+            title={`${i.item_name}: ${i.stock}`}
+            style={{
+              height: Math.max(4, i.stock * 6),
+              background: i.stock <= 5 ? "#ef4444" : "#3b82f6",
+              borderRadius: 4,
+            }}
+          />
+          <div style={{ fontSize: 10, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {i.item_name}
+          </div>
+        </div>
+      ))}
+    </div>
+    <div style={{ fontSize: 12, color: "#6b7280", marginTop: 8 }}>
+      Red bars indicate low stock (≤ 5)
+    </div>
+  </div>
+
+  {/* 💰 Stock Value Graph */}
+  <div style={{ marginBottom: 20, padding: 12, border: "1px solid #e5e7eb", borderRadius: 8 }}>
+    <h3 style={{ marginTop: 0, marginBottom: 8 }}>💰 Stock Value per Item (₱)</h3>
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 160 }}>
+      {stockInventory.map(i => {
+        const value = i.stock * (i.unit_price || 0);
+        return (
+          <div key={i.id} style={{ flex: 1, textAlign: "center" }}>
+            <div
+              title={`${i.item_name}: ₱${value.toFixed(2)}`}
+              style={{
+                height: Math.max(4, value / 100),
+                background: "#10b981",
+                borderRadius: 4,
+                transition: "height 0.3s",
+              }}
+            />
+            <div style={{ fontSize: 10, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {i.item_name}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+    <div style={{ fontSize: 12, color: "#6b7280", marginTop: 8 }}>
+      Bar height represents total stock value per item
+    </div>
+  </div>
+  </div>
 </div>
           <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
