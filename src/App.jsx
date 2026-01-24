@@ -18,33 +18,6 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
-  const ROOMS = [
-    "L1",
-    "L2 Room 1",
-    "L2 Room 2",
-    "L2 Room 3",
-    "L2 Room 4",
-    "L3",
-    "L4",
-    "L5",
-    "L6",
-    "L7",
-    "Maintenance B1",
-    "Maintenance B2",
-    "Maintenance B3",
-    "Ski Stock Room",
-    "Quarry Stock Room",
-  ];
-
-  const [newItem, setNewItem] = useState({
-    item_name: "",
-    brand: "",
-    unit_price: "",
-    room: "",
-  });
-
-  const [selectedRoom, setSelectedRoom] = useState("ALL");
-
   // ===== CONFIRM MODAL STATE =====
   const [confirm, setConfirm] = useState(null);
   const openConfirm = (message, onConfirm) => {
@@ -166,10 +139,12 @@ export default function App() {
   const [editingItemId, setEditingItemId] = useState(null);
   const [stockEditItem, setStockEditItem] = useState(null);
 
+  // NOTE: single source of truth for new item state
   const [newItem, setNewItem] = useState({
     item_name: "",
     brand: "",
     unit_price: "",
+    room: "",
   });
 
   async function handleSaveItem() {
@@ -207,6 +182,7 @@ export default function App() {
   }
 
   // ================= STOCK INVENTORY =================
+  // NOTE: selectedRoom state is declared once only
   const [selectedRoom, setSelectedRoom] = useState("ALL");
   const stockInventory = items.map(item => {
     const related = transactions.filter(t =>
@@ -707,21 +683,6 @@ export default function App() {
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
-              <select
-                value={newItem.room}
-          onChange={(e) =>
-    setNewItem({ ...newItem, room: e.target.value })
-  }
-  style={{ marginLeft: 6 }}
->
-  <option value="">Select room</option>
-  {ROOMS.map((room) => (
-    <option key={room} value={room}>
-      {room}
-    </option>
-  ))}
-</select>
-
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
               <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
                         </div>
@@ -733,7 +694,7 @@ export default function App() {
             <thead>
               <tr>
                 <th style={thtd}>Item</th>
-                {selectedRoom === "ALL" && <th style={thtd}>Room</th>}
+                    <th style={thtd}>Room</th>
                 <th style={thtd}>Brand</th>
                 <th style={thtd}>Current Stock</th>
                 <th style={thtd}>Unit Price</th>
@@ -741,20 +702,15 @@ export default function App() {
                 <th style={thtd}>Actions</th>
               </tr>
             </thead>
-
             <tbody>
-              {stockInventory.length === 0 &&
-                emptyRow(selectedRoom === "ALL" ? 7 : 6, "No stock data")}
-
+              {stockInventory.length === 0 && emptyRow(6, "No stock data")}
               {stockInventory.map(i => (
                 <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
-                <td style={thtd}>{i.item_name}</td>
-                {selectedRoom === "ALL" && <td style={thtd}>{selectedRoom}</td>}
-                <td style={thtd}>{i.brand}</td>
-                <td style={thtd}>{i.stock}</td>
-                <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-                <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
-
+                  <td style={thtd}>{i.item_name}</td>
+                  <td style={thtd}>{i.brand}</td>
+                  <td style={thtd}>{i.stock}</td>
+                  <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+                  <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
                   <td style={thtd}>
                     <button
                       style={{ marginRight: 6 }}
