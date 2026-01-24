@@ -2,6 +2,15 @@
 // Ensure filteredItems is always defined before use
 let filteredItems = [];
 
+// UI state for empty search results
+function renderNoResults() {
+  const container = document.getElementById("inventory-list");
+  if (!container) return;
+
+  container.innerHTML = `\n    <div style="padding:16px; text-align:center; color:#666; font-style:italic;">\n      No results found\n    </div>\n  `;
+}
+
+
 import React, { useEffect, useRef, useState } from "react";   
 import { createClient } from "@supabase/supabase-js";
 
