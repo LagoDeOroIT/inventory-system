@@ -18,6 +18,33 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
+  const ROOMS = [
+    "L1",
+    "L2 Room 1",
+    "L2 Room 2",
+    "L2 Room 3",
+    "L2 Room 4",
+    "L3",
+    "L4",
+    "L5",
+    "L6",
+    "L7",
+    "Maintenance B1",
+    "Maintenance B2",
+    "Maintenance B3",
+    "Ski Stock Room",
+    "Quarry Stock Room",
+  ];
+
+  const [newItem, setNewItem] = useState({
+    item_name: "",
+    brand: "",
+    unit_price: "",
+    room: "",
+  });
+
+  const [selectedRoom, setSelectedRoom] = useState("ALL");
+
   // ===== CONFIRM MODAL STATE =====
   const [confirm, setConfirm] = useState(null);
   const openConfirm = (message, onConfirm) => {
@@ -680,6 +707,21 @@ export default function App() {
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
+              <select
+                value={newItem.room}
+          onChange={(e) =>
+    setNewItem({ ...newItem, room: e.target.value })
+  }
+  style={{ marginLeft: 6 }}
+>
+  <option value="">Select room</option>
+  {ROOMS.map((room) => (
+    <option key={room} value={room}>
+      {room}
+    </option>
+  ))}
+</select>
+
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
               <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
                         </div>
