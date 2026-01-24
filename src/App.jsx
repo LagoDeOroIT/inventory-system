@@ -432,10 +432,42 @@ export default function App() {
         alignItems: "center",
       }}
     >
-      <input
-        placeholder="Search item"
-        value={itemSearch}
-        onChange={e => {
+      <div style={{ position: "relative" }}>
+  <input
+    type="text"
+    placeholder="Search item"
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    onFocus={() => setShowSuggestions(true)}
+  />
+
+  {showSuggestions && suggestions.length > 0 && (
+    <div
+      style={{
+        position: "absolute",
+        top: "100%",
+        left: 0,
+        right: 0,
+        background: "#fff",
+        border: "1px solid #ccc",
+        zIndex: 1000
+      }}
+    >
+      {suggestions.map(item => (
+        <div
+          key={item.id}
+          style={{ padding: 8, cursor: "pointer" }}
+          onClick={() => {
+            setSearchTerm(item.name);
+            setShowSuggestions(false);
+          }}
+        >
+          {item.name}
+        </div>
+      ))}
+    </div>
+  )}
+</div> {
           setItemSearch(e.target.value);
           setDropdownOpen(true);
         }}
