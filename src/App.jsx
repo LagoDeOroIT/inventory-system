@@ -688,3 +688,107 @@ export default function App() {
     </div>
   );
 }
+
+// =============================
+// Monthly Report – Auto-calculated Items In / Out + Filters
+// =============================
+
+import { useMemo, useState } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { Card, CardContent } from "@/components/ui/card";
+
+// stockMovements example:
+// [{ date: '2025-01-15', type: 'IN' | 'OUT', quantity: number }]
+
+function aggregateMonthly(stockMovements, year, month) {
+  const map = {};
+
+  stockMovements.forEach((m) => {
+    const d = new Date(m.date);
+    if (d.getFullYear() !== year) return;
+    if (month !== "ALL" && d.getMonth() !== month) return;
+
+    const key = d.toLocaleString("default", { month: "short" });
+
+    if (!map[key]) {
+      map[key] = { month: key, itemsIn: 0, itemsOut: 0 };
+    }
+
+    if (m.type === "IN") map[key].itemsIn += m.quantity;
+    if (m.type === "OUT") map[key].itemsOut += m.quantity;
+  });
+
+  return Object.values(map);
+}
+
+export function MonthlyReport({ stockMovements }) {
+  const currentYear = new Date().getFullYear();
+  const [year, setYear] = useState(currentYear);
+  const [month, setMonth] = useState("ALL");
+
+  const data = useMemo(
+    () => aggregateMonthly(stockMovements, year, month),
+    [stockMovements, year, month]
+  );
+
+  return (
+    <Card className="w-full shadow-md rounded-2xl">
+      <CardContent className="p-4">
+        <div className="flex flex-wrap gap-4 mb-4 items-center">
+          <h2 className="text-xl font-semibold flex-1">
+            Total Items In / Out per Month
+          </h2>
+
+          <select
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            className="border rounded-xl px-3 py-1"
+          >
+            {[2024, 2025, 2026].map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+
+          <select
+            value={month}
+            onChange={(e) =>
+              setMonth(e.target.value === "ALL" ? "ALL" : Number(e.target.value))
+            }
+            className="border rounded-xl px-3 py-1"
+          >
+            <option value="ALL">All Months</option>
+            {Array.from({ length: 12 }).map((_, i) => (
+              <option key={i} value={i}>
+                {new Date(0, i).toLocaleString("default", { month: "long" })}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="w-full h-[320px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data} margin={{ top: 20, right: 20, bottom: 5 }}>
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="itemsIn" name="Items In" />
+              <Bar dataKey="itemsOut" name="Items Out" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Usage:
+// <MonthlyReport stockMovements={stockMovements} />
