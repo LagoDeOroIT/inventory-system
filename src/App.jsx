@@ -693,7 +693,7 @@ export default function App() {
 // Monthly Report – Auto-calculated Items In / Out + Filters
 // =============================
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   BarChart,
   Bar,
