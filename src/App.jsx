@@ -436,41 +436,50 @@ export default function App() {
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
               <table style={tableStyle}>
                 <thead>
-                  <tr>
-                    <th style={thtd}>Date</th>
-                    <th style={thtd}>Item</th>
-                    <th style={thtd}>Room</th>
-                    <th style={thtd}>Qty</th>
-                    <th style={thtd}>Brand</th>
-                    <th style={thtd}>Actions</th>
-                  </tr>
-                </thead>
+  <tr>
+    <th style={thtd}>Item</th>
+    {selectedRoom === "ALL" && <th style={thtd}>Room</th>}
+    <th style={thtd}>Brand</th>
+    <th style={thtd}>Current Stock</th>
+    <th style={thtd}>Unit Price</th>
+    <th style={thtd}>Stock Value</th>
+    <th style={thtd}>Actions</th>
+  </tr>
+</thead>
                 <tbody>
-                  {transactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
-                  {transactions.filter(t => t.type === "IN").map(t => (
-                    <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
-                      <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-                      <td style={thtd}>{t.items?.item_name}</td>
-                      <td style={thtd}>{t.room}</td>
-                      <td style={thtd}>{t.quantity}</td>
-                      <td style={thtd}>{t.brand}</td>
-                      <td style={thtd}>
-                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
-                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                          setEditingId(t.id);
-                          setForm(originalFormRef.current);
-                          setItemSearch(t.items?.item_name || "");
-                          setShowForm(true);
-                          setActiveTab("transactions");
-                        })}>✏️ Edit</button>
-                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
-                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
-                          loadData();
-                        })}>🗑️ Delete</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+  {stockInventory.length === 0 && emptyRow(selectedRoom === "ALL" ? 7 : 6, "No stock data")}
+  {stockInventory.map(i => (
+    <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
+      <td style={thtd}>{i.item_name}</td>
+      {selectedRoom === "ALL" && <td style={thtd}>{i.room || "—"}</td>}
+      <td style={thtd}>{i.brand}</td>
+      <td style={thtd}>{i.stock}</td>
+      <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+      <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
+      <td style={thtd}>
+        <button
+          style={{ marginRight: 6 }}
+          onClick={() => openConfirm("Edit this item?", () => {
+            setIsEditingItem(true);
+            setStockEditItem(i);
+            setNewItem({
+              item_name: i.item_name,
+              brand: i.brand || "",
+              unit_price: i.unit_price,
+            });
+            setShowAddItem(true);
+          })}
+        >✏️ Edit</button>
+        <button
+          onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
+            await supabase.from("items").delete().eq("id", i.id);
+            loadData();
+          })}
+        >🗑️ Delete</button>
+      </td>
+    </tr>
+  ))}
+</tbody>
               </table>
             </div>
 
