@@ -1,3 +1,4 @@
+import { Sidebar } from "./components/Sidebar";
 import React, { useEffect, useRef, useState } from "react";   
 import { createClient } from "@supabase/supabase-js";
 
