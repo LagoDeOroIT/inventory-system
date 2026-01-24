@@ -1,42 +1,3 @@
-// 🔧 EDIT ACTION FIX
-// Automatically open form when Edit is clicked
-function openEditForm(item) {
-  const form = document.getElementById("inventory-form");
-  if (!form) return;
-
-  // Show form
-  form.style.display = "block";
-
-  // Populate fields safely
-  document.getElementById("item-name").value = item.name || "";
-  document.getElementById("item-quantity").value = item.quantity || "";
-  document.getElementById("item-department").value = item.department || "";
-  document.getElementById("item-location").value = item.location || "";
-
-  // Store editing ID
-  form.dataset.editingId = item.id;
-
-  // Scroll into view for better UX
-  form.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-// 🔧 FIX: prevent white screen on Search
-// Ensure filteredItems is always defined before use
-let filteredItems = [];
-
-// UI state for empty search results
-function renderNoResults() {
-  const container = document.getElementById("inventory-list");
-  if (!container) return;
-
-  container.innerHTML = `
-    <div style="padding:16px; text-align:center; color:#666; font-style:italic;">
-      No results found
-    </div>
-  `;
-}
-
-
 import React, { useEffect, useRef, useState } from "react";   
 import { createClient } from "@supabase/supabase-js";
 
@@ -262,6 +223,183 @@ export default function App() {
         <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
         <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
       </div>
+
+      {/* 
+          </div>
+        </div>
+      )}
+
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
+        <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
+      </div>
+
+      {/* TABS */}
+<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
+  <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("transactions");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("transactions");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "transactions" ? "#1f2937" : "transparent",
+        color: activeTab === "transactions" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📄 Transactions
+    </button>
+
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("deleted");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("deleted");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "deleted" ? "#1f2937" : "transparent",
+        color: activeTab === "deleted" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      🗑️ Deleted History
+    </button>
+
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("report");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("report");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "report" ? "#1f2937" : "transparent",
+        color: activeTab === "report" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📊 Monthly Report
+    </button>
+
+    <button
+      onClick={() => setActiveTab("stock")}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "stock" ? "#1f2937" : "transparent",
+        color: activeTab === "stock" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📦 Stock Inventory
+    </button>
+  </div>
+</div>
+
+      {/* CONFIRM MODAL */}
+      {confirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
+            <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
+            <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
+              <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TRANSACTIONS TAB */}
+      {activeTab === "transactions" && (
+        <>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
+  <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
+  <hr style={{ marginTop: 8 }} />
+</div>
+          <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div>
+      <h3 style={{ margin: 0 }}>Record Inventory Transaction</h3>
+      <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+        Log incoming and outgoing stock movements for accurate inventory tracking.
+      </p>
+    </div>
+    <button
+      onClick={() => setShowForm(v => !v)}
+      style={{
+        background: "#1f2937",
+        color: "#fff",
+        border: "none",
+        borderRadius: 6,
+        padding: "6px 14px",
+        cursor: "pointer",
+        fontSize: 12,
+        fontWeight: 600,
+      }}
+    >
+      {showForm ? "Hide" : "Add Transaction"}
+    </button>
+  </div>
+
+  {showForm && (
+    <div
+      ref={searchRef}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "2fr 1fr 1fr 1fr auto",
+        gap: 10,
+        marginTop: 12,
+        alignItems: "center",
+      }}
+    >
+      <input
+        placeholder="Search item"
+        value={itemSearch}
+        onChange={e => {
+          setItemSearch(e.target.value);
+          setDropdownOpen(true);
+        }}
       />
       <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
         <option value="IN">IN</option>
@@ -555,61 +693,4 @@ export default function App() {
       )}
     </div>
   );
-}
-
-
-// 🔍 SEARCH SUGGESTIONS (autocomplete)
-const searchInput = document.getElementById("search");
-let suggestionBox = document.getElementById("search-suggestions");
-
-// Create suggestion box if it doesn't exist
-if (!suggestionBox && searchInput) {
-  suggestionBox = document.createElement("div");
-  suggestionBox.id = "search-suggestions";
-  suggestionBox.style.border = "1px solid #ddd";
-  suggestionBox.style.maxHeight = "180px";
-  suggestionBox.style.overflowY = "auto";
-  suggestionBox.style.position = "absolute";
-  suggestionBox.style.background = "#fff";
-  suggestionBox.style.zIndex = "1000";
-  suggestionBox.style.width = searchInput.offsetWidth + "px";
-  searchInput.parentNode.appendChild(suggestionBox);
-}
-
-function showSuggestions(value) {
-  if (!suggestionBox) return;
-
-  suggestionBox.innerHTML = "";
-  if (!value) return;
-
-  const matches = inventoryItems
-    ?.filter(item => item.name?.toLowerCase().includes(value.toLowerCase()))
-    .slice(0, 5) || [];
-
-  if (matches.length === 0) return;
-
-  matches.forEach(item => {
-    const div = document.createElement("div");
-    div.textContent = item.name;
-    div.style.padding = "8px";
-    div.style.cursor = "pointer";
-
-    div.onclick = () => {
-      searchInput.value = item.name;
-      suggestionBox.innerHTML = "";
-    };
-
-    div.onmouseover = () => (div.style.background = "#f0f0f0");
-    div.onmouseout = () => (div.style.background = "#fff");
-
-    suggestionBox.appendChild(div);
-  });
-}
-
-if (searchInput) {
-  searchInput.addEventListener("input", e => showSuggestions(e.target.value));
-  searchInput.addEventListener("focus", e => showSuggestions(e.target.value));
-  document.addEventListener("click", e => {
-    if (!searchInput.contains(e.target)) suggestionBox.innerHTML = "";
-  });
 }
