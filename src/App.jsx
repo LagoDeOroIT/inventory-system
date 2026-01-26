@@ -235,157 +235,23 @@ export default function App() {
   <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
     <button
       onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("transactions");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("transactions");
-        }
+        setTxSearch("");
+        setTxItemId("");
+        setTxDateFrom("");
+        setTxDateTo("");
       }}
       style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
+        padding: "10px 16px",
+        borderRadius: 8,
+        border: "1px solid #d1d5db",
+        background: "#1f2937",
+        color: "#fff",
+        fontSize: 13,
         cursor: "pointer",
-        background: activeTab === "transactions" ? "#1f2937" : "transparent",
-        color: activeTab === "transactions" ? "#fff" : "#374151",
-        fontWeight: 500,
       }}
     >
-      📄 Transactions
-    </button>
-
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("deleted");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("deleted");
-        }
-      }}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "deleted" ? "#1f2937" : "transparent",
-        color: activeTab === "deleted" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      🗑️ Deleted History
-    </button>
-
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("report");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("report");
-        }
-      }}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "report" ? "#1f2937" : "transparent",
-        color: activeTab === "report" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      📊 Monthly Report
-    </button>
-
-    <button
-      onClick={() => setActiveTab("stock")}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "stock" ? "#1f2937" : "transparent",
-        color: activeTab === "stock" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      📦 Stock Inventory
-    </button>
-  </div>
-</div>
-
-      
-      {confirm && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
-            <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
-            <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-              <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
-              <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      
-      {activeTab === "transactions" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
-  <hr style={{ marginTop: 8 }} />
-
-{/* ===== TRANSACTION FILTER PANEL ===== */}
-<div
-  style={{
-    display: "flex",
-    gap: 10,
-    flexWrap: "wrap",
-    marginTop: 12,
-    padding: 12,
-    border: "1px solid #e5e7eb",
-    borderRadius: 8,
-    background: "#f9fafb",
-  }}
->
-  <input
-    placeholder="Search item / brand / qty"
-    value={txSearch}
-    onChange={e => setTxSearch(e.target.value)}
-    style={{ padding: 8, borderRadius: 6, border: "1px solid #d1d5db" }}
-  />
-
-  <select
-    value={txItemId}
-    onChange={e => setTxItemId(e.target.value)}
-    style={{ padding: 8, borderRadius: 6, border: "1px solid #d1d5db" }}
-  >
-    <option value="">All items</option>
-    {items.map(i => (
-      <option key={i.id} value={String(i.id)}>{i.item_name}</option>
-    ))}
-  </select>
-
-  <input type="date" value={txDateFrom} onChange={e => setTxDateFrom(e.target.value)} />
-  <input type="date" value={txDateTo} onChange={e => setTxDateTo(e.target.value)} />
+      Clear
+    </button>ateTo(e.target.value)} style={{ padding: 10, borderRadius: 8, border: "1px solid #d1d5db", fontSize: 14 }} />
 
   {(txSearch || txItemId || txDateFrom || txDateTo) && (
     <button
