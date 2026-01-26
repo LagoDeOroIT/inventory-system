@@ -30,6 +30,13 @@ export default function App() {
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [deletedSearch, setDeletedSearch] = useState("");
 
+  // bulk selection (Deleted History)
+  const [selectedDeletedIds, setSelectedDeletedIds] = useState([]);
+  const toggleDeleted = id => {
+    setSelectedDeletedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+  const clearDeletedSelection = () => setSelectedDeletedIds([]);("");
+
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
 
@@ -498,7 +505,24 @@ export default function App() {
     <table style={tableStyle}>
       <thead>
         <tr>
-          <th style={thtd}>Date</th>
+          <th style={thtd}><input type="checkbox" onChange={e => {
+                if (e.target.checked) {
+                  const ids = deletedTransactions.filter(x => x.type === "OUT").map(x => x.id);
+                  setSelectedDeletedIds(prev => Array.from(new Set([...prev, ...ids])));
+                } else {
+                  const ids = deletedTransactions.filter(x => x.type === "OUT").map(x => x.id);
+                  setSelectedDeletedIds(prev => prev.filter(id => !ids.includes(id)));
+                }
+              }} /></th>
+              <th style={thtd}>Date</th>
+              <th style={thtd}>Item</th>
+              <th style={thtd}>Room</th>
+              <th style={thtd}>Qty</th>
+              <th style={thtd}>Actio= deletedTransactions.filter(x => x.type === "IN").map(x => x.id);
+                  setSelectedDeletedIds(prev => prev.filter(id => !ids.includes(id)));
+                }
+              }} /></th>
+              <th style={thtd}>Date</th>
           <th style={thtd}>Item</th>
           {selectedRoom === "ALL" && <th style={thtd}>Room</th>}
           <th style={thtd}>Brand</th>
@@ -592,51 +616,139 @@ export default function App() {
       )}
 
       {activeTab === "deleted" && (
+  <>
+    <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+      <h2 style={{ marginBottom: 4, textAlign: "center" }}>🗑️ Deleted History</h2>
+      <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
+      <hr style={{ marginTop: 8 }} />
+    </div>
+
+    <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 12 }}>
+      <input
+        placeholder="Search deleted items, brand, or quantity"
+        value={deletedSearch}
+        onChange={e => setDeletedSearch(e.target.value)}
+        style={{ padding: "8px 12px", width: 320, borderRadius: 6, border: "1px solid #d1d5db", fontSize: 14 }}
+      />
+      {selectedDeletedIds.length > 0 && (
         <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>🗑️ Delete History</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
-  <hr style={{ marginTop: 8 }} />
-</div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <input
-              placeholder="Search deleted items, brand, or quantity"
-              value={deletedSearch}
-              onChange={e => setDeletedSearch(e.target.value)}
-              style={{
-                padding: "8px 12px",
-                width: 320,
-                borderRadius: 6,
-                border: "1px solid #d1d5db",
-                fontSize: 14,
-              }}
-            />
-          </div>
-          <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Date</th>
-                <th style={thtd}>Item</th>
-                    <th style={thtd}>Room</th>
-                <th style={thtd}>Brand</th>
-                <th style={thtd}>Qty</th>
-                <th style={thtd}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {deletedTransactions.length === 0 && emptyRow(5, "No deleted records")}
-              {deletedTransactions
-                .filter(t => {
-                  const q = deletedSearch.toLowerCase();
-                  return (
-                    t.items?.item_name?.toLowerCase().includes(q) ||
-                    t.brand?.toLowerCase().includes(q) ||
-                    String(t.quantity).includes(q)
-                  );
-                })
+          <button onClick={() => openConfirm(`Restore ${selectedDeletedIds.length} transactions?`, async () => {
+            await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).in("id", selectedDeletedIds);
+            clearDeletedSelection();
+            loadData();
+          })}>♻️ Bulk Restore</button>
+          <button onClick={() => openConfirm(`Permanently delete ${selectedDeletedIds.length} transactions?`, async () => {
+            await supabase.from("inventory_transactions").delete().in("id", selectedDeletedIds);
+            clearDeletedSelection();
+            loadData();
+          })}>❌ Bulk Delete</button>
+        </>
+      )}
+    </div>
+      <input
+        placeholder="Search deleted items, brand, or quantity"
+        value={deletedSearch}
+        onChange={e => setDeletedSearch(e.target.value)}
+        style={{ padding: "8px 12px", width: 320, borderRadius: 6, border: "1px solid #d1d5db", fontSize: 14 }}
+      />
+    </div>
+
+    <div style={{ display: "flex", gap: 16 }}>
+
+      {/* DELETED IN */}
+      <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
+        <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ Deleted IN</h4>
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thtd}>Date</th>
+              <th style={thtd}>Item</th>
+              <th style={thtd}>Room</th>
+              <th style={thtd}>Qty</th>
+              <th style={thtd}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {deletedTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No deleted IN records")}
+            {deletedTransactions
+              .filter(t => t.type === "IN")
+              .filter(t => {
+                const q = deletedSearch.toLowerCase();
+                return t.items?.item_name?.toLowerCase().includes(q) || String(t.quantity).includes(q);
+              })
+              .map(t => (
+                <tr key={t.id}>
+                  <td style={thtd}><input type="checkbox" checked={selectedDeletedIds.includes(t.id)} onChange={() => toggleDeleted(t.id)} /></td>
+                  <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.room}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>
+                    <button onClick={() => openConfirm("Restore this transaction?", async () => {
+                      await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("id", t.id);
+                      loadData();
+                    })}>♻️ Restore</button>
+                    <button onClick={() => openConfirm("Permanently delete this transaction?", async () => {
+                      await supabase.from("inventory_transactions").delete().eq("id", t.id);
+                      loadData();
+                    })}>❌ Delete</button>
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* DELETED OUT */}
+      <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
+        <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ Deleted OUT</h4>
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thtd}>Date</th>
+              <th style={thtd}>Item</th>
+              <th style={thtd}>Room</th>
+              <th style={thtd}>Qty</th>
+              <th style={thtd}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {deletedTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No deleted OUT records")}
+            {deletedTransactions
+              .filter(t => t.type === "OUT")
+              .filter(t => {
+                const q = deletedSearch.toLowerCase();
+                return t.items?.item_name?.toLowerCase().includes(q) || String(t.quantity).includes(q);
+              })
+              .map(t => (
+                <tr key={t.id}>
+                  <td style={thtd}><input type="checkbox" checked={selectedDeletedIds.includes(t.id)} onChange={() => toggleDeleted(t.id)} /></td>
+                  <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.room}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>
+                    <button onClick={() => openConfirm("Restore this transaction?", async () => {
+                      await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("id", t.id);
+                      loadData();
+                    })}>♻️ Restore</button>
+                    <button onClick={() => openConfirm("Permanently delete this transaction?", async () => {
+                      await supabase.from("inventory_transactions").delete().eq("id", t.id);
+                      loadData();
+                    })}>❌ Delete</button>
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </>
+)}
                 .map(t => (
                 <tr key={t.id}>
+                  <td style={thtd}><input type="checkbox" checked={selectedDeletedIds.includes(t.id)} onChange={() => toggleDeleted(t.id)} /></td>
                   <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
                       <td style={thtd}>{t.room}</td>
