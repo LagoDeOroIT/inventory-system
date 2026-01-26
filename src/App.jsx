@@ -30,7 +30,18 @@ export default function App() {
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [deletedSearch, setDeletedSearch] = useState("");
   const [inSearch, setInSearch] = useState("");
+  const [inFilter, setInFilter] = useState("all");
   const [outSearch, setOutSearch] = useState("");
+  const [outFilter, setOutFilter] = useState("all");
+
+  // reset search when filter changes
+  useEffect(() => {
+    setInSearch("");
+  }, [inFilter]);
+
+  useEffect(() => {
+    setOutSearch("");
+  }, [outFilter]);
 
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
@@ -411,12 +422,25 @@ export default function App() {
             
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
-              <input
-                placeholder="Search IN (item, brand, qty)"
-                value={inSearch}
-                onChange={e => setInSearch(e.target.value)}
-                style={{ width: "100%", marginBottom: 8, padding: 6 }}
-              />
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <span style={{ fontSize: 12, color: "#6b7280" }}>Filter:</span>
+                <select
+                  value={outFilter}
+                  onChange={e => setOutFilter(e.target.value)}
+                  style={{ padding: 6, borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
+                >
+                  <option value="all">All</option>
+                  <option value="item">Item</option>
+                  <option value="brand">Brand</option>
+                  <option value="quantity">Quantity</option>
+                </select>
+                <input
+                  placeholder="Search"
+                  value={outSearch}
+                  onChange={e => setOutSearch(e.target.value)}
+                  style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
+                />
+              </div>
               <table style={tableStyle}>
                 <thead>
                   <tr>
@@ -432,7 +456,11 @@ export default function App() {
                   {transactions
                     .filter(t => t.type === "IN")
                     .filter(t => {
-                      const q = inSearch.toLowerCase();
+                      const q = outSearch.toLowerCase();
+                      if (!q) return true;
+                      if (outFilter === "item") return t.items?.item_name?.toLowerCase().includes(q);
+                      if (outFilter === "brand") return t.brand?.toLowerCase().includes(q);
+                      if (outFilter === "quantity") return String(t.quantity).includes(q);
                       return (
                         t.items?.item_name?.toLowerCase().includes(q) ||
                         t.brand?.toLowerCase().includes(q) ||
@@ -468,12 +496,21 @@ export default function App() {
             
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
-              <input
-                placeholder="Search OUT (item, brand, qty)"
-                value={outSearch}
-                onChange={e => setOutSearch(e.target.value)}
-                style={{ width: "100%", marginBottom: 8, padding: 6 }}
-              />
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <span style={{ fontSize: 12, color: "#6b7280" }}>Filter:</span>
+                <input
+                  placeholder="Search by item, brand, or quantity"
+                  value={outSearch}
+                  onChange={e => setOutSearch(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: "8px 10px",
+                    borderRadius: 6,
+                    border: "1px solid #d1d5db",
+                    fontSize: 13,
+                  }}
+                />
+              </div>
               <table style={tableStyle}>
                 <thead>
                   <tr>
