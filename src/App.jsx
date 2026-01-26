@@ -30,12 +30,6 @@ export default function App() {
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [deletedSearch, setDeletedSearch] = useState("");
 
-  // ===== TRANSACTIONS FILTER STATE =====
-  const [txSearch, setTxSearch] = useState("");
-  const [txItemId, setTxItemId] = useState("");
-  const [txDateFrom, setTxDateFrom] = useState("");
-  const [txDateTo, setTxDateTo] = useState("");
-
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
 
@@ -235,37 +229,123 @@ export default function App() {
   <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
     <button
       onClick={() => {
-        setTxSearch("");
-        setTxItemId("");
-        setTxDateFrom("");
-        setTxDateTo("");
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("transactions");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("transactions");
+        }
       }}
       style={{
-        padding: "10px 16px",
-        borderRadius: 8,
-        border: "1px solid #d1d5db",
-        background: "#1f2937",
-        color: "#fff",
-        fontSize: 13,
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
         cursor: "pointer",
+        background: activeTab === "transactions" ? "#1f2937" : "transparent",
+        color: activeTab === "transactions" ? "#fff" : "#374151",
+        fontWeight: 500,
       }}
     >
-      Clear
-    </button>ateTo(e.target.value)} style={{ padding: 10, borderRadius: 8, border: "1px solid #d1d5db", fontSize: 14 }} />
+      📄 Transactions
+    </button>
 
-  {(txSearch || txItemId || txDateFrom || txDateTo) && (
     <button
       onClick={() => {
-        setTxSearch("");
-        setTxItemId("");
-        setTxDateFrom("");
-        setTxDateTo("");
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("deleted");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("deleted");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "deleted" ? "#1f2937" : "transparent",
+        color: activeTab === "deleted" ? "#fff" : "#374151",
+        fontWeight: 500,
       }}
     >
-      Clear
+      🗑️ Deleted History
     </button>
-  )}
+
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("report");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("report");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "report" ? "#1f2937" : "transparent",
+        color: activeTab === "report" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📊 Monthly Report
+    </button>
+
+    <button
+      onClick={() => setActiveTab("stock")}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "stock" ? "#1f2937" : "transparent",
+        color: activeTab === "stock" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📦 Stock Inventory
+    </button>
+  </div>
 </div>
+
+      
+      {confirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
+            <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
+            <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
+              <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      
+      {activeTab === "transactions" && (
+        <>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
+  <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
+  <hr style={{ marginTop: 8 }} />
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -340,36 +420,8 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.filter(t => {
-                    if (t.type !== "IN") return false;
-                    if (txItemId && String(t.item_id) !== txItemId) return false;
-                    if (txDateFrom && t.date < txDateFrom) return false;
-                    if (txDateTo && t.date > txDateTo) return false;
-                    if (txSearch) {
-                      const q = txSearch.toLowerCase();
-                      return (
-                        t.items?.item_name?.toLowerCase().includes(q) ||
-                        t.brand?.toLowerCase().includes(q) ||
-                        String(t.quantity).includes(q)
-                      );
-                    }
-                    return true;
-                  }).length === 0 && emptyRow(5, "No IN transactions")}
-                  {transactions.filter(t => {
-                    if (t.type !== "IN") return false;
-                    if (txItemId && String(t.item_id) !== txItemId) return false;
-                    if (txDateFrom && t.date < txDateFrom) return false;
-                    if (txDateTo && t.date > txDateTo) return false;
-                    if (txSearch) {
-                      const q = txSearch.toLowerCase();
-                      return (
-                        t.items?.item_name?.toLowerCase().includes(q) ||
-                        t.brand?.toLowerCase().includes(q) ||
-                        String(t.quantity).includes(q)
-                      );
-                    }
-                    return true;
-                  }).map(t => (
+                  {transactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
+                  {transactions.filter(t => t.type === "IN").map(t => (
                     <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                       <td style={thtd}>{t.items?.item_name}</td>
@@ -409,36 +461,8 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.filter(t => {
-                    if (t.type !== "OUT") return false;
-                    if (txItemId && String(t.item_id) !== txItemId) return false;
-                    if (txDateFrom && t.date < txDateFrom) return false;
-                    if (txDateTo && t.date > txDateTo) return false;
-                    if (txSearch) {
-                      const q = txSearch.toLowerCase();
-                      return (
-                        t.items?.item_name?.toLowerCase().includes(q) ||
-                        t.brand?.toLowerCase().includes(q) ||
-                        String(t.quantity).includes(q)
-                      );
-                    }
-                    return true;
-                  }).length === 0 && emptyRow(5, "No OUT transactions")}
-                  {transactions.filter(t => {
-                    if (t.type !== "OUT") return false;
-                    if (txItemId && String(t.item_id) !== txItemId) return false;
-                    if (txDateFrom && t.date < txDateFrom) return false;
-                    if (txDateTo && t.date > txDateTo) return false;
-                    if (txSearch) {
-                      const q = txSearch.toLowerCase();
-                      return (
-                        t.items?.item_name?.toLowerCase().includes(q) ||
-                        t.brand?.toLowerCase().includes(q) ||
-                        String(t.quantity).includes(q)
-                      );
-                    }
-                    return true;
-                  }).map(t => (
+                  {transactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
+                  {transactions.filter(t => t.type === "OUT").map(t => (
                     <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                       <td style={thtd}>{t.items?.item_name}</td>
