@@ -735,39 +735,58 @@ export default function App() {
         </>
       )}
 
-      {activeTab === "stock" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-    <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
-    <span style={{ fontSize: 12, color: "#6b7280" }}>
-      Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
-    </span>
-  </div>(i => i.stock <= 5).length}
-  </div>
-  <hr style={{ marginTop: 8 }} />
-</div>
-          <div style={{ marginBottom: 16, border: "1px solid #ddd", padding: 12, borderRadius: 6 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-  <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
-  <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
-    Register a new product or supply into the inventory system.
-  </p>
-</div>
-              <button
-                onClick={() => setShowAddItem(v => !v)}
-                style={{
-                  background: "#1f2937",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 6,
-                  padding: "6px 12px",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}
-              >
+     {activeTab === "stock" && (
+  <>
+    <div
+      style={{
+        position: "sticky",
+        top: 0,
+        background: "#fff",
+        zIndex: 5,
+        paddingBottom: 8,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+        <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
+        <span style={{ fontSize: 12, color: "#6b7280" }}>
+          Total items: {stockInventory.length} | Low stock:{" "}
+          {stockInventory.filter(i => i.stock <= 5).length}
+        </span>
+      </div>
+      <hr style={{ marginTop: 8 }} />
+    </div>
+
+    <div
+      style={{
+        marginBottom: 16,
+        border: "1px solid #ddd",
+        padding: 12,
+        borderRadius: 6,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
+          <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+            Register a new product or supply into the inventory system.
+          </p>
+        </div>
+
+        <button
+          onClick={() => setShowAddItem(v => !v)}
+          style={{
+            background: "#1f2937",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            padding: "6px 12px",
+            cursor: "pointer",
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+        
+
                 {showAddItem ? "Hide" : "Show"}
               </button>
             </div>
