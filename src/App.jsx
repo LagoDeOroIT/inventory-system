@@ -14,8 +14,7 @@ const editingRowStyle = { background: "#fff7ed" }; // highlight edited row
 const emptyRow = (colSpan, text) => (
   <tr>
     <td colSpan={colSpan} style={{ textAlign: "center", padding: 12 }}>{text}</td>
-  </tr>
-);
+  </tr>\n</>\n);
 
 export default function App() {
   // ===== CONFIRM MODAL STATE =====
@@ -57,7 +56,17 @@ export default function App() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return (\n    <div style={{ marginBottom: "1rem" }}>\n      <label style={{ marginRight: "0.5rem" }}>Room:</label>\n      <select value={selectedRoom} onChange={(e) => setSelectedRoom(e.target.value)}>\n        <option value="">All Rooms</option>\n        {[...new Set(items.map(i => i.room).filter(Boolean))].map(room => (\n          <option key={room} value={room}>{room}</option>\n        ))}\n      </select>\n    </div>\n) => data.subscription.unsubscribe();
+    return (<>\n
+    <div style={{ marginBottom: "1rem" }}>
+      <label style={{ marginRight: "0.5rem" }}>Room:</label>
+      <select value={selectedRoom} onChange={(e) => setSelectedRoom(e.target.value)}>
+        <option value="">All Rooms</option>
+        {[...new Set(items.map(i => i.room).filter(Boolean))].map(room => (
+          <option key={room} value={room}>{room}</option>
+        ))}
+      </select>
+    </div>
+) => data.subscription.unsubscribe();
   }, []);
 
   // ================= LOAD DATA =================
