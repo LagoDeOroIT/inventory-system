@@ -29,6 +29,8 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [deletedSearch, setDeletedSearch] = useState("");
+  const [inSearch, setInSearch] = useState("");
+  const [outSearch, setOutSearch] = useState("");
 
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
@@ -409,6 +411,12 @@ export default function App() {
             
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
+              <input
+                placeholder="Search IN (item, brand, qty)"
+                value={inSearch}
+                onChange={e => setInSearch(e.target.value)}
+                style={{ width: "100%", marginBottom: 8, padding: 6 }}
+              />
               <table style={tableStyle}>
                 <thead>
                   <tr>
@@ -421,7 +429,17 @@ export default function App() {
                 </thead>
                 <tbody>
                   {transactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
-                  {transactions.filter(t => t.type === "IN").map(t => (
+                  {transactions
+                    .filter(t => t.type === "IN")
+                    .filter(t => {
+                      const q = inSearch.toLowerCase();
+                      return (
+                        t.items?.item_name?.toLowerCase().includes(q) ||
+                        t.brand?.toLowerCase().includes(q) ||
+                        String(t.quantity).includes(q)
+                      );
+                    })
+                    .map(t => (
                     <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                       <td style={thtd}>{t.items?.item_name}</td>
@@ -450,6 +468,12 @@ export default function App() {
             
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
+              <input
+                placeholder="Search OUT (item, brand, qty)"
+                value={outSearch}
+                onChange={e => setOutSearch(e.target.value)}
+                style={{ width: "100%", marginBottom: 8, padding: 6 }}
+              />
               <table style={tableStyle}>
                 <thead>
                   <tr>
@@ -462,7 +486,17 @@ export default function App() {
                 </thead>
                 <tbody>
                   {transactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
-                  {transactions.filter(t => t.type === "OUT").map(t => (
+                  {transactions
+                    .filter(t => t.type === "OUT")
+                    .filter(t => {
+                      const q = outSearch.toLowerCase();
+                      return (
+                        t.items?.item_name?.toLowerCase().includes(q) ||
+                        t.brand?.toLowerCase().includes(q) ||
+                        String(t.quantity).includes(q)
+                      );
+                    })
+                    .map(t => (
                     <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                       <td style={thtd}>{t.items?.item_name}</td>
