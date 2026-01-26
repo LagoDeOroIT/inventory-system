@@ -46,7 +46,6 @@ export default function App() {
     brand: "",
     unit: "",
     volume_pack: "",
-    room: "L1", // stock room
   });
 
   // item search
@@ -108,7 +107,6 @@ export default function App() {
     }
 
     const payload = {
-      room: form.room,
       date: form.date || new Date().toISOString().slice(0, 10),
       item_id: Number(form.item_id),
       type: form.type,
@@ -139,77 +137,49 @@ export default function App() {
   const [editingItemId, setEditingItemId] = useState(null);
   const [stockEditItem, setStockEditItem] = useState(null);
 
-  // NOTE: single source of truth for new item state
   const [newItem, setNewItem] = useState({
-  item_name: "",
-  brand: "",
-  unit_price: "",
-  room: "L1",
-});
+    item_name: "",
+    brand: "",
+    unit_price: "",
+  });
 
   async function handleSaveItem() {
-  if (!newItem.item_name || !newItem.unit_price) {
-    alert("Item name and unit price are required");
-    return;
-  }
+    if (!newItem.item_name || !newItem.unit_price) {
+      alert("Item name and unit price are required");
+      return;
+    }
 
-  // 1️⃣ Save or update item
-  let itemId = null;
+    if (isEditingItem && stockEditItem) {
+      const { error } = await supabase
+        .from("items")
+        .update({
+          item_name: newItem.item_name,
+          brand: newItem.brand || null,
+          unit_price: Number(newItem.unit_price),
+        })
+        .eq("id", stockEditItem.id);
 
-  if (isEditingItem && stockEditItem) {
-    const { error } = await supabase
-      .from("items")
-      .update({
+      if (error) return alert(error.message);
+    } else {
+      const { error } = await supabase.from("items").insert({
         item_name: newItem.item_name,
         brand: newItem.brand || null,
         unit_price: Number(newItem.unit_price),
-      })
-      .eq("id", stockEditItem.id);
+      });
 
-    if (error) return alert(error.message);
-    itemId = stockEditItem.id;
-  } else {
-    const { data, error } = await supabase
-      .from("items")
-      .insert({
-        item_name: newItem.item_name,
-        brand: newItem.brand || null,
-        unit_price: Number(newItem.unit_price),
-      })
-      .select()
-      .single();
+      if (error) return alert(error.message);
+    }
 
-    if (error) return alert(error.message);
-    itemId = data.id;
-
-    // 2️⃣ Auto-create initial IN transaction (Option A)
-    await supabase.from("inventory_transactions").insert({
-      item_id: itemId,
-      room: newItem.room,
-      type: "IN",
-      quantity: 0,
-      unit_price: Number(newItem.unit_price),
-      brand: newItem.brand || null,
-      date: new Date().toISOString().slice(0, 10),
-      deleted: false,
-    });
+    setNewItem({ item_name: "", brand: "", unit_price: "" });
+    setIsEditingItem(false);
+    setStockEditItem(null);
+    setShowAddItem(false);
+    loadData();
   }
-
-  // reset form
-  setNewItem({ item_name: "", brand: "", unit_price: "", room: "L1" });
-  setIsEditingItem(false);
-  setStockEditItem(null);
-  setShowAddItem(false);
-  loadData();
-}
 
   // ================= STOCK INVENTORY =================
-  // NOTE: selectedRoom state is declared once only
-  const [selectedRoom, setSelectedRoom] = useState("ALL");
   const stockInventory = items.map(item => {
-    const related = transactions.filter(t =>
-      t.item_id === item.id && (selectedRoom === "ALL" || t.room === selectedRoom)
-    );
+    const related = transactions.filter(t => t.item_id === item.id);
     const qtyIn = related.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
     const qtyOut = related.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
     return {
@@ -248,13 +218,13 @@ export default function App() {
   return (
     <div style={{ padding: 20 }}>
 
-
+      
       <div style={{ textAlign: "center", marginBottom: 16 }}>
         <h1 style={{ marginBottom: 4, fontSize: 32 }}>Lago De Oro Inventory System</h1>
         <p style={{ marginTop: 0, color: "#555" }}>Manage stock IN / OUT and reports</p>
       </div>
 
-
+      
 <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
   <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
     <button
@@ -355,7 +325,7 @@ export default function App() {
   </div>
 </div>
 
-
+      
       {confirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
           <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
@@ -369,52 +339,13 @@ export default function App() {
         </div>
       )}
 
-
+      
       {activeTab === "transactions" && (
         <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 12 }}>
-  <h2 style={{ marginBottom: 6, textAlign: "center" }}>📦 Stock Inventory</h2>
-
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <label style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>Stock Room:</label>
-      <select
-        value={selectedRoom}
-        onChange={e => setSelectedRoom(e.target.value)}
-        style={{
-          padding: "6px 10px",
-          borderRadius: 6,
-          border: "1px solid #d1d5db",
-          fontSize: 14,
-          background: "#fff",
-          minWidth: 180,
-        }}
-      >
-        <option value="ALL">All Rooms</option>
-        <option value="L1">L1</option>
-        <option value="L2 Room 1">L2 Room 1</option>
-        <option value="L2 Room 2">L2 Room 2</option>
-        <option value="L2 Room 3">L2 Room 3</option>
-        <option value="L2 Room 4">L2 Room 4</option>
-        <option value="L3">L3</option>
-        <option value="L4">L4</option>
-        <option value="L5">L5</option>
-        <option value="L6">L6</option>
-        <option value="L7">L7</option>
-        <option value="Maintenance B1">Maintenance B1</option>
-        <option value="Maintenance B2">Maintenance B2</option>
-        <option value="Maintenance B3">Maintenance B3</option>
-        <option value="Ski Stock Room">Ski Stock Room</option>
-        <option value="Quarry Stock Room">Quarry Stock Room</option>
-      </select>
-    </div>
-
-    <div style={{ fontSize: 13, color: "#555" }}>
-      Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
-    </div>
-  </div>
-
-  <hr style={{ marginTop: 10 }} />
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
+  <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
+  <hr style={{ marginTop: 8 }} />
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -460,23 +391,6 @@ export default function App() {
           setDropdownOpen(true);
         }}
       />
-      <select value={form.room} onChange={e => setForm(f => ({ ...f, room: e.target.value }))}>
-        <option value="L1">L1</option>
-        <option value="L2 Room 1">L2 Room 1</option>
-        <option value="L2 Room 2">L2 Room 2</option>
-        <option value="L2 Room 3">L2 Room 3</option>
-        <option value="L2 Room 4">L2 Room 4</option>
-        <option value="L3">L3</option>
-        <option value="L4">L4</option>
-        <option value="L5">L5</option>
-        <option value="L6">L6</option>
-        <option value="L7">L7</option>
-        <option value="Maintenance B1">Maintenance B1</option>
-        <option value="Maintenance B2">Maintenance B2</option>
-        <option value="Maintenance B3">Maintenance B3</option>
-        <option value="Ski Stock Room">Ski Stock Room</option>
-        <option value="Quarry Stock Room">Quarry Stock Room</option>
-      </select>
       <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
         <option value="IN">IN</option>
         <option value="OUT">OUT</option>
@@ -494,35 +408,27 @@ export default function App() {
 
             
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
-              <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
-<table style={tableStyle}>
-  <thead>
-    <tr>
-      <th style={thtd}>Date</th>
-      <th style={thtd}>Item</th>
-      {selectedRoom === "ALL" && <th style={thtd}>Room</th>}
-      <th style={thtd}>Room</th>
-      <th style={thtd}>Brand</th>
-      <th style={thtd}>Quantity</th>
-      <th style={thtd}>Unit Price</th>
-      <th style={thtd}>Total Value</th>
-      <th style={thtd}>Actions</th>
-    </tr>
-  </thead>
-
+              <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
+              <table style={tableStyle}>
+                <thead>
+                  <tr>
+                    <th style={thtd}>Date</th>
+                    <th style={thtd}>Item</th>
+                    <th style={thtd}>Qty</th>
+                    <th style={thtd}>Brand</th>
+                    <th style={thtd}>Actions</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  {transactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
-                  {transactions.filter(t => t.type === "OUT").map(t => (
+                  {transactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
+                  {transactions.filter(t => t.type === "IN").map(t => (
                     <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                       <td style={thtd}>{t.items?.item_name}</td>
-                      <td style={thtd}>{t.room}</td>
-                      <td style={thtd}>{t.brand}</td>
                       <td style={thtd}>{t.quantity}</td>
-                      <td style={thtd}>₱{Number(t.unit_price || 0).toFixed(2)}</td>
-                      <td style={thtd}>₱{(t.quantity * (t.unit_price || 0)).toFixed(2)}</td>
+                      <td style={thtd}>{t.brand}</td>
                       <td style={thtd}>
-                        <button disabled={false} onClick={() => openConfirm("Edit this transaction?", () => {
+                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
                           originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
                           setEditingId(t.id);
                           setForm(originalFormRef.current);
@@ -540,101 +446,47 @@ export default function App() {
                 </tbody>
               </table>
             </div>
-  {/* IN TRANSACTIONS */}
-  <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
-    <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
-    <table style={tableStyle}>
-      <thead>
-        <tr>
-          <th style={thtd}>Date</th>
-          <th style={thtd}>Item</th>
-          {selectedRoom === "ALL" && <th style={thtd}>Room</th>}
-          <th style={thtd}>Brand</th>
-          <th style={thtd}>Quantity</th>
-          <th style={thtd}>Unit Price</th>
-          <th style={thtd}>Total Value</th>
-          <th style={thtd}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {transactions.filter(t => t.type === "IN").length === 0 && emptyRow(8, "No IN transactions")}
-        {transactions.filter(t => t.type === "IN").map(t => (
-          <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
-            <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-            <td style={thtd}>{t.items?.item_name}</td>
-            {selectedRoom === "ALL" && <td style={thtd}>{t.room}</td>}
-            <td style={thtd}>{t.brand}</td>
-            <td style={thtd}>{t.quantity}</td>
-            <td style={thtd}>₱{Number(t.unit_price || 0).toFixed(2)}</td>
-            <td style={thtd}>₱{(t.quantity * (t.unit_price || 0)).toFixed(2)}</td>
-            <td style={thtd}>
-              <button onClick={() => openConfirm("Edit this transaction?", () => {
-                originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                setEditingId(t.id);
-                setForm(originalFormRef.current);
-                setItemSearch(t.items?.item_name || "");
-                setShowForm(true);
-                setActiveTab("transactions");
-              })}>✏️ Edit</button>
-              <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
-                await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
-                loadData();
-              })}>🗑️ Delete</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
 
-  {/* OUT TRANSACTIONS */}
-  <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
-    <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
-    <table style={tableStyle}>
-      <thead>
-        <tr>
-          <th style={thtd}>Date</th>
-          <th style={thtd}>Item</th>
-          {selectedRoom === "ALL" && <th style={thtd}>Room</th>}
-          <th style={thtd}>Brand</th>
-          <th style={thtd}>Quantity</th>
-          <th style={thtd}>Unit Price</th>
-          <th style={thtd}>Total Value</th>
-          <th style={thtd}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {transactions.filter(t => t.type === "OUT").length === 0 && emptyRow(8, "No OUT transactions")}
-        {transactions.filter(t => t.type === "OUT").map(t => (
-          <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
-            <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-            <td style={thtd}>{t.items?.item_name}</td>
-            {selectedRoom === "ALL" && <td style={thtd}>{t.room}</td>}
-            <td style={thtd}>{t.brand}</td>
-            <td style={thtd}>{t.quantity}</td>
-            <td style={thtd}>₱{Number(t.unit_price || 0).toFixed(2)}</td>
-            <td style={thtd}>₱{(t.quantity * (t.unit_price || 0)).toFixed(2)}</td>
-            <td style={thtd}>
-              <button onClick={() => openConfirm("Edit this transaction?", () => {
-                originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                setEditingId(t.id);
-                setForm(originalFormRef.current);
-                setItemSearch(t.items?.item_name || "");
-                setShowForm(true);
-                setActiveTab("transactions");
-              })}>✏️ Edit</button>
-              <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
-                await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
-                loadData();
-              })}>🗑️ Delete</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-
-</div>
+            
+            <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
+              <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
+              <table style={tableStyle}>
+                <thead>
+                  <tr>
+                    <th style={thtd}>Date</th>
+                    <th style={thtd}>Item</th>
+                    <th style={thtd}>Qty</th>
+                    <th style={thtd}>Brand</th>
+                    <th style={thtd}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
+                  {transactions.filter(t => t.type === "OUT").map(t => (
+                    <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                      <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+                      <td style={thtd}>{t.items?.item_name}</td>
+                      <td style={thtd}>{t.quantity}</td>
+                      <td style={thtd}>{t.brand}</td>
+                      <td style={thtd}>
+                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
+                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+                          setEditingId(t.id);
+                          setForm(originalFormRef.current);
+                          setItemSearch(t.items?.item_name || "");
+                          setShowForm(true);
+                          setActiveTab("transactions");
+                        })}>✏️ Edit</button>
+                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
+                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
+                          loadData();
+                        })}>🗑️ Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
           </div>
           
@@ -668,7 +520,6 @@ export default function App() {
               <tr>
                 <th style={thtd}>Date</th>
                 <th style={thtd}>Item</th>
-                    <th style={thtd}>Room</th>
                 <th style={thtd}>Brand</th>
                 <th style={thtd}>Qty</th>
                 <th style={thtd}>Actions</th>
@@ -689,7 +540,6 @@ export default function App() {
                 <tr key={t.id}>
                   <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
-                      <td style={thtd}>{t.room}</td>
                   <td style={thtd}>{t.brand}</td>
                   <td style={thtd}>{t.quantity}</td>
                   <td style={thtd}>
@@ -707,7 +557,7 @@ export default function App() {
             </tbody>
           </table>
         </div>
-
+          
         </>
       )}
 
@@ -747,26 +597,6 @@ export default function App() {
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
   <h2 style={{ marginBottom: 4, textAlign: "center" }}>📦 Stock Inventory</h2>
-  <div style={{ display: "flex", justifyContent: "center", marginTop: 8 }}>
-    <select value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
-      <option value="ALL">All Rooms</option>
-      <option value="L1">L1</option>
-      <option value="L2 Room 1">L2 Room 1</option>
-      <option value="L2 Room 2">L2 Room 2</option>
-      <option value="L2 Room 3">L2 Room 3</option>
-      <option value="L2 Room 4">L2 Room 4</option>
-      <option value="L3">L3</option>
-      <option value="L4">L4</option>
-      <option value="L5">L5</option>
-      <option value="L6">L6</option>
-      <option value="L7">L7</option>
-      <option value="Maintenance B1">Maintenance B1</option>
-      <option value="Maintenance B2">Maintenance B2</option>
-      <option value="Maintenance B3">Maintenance B3</option>
-      <option value="Ski Stock Room">Ski Stock Room</option>
-      <option value="Quarry Stock Room">Quarry Stock Room</option>
-    </select>
-  </div>
   <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>
     Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
   </div>
@@ -799,26 +629,9 @@ export default function App() {
             {showAddItem && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
-<input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
-<input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
-<select value={newItem.room} onChange={e => setNewItem(n => ({ ...n, room: e.target.value }))}>
-  <option value="L1">L1</option>
-  <option value="L2 Room 1">L2 Room 1</option>
-  <option value="L2 Room 2">L2 Room 2</option>
-  <option value="L2 Room 3">L2 Room 3</option>
-  <option value="L2 Room 4">L2 Room 4</option>
-  <option value="L3">L3</option>
-  <option value="L4">L4</option>
-  <option value="L5">L5</option>
-  <option value="L6">L6</option>
-  <option value="L7">L7</option>
-  <option value="Maintenance B1">Maintenance B1</option>
-  <option value="Maintenance B2">Maintenance B2</option>
-  <option value="Maintenance B3">Maintenance B3</option>
-  <option value="Ski Stock Room">Ski Stock Room</option>
-  <option value="Quarry Stock Room">Quarry Stock Room</option>
-</select>
-<button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
+              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
+              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
+              <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
                         </div>
           )}
           </div>
@@ -828,7 +641,6 @@ export default function App() {
             <thead>
               <tr>
                 <th style={thtd}>Item</th>
-                    <th style={thtd}>Room</th>
                 <th style={thtd}>Brand</th>
                 <th style={thtd}>Current Stock</th>
                 <th style={thtd}>Unit Price</th>
@@ -875,3 +687,4 @@ export default function App() {
       )}
     </div>
   );
+}
