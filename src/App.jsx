@@ -30,6 +30,12 @@ export default function App() {
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [deletedSearch, setDeletedSearch] = useState("");
 
+  // ===== TRANSACTIONS FILTER STATE =====
+  const [txSearch, setTxSearch] = useState("");
+  const [txItemId, setTxItemId] = useState("");
+  const [txDateFrom, setTxDateFrom] = useState("");
+  const [txDateTo, setTxDateTo] = useState("");
+
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
 
@@ -346,6 +352,54 @@ export default function App() {
   <h2 style={{ marginBottom: 4, textAlign: "center" }}>📄 Transactions History</h2>
   <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
   <hr style={{ marginTop: 8 }} />
+
+{/* ===== TRANSACTION FILTER PANEL ===== */}
+<div
+  style={{
+    display: "flex",
+    gap: 10,
+    flexWrap: "wrap",
+    marginTop: 12,
+    padding: 12,
+    border: "1px solid #e5e7eb",
+    borderRadius: 8,
+    background: "#f9fafb",
+  }}
+>
+  <input
+    placeholder="Search item / brand / qty"
+    value={txSearch}
+    onChange={e => setTxSearch(e.target.value)}
+    style={{ padding: 8, borderRadius: 6, border: "1px solid #d1d5db" }}
+  />
+
+  <select
+    value={txItemId}
+    onChange={e => setTxItemId(e.target.value)}
+    style={{ padding: 8, borderRadius: 6, border: "1px solid #d1d5db" }}
+  >
+    <option value="">All items</option>
+    {items.map(i => (
+      <option key={i.id} value={String(i.id)}>{i.item_name}</option>
+    ))}
+  </select>
+
+  <input type="date" value={txDateFrom} onChange={e => setTxDateFrom(e.target.value)} />
+  <input type="date" value={txDateTo} onChange={e => setTxDateTo(e.target.value)} />
+
+  {(txSearch || txItemId || txDateFrom || txDateTo) && (
+    <button
+      onClick={() => {
+        setTxSearch("");
+        setTxItemId("");
+        setTxDateFrom("");
+        setTxDateTo("");
+      }}
+    >
+      Clear
+    </button>
+  )}
+</div>
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -420,8 +474,36 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
-                  {transactions.filter(t => t.type === "IN").map(t => (
+                  {transactions.filter(t => {
+                    if (t.type !== "IN") return false;
+                    if (txItemId && String(t.item_id) !== txItemId) return false;
+                    if (txDateFrom && t.date < txDateFrom) return false;
+                    if (txDateTo && t.date > txDateTo) return false;
+                    if (txSearch) {
+                      const q = txSearch.toLowerCase();
+                      return (
+                        t.items?.item_name?.toLowerCase().includes(q) ||
+                        t.brand?.toLowerCase().includes(q) ||
+                        String(t.quantity).includes(q)
+                      );
+                    }
+                    return true;
+                  }).length === 0 && emptyRow(5, "No IN transactions")}
+                  {transactions.filter(t => {
+                    if (t.type !== "IN") return false;
+                    if (txItemId && String(t.item_id) !== txItemId) return false;
+                    if (txDateFrom && t.date < txDateFrom) return false;
+                    if (txDateTo && t.date > txDateTo) return false;
+                    if (txSearch) {
+                      const q = txSearch.toLowerCase();
+                      return (
+                        t.items?.item_name?.toLowerCase().includes(q) ||
+                        t.brand?.toLowerCase().includes(q) ||
+                        String(t.quantity).includes(q)
+                      );
+                    }
+                    return true;
+                  }).map(t => (
                     <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                       <td style={thtd}>{t.items?.item_name}</td>
@@ -461,8 +543,36 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
-                  {transactions.filter(t => t.type === "OUT").map(t => (
+                  {transactions.filter(t => {
+                    if (t.type !== "OUT") return false;
+                    if (txItemId && String(t.item_id) !== txItemId) return false;
+                    if (txDateFrom && t.date < txDateFrom) return false;
+                    if (txDateTo && t.date > txDateTo) return false;
+                    if (txSearch) {
+                      const q = txSearch.toLowerCase();
+                      return (
+                        t.items?.item_name?.toLowerCase().includes(q) ||
+                        t.brand?.toLowerCase().includes(q) ||
+                        String(t.quantity).includes(q)
+                      );
+                    }
+                    return true;
+                  }).length === 0 && emptyRow(5, "No OUT transactions")}
+                  {transactions.filter(t => {
+                    if (t.type !== "OUT") return false;
+                    if (txItemId && String(t.item_id) !== txItemId) return false;
+                    if (txDateFrom && t.date < txDateFrom) return false;
+                    if (txDateTo && t.date > txDateTo) return false;
+                    if (txSearch) {
+                      const q = txSearch.toLowerCase();
+                      return (
+                        t.items?.item_name?.toLowerCase().includes(q) ||
+                        t.brand?.toLowerCase().includes(q) ||
+                        String(t.quantity).includes(q)
+                      );
+                    }
+                    return true;
+                  }).map(t => (
                     <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                       <td style={thtd}>{t.items?.item_name}</td>
