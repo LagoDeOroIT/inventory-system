@@ -623,28 +623,61 @@ export default function App() {
       <hr style={{ marginTop: 8 }} />
     </div>
 
-    <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 12 }}>
-      <input
-        placeholder="Search deleted items, brand, or quantity"
-        value={deletedSearch}
-        onChange={e => setDeletedSearch(e.target.value)}
-        style={{ padding: "8px 12px", width: 320, borderRadius: 6, border: "1px solid #d1d5db", fontSize: 14 }}
-      />
-      {selectedDeletedIds.length > 0 && (
-        <>
-          <button onClick={() => openConfirm(`Restore ${selectedDeletedIds.length} transactions?`, async () => {
-            await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).in("id", selectedDeletedIds);
-            clearDeletedSelection();
-            loadData();
-          })}>♻️ Bulk Restore</button>
-          <button onClick={() => openConfirm(`Permanently delete ${selectedDeletedIds.length} transactions?`, async () => {
-            await supabase.from("inventory_transactions").delete().in("id", selectedDeletedIds);
-            clearDeletedSelection();
-            loadData();
-          })}>❌ Bulk Delete</button>
-        </>
-      )}
-    </div>
+    <div style={{ display: "flex", gap: 12, marginBottom: 12, alignItems: "center" }}>
+  <input
+    placeholder="Search deleted items, brand, or quantity"
+    value={deletedSearch}
+    onChange={e => setDeletedSearch(e.target.value)}
+    style={{
+      padding: "8px 12px",
+      width: 320,
+      borderRadius: 6,
+      border: "1px solid #d1d5db",
+      fontSize: 14,
+    }}
+  />
+
+  {selectedDeletedIds.length > 0 && (
+    <>
+      <button
+        onClick={() =>
+          openConfirm(
+            `Restore ${selectedDeletedIds.length} transactions?`,
+            async () => {
+              await supabase
+                .from("inventory_transactions")
+                .update({ deleted: false, deleted_at: null })
+                .in("id", selectedDeletedIds);
+              clearDeletedSelection();
+              loadData();
+            }
+          )
+        }
+      >
+        ♻️ Bulk Restore
+      </button>
+
+      <button
+        onClick={() =>
+          openConfirm(
+            `Permanently delete ${selectedDeletedIds.length} transactions?`,
+            async () => {
+              await supabase
+                .from("inventory_transactions")
+                .delete()
+                .in("id", selectedDeletedIds);
+              clearDeletedSelection();
+              loadData();
+            }
+          )
+        }
+      >
+        ❌ Bulk Delete
+      </button>
+    </>
+  )}
+</div>
+
       <input
         placeholder="Search deleted items, brand, or quantity"
         value={deletedSearch}
