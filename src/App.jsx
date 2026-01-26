@@ -44,18 +44,7 @@ export default function App() {
   }, [outFilter]);
 
   // tabs
-const [activeTab, setActiveTab] = useState("transactions");
-
-  $1
-// ===== BULK DELETE / SELECTION STATE =====
-const [selectedInIds, setSelectedInIds] = useState([]);
-const [selectedOutIds, setSelectedOutIds] = useState([]);
-const [selectedDeletedIds, setSelectedDeletedIds] = useState([]);
-
-const inSelectedCount = selectedInIds.length;
-const outSelectedCount = selectedOutIds.length;
-const deletedSelectedCount = selectedDeletedIds.length;
-
+  const [activeTab, setActiveTab] = useState("transactions");
 
   // ===== STOCK ROOMS =====
   const stockRooms = [
@@ -496,21 +485,7 @@ const deletedSelectedCount = selectedDeletedIds.length;
             
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
-{inSelectedCount > 0 && (
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-    <span style={{ fontSize: 12, color: "#374151" }}>{inSelectedCount} selected</span>
-    <button
-      style={{ background: "#dc2626", color: "#fff", border: "none", borderRadius: 4, padding: "4px 8px", fontSize: 12 }}
-      onClick={() => openConfirm(`Delete ${inSelectedCount} IN transactions?`, async () => {
-        await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).in("id", selectedInIds);
-        setSelectedInIds([]);
-        loadData();
-      })}
-    >🗑️ Delete Selected</button>
-  </div>
-)}
-
-<div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
                 <select
                   value={inFilter}
@@ -532,8 +507,7 @@ const deletedSelectedCount = selectedDeletedIds.length;
               <table style={tableStyle}>
                 <thead>
                   <tr>
-                    <th style={thtd}></th>
-<th style={thtd}>Date</th>
+                    <th style={thtd}>Date</th>
                     <th style={thtd}>Item</th>
                     <th style={thtd}>Qty</th>
                     <th style={thtd}>Brand</th>
@@ -558,20 +532,6 @@ const deletedSelectedCount = selectedDeletedIds.length;
                     })
                     .map(t => (
                     <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
-                      <td style={thtd}>
-                        <input
-                          type="checkbox"
-                          checked={selectedOutIds.includes(t.id)}
-                          onChange={() => setSelectedOutIds(prev => prev.includes(t.id) ? prev.filter(x => x !== t.id) : [...prev, t.id])}
-                        />
-                      </td>
-                      <td style={thtd}>
-                        <input
-                          type="checkbox"
-                          checked={selectedInIds.includes(t.id)}
-                          onChange={() => setSelectedInIds(prev => prev.includes(t.id) ? prev.filter(x => x !== t.id) : [...prev, t.id])}
-                        />
-                      </td>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                       <td style={thtd}>{t.items?.item_name}</td>
                       <td style={thtd}>{t.quantity}</td>
@@ -599,19 +559,6 @@ const deletedSelectedCount = selectedDeletedIds.length;
             
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
-{outSelectedCount > 0 && (
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-    <span style={{ fontSize: 12, color: "#374151" }}>{outSelectedCount} selected</span>
-    <button
-      style={{ background: "#dc2626", color: "#fff", border: "none", borderRadius: 4, padding: "4px 8px", fontSize: 12 }}
-      onClick={() => openConfirm(`Delete ${outSelectedCount} OUT transactions?`, async () => {
-        await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).in("id", selectedOutIds);
-        setSelectedOutIds([]);
-        loadData();
-      })}
-    >🗑️ Delete Selected</button>
-  </div>
-)
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
                 <select
@@ -634,8 +581,7 @@ const deletedSelectedCount = selectedDeletedIds.length;
               <table style={tableStyle}>
                 <thead>
                   <tr>
-                    <th style={thtd}></th>
-<th style={thtd}>Date</th>
+                    <th style={thtd}>Date</th>
                     <th style={thtd}>Item</th>
                     <th style={thtd}>Qty</th>
                     <th style={thtd}>Brand</th>
@@ -690,27 +636,6 @@ const deletedSelectedCount = selectedDeletedIds.length;
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
   <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
     <h2 style={{ marginBottom: 4 }}>🗑️ Delete History</h2>
-{deletedSelectedCount > 0 && (
-  <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-    <span style={{ fontSize: 12, color: "#374151" }}>{deletedSelectedCount} selected</span>
-    <button
-      style={{ background: "#16a34a", color: "#fff", border: "none", borderRadius: 4, padding: "4px 8px", fontSize: 12 }}
-      onClick={() => openConfirm(`Restore ${deletedSelectedCount} transactions?`, async () => {
-        await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).in("id", selectedDeletedIds);
-        setSelectedDeletedIds([]);
-        loadData();
-      })}
-    >♻️ Restore Selected</button>
-    <button
-      style={{ background: "#dc2626", color: "#fff", border: "none", borderRadius: 4, padding: "4px 8px", fontSize: 12 }}
-      onClick={() => openConfirm(`Permanently delete ${deletedSelectedCount} transactions?`, async () => {
-        await supabase.from("inventory_transactions").delete().in("id", selectedDeletedIds);
-        setSelectedDeletedIds([]);
-        loadData();
-      })}
-    >❌ Delete Selected</button>
-  </div>
-)
     <span style={{ fontSize: 12, color: "#6b7280" }}>Deleted records: {deletedTransactions.length}</span>
   </div>
   <hr style={{ marginTop: 8 }} />
@@ -733,8 +658,7 @@ const deletedSelectedCount = selectedDeletedIds.length;
           <table style={tableStyle}>
             <thead>
               <tr>
-                <th style={thtd}></th>
-<th style={thtd}>Date</th>
+                <th style={thtd}>Date</th>
                 <th style={thtd}>Item</th>
                 <th style={thtd}>Brand</th>
                 <th style={thtd}>Qty</th>
@@ -754,13 +678,6 @@ const deletedSelectedCount = selectedDeletedIds.length;
                 })
                 .map(t => (
                 <tr key={t.id}>
-  <td style={thtd}>
-    <input
-      type="checkbox"
-      checked={selectedDeletedIds.includes(t.id)}
-      onChange={() => setSelectedDeletedIds(prev => prev.includes(t.id) ? prev.filter(x => x !== t.id) : [...prev, t.id])}
-    />
-  </td>
                   <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
                   <td style={thtd}>{t.brand}</td>
@@ -832,7 +749,8 @@ const deletedSelectedCount = selectedDeletedIds.length;
       <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
         <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
         <span style={{ fontSize: 12, color: "#6b7280" }}>
-          Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
+          Total items: {stockInventory.length} | Low stock:{" "}
+          {stockInventory.filter(i => i.stock <= 5).length}
         </span>
       </div>
       <hr style={{ marginTop: 8 }} />
@@ -846,13 +764,7 @@ const deletedSelectedCount = selectedDeletedIds.length;
         borderRadius: 6,
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
           <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
@@ -862,23 +774,6 @@ const deletedSelectedCount = selectedDeletedIds.length;
 
         <button
           onClick={() => setShowAddItem(v => !v)}
-          style={{
-            background: "#1f2937",
-            color: "#fff",
-            border: "none",
-            borderRadius: 6,
-            padding: "6px 12px",
-            cursor: "pointer",
-            fontSize: 12,
-            fontWeight: 600,
-          }}
-        >
-          {showAddItem ? "Close" : "Add Item"}
-        </button>
-      </div>
-    </div>
-  </>
-)}
           style={{
             background: "#1f2937",
             color: "#fff",
@@ -964,6 +859,3 @@ const deletedSelectedCount = selectedDeletedIds.length;
     </div>
   );
 }
-
-// ===== BULK DELETE HELPERS =====
-// selection handled separately for IN / OUT / Deleted tables
