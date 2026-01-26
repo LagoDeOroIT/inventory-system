@@ -508,8 +508,9 @@ const deletedSelectedCount = selectedDeletedIds.length;
       })}
     >🗑️ Delete Selected</button>
   </div>
-)
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+)}
+
+<div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
                 <select
                   value={inFilter}
