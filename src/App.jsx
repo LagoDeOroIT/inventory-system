@@ -46,6 +46,27 @@ export default function App() {
   // tabs
   const [activeTab, setActiveTab] = useState("transactions");
 
+  // ===== STOCK ROOMS =====
+  const stockRooms = [
+    "All Stock Rooms",
+    "L1",
+    "L2 Room 1",
+    "L2 Room 2",
+    "L2 Room 3",
+    "L2 Room 4",
+    "L3",
+    "L5",
+    "L6",
+    "L7",
+    "Maintenance Bodega 1",
+    "Maintenance Bodega 2",
+    "Maintenance Bodega 3",
+    "SKI Stock Room",
+    "Quarry Stock Room",
+  ];
+
+  const [selectedStockRoom, setSelectedStockRoom] = useState("All Stock Rooms");
+
 
   // form
   const [showForm, setShowForm] = useState(false);
@@ -93,6 +114,8 @@ export default function App() {
 
     setItems(itemsData || []);
     setTransactions(tx || []);
+
+    // NOTE: stock room filtering is applied at render level
     setDeletedTransactions(deletedTx || []);
   }
 
@@ -120,6 +143,7 @@ export default function App() {
     }
 
     const payload = {
+      location: selectedStockRoom === "All Stock Rooms" ? null : selectedStockRoom,
       date: form.date || new Date().toISOString().slice(0, 10),
       item_id: Number(form.item_id),
       type: form.type,
@@ -191,8 +215,12 @@ export default function App() {
   }
 
   // ================= STOCK INVENTORY =================
+  const filteredTransactions = selectedStockRoom === "All Stock Rooms"
+    ? transactions
+    : transactions.filter(t => t.location === selectedStockRoom);
+
   const stockInventory = items.map(item => {
-    const related = transactions.filter(t => t.item_id === item.id);
+    const related = filteredTransactions.filter(t => t.item_id === item.id);
     const qtyIn = related.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
     const qtyOut = related.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
     return {
@@ -202,7 +230,7 @@ export default function App() {
   });
 
   // ================= MONTHLY TOTALS =================
-  const monthlyTotals = transactions.reduce((acc, t) => {
+  const monthlyTotals = filteredTransactions.reduce((acc, t) => {
     if (!t.date) return acc;
     const month = t.date.slice(0, 7);
     acc[month] = acc[month] || { IN: 0, OUT: 0 };
@@ -230,6 +258,22 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
+
+      {/* ===== STOCK ROOM SELECTOR ===== */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <label style={{ fontSize: 12, color: "#374151" }}>Stock Room</label>
+          <select
+            value={selectedStockRoom}
+            onChange={e => setSelectedStockRoom(e.target.value)}
+            style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
+          >
+            {stockRooms.map(r => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       
       <div style={{ textAlign: "center", marginBottom: 16 }}>
@@ -452,7 +496,7 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
+                  {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
                   {transactions
                     .filter(t => t.type === "IN")
                     .filter(t => {
@@ -526,7 +570,7 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
+                  {filteredTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
                   {transactions
                     .filter(t => t.type === "OUT")
                     .filter(t => {
