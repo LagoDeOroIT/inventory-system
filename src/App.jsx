@@ -178,6 +178,8 @@ export default function App() {
     item_name: "",
     brand: "",
     unit_price: "",
+    initial_quantity: "",
+    location: "",
   });
 
   async function handleSaveItem() {
@@ -186,28 +188,43 @@ export default function App() {
       return;
     }
 
-    if (isEditingItem && stockEditItem) {
-      const { error } = await supabase
-        .from("items")
-        .update({
-          item_name: newItem.item_name,
-          brand: newItem.brand || null,
-          unit_price: Number(newItem.unit_price),
-        })
-        .eq("id", stockEditItem.id);
+    const { data: insertedItem, error } = isEditingItem && stockEditItem
+      ? await supabase
+          .from("items")
+          .update({
+            item_name: newItem.item_name,
+            brand: newItem.brand || null,
+            unit_price: Number(newItem.unit_price),
+          })
+          .eq("id", stockEditItem.id)
+          .select()
+      : await supabase
+          .from("items")
+          .insert({
+            item_name: newItem.item_name,
+            brand: newItem.brand || null,
+            unit_price: Number(newItem.unit_price),
+          })
+          .select();
 
-      if (error) return alert(error.message);
-    } else {
-      const { error } = await supabase.from("items").insert({
-        item_name: newItem.item_name,
-        brand: newItem.brand || null,
+    if (error) return alert(error.message);
+
+    const itemId = isEditingItem ? stockEditItem.id : insertedItem[0].id;
+
+    if (newItem.initial_quantity && newItem.location) {
+      await supabase.from("inventory_transactions").insert({
+        item_id: itemId,
+        type: "IN",
+        quantity: Number(newItem.initial_quantity),
+        date: new Date().toISOString().slice(0, 10),
         unit_price: Number(newItem.unit_price),
+        brand: newItem.brand || null,
+        location: newItem.location,
+        deleted: false,
       });
-
-      if (error) return alert(error.message);
     }
 
-    setNewItem({ item_name: "", brand: "", unit_price: "" });
+    setNewItem({ item_name: "", brand: "", unit_price: "", initial_quantity: "", location: "" });
     setIsEditingItem(false);
     setStockEditItem(null);
     setShowAddItem(false);
@@ -400,8 +417,10 @@ export default function App() {
       {activeTab === "transactions" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 12 }}>Total records: {transactions.length}</div>
+  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+    <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
+    <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
+  </div>
   <hr style={{ marginTop: 8 }} />
 </div>
           <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
@@ -615,8 +634,10 @@ export default function App() {
       {activeTab === "deleted" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>🗑️ Delete History</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Deleted records: {deletedTransactions.length}</div>
+  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+    <h2 style={{ marginBottom: 4 }}>🗑️ Delete History</h2>
+    <span style={{ fontSize: 12, color: "#6b7280" }}>Deleted records: {deletedTransactions.length}</span>
+  </div>
   <hr style={{ marginTop: 8 }} />
 </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -683,8 +704,10 @@ export default function App() {
       {activeTab === "report" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📊 Monthly Report</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>Months tracked: {Object.keys(monthlyTotals).length}</div>
+  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+    <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
+    <span style={{ fontSize: 12, color: "#6b7280" }}>Months tracked: {Object.keys(monthlyTotals).length}</span>
+  </div>
   <hr style={{ marginTop: 8 }} />
 </div>
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
@@ -715,9 +738,12 @@ export default function App() {
       {activeTab === "stock" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <h2 style={{ marginBottom: 4, textAlign: "center" }}>📦 Stock Inventory</h2>
-  <div style={{ textAlign: "center", color: "#555", fontSize: 14 }}>
-    Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
+  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+    <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
+    <span style={{ fontSize: 12, color: "#6b7280" }}>
+      Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
+    </span>
+  </div>(i => i.stock <= 5).length}
   </div>
   <hr style={{ marginTop: 8 }} />
 </div>
@@ -750,8 +776,15 @@ export default function App() {
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
+              <input type="number" placeholder="Initial quantity" value={newItem.initial_quantity} onChange={e => setNewItem(n => ({ ...n, initial_quantity: e.target.value }))} />
+              <select value={newItem.location} onChange={e => setNewItem(n => ({ ...n, location: e.target.value }))}>
+                <option value="">Select stock room</option>
+                {stockRooms.filter(r => r !== "All Stock Rooms").map(r => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
               <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
-                        </div>
+            </div>
           )}
           </div>
 
