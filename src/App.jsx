@@ -22,10 +22,14 @@ export default function App() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [monthlyReportRows, setMonthlyReportRows] = useState([]);
 
+  // ===== MONTHLY REPORT STATE =====
+  
+  const [monthlyReportRows, setMonthlyReportRows] = useState([]);
+
   // ===== CONFIRM MODAL STATE =====
   const [confirm, setConfirm] = useState(
 const [monthlyReportRows, setMonthlyReportRows] = useState([]);
-const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+
 
 useState(null);
   const openConfirm = (message, onConfirm) => {
