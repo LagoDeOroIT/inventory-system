@@ -26,19 +26,19 @@ export default function App() {
   const closeConfirm = () => setConfirm(null);
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
-  const [transactions, set📦 Stock Inventory
+  const [transactions, set"📦 Stock Inventory"
   </button>
 
   <button class="nav-btn" data-page="transactions">
-    📄 Transactions
+    "📄 Transactions"
   </button>
 
   <button class="nav-btn" data-page="monthly">
-    📊 Monthly Report
+    "📊 Monthly Report"
   </button>
 
   <button class="nav-btn" data-page="deleted">
-    🗑 Deleted History
+    "🗑 Deleted History"
     </button>
 
     <button
@@ -65,7 +65,7 @@ export default function App() {
         fontWeight: 500,
       }}
     >
-      📊 Monthly Report
+      "📊 Monthly Report"
     </button>
 
     <button
@@ -80,7 +80,7 @@ export default function App() {
         fontWeight: 500,
       }}
     >
-      📦 Stock Inventory
+      "📦 Stock Inventory"
     </button>
   </div>
 </div>
@@ -104,7 +104,7 @@ export default function App() {
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
   <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-    <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
+    <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>"📄 Transactions" History</h2>
     <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
   </div>
   <hr style={{ marginTop: 8 }} />
@@ -391,7 +391,7 @@ export default function App() {
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
   <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-    <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
+    <h2 style={{ marginBottom: 4 }}>"📊 Monthly Report"</h2>
     <span style={{ fontSize: 12, color: "#6b7280" }}>Months tracked: {Object.keys(monthlyTotals).length}</span>
   </div>
   <hr style={{ marginTop: 8 }} />
@@ -433,7 +433,7 @@ export default function App() {
       }}
     >
       <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-        <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
+        <h2 style={{ marginBottom: 4 }}>"📦 Stock Inventory"</h2>
         <span style={{ fontSize: 12, color: "#6b7280" }}>
           Total items: {stockInventory.length} | Low stock:{" "}
           {stockInventory.filter(i => i.stock <= 5).length}
