@@ -415,62 +415,11 @@ export default function App() {
           <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
     <div>
-      <h3 style={{ margin: 0 }}><h2 className="section-title">{/* ================= TRANSACTION SECTION ================= */}
-<div className="card">
+      <h3 style={{ margin: 0 }}>Record Inventory Transaction</h3>
 
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-    <h3>Record Inventory Transaction</h3>
-    <button onClick={() => setShowTransactionForm(prev => !prev)}>
-      {showTransactionForm ? "Hide" : "Show"}
-    </button>
-  </div>
+{/* ================= TRANSACTION SECTION ================= */}
 
-  <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
-    Log incoming and outgoing stock movements for accurate inventory tracking.
-  </p>
-
-  {showTransactionForm && (
-    <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-      <input
-        type="text"
-        placeholder="Search item"
-        value={itemSearch}
-        onChange={e => setItemSearch(e.target.value)}
-      />
-
-      <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-        <option value="IN">Stock In</option>
-        <option value="OUT">Stock Out</option>
-      </select>
-
-      <input
-        type="number"
-        placeholder="Quantity"
-        value={form.quantity}
-        onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
-      />
-
-      <input
-        type="text"
-        placeholder="Volume / Description (e.g. 11kg)"
-        value={form.volume_pack}
-        onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-      />
-
-      <input
-        type="date"
-        value={form.date}
-        onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-      />
-
-      <button onClick={saveTransaction}>
-        {editingId ? "Update" : "Save"}
-      </button>
-    </div>
-  )}
-</div>
-{/* ================= END TRANSACTION SECTION ================= */
-                    .map(t => (
+{filteredTransactions.map(t => (
                     <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                       <td style={thtd}>{t.items?.item_name}</td>
