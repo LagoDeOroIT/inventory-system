@@ -97,7 +97,7 @@ export default function App() {
   // ================= LOAD DATA =================
   async function loadData() {
     const { data: itemsData } = await supabase
-      .from('items').eq('location', selectedLocation)
+      .from('items')
       .select("id, item_name, unit_price, brand");
 
     const { data: tx } = await supabase
@@ -114,8 +114,6 @@ export default function App() {
 
     setItems(itemsData || []);
     setTransactions(tx || []);
-
-    // NOTE: stock room filtering is applied at render level
     setDeletedTransactions(deletedTx || []);
   }
 
@@ -516,7 +514,7 @@ export default function App() {
                 </thead>
                 <tbody>
                   {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
-                  {transactions
+                  {filteredTransactions
                     .filter(t => t.type === "IN")
                     .filter(t => {
                       const q = inSearch.toLowerCase();
@@ -590,7 +588,7 @@ export default function App() {
                 </thead>
                 <tbody>
                   {filteredTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
-                  {transactions
+                  {filteredTransactions
                     .filter(t => t.type === "OUT")
                     .filter(t => {
                       const q = outSearch.toLowerCase();
