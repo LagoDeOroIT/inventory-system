@@ -98,7 +98,7 @@ export default function App() {
   async function loadData() {
     const { data: itemsData } = await supabase
       .from("items")
-      .select("id, item_name, unit_price, brand");
+      .select("id, item_name, unit_price, brand, location");
 
     const { data: tx } = await supabase
       .from("inventory_transactions")
@@ -168,7 +168,9 @@ export default function App() {
   }
 
   // ================= STOCK INVENTORY =================
-  const stockInventory = items.map(i => {
+  const stockInventory = items
+  .filter(i => selectedStockRoom === "All Stock Rooms" || i.location === selectedStockRoom)
+  .map(i => {
     const related = transactions.filter(t => t.item_id === i.id);
     const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
     return { ...i, stock };
