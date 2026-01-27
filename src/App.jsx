@@ -232,7 +232,6 @@ export default function App() {
   // ================= FILTERED TRANSACTIONS =================
   const filteredTransactions = Array.isArray(transactions) ? transactions : [];
 
-          });
         } else {
           setEditingId(null);
           originalFormRef.current = null;
@@ -258,12 +257,12 @@ export default function App() {
           openConfirm("Discard unsaved changes?", () => {
             setEditingId(null);
             originalFormRef.current = null;
-            setActiveTab("report");
+            setActiveTab("transactions");
           });
         } else {
           setEditingId(null);
           originalFormRef.current = null;
-          setActiveTab("report");
+          setActiveTab("transactions");
         }
       }}
       style={{
@@ -271,89 +270,12 @@ export default function App() {
         borderRadius: 999,
         border: "none",
         cursor: "pointer",
-        background: activeTab === "report" ? "#1f2937" : "transparent",
-        color: activeTab === "report" ? "#fff" : "#374151",
+        background: activeTab === "transactions" ? "#1f2937" : "transparent",
+        color: activeTab === "transactions" ? "#fff" : "#374151",
         fontWeight: 500,
       }}
     >
-      📊 Monthly Report
-    </button>
-
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("deleted");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("deleted");
-        }
-      }}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "deleted" ? "#1f2937" : "transparent",
-        color: activeTab === "deleted" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      🗑️ Deleted History
-    </button>
-  </div>
-</div>
-
-      
-      {confirm && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
-            <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
-            <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-              <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
-              <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      
-      {activeTab === "transactions" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-    <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
-    <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
-  </div>
-  <hr style={{ marginTop: 8 }} />
-</div>
-          <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-    <div>
-      <h3 style={{ margin: 0 }}>Record Inventory Transaction</h3>
-      <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
-        Log incoming and outgoing stock movements for accurate inventory tracking.
-      </p>
-    </div>
-    <button
-      onClick={() => setShowForm(v => !v)}
-      style={{
-        background: "#1f2937",
-        color: "#fff",
-        border: "none",
-        borderRadius: 6,
-        padding: "6px 14px",
-        cursor: "pointer",
-        fontSize: 12,
-        fontWeight: 600,
-      }}
-    >
-      {showForm ? "Hide" : "Add Transaction"}
+      📄 Transactions
     </button>
   </div>
 
