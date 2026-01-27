@@ -45,7 +45,6 @@ export default function App() {
 
   // tabs
   const [activeTab, setActiveTab] = useState("stock");
-  const [selectedMonth, setSelectedMonth] = useState("");
 
   // ===== STOCK ROOMS =====
   const stockRooms = [
@@ -247,28 +246,21 @@ export default function App() {
     };
   });
 
-  // ================= MONTHLY REPORT DATA =================
-  const monthlyReportData = filteredTransactions.reduce((acc, t) => {
+  // ================= MONTHLY TOTALS =================
+  const monthlyTotals = filteredTransactions.reduce((acc, t) => {
     if (!t.date) return acc;
     const month = t.date.slice(0, 7);
-
-    if (!acc[month]) acc[month] = [];
-
-    acc[month].push({
-      id: t.id,
-      category: t.category || "",
-      description: t.items?.item_name || "",
-      brand: t.brand || "",
-      specs: t.volume_pack || "",
-      quantity: t.quantity,
-      unit: t.unit || "",
-      unit_price: t.unit_price,
-    });
-
+    acc[month] = acc[month] || { IN: 0, OUT: 0 };
+    acc[month][t.type] += t.quantity * t.unit_price;
     return acc;
   }, {});
 
-  const selectedMonthData = monthlyReportData[selectedMonth] || [];
+  // ================= CLICK OUTSIDE =================
+  useEffect(() => {
+    const handler = e => searchRef.current && !searchRef.current.contains(e.target) && setDropdownOpen(false);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   if (!session) {
     return (
@@ -710,64 +702,97 @@ export default function App() {
       )}
 
       {activeTab === "report" && (
+        <>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+    <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
+    <span style={{ fontSize: 12, color: "#6b7280" }}>Months tracked: {Object.keys(monthlyTotals).length}</span>
+  </div>
+  <hr style={{ marginTop: 8 }} />
+</div>
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Month</th>
+                <th style={thtd}>IN Total</th>
+                <th style={thtd}>OUT Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
+              {Object.entries(monthlyTotals)
+                .map(([m, v]) => (
+                  <tr key={m}>
+                    <td style={thtd}>{m}</td>
+                    <td style={thtd}>₱{v.IN.toFixed(2)}</td>
+                    <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+        </>
+      )}
+
+     {activeTab === "stock" && (
   <>
-    <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+    <div
+      style={{
+        position: "sticky",
+        top: 0,
+        background: "#fff",
+        zIndex: 5,
+        paddingBottom: 8,
+      }}
+    >
       <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-        <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
+        <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
+        <span style={{ fontSize: 12, color: "#6b7280" }}>
+          Total items: {stockInventory.length} | Low stock:{" "}
+          {stockInventory.filter(i => i.stock <= 5).length}
+        </span>
       </div>
       <hr style={{ marginTop: 8 }} />
     </div>
 
-    <div style={{ marginBottom: 12 }}>
-      <select
-        value={selectedMonth}
-        onChange={e => setSelectedMonth(e.target.value)}
-        style={{ padding: "6px 10px", borderRadius: 6 }}
-      >
-        <option value="">Select month</option>
-        {Object.keys(monthlyReportData).map(m => (
-          <option key={m} value={m}>{m}</option>
-        ))}
-      </select>
-    </div>
+    <div
+      style={{
+        marginBottom: 16,
+        border: "1px solid #ddd",
+        padding: 12,
+        borderRadius: 6,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
+          <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+            Register a new product or supply into the inventory system.
+          </p>
+        </div>
 
-    <table style={tableStyle}>
-      <thead>
-        <tr>
-          <th style={thtd}>Category</th>
-          <th style={thtd}>Description</th>
-          <th style={thtd}>Brand</th>
-          <th style={thtd}>Specs</th>
-          <th style={thtd}>Stock Qty</th>
-          <th style={thtd}>Unit</th>
-          <th style={thtd}>Unit Price</th>
-          <th style={thtd}>Total Price</th>
-        </tr>
-      </thead>
-      <tbody>
-        {selectedMonthData.length === 0 && (
-          <tr>
-            <td colSpan={8} style={{ textAlign: "center", padding: 12 }}>
-              No data for selected month
-            </td>
-          </tr>
-        )}
-        {selectedMonthData.map(r => (
-          <tr key={r.id}>
-            <td style={thtd}>{r.category}</td>
-            <td style={thtd}>{r.description}</td>
-            <td style={thtd}>{r.brand}</td>
-            <td style={thtd}>{r.specs}</td>
-            <td style={thtd}>{r.quantity}</td>
-            <td style={thtd}>{r.unit}</td>
-            <td style={thtd}>₱{Number(r.unit_price).toFixed(2)}</td>
-            <td style={thtd}>₱{(r.quantity * r.unit_price).toFixed(2)}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </>
-)})} />
+        <button
+          onClick={() => setShowAddItem(v => !v)}
+          style={{
+            background: "#1f2937",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            padding: "6px 12px",
+            cursor: "pointer",
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+        
+
+                {showAddItem ? "Hide" : "Show"}
+              </button>
+            </div>
+            {showAddItem && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
               <input type="number" placeholder="Initial quantity" value={newItem.initial_quantity} onChange={e => setNewItem(n => ({ ...n, initial_quantity: e.target.value }))} />
