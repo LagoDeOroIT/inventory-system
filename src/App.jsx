@@ -27,17 +27,7 @@ null);
   const closeConfirm = () => setConfirm(null);
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
-const [selectedStockRoom, setSelectedStockRoom] = useState(null);
 
-// Call this when a stock room is chosen
-const handleSelectStockRoom = (room) => {
-  // room can be an object { id, name } or a string name
-  if (typeof room === 'string') {
-    setSelectedStockRoom({ name: room });
-  } else {
-    setSelectedStockRoom(room);
-  }
-};
 
 const handleDelete = (id) => {
   setItems(prevItems => prevItems.filter(item => item.id !== id));
