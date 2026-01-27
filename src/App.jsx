@@ -859,3 +859,25 @@ export default function App() {
     </div>
   );
 }
+
+
+<!-- Force Stock Inventory as default dashboard for all stock rooms -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const inventoryTab = document.querySelector('[data-tab="inventory"]');
+    if (inventoryTab) {
+        inventoryTab.click();
+    }
+});
+</script>
+
+<!-- Force Stock Inventory as default dashboard for all stock rooms -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const inventoryTab = document.querySelector('[data-tab="inventory"]');
+    if (inventoryTab) {
+        inventoryTab.click();
+    }
+});
+</script>
+
