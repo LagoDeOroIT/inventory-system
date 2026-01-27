@@ -195,16 +195,16 @@ export default function App() {
     return;
   }
 
-  const { error } = await supabase
-    .from("items")
-    .insert([
-      {
-        item_name: newItem.item_name,
-        brand: newItem.brand,
-        unit_price: Number(newItem.unit_price) || 0,
-        location: selectedStockRoom,
-      },
-    ]);
+  const payload = {
+    item_name: newItem.item_name,
+    brand: newItem.brand,
+    unit_price: Number(newItem.unit_price) || 0,
+    location: selectedStockRoom,
+  };
+
+  const { error } = isEditingItem && stockEditItem
+    ? await supabase.from("items").update(payload).eq("id", stockEditItem.id)
+    : await supabase.from("items").insert([payload]);
 
   if (error) {
     console.error(error);
@@ -213,6 +213,8 @@ export default function App() {
   }
 
   setNewItem({ item_name: "", brand: "", unit_price: "", location: selectedStockRoom });
+  setIsEditingItem(false);
+  setStockEditItem(null);
   setShowAddItem(false);
   loadData();
 };
