@@ -187,7 +187,7 @@ export default function App() {
   location: selectedStockRoom !== "All Stock Rooms" ? selectedStockRoom : "",
 });
 
-  async function const handleSaveItem = async () => {
+  const handleSaveItem = async () => {
   if (!selectedStockRoom || selectedStockRoom === "All Stock Rooms") {
     alert("Please select a stock room first");
     return;
@@ -197,22 +197,23 @@ export default function App() {
     .from("items")
     .insert([
       {
-        name: newItem.name,
+        item_name: newItem.item_name,
         brand: newItem.brand,
-        unit: newItem.unit,
+        unit_price: Number(newItem.unit_price) || 0,
         location: selectedStockRoom,
-      }
+      },
     ]);
 
   if (error) {
     console.error(error);
-    alert("Failed to add item");
+    alert(error.message);
     return;
   }
 
-  setNewItem({ name: "", brand: "", unit: "" });
+  setNewItem({ item_name: "", brand: "", unit_price: "", location: selectedStockRoom });
+  setShowAddItem(false);
+  loadData();
 };
-  });
 
   // ================= MONTHLY TOTALS =================
   const monthlyTotals = filteredTransactions.reduce((acc, t) => {
