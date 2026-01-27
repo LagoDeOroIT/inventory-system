@@ -178,7 +178,6 @@ export default function App() {
     item_name: "",
     brand: "",
     unit_price: "",
-    initial_quantity: "",
     location: "",
   });
 
@@ -795,7 +794,7 @@ export default function App() {
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
-              <input type="number" placeholder="Initial quantity" value={newItem.initial_quantity} onChange={e => setNewItem(n => ({ ...n, initial_quantity: e.target.value }))} />
+              
               <select value={newItem.location} onChange={e => setNewItem(n => ({ ...n, location: e.target.value }))}>
                 <option value="">Select stock room</option>
                 {stockRooms.filter(r => r !== "All Stock Rooms").map(r => (
