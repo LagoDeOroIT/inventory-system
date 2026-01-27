@@ -516,7 +516,7 @@ export default function App() {
                 </thead>
                 <tbody>
                   {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
-                  {transactions
+                  {filteredTransactions
                     .filter(t => t.type === "IN")
                     .filter(t => {
                       const q = inSearch.toLowerCase();
@@ -590,7 +590,7 @@ export default function App() {
                 </thead>
                 <tbody>
                   {filteredTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
-                  {transactions
+                  {filteredTransactions
                     .filter(t => t.type === "OUT")
                     .filter(t => {
                       const q = outSearch.toLowerCase();
