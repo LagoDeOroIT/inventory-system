@@ -252,16 +252,22 @@ export default function App() {
     })
     .filter(Boolean);
 
-  // ================= MONTHLY TOTALS =================
-  const monthlyTotals = filteredTransactions.reduce((acc, t) => {
-    if (!t.date) return acc;
-    const month = t.date.slice(0, 7);
-    acc[month] = acc[month] || { IN: 0, OUT: 0 };
-    acc[month][t.type] += t.quantity * t.unit_price;
-    return acc;
-  }, {});
+  // ================= MONTHLY REPORT (DETAILED) =================
+const monthlyReportRows = filteredTransactions
+  .filter(t => !t.deleted)
+  .map(t => ({
+    id: t.id,
+    date: t.date,
+    description: t.items?.item_name || "",
+    brand: t.brand || "",
+    specs: t.volume_pack || "",
+    qty: t.quantity,
+    unit: t.unit || "",
+    unit_price: t.unit_price || 0,
+    total_price: t.quantity * (t.unit_price || 0),
+  }));
 
-  // ================= CLICK OUTSIDE =================
+// ================= CLICK OUTSIDE =================
   useEffect(() => {
     const handler = e => searchRef.current && !searchRef.current.contains(e.target) && setDropdownOpen(false);
     document.addEventListener("mousedown", handler);
