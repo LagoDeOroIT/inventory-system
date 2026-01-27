@@ -44,7 +44,7 @@ export default function App() {
   }, [outFilter]);
 
   // tabs
-  const [activeTab, setActiveTab] = useState("transactions");
+  const [activeTab, setActiveTab] = useState("stock");
 
   // ===== STOCK ROOMS =====
   const stockRooms = [
