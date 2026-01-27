@@ -45,6 +45,7 @@ export default function App() {
 
   // tabs
   const [activeTab, setActiveTab] = useState("stock");
+  const [selectedMonth, setSelectedMonth] = useState("");
 
   // ===== STOCK ROOMS =====
   const stockRooms = [
@@ -246,21 +247,29 @@ export default function App() {
     };
   });
 
-  // ================= MONTHLY TOTALS =================
-  const monthlyTotals = filteredTransactions.reduce((acc, t) => {
+  // ================= MONTHLY REPORT DATA =================
+  const monthlyReportData = filteredTransactions.reduce((acc, t) => {
     if (!t.date) return acc;
     const month = t.date.slice(0, 7);
-    acc[month] = acc[month] || { IN: 0, OUT: 0 };
-    acc[month][t.type] += t.quantity * t.unit_price;
+
+    if (!acc[month]) acc[month] = [];
+
+    acc[month].push({
+      id: t.id,
+      category: t.category || "",
+      description: t.items?.item_name || "",
+      brand: t.brand || "",
+      specs: t.volume_pack || "",
+      quantity: t.quantity,
+      unit: t.unit || "",
+      unit_price: t.unit_price,
+    });
+
     return acc;
   }, {});
 
-  // ================= CLICK OUTSIDE =================
-  useEffect(() => {
-    const handler = e => searchRef.current && !searchRef.current.contains(e.target) && setDropdownOpen(false);
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  const selectedMonthData = monthlyReportData[selectedMonth] || [];
+}, []);
 
   if (!session) {
     return (
@@ -702,25 +711,65 @@ export default function App() {
       )}
 
       {activeTab === "report" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-    <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
-    <span style={{ fontSize: 12, color: "#6b7280" }}>Months tracked: {Object.keys(monthlyTotals).length}</span>
-  </div>
-  <hr style={{ marginTop: 8 }} />
-</div>
-          <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Month</th>
-                <th style={thtd}>IN Total</th>
-                <th style={thtd}>OUT Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
+  <>
+    <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+        <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
+      </div>
+      <hr style={{ marginTop: 8 }} />
+    </div>
+
+    <div style={{ marginBottom: 12 }}>
+      <select
+        value={selectedMonth}
+        onChange={e => setSelectedMonth(e.target.value)}
+        style={{ padding: "6px 10px", borderRadius: 6 }}
+      >
+        <option value="">Select month</option>
+        {Object.keys(monthlyReportData).map(m => (
+          <option key={m} value={m}>{m}</option>
+        ))}
+      </select>
+    </div>
+
+    <table style={tableStyle}>
+      <thead>
+        <tr>
+          <th style={thtd}>Category</th>
+          <th style={thtd}>Description</th>
+          <th style={thtd}>Brand</th>
+          <th style={thtd}>Specs</th>
+          <th style={thtd}>Stock Qty</th>
+          <th style={thtd}>Unit</th>
+          <th style={thtd}>Unit Price</th>
+          <th style={thtd}>Total Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {selectedMonthData.length === 0 && (
+          <tr>
+            <td colSpan={8} style={{ textAlign: "center", padding: 12 }}>
+              No data for selected month
+            </td>
+          </tr>
+        )}
+
+        {selectedMonthData.map(r => (
+          <tr key={r.id}>
+            <td style={thtd}>{r.category}</td>
+            <td style={thtd}>{r.description}</td>
+            <td style={thtd}>{r.brand}</td>
+            <td style={thtd}>{r.specs}</td>
+            <td style={thtd}>{r.quantity}</td>
+            <td style={thtd}>{r.unit}</td>
+            <td style={thtd}>₱{Number(r.unit_price).toFixed(2)}</td>
+            <td style={thtd}>₱{(r.quantity * r.unit_price).toFixed(2)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </>
+)}
               {Object.entries(monthlyTotals)
                 .map(([m, v]) => (
                   <tr key={m}>
