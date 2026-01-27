@@ -536,7 +536,7 @@ export default function App() {
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
                 />
               </div>
-              <table style={tableStyle}>
+              <table style={{ tableLayout: 'fixed', width: '100%' }} style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
                 <thead>
                   <tr>
                     <th style={thtd}>Date</th>
@@ -544,12 +544,12 @@ export default function App() {
 <th style={thtd}>Brand</th>
 <th style={thtd}>Current Stock</th>
 <th style={thtd}>Unit Price</th>
-<th style={thtd}>Stock Value</th>
+<th style={thtd}></th>
 <th style={thtd}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
+                  {filteredTransactions.filter(t => t.type ==<tr><td colSpan={7} style={{ textAlign: 'center', padding: '1rem' }}>No IN transactions</td></tr> 0 && emptyRow(5, "</td></tr></tbody></table><div className="empty-row">No IN transactions</div><table><tbody><tr><td colSpan={7} style={{textAlign:'center'}}></td></tr>")}
                   {filteredTransactions.filter(t => t.type === "IN")
                     .filter(t => {
                       const q = inSearch.toLowerCase();
@@ -609,10 +609,10 @@ export default function App() {
                   placeholder="Search"
                   value={outSearch}
                   onChange={e => setOutSearch(e.target.value)}
-                  style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
+    <table style={{ tableLayout: 'fixed', width: '100%' }}        style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
                 />
               </div>
-              <table style={tableStyle}>
+              <table style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
                 <thead>
                   <tr>
                     <th style={thtd}>Date</th>
@@ -620,11 +620,11 @@ export default function App() {
                     <th style={thtd}>Qty</th>
                     <th style={thtd}>Brand</th>
                     <th style={thtd}>Volume Pack</th>
-                    <th style={thtd}>Actions</th>
+     <tr><td colSpan={6} style={{ textAlign: 'center', padding: '1rem' }}>No OUT transactions</td></tr>style={thtd}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
+                  {filteredTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "</td></tr></tbody></table><div className="empty-row">No OUT transactions</div><table><tbody><tr><td colSpan={6} style={{textAlign:'center'}}></td></tr>")}
                   {filteredTransactions.filter(t => t.type === "OUT")
                     .filter(t => {
                       const q = outSearch.toLowerCase();
@@ -679,7 +679,7 @@ export default function App() {
             <input
               placeholder="Search deleted items, brand, or quantity"
               value={deletedSearch}
-              onChange={e => setDeletedSearch(e.target.value)}
+              onChange={e => se<table style={{ tableLayout: 'fixed', width: '100%' }}edSearch(e.target.value)}
               style={{
                 padding: "8px 12px",
                 width: 320,
@@ -690,7 +690,7 @@ export default function App() {
             />
           </div>
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={tableStyle}>
+          <table style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Date</th>
@@ -740,7 +740,7 @@ export default function App() {
 
       {activeTab === "report" && (
         <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+          <div style={{ position: "sticky", top: 0, background: "#fff<table style={{ tableLayout: 'fixed', width: '100%' }}dex: 5, paddingBottom: 8 }}>
   <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
     <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
     <span style={{ fontSize: 12, color: "#6b7280" }}>Months tracked: {Object.keys(monthlyTotals).length}</span>
@@ -748,7 +748,7 @@ export default function App() {
   <hr style={{ marginTop: 8 }} />
 </div>
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={tableStyle}>
+          <table style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Month</th>
@@ -830,7 +830,7 @@ export default function App() {
             {showAddItem && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
-              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
+              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewIte<table style={{ tableLayout: 'fixed', width: '100%' }} ({ ...n, brand: e.target.value }))} />
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />              
               <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
             </div>
@@ -838,7 +838,7 @@ export default function App() {
           </div>
 
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={tableStyle}>
+          <table style={{ tableLayout: 'fix style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Item</th>
