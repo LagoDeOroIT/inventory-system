@@ -463,32 +463,54 @@ export default function App() {
       }}
     >
       <input
-        placeholder="Search item"
-        value={itemSearch}
-        onFocus={() => setDropdownOpen(true)}
-        onChange={e => {
-          setItemSearch(e.target.value);
-          setDropdownOpen(true);
+  placeholder="Search item"
+  value={itemSearch}
+  onFocus={() => setDropdownOpen(true)}
+  onChange={(e) => {
+    setItemSearch(e.target.value);
+    setDropdownOpen(true);
+  }}
+/>
+
         }}
       />
 
       {dropdownOpen && (
-        <div style={{ position: "absolute", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6, marginTop: 4, maxHeight: 200, overflowY: "auto", zIndex: 10 }}>
-          {availableItems
-            .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
-            .map(i => (
-              <div
-                key={i.id}
-                onClick={() => {
-                  setForm(f => ({ ...f, item_id: i.id }));
-                  setItemSearch(i.item_name);
-                  setDropdownOpen(false);
-                }}
-                style={{ padding: 8, cursor: "pointer", borderBottom: "1px solid #f3f4f6" }}
-              >
-                <strong>{i.item_name}</strong> — Stock: {i.stock}
-              </div>
-            ))}
+  <div
+    style={{
+      position: "absolute",
+      background: "#fff",
+      border: "1px solid #e5e7eb",
+      borderRadius: 6,
+      marginTop: 4,
+      maxHeight: 200,
+      overflowY: "auto",
+      zIndex: 10,
+    }}
+  >
+    {availableItems
+      .filter(i =>
+        i.item_name.toLowerCase().includes(itemSearch.toLowerCase())
+      )
+      .map(i => (
+        <div
+          key={i.id}
+          onClick={() => {
+            setForm(f => ({ ...f, item_id: i.id }));
+            setItemSearch(i.item_name);
+            setDropdownOpen(false);
+          }}
+          style={{
+            padding: 8,
+            cursor: "pointer",
+            borderBottom: "1px solid #f3f4f6",
+          }}
+        >
+          <strong>{i.item_name}</strong> — Stock: {i.stock}
+        </div>
+      ))}
+  </div>
+)}
           {availableItems.length === 0 && (
             <div style={{ padding: 8, color: "#6b7280" }}>No items available</div>
           )}
