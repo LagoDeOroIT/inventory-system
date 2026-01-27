@@ -4,6 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 // ================= SUPABASE CONFIG =================
 const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
+export default function App() {
+
 // ================= LOAD DATA =================
 async function loadData() {
   const { data: itemsData } = await supabase.from("items").select("*");
@@ -769,4 +771,3 @@ useEffect(() => {
       )}
     </div>
   );
-}
