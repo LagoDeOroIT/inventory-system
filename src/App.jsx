@@ -19,13 +19,25 @@ const emptyRow = (colSpan, text) => (
 
 export default function App() {
   // ===== CONFIRM MODAL STATE =====
-  const [confirm, setConfirm] = useState(null);
+  const [confirm, setConfirm] = useState(
+null);
   const openConfirm = (message, onConfirm) => {
     setConfirm({ message, onConfirm });
   };
   const closeConfirm = () => setConfirm(null);
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
+const [selectedStockRoom, setSelectedStockRoom] = useState(null);
+
+// Call this when a stock room is chosen
+const handleSelectStockRoom = (room) => {
+  // room can be an object { id, name } or a string name
+  if (typeof room === 'string') {
+    setSelectedStockRoom({ name: room });
+  } else {
+    setSelectedStockRoom(room);
+  }
+};
 
 const handleDelete = (id) => {
   setItems(prevItems => prevItems.filter(item => item.id !== id));
@@ -95,7 +107,12 @@ const handleDelete = (id) => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
+    return (
+  <div>
+    <h2 style={{ marginBottom: '10px' }}>
+      Stock Room: {selectedStockRoom?.name || 'Please select a stock room'}
+    </h2>
+) => data.subscription.unsubscribe();
   }, []);
 
   // ================= LOAD DATA =================
