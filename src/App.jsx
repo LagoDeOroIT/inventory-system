@@ -725,11 +725,56 @@ export default function App() {
       )}
 
       {activeTab === "report" && (
-  <>
+  <div>
     <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
         <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
-        <select value={selectedMonth} onChange={e => setSelectedMonth(Number(e.target.value))} style={{ padding: 4, borderRadius: 6 }}>
+        <span style={{ fontSize: 12, color: "#6b7280" }}>
+          Records: {monthlyReportRows.length}
+        </span>
+      </div>
+      <hr style={{ marginTop: 8 }} />
+    </div>
+
+    <div style={{ maxHeight: 400, overflowY: "auto" }}>
+      <table style={tableStyle}>
+        <thead>
+          <tr>
+            <th style={thtd}>Date</th>
+            <th style={thtd}>Description</th>
+            <th style={thtd}>Brand</th>
+            <th style={thtd}>Specs</th>
+            <th style={thtd}>Qty</th>
+            <th style={thtd}>Unit</th>
+            <th style={thtd}>Unit Price</th>
+            <th style={thtd}>Total Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {monthlyReportRows.length === 0 && (
+            <tr>
+              <td colSpan={8} style={{ textAlign: "center", padding: 12 }}>
+                No data
+              </td>
+            </tr>
+          )}
+          {monthlyReportRows.map((r) => (
+            <tr key={r.id}>
+              <td style={thtd}>{r.date}</td>
+              <td style={thtd}>{r.description}</td>
+              <td style={thtd}>{r.brand}</td>
+              <td style={thtd}>{r.specs}</td>
+              <td style={thtd}>{r.qty}</td>
+              <td style={thtd}>{r.unit}</td>
+              <td style={thtd}>₱{Number(r.unit_price).toFixed(2)}</td>
+              <td style={thtd}>₱{Number(r.total_price).toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)} style={{ padding: 4, borderRadius: 6 }}>
           {Array.from({ length: 12 }).map((_, i) => (
             <option key={i} value={i}>{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>
           ))}
