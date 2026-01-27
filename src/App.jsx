@@ -438,30 +438,54 @@ export default function App() {
   </div>
 
   {showForm && (
-    <div
-      ref={searchRef}
-      style={{
-        display: "grid",
-        gridTemplateColumns: "2fr 1fr 1fr 1fr auto",
-        gap: 10,
-        marginTop: 12,
-        alignItems: "center",
-      }}
-    >
-      <input
-        placeholder="Search item"
-        value={itemSearch}
-        onChange={e => {
-          setItemSearch(e.target.value);
-          setDropdownOpen(true);
-        }}
-      />
+    <div ref={searchRef} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr auto", gap: 10, marginTop: 12, alignItems: "center", position: "relative" }}>
+      <div style={{ position: "relative" }}>
+        <input
+          placeholder="Search item"
+          value={itemSearch}
+          onChange={e => {
+            setItemSearch(e.target.value);
+            setDropdownOpen(true);
+          }}
+          onFocus={() => setDropdownOpen(true)}
+          style={{ width: "100%", padding: "10px 12px", borderRadius: 6, border: "1px solid #d1d5db" }}
+        />
 
-      {dropdownOpen && itemSearch && (
-        <div style={{ position: "absolute", background: "#fff", border: "1px solid #d1d5db", borderRadius: 6, marginTop: 4, width: "100%", maxHeight: 200, overflowY: "auto", zIndex: 20 }}>
-          {filteredItemsForSearch.length === 0 && (
-            <div style={{ padding: 8, fontSize: 12, color: "#6b7280" }}>No items in this stock room</div>
-          )}
+        {dropdownOpen && itemSearch && (
+          <div style={{ position: "absolute", top: "110%", left: 0, right: 0, background: "#fff", border: "1px solid #e5e7eb", borderRadius: 8, boxShadow: "0 10px 25px rgba(0,0,0,0.08)", maxHeight: 220, overflowY: "auto", zIndex: 50 }}>
+            {filteredItemsForSearch.length === 0 && (
+              <div style={{ padding: 12, fontSize: 13, color: "#6b7280" }}>
+                No items found in <strong>{selectedStockRoom}</strong>
+              </div>
+            )}
+            {filteredItemsForSearch.map(i => (
+              <div
+                key={i.id}
+                style={{ padding: "10px 12px", cursor: "pointer", borderBottom: "1px solid #f3f4f6" }}
+                onMouseDown={() => {
+                  setForm(f => ({ ...f, item_id: i.id }));
+                  setItemSearch(i.item_name);
+                  setDropdownOpen(false);
+                }}
+              >
+                <div style={{ fontWeight: 500 }}>{i.item_name}</div>
+                <div style={{ fontSize: 12, color: "#6b7280" }}>{i.brand || "No brand"}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+        <option value="IN">IN</option>
+        <option value="OUT">OUT</option>
+      </select>
+      <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+      <input placeholder="Volume Pack (e.g. 11kg)" value={form.volume_pack} onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))} />
+      <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+      <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
+    </div>
+  )}
           {filteredItemsForSearch.map(i => (
             <div
               key={i.id}
@@ -482,6 +506,11 @@ export default function App() {
         <option value="OUT">OUT</option>
       </select>
       <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+      <input
+        placeholder="Volume Pack (e.g. 11kg)"
+        value={form.volume_pack}
+        onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
+      />
       <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
       <button onClick={saveTransaction}>
         {editingId ? "Update" : "Save"}
@@ -521,13 +550,13 @@ export default function App() {
                     <th style={thtd}>Item</th>
                     <th style={thtd}>Qty</th>
                     <th style={thtd}>Brand</th>
+                    <th style={thtd}>Volume Pack</th>
                     <th style={thtd}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
-                  {transactions
-                    .filter(t => t.type === "IN")
+                  {filteredTransactions.filter(t => t.type === "IN")
                     .filter(t => {
                       const q = inSearch.toLowerCase();
                       if (!q) return true;
@@ -546,6 +575,7 @@ export default function App() {
                       <td style={thtd}>{t.items?.item_name}</td>
                       <td style={thtd}>{t.quantity}</td>
                       <td style={thtd}>{t.brand}</td>
+                      <td style={thtd}>{t.volume_pack || "—"}</td>
                       <td style={thtd}>
                         <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
                           originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
@@ -595,13 +625,13 @@ export default function App() {
                     <th style={thtd}>Item</th>
                     <th style={thtd}>Qty</th>
                     <th style={thtd}>Brand</th>
+                    <th style={thtd}>Volume Pack</th>
                     <th style={thtd}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
-                  {transactions
-                    .filter(t => t.type === "OUT")
+                  {filteredTransactions.filter(t => t.type === "OUT")
                     .filter(t => {
                       const q = outSearch.toLowerCase();
                       return (
@@ -616,6 +646,7 @@ export default function App() {
                       <td style={thtd}>{t.items?.item_name}</td>
                       <td style={thtd}>{t.quantity}</td>
                       <td style={thtd}>{t.brand}</td>
+                      <td style={thtd}>{t.volume_pack || "—"}</td>
                       <td style={thtd}>
                         <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
                           originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
@@ -671,6 +702,7 @@ export default function App() {
                 <th style={thtd}>Date</th>
                 <th style={thtd}>Item</th>
                 <th style={thtd}>Brand</th>
+                    <th style={thtd}>Volume Pack</th>
                 <th style={thtd}>Qty</th>
                 <th style={thtd}>Actions</th>
               </tr>
@@ -691,6 +723,7 @@ export default function App() {
                   <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
                   <td style={thtd}>{t.items?.item_name}</td>
                   <td style={thtd}>{t.brand}</td>
+                      <td style={thtd}>{t.volume_pack || "—"}</td>
                   <td style={thtd}>{t.quantity}</td>
                   <td style={thtd}>
                     <button onClick={() => openConfirm("Restore this transaction?", async () => {
@@ -816,6 +849,7 @@ export default function App() {
               <tr>
                 <th style={thtd}>Item</th>
                 <th style={thtd}>Brand</th>
+                    <th style={thtd}>Volume Pack</th>
                 <th style={thtd}>Current Stock</th>
                 <th style={thtd}>Unit Price</th>
                 <th style={thtd}>Stock Value</th>
