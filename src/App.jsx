@@ -19,7 +19,11 @@ const emptyRow = (colSpan, text) => (
 
 export default function App() {
   // ===== CONFIRM MODAL STATE =====
-  const [confirm, setConfirm] = useState(null);
+  const [confirm, setConfirm] = useState(
+const [monthlyReportRows, setMonthlyReportRows] = useState([]);
+const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+
+useState(null);
   const openConfirm = (message, onConfirm) => {
     setConfirm({ message, onConfirm });
   };
@@ -253,19 +257,29 @@ export default function App() {
     .filter(Boolean);
 
   // ================= MONTHLY REPORT (DETAILED) =================
-const monthlyReportRows = filteredTransactions
-  .filter(t => !t.deleted)
-  .map(t => ({
-    id: t.id,
-    date: t.date,
-    description: t.items?.item_name || "",
-    brand: t.brand || "",
-    specs: t.volume_pack || "",
-    qty: t.quantity,
-    unit: t.unit || "",
-    unit_price: t.unit_price || 0,
-    total_price: t.quantity * (t.unit_price || 0),
-  }));
+const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+const [monthlyReportRows, setMonthlyReportRows] = useState([]);
+
+useEffect(() => {
+  if (activeTab !== "report") return;
+
+  const rows = filteredTransactions
+    .filter(t => !t.deleted)
+    .filter(t => new Date(t.date).getMonth() === selectedMonth)
+    .map(t => ({
+      id: t.id,
+      date: new Date(t.date).toLocaleDateString("en-CA"),
+      description: t.items?.item_name || "",
+      brand: t.brand || "",
+      specs: t.volume_pack || "",
+      qty: t.quantity,
+      unit: t.unit || "",
+      unit_price: Number(t.unit_price || 0),
+      total_price: Number(t.quantity || 0) * Number(t.unit_price || 0),
+    }));
+
+  setMonthlyReportRows(rows);
+}, [activeTab, filteredTransactions, selectedMonth]);
 
 // ================= CLICK OUTSIDE =================
   useEffect(() => {
@@ -714,97 +728,76 @@ const monthlyReportRows = filteredTransactions
       )}
 
       {activeTab === "report" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-    <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
-    <span style={{ fontSize: 12, color: "#6b7280" }}>Months tracked: {Object.keys(monthlyTotals).length}</span>
-  </div>
-  <hr style={{ marginTop: 8 }} />
-</div>
-          <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Month</th>
-                <th style={thtd}>IN Total</th>
-                <th style={thtd}>OUT Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
-              {Object.entries(monthlyTotals)
-                .map(([m, v]) => (
-                  <tr key={m}>
-                    <td style={thtd}>{m}</td>
-                    <td style={thtd}>₱{v.IN.toFixed(2)}</td>
-                    <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-        </>
-      )}
-
-     {activeTab === "stock" && (
   <>
-    <div
-      style={{
-        position: "sticky",
-        top: 0,
-        background: "#fff",
-        zIndex: 5,
-        paddingBottom: 8,
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-        <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
-        <span style={{ fontSize: 12, color: "#6b7280" }}>
-          Total items: {stockInventory.length} | Low stock:{" "}
-          {stockInventory.filter(i => i.stock <= 5).length}
-        </span>
+    <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
+        <select value={selectedMonth} onChange={e => setSelectedMonth(Number(e.target.value))} style={{ padding: 4, borderRadius: 6 }}>
+          {Array.from({ length: 12 }).map((_, i) => (
+            <option key={i} value={i}>{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>
+          ))}
+        </select>
+        <span style={{ fontSize: 12, color: "#6b7280" }}>Records: {monthlyReportRows.length}</span>
       </div>
       <hr style={{ marginTop: 8 }} />
     </div>
-
-    <div
-      style={{
-        marginBottom: 16,
-        border: "1px solid #ddd",
-        padding: 12,
-        borderRadius: 6,
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
-          <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
-            Register a new product or supply into the inventory system.
-          </p>
-        </div>
-
-        <button
-          onClick={() => setShowAddItem(v => !v)}
-          style={{
-            background: "#1f2937",
-            color: "#fff",
-            border: "none",
-            borderRadius: 6,
-            padding: "6px 12px",
-            cursor: "pointer",
-            fontSize: 12,
-            fontWeight: 600,
-          }}
-        >
-        
-
-                {showAddItem ? "Hide" : "Show"}
-              </button>
-            </div>
-            {showAddItem && (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
+    <div style={{ maxHeight: 400, overflowY: "auto" }}>
+      <table style={tableStyle}>
+        <thead>
+          <tr>
+            <th style={thtd}>Date</th>
+            <th style={thtd}>Description</th>
+            <th style={thtd}>Brand</th>
+            <th style={thtd}>Specs</th>
+            <th style={thtd}>Stock Qty</th>
+            <th style={thtd}>Unit</th>
+            <th style={thtd}>Unit Price</th>
+            <th style={thtd}>Total Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {monthlyReportRows.length === 0 && emptyRow(8, 'No data')}
+          {monthlyReportRows.map(r => (
+            <tr key={r.id}>
+              <td style={thtd}>{r.date}</td>
+              <td style={thtd}>{r.description}</td>
+              <td style={thtd}>{r.brand}</td>
+              <td style={thtd}>{r.specs}</td>
+              <td style={thtd}>{r.qty}</td>
+              <td style={thtd}>{r.unit}</td>
+              <td style={thtd}>₱{r.unit_price.toFixed(2)}</td>
+              <td style={thtd}>₱{r.total_price.toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td style={thtd} colSpan={7}><strong>Grand Total</strong></td>
+            <td style={thtd}><strong>₱{monthlyReportRows.reduce((s,r)=>s+r.total_price,0).toFixed(2)}</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </>
+)}
+          {monthlyReportRows.map((r) => (
+            <tr key={r.id}>
+              <td style={thtd}>{r.date}</td>
+              <td style={thtd}>{r.description}</td>
+              <td style={thtd}>{r.brand}</td>
+              <td style={thtd}>{r.specs}</td>
+              <td style={thtd}>{r.qty}</td>
+              <td style={thtd}>{r.unit}</td>
+              <td style={thtd}>₱{Number(r.unit_price).toFixed(2)}</td>
+              <td style={thtd}>₱{Number(r.total_price).toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </>
+)}
+              )} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
               <input type="number" placeholder="Initial quantity" value={newItem.initial_quantity} onChange={e => setNewItem(n => ({ ...n, initial_quantity: e.target.value }))} />
