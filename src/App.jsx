@@ -96,21 +96,24 @@ export default function App() {
 
   // ================= LOAD DATA =================
   async function loadData() {
-    const { data: itemsData } = await supabase
+    // load ALL items (do not filter here)
+    const { data: itemsData, error: itemsError } = await supabase
       .from('items')
-      .select("id, item_name, unit_price, brand");
+      .select('id, item_name, unit_price, brand');
+
+    if (itemsError) console.error(itemsError);
 
     const { data: tx } = await supabase
-      .from("inventory_transactions")
-      .select("*, items(item_name)")
-      .eq("deleted", false)
-      .order("date", { ascending: false });
+      .from('inventory_transactions')
+      .select('*, items(item_name)')
+      .eq('deleted', false)
+      .order('date', { ascending: false });
 
     const { data: deletedTx } = await supabase
-      .from("inventory_transactions")
-      .select("*, items(item_name)")
-      .eq("deleted", true)
-      .order("deleted_at", { ascending: false });
+      .from('inventory_transactions')
+      .select('*, items(item_name)')
+      .eq('deleted', true)
+      .order('deleted_at', { ascending: false });
 
     setItems(itemsData || []);
     setTransactions(tx || []);
@@ -234,15 +237,20 @@ export default function App() {
     ? transactions
     : transactions.filter(t => t.location === selectedStockRoom);
 
-  const stockInventory = items.map(item => {
-    const related = filteredTransactions.filter(t => t.item_id === item.id);
-    const qtyIn = related.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
-    const qtyOut = related.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
-    return {
-      ...item,
-      stock: qtyIn - qtyOut,
-    };
-  });
+  const stockInventory = items
+    .map(item => {
+      const related = filteredTransactions.filter(t => t.item_id === item.id);
+      if (related.length === 0) return null; // hide items with no stock in this room
+
+      const qtyIn = related.filter(t => t.type === 'IN').reduce((s, t) => s + t.quantity, 0);
+      const qtyOut = related.filter(t => t.type === 'OUT').reduce((s, t) => s + t.quantity, 0);
+
+      return {
+        ...item,
+        stock: qtyIn - qtyOut,
+      };
+    })
+    .filter(Boolean);
 
   // ================= MONTHLY TOTALS =================
   const monthlyTotals = filteredTransactions.reduce((acc, t) => {
