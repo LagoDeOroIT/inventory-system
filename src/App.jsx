@@ -418,100 +418,44 @@ export default function App() {
           <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
     <div>
-      <h3 style={{ margin: 0 }}>Record Inventory Transaction</h3>
-      <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
-        Log incoming and outgoing stock movements for accurate inventory tracking.
-      </p>
-    </div>
-    <button
-      onClick={() => setShowForm(v => !v)}
-      style={{
-        background: "#1f2937",
-        color: "#fff",
-        border: "none",
-        borderRadius: 6,
-        padding: "6px 14px",
-        cursor: "pointer",
-        fontSize: 12,
-        fontWeight: 600,
-      }}
-    >
-      {showForm ? "Hide" : "Add Transaction"}
-    </button>
-  </div>
+      <h3 style={{ margin: 0 }}><h2 className="section-title">Record Inventory Transaction</h2>
+<p className="section-subtitle">Log incoming and outgoing stock movements for accurate inventory tracking.</p>
 
-  {showForm && (
-  <div
-    ref={searchRef}
-    style={{
-      display: "grid",
-      gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr auto",
-      gap: 10,
-      marginTop: 12,
-      alignItems: "center",
-      position: "relative",
-    }}
-  >
-    <div style={{ position: "relative" }}>
-      <input
-        placeholder="Search item"
-        value={itemSearch}
-        onChange={e => {
-          setItemSearch(e.target.value);
-          setDropdownOpen(true);
-        }}
-        onFocus={() => setDropdownOpen(true)}
-      />
-
-      {dropdownOpen && (
-        <div>
-          {filteredItemsForSearch.map(i => (
-            <div
-              key={i.id}
-              onMouseDown={() => {
-                setForm(f => ({ ...f, item_id: i.id }));
-                setItemSearch(i.item_name);
-                setDropdownOpen(false);
-              }}
-            >
-              {i.item_name}
-            </div>
-          ))}
-        </div>
-      )}
+<form className="inventory-form">
+  <div className="form-row">
+    <div className="form-group">
+      <label>Item</label>
+      <input type="text" placeholder="Search or select item" />
     </div>
 
-    <select
-      value={form.type}
-      onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-    >
-      <option value="IN">IN</option>
-      <option value="OUT">OUT</option>
-    </select>
+    <div className="form-group">
+      <label>Transaction Type</label>
+      <select>
+        <option value="IN">Stock In</option>
+        <option value="OUT">Stock Out</option>
+      </select>
+    </div>
 
-    <input
-      type="number"
-      placeholder="Quantity"
-      value={form.quantity}
-      onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
-    />
+    <div className="form-group">
+      <label>Quantity</label>
+      <input type="number" min="1" placeholder="Enter quantity" />
+    </div>
 
-    <input
-      placeholder="Volume Pack (e.g. 11kg)"
-      value={form.volume_pack}
-      onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-    />
+    <div className="form-group">
+      <label>Volume / Description</label>
+      <input type="text" placeholder="e.g. 11kg, box, pack" />
+    </div>
 
-    <input
-      type="date"
-      value={form.date}
-      onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-    />
+    <div className="form-group">
+      <label>Date</label>
+      <input type="date" />
+    </div>
 
-    <button onClick={saveTransaction}>
-      {editingId ? "Update" : "Save"}
-    </button>
+    <div className="form-group form-actions">
+      <button type="button" className="btn-primary">Save Transaction</button>
+    </div>
   </div>
+</form>
 )}
 </div>
 
