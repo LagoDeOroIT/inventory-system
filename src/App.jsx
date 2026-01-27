@@ -6,6 +6,11 @@ const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env
 
 export default function App() {
 
+// ================= STOCK ROOM =================
+const [selectedStockRoom, setSelectedStockRoom] = useState("All Stock Rooms");
+const [stockRooms, setStockRooms] = useState(["All Stock Rooms"]);
+
+
 // ================= AUTH =================
 const [session, setSession] = useState(null);
 
