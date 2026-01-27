@@ -98,7 +98,7 @@ export default function App() {
   async function loadData() {
     const { data: itemsData } = await supabase
       .from("items")
-      .select("id, item_name, unit_price, brand, location");
+      .select("id, item_name, unit_price, brand");
 
     const { data: tx } = await supabase
       .from("inventory_transactions")
@@ -194,7 +194,6 @@ export default function App() {
             item_name: newItem.item_name,
             brand: newItem.brand || null,
             unit_price: Number(newItem.unit_price),
-            location: newItem.location || null,
           })
           .eq("id", stockEditItem.id)
           .select()
@@ -204,7 +203,6 @@ export default function App() {
             item_name: newItem.item_name,
             brand: newItem.brand || null,
             unit_price: Number(newItem.unit_price),
-            location: newItem.location || null,
           })
           .select();
 
@@ -212,7 +210,17 @@ export default function App() {
 
     const itemId = isEditingItem ? stockEditItem.id : insertedItem[0].id;
 
-    
+    if (newItem.initial_quantity && newItem.location) {
+      await supabase.from("inventory_transactions").insert({
+        item_id: itemId,
+        type: "IN",
+        quantity: Number(newItem.initial_quantity),
+        date: new Date().toISOString().slice(0, 10),
+        unit_price: Number(newItem.unit_price),
+        brand: newItem.brand || null,
+        location: newItem.location,
+        deleted: false,
+      });
     }
 
     setNewItem({ item_name: "", brand: "", unit_price: "", initial_quantity: "", location: "" });
@@ -227,9 +235,7 @@ export default function App() {
     ? transactions
     : transactions.filter(t => t.location === selectedStockRoom);
 
-  const stockInventory = items
-    .filter(item => selectedStockRoom === "All Stock Rooms" || item.location === selectedStockRoom)
-    .map(item => {
+  const stockInventory = items.map(item => {
     const related = filteredTransactions.filter(t => t.item_id === item.id);
     const qtyIn = related.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
     const qtyOut = related.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
@@ -862,3 +868,4 @@ export default function App() {
       )}
     </div>
   );
+}
