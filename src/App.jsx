@@ -85,191 +85,57 @@ export default function App() {
   // item search
   const [itemSearch, setItemSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const searchRef = useRef(null);
 
-  // items available in selected stock room (with current stock)
-  // show ALL items in selected stock room (even zero quantity)
   const availableItems = stockInventory;
 
-  // ================= AUTH =================
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
-  }, []);
+  /* Transactions item search input */
+  
+  /* JSX */
+  
+  <input
+    placeholder="Search item"
+    value={itemSearch}
+    onFocus={() => setDropdownOpen(true)}
+    onChange={(e) => {
+      setItemSearch(e.target.value);
+      setDropdownOpen(true);
+    }}
+  />
 
-  // ================= LOAD DATA =================
-  async function loadData() {
-    const { data: itemsData } = await supabase
-      .from("items")
-      .select("id, item_name, unit_price, brand");
-
-    const { data: tx } = await supabase
-      .from("inventory_transactions")
-      .select("*, items(item_name)")
-      .eq("deleted", false)
-      .order("date", { ascending: false });
-
-    const { data: deletedTx } = await supabase
-      .from("inventory_transactions")
-      .select("*, items(item_name)")
-      .eq("deleted", true)
-      .order("deleted_at", { ascending: false });
-
-    setItems(itemsData || []);
-    setTransactions(tx || []);
-
-    // NOTE: stock room filtering is applied at render level
-    setDeletedTransactions(deletedTx || []);
-  }
-
-  useEffect(() => {
-    if (session) loadData();
-  }, [session]);
-
-  // ================= SAVE =================
-  function isFormChanged() {
-    if (!originalFormRef.current) return false;
-    return Object.keys(originalFormRef.current).some(k => String(originalFormRef.current[k] || "") !== String(form[k] || ""));
-  }
-
-  async function saveTransaction() {
-    if (!form.item_id || !form.quantity) return alert("Complete the form");
-    const item = items.find(i => i.id === Number(form.item_id));
-    if (!item) return alert("Item not found");
-
-    if (form.type === "OUT") {
-      const stockItem = stockInventory.find(i => i.id === item.id);
-      if (stockItem && Number(form.quantity) > stockItem.stock) {
-        alert("Cannot OUT more than available stock");
-        return;
-      }
-    }
-
-    const payload = {
-      location: selectedStockRoom === "All Stock Rooms" ? null : selectedStockRoom,
-      date: form.date || new Date().toISOString().slice(0, 10),
-      item_id: Number(form.item_id),
-      type: form.type,
-      quantity: Number(form.quantity),
-      unit_price: item.unit_price,
-      brand: form.brand || item.brand || null,
-      unit: form.unit || null,
-      volume_pack: form.volume_pack || null,
-      deleted: false,
-    };
-
-    const { error } = editingId
-      ? await supabase.from("inventory_transactions").update(payload).eq("id", editingId)
-      : await supabase.from("inventory_transactions").insert(payload);
-
-    if (error) return alert(error.message);
-
-    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", volume_pack: "" });
-    setItemSearch("");
-    setEditingId(null);
-    loadData();
-  }
-
-  // ================= ADD NEW ITEM (STOCK TAB) =================
-
-  const [showAddItem, setShowAddItem] = useState(false);
-  const [isEditingItem, setIsEditingItem] = useState(false);
-  const [editingItemId, setEditingItemId] = useState(null);
-  const [stockEditItem, setStockEditItem] = useState(null);
-
-  const [newItem, setNewItem] = useState({
-    item_name: "",
-    brand: "",
-    unit_price: "",
-    location: "",
-  });
-
-  async function handleSaveItem() {
-    if (!newItem.item_name || !newItem.unit_price) {
-      alert("Item name and unit price are required");
-      return;
-    }
-
-    const { data: insertedItem, error } = isEditingItem && stockEditItem
-      ? await supabase
-          .from("items")
-          .update({
-            item_name: newItem.item_name,
-            brand: newItem.brand || null,
-            unit_price: Number(newItem.unit_price),
-          })
-          .eq("id", stockEditItem.id)
-          .select()
-      : await supabase
-          .from("items")
-          .insert({
-            item_name: newItem.item_name,
-            brand: newItem.brand || null,
-            unit_price: Number(newItem.unit_price),
-          })
-          .select();
-
-    if (error) return alert(error.message);
-
-    const itemId = isEditingItem ? stockEditItem.id : insertedItem[0].id;
-
-    if (newItem.initial_quantity && newItem.location) {
-      await supabase.from("inventory_transactions").insert({
-        item_id: itemId,
-        type: "IN",
-        quantity: Number(newItem.initial_quantity),
-        date: new Date().toISOString().slice(0, 10),
-        unit_price: Number(newItem.unit_price),
-        brand: newItem.brand || null,
-        location: newItem.location,
-        deleted: false,
-      });
-    }
-
-    setNewItem({ item_name: "", brand: "", unit_price: "", initial_quantity: "", location: "" });
-    setIsEditingItem(false);
-    setStockEditItem(null);
-    setShowAddItem(false);
-    loadData();
-  }
-
-  // ================= STOCK INVENTORY =================
-  const filteredTransactions = selectedStockRoom === "All Stock Rooms"
-    ? transactions
-    : transactions.filter(t => t.location === selectedStockRoom);
-
-  const stockInventory = items.map(item => {
-    const related = filteredTransactions.filter(t => t.item_id === item.id);
-    const qtyIn = related.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
-    const qtyOut = related.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
-    return {
-      ...item,
-      stock: qtyIn - qtyOut,
-    };
-  });
-
-  // ================= MONTHLY TOTALS =================
-  const monthlyTotals = filteredTransactions.reduce((acc, t) => {
-    if (!t.date) return acc;
-    const month = t.date.slice(0, 7);
-    acc[month] = acc[month] || { IN: 0, OUT: 0 };
-    acc[month][t.type] += t.quantity * t.unit_price;
-    return acc;
-  }, {});
-
-  // ================= CLICK OUTSIDE =================
-  useEffect(() => {
-    const handler = e => searchRef.current && !searchRef.current.contains(e.target) && setDropdownOpen(false);
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  if (!session) {
-    return (
-      <div style={{ padding: 40 }}>
-        <h2>Inventory Login</h2>
-        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>
+  {dropdownOpen && (
+    <div
+      style={{
+        position: "absolute",
+        background: "#fff",
+        border: "1px solid #e5e7eb",
+        borderRadius: 6,
+        marginTop: 4,
+        maxHeight: 200,
+        overflowY: "auto",
+        zIndex: 10,
+      }}
+    >
+      {availableItems
+        .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
+        .map(i => (
+          <div
+            key={i.id}
+            onClick={() => {
+              setForm(f => ({ ...f, item_id: i.id }));
+              setItemSearch(i.item_name);
+              setDropdownOpen(false);
+            }}
+            style={{
+              padding: 8,
+              cursor: "pointer",
+              borderBottom: "1px solid #f3f4f6",
+            }}
+          >
+            <strong>{i.item_name}</strong> — Stock: {i.stock}
+          </div>
+        ))}
+    </div>
+  )}>
           Login with Google
         </button>
       </div>
