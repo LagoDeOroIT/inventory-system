@@ -460,7 +460,7 @@ export default function App() {
               <div style={{ padding: 12, fontSize: 13, color: "#6b7280" }}>
                 No items found in <strong>{selectedStockRoom}</strong>
               </div>
-            {filteredItemsForSearch.map(i => (
+            {dropdownOpen && (filteredItemsForSearch.map(i => (
               <div
                 key={i.id}
                 style={{ padding: "10px 12px", cursor: "pointer", borderBottom: "1px solid #f3f4f6" }}
@@ -473,8 +473,8 @@ export default function App() {
                 <div style={{ fontWeight: 500 }}>{i.item_name}</div>
                 <div style={{ fontSize: 12, color: "#6b7280" }}>{i.brand || "No brand"}</div>
               </div>
-            ))}
-          </div>
+            )))}
+</div>
         )}
       </div>
 
