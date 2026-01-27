@@ -187,68 +187,31 @@ export default function App() {
   location: selectedStockRoom !== "All Stock Rooms" ? selectedStockRoom : "",
 });
 
-  async function handleSaveItem() {
-    if (!newItem.item_name || !newItem.unit_price) {
-      alert("Item name and unit price are required");
-      return;
-    }
-
-    const { data: insertedItem, error } = isEditingItem && stockEditItem
-      ? await supabase
-          .from("items")
-          .update({
-            item_name: newItem.item_name,
-            brand: newItem.brand || null,
-            unit_price: Number(newItem.unit_price),
-          })
-          .eq("id", stockEditItem.id)
-          .select()
-      : await supabase
-          .from("items")
-          .insert({
-            item_name: newItem.item_name,
-            brand: newItem.brand || null,
-            unit_price: Number(newItem.unit_price),
-          })
-          .select();
-
-    if (error) return alert(error.message);
-
-    const itemId = isEditingItem ? stockEditItem.id : insertedItem[0].id;
-
-    if (newItem.initial_quantity && newItem.location) {
-      await supabase.from("inventory_transactions").insert({
-        item_id: itemId,
-        type: "IN",
-        quantity: Number(newItem.initial_quantity),
-        date: new Date().toISOString().slice(0, 10),
-        unit_price: Number(newItem.unit_price),
-        brand: newItem.brand || null,
-        location: newItem.location,
-        deleted: false,
-      });
-    }
-
-    setNewItem({ item_name: "", brand: "", unit_price: "", initial_quantity: "", location: "" });
-    setIsEditingItem(false);
-    setStockEditItem(null);
-    setShowAddItem(false);
-    loadData();
+  async function const handleSaveItem = async () => {
+  if (!selectedStockRoom || selectedStockRoom === "All Stock Rooms") {
+    alert("Please select a stock room first");
+    return;
   }
 
-  // ================= STOCK INVENTORY =================
-  const filteredTransactions = selectedStockRoom === "All Stock Rooms"
-    ? transactions
-    : transactions.filter(t => t.location === selectedStockRoom);
+  const { error } = await supabase
+    .from("items")
+    .insert([
+      {
+        name: newItem.name,
+        brand: newItem.brand,
+        unit: newItem.unit,
+        location: selectedStockRoom,
+      }
+    ]);
 
-  const stockInventory = items.map(item => {
-    const related = filteredTransactions.filter(t => t.item_id === item.id);
-    const qtyIn = related.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
-    const qtyOut = related.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
-    return {
-      ...item,
-      stock: qtyIn - qtyOut,
-    };
+  if (error) {
+    console.error(error);
+    alert("Failed to add item");
+    return;
+  }
+
+  setNewItem({ name: "", brand: "", unit: "" });
+};
   });
 
   // ================= MONTHLY TOTALS =================
