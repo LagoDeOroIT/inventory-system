@@ -83,6 +83,11 @@ export default function App() {
   });
 
   // item search
+  const filteredItemsForSearch = items.filter(i => {
+    if (selectedStockRoom === "All Stock Rooms") return false;
+    return i.location === selectedStockRoom &&
+      i.item_name.toLowerCase().includes(itemSearch.toLowerCase());
+  });
   const [itemSearch, setItemSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const searchRef = useRef(null);
@@ -448,6 +453,27 @@ export default function App() {
           setDropdownOpen(true);
         }}
       />
+
+      {dropdownOpen && itemSearch && (
+        <div style={{ position: "absolute", background: "#fff", border: "1px solid #d1d5db", borderRadius: 6, marginTop: 4, width: "100%", maxHeight: 200, overflowY: "auto", zIndex: 20 }}>
+          {filteredItemsForSearch.length === 0 && (
+            <div style={{ padding: 8, fontSize: 12, color: "#6b7280" }}>No items in this stock room</div>
+          )}
+          {filteredItemsForSearch.map(i => (
+            <div
+              key={i.id}
+              style={{ padding: 8, cursor: "pointer" }}
+              onClick={() => {
+                setForm(f => ({ ...f, item_id: i.id }));
+                setItemSearch(i.item_name);
+                setDropdownOpen(false);
+              }}
+            >
+              {i.item_name}
+            </div>
+          ))}
+        </div>
+      )
       <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
         <option value="IN">IN</option>
         <option value="OUT">OUT</option>
