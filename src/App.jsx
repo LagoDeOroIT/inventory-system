@@ -1,6 +1,3 @@
-
-
-
 import React, { useEffect, useRef, useState } from "react";    
 import { createClient } from "@supabase/supabase-js";
 
@@ -441,59 +438,34 @@ export default function App() {
   </div>
 
   {showForm && (
-    <div ref={searchRef} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr auto", gap: 10, marginTop: 12, alignItems: "center", position: "relative" }}>
-      <div style={{ position: "relative" }}>
-        <input
-          placeholder="Search item"
-          value={itemSearch}
-          onChange={e => {
-            setItemSearch(e.target.value);
-            setDropdownOpen(true);
-          }}
-          onFocus={() => setDropdownOpen(true)}
-          style={{ width: "100%", padding: "10px 12px", borderRadius: 6, border: "1px solid #d1d5db" }}
-        />
+  <div
+    ref={searchRef}
+    style={{
+      display: "grid",
+      gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr auto",
+      gap: 10,
+      marginTop: 12,
+      alignItems: "center",
+      position: "relative",
+    }}
+  >
+    <div style={{ position: "relative" }}>
+      <input
+        placeholder="Search item"
+        value={itemSearch}
+        onChange={e => {
+          setItemSearch(e.target.value);
+          setDropdownOpen(true);
+        }}
+        onFocus={() => setDropdownOpen(true)}
+      />
 
-        {dropdownOpen && itemSearch && (
-          <div style={{ position: "absolute", top: "110%", left: 0, right: 0, background: "#fff", border: "1px solid #e5e7eb", borderRadius: 8, boxShadow: "0 10px 25px rgba(0,0,0,0.08)", maxHeight: 220, overflowY: "auto", zIndex: 50 }}>
-            {filteredItemsForSearch.length === 0 && (
-              <div style={{ padding: 12, fontSize: 13, color: "#6b7280" }}>
-                No items found in <strong>{selectedStockRoom}</strong>
-              </div>
-            {dropdownOpen && (filteredItemsForSearch.map((i) => (> (
-              <div
-                key={i.id}
-                style={{ padding: "10px 12px", cursor: "pointer", borderBottom: "1px solid #f3f4f6" }}
-                onMouseDown={() => {
-                  setForm(f => ({ ...f, item_id: i.id }));
-                  setItemSearch(i.item_name);
-                  setDropdownOpen(false);
-                }}
-              >
-                <div style={{ fontWeight: 500 }}>{i.item_name}</div>
-                <div style={{ fontSize: 12, color: "#6b7280" }}>{i.brand || "No brand"}</div>
-              </div>
-            )  ))
-)}
-</div>
-        )}
-      </div>
-
-      <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-        <option value="IN">IN</option>
-        <option value="OUT">OUT</option>
-      </select>
-      <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
-      <input placeholder="Volume Pack (e.g. 11kg)" value={form.volume_pack} onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))} />
-      <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-      <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
-    </div>
-  )}
+      {dropdownOpen && (
+        <div>
           {filteredItemsForSearch.map(i => (
             <div
               key={i.id}
-              style={{ padding: 8, cursor: "pointer" }}
-              onClick={() => {
+              onMouseDown={() => {
                 setForm(f => ({ ...f, item_id: i.id }));
                 setItemSearch(i.item_name);
                 setDropdownOpen(false);
@@ -504,22 +476,40 @@ export default function App() {
           ))}
         </div>
       )}
-      <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-        <option value="IN">IN</option>
-        <option value="OUT">OUT</option>
-      </select>
-      <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
-      <input
-        placeholder="Volume Pack (e.g. 11kg)"
-        value={form.volume_pack}
-        onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-      />
-      <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-      <button onClick={saveTransaction}>
-        {editingId ? "Update" : "Save"}
-      </button>
     </div>
-  )}
+
+    <select
+      value={form.type}
+      onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+    >
+      <option value="IN">IN</option>
+      <option value="OUT">OUT</option>
+    </select>
+
+    <input
+      type="number"
+      placeholder="Quantity"
+      value={form.quantity}
+      onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
+    />
+
+    <input
+      placeholder="Volume Pack (e.g. 11kg)"
+      value={form.volume_pack}
+      onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
+    />
+
+    <input
+      type="date"
+      value={form.date}
+      onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+    />
+
+    <button onClick={saveTransaction}>
+      {editingId ? "Update" : "Save"}
+    </button>
+  </div>
+)}
 </div>
 
 <div style={{ display: "flex", gap: 16 }}>
