@@ -18,19 +18,16 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
-  // ================= STATE =================
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [monthlyReportRows, setMonthlyReportRows] = useState([]);
-
+  // ===== CONFIRM MODAL STATE =====
   const [confirm, setConfirm] = useState(null);
-  const openConfirm = (message, onConfirm) => setConfirm({ message, onConfirm });
+  const openConfirm = (message, onConfirm) => {
+    setConfirm({ message, onConfirm });
+  };
   const closeConfirm = () => setConfirm(null);
-
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
-
   const [deletedSearch, setDeletedSearch] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [inFilter, setInFilter] = useState("all");
@@ -99,27 +96,26 @@ export default function App() {
 
   // ================= LOAD DATA =================
   async function loadData() {
-    // load ALL items (do not filter here)
-    const { data: itemsData, error: itemsError } = await supabase
-      .from('items')
-      .select('id, item_name, unit_price, brand');
-
-    if (itemsError) console.error(itemsError);
+    const { data: itemsData } = await supabase
+      .from("items")
+      .select("id, item_name, unit_price, brand");
 
     const { data: tx } = await supabase
-      .from('inventory_transactions')
-      .select('*, items(item_name)')
-      .eq('deleted', false)
-      .order('date', { ascending: false });
+      .from("inventory_transactions")
+      .select("*, items(item_name)")
+      .eq("deleted", false)
+      .order("date", { ascending: false });
 
     const { data: deletedTx } = await supabase
-      .from('inventory_transactions')
-      .select('*, items(item_name)')
-      .eq('deleted', true)
-      .order('deleted_at', { ascending: false });
+      .from("inventory_transactions")
+      .select("*, items(item_name)")
+      .eq("deleted", true)
+      .order("deleted_at", { ascending: false });
 
     setItems(itemsData || []);
     setTransactions(tx || []);
+
+    // NOTE: stock room filtering is applied at render level
     setDeletedTransactions(deletedTx || []);
   }
 
@@ -240,45 +236,26 @@ export default function App() {
     ? transactions
     : transactions.filter(t => t.location === selectedStockRoom);
 
-  const stockInventory = items
-    .map(item => {
-      const related = filteredTransactions.filter(t => t.item_id === item.id);
-      if (related.length === 0) return null; // hide items with no stock in this room
+  const stockInventory = items.map(item => {
+    const related = filteredTransactions.filter(t => t.item_id === item.id);
+    const qtyIn = related.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
+    const qtyOut = related.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
+    return {
+      ...item,
+      stock: qtyIn - qtyOut,
+    };
+  });
 
-      const qtyIn = related.filter(t => t.type === 'IN').reduce((s, t) => s + t.quantity, 0);
-      const qtyOut = related.filter(t => t.type === 'OUT').reduce((s, t) => s + t.quantity, 0);
+  // ================= MONTHLY TOTALS =================
+  const monthlyTotals = filteredTransactions.reduce((acc, t) => {
+    if (!t.date) return acc;
+    const month = t.date.slice(0, 7);
+    acc[month] = acc[month] || { IN: 0, OUT: 0 };
+    acc[month][t.type] += t.quantity * t.unit_price;
+    return acc;
+  }, {});
 
-      return {
-        ...item,
-        stock: qtyIn - qtyOut,
-      };
-    })
-    .filter(Boolean);
-
-  // ================= MONTHLY REPORT (DETAILED) =================
-  useEffect(() => {
-    const rows = filteredTransactions
-      .filter(t => {
-        if (!t.date) return false;
-        const d = new Date(t.date);
-        return d.getMonth() === selectedMonth && !t.deleted;
-      })
-      .map(t => ({
-        id: t.id,
-        date: new Date(t.date).toLocaleDateString("en-CA"),
-        description: t.items?.item_name || "",
-        brand: t.brand || "",
-        specs: t.volume_pack || "",
-        qty: t.quantity,
-        unit: t.unit || "",
-        unit_price: Number(t.unit_price || 0),
-        total_price: t.quantity * Number(t.unit_price || 0),
-      }));
-
-    setMonthlyReportRows(rows);
-  }, [filteredTransactions, selectedMonth]);
-
-// ================= CLICK OUTSIDE =================
+  // ================= CLICK OUTSIDE =================
   useEffect(() => {
     const handler = e => searchRef.current && !searchRef.current.contains(e.target) && setDropdownOpen(false);
     document.addEventListener("mousedown", handler);
@@ -539,7 +516,7 @@ export default function App() {
                 </thead>
                 <tbody>
                   {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
-                  {filteredTransactions
+                  {transactions
                     .filter(t => t.type === "IN")
                     .filter(t => {
                       const q = inSearch.toLowerCase();
@@ -613,7 +590,7 @@ export default function App() {
                 </thead>
                 <tbody>
                   {filteredTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
-                  {filteredTransactions
+                  {transactions
                     .filter(t => t.type === "OUT")
                     .filter(t => {
                       const q = outSearch.toLowerCase();
@@ -725,82 +702,97 @@ export default function App() {
       )}
 
       {activeTab === "report" && (
-  <div>
-    <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+        <>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+    <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
+    <span style={{ fontSize: 12, color: "#6b7280" }}>Months tracked: {Object.keys(monthlyTotals).length}</span>
+  </div>
+  <hr style={{ marginTop: 8 }} />
+</div>
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Month</th>
+                <th style={thtd}>IN Total</th>
+                <th style={thtd}>OUT Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
+              {Object.entries(monthlyTotals)
+                .map(([m, v]) => (
+                  <tr key={m}>
+                    <td style={thtd}>{m}</td>
+                    <td style={thtd}>₱{v.IN.toFixed(2)}</td>
+                    <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+        </>
+      )}
+
+     {activeTab === "stock" && (
+  <>
+    <div
+      style={{
+        position: "sticky",
+        top: 0,
+        background: "#fff",
+        zIndex: 5,
+        paddingBottom: 8,
+      }}
+    >
       <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-        <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
+        <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
         <span style={{ fontSize: 12, color: "#6b7280" }}>
-          Records: {monthlyReportRows.length}
+          Total items: {stockInventory.length} | Low stock:{" "}
+          {stockInventory.filter(i => i.stock <= 5).length}
         </span>
       </div>
       <hr style={{ marginTop: 8 }} />
     </div>
 
-    <div style={{ maxHeight: 400, overflowY: "auto" }}>
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thtd}>Date</th>
-            <th style={thtd}>Description</th>
-            <th style={thtd}>Brand</th>
-            <th style={thtd}>Specs</th>
-            <th style={thtd}>Qty</th>
-            <th style={thtd}>Unit</th>
-            <th style={thtd}>Unit Price</th>
-            <th style={thtd}>Total Price</th>
-          </tr>
-        </thead>
-        <tbody>
-          {monthlyReportRows.length === 0 && (
-            <tr>
-              <td colSpan={8} style={{ textAlign: "center", padding: 12 }}>
-                No data
-              </td>
-            </tr>
-          )}
-          {monthlyReportRows.map((r) => (
-            <tr key={r.id}>
-              <td style={thtd}>{r.date}</td>
-              <td style={thtd}>{r.description}</td>
-              <td style={thtd}>{r.brand}</td>
-              <td style={thtd}>{r.specs}</td>
-              <td style={thtd}>{r.qty}</td>
-              <td style={thtd}>{r.unit}</td>
-              <td style={thtd}>₱{Number(r.unit_price).toFixed(2)}</td>
-              <td style={thtd}>₱{Number(r.total_price).toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
-)} style={{ padding: 4, borderRadius: 6 }}>
-          {Array.from({ length: 12 }).map((_, i) => (
-            <option key={i} value={i}>{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>
-          ))}
-        </select>
-        <span style={{ fontSize: 12, color: "#6b7280" }}>Records: {monthlyReportRows.length}</span>
-      </div>
-      <hr style={{ marginTop: 8 }} />
-    </div>
-    <div style={{ maxHeight: 400, overflowY: "auto" }}>
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thtd}>Date</th>
-            <th style={thtd}>Description</th>
-            <th style={thtd}>Brand</th>
-            <th style={thtd}>Specs</th>
-            <th style={thtd}>Stock Qty</th>
-            <th style={thtd}>Unit</th>
-            <th style={thtd}>Unit Price</th>
-            <th style={thtd}>Total Price</th>
-          </tr>
-        </thead>
-        <tbody>
-          {monthlyReportRows.length === 0 && emptyRow(8, 'No data')}
-          
-              )} />
+    <div
+      style={{
+        marginBottom: 16,
+        border: "1px solid #ddd",
+        padding: 12,
+        borderRadius: 6,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
+          <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+            Register a new product or supply into the inventory system.
+          </p>
+        </div>
+
+        <button
+          onClick={() => setShowAddItem(v => !v)}
+          style={{
+            background: "#1f2937",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            padding: "6px 12px",
+            cursor: "pointer",
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+        
+
+                {showAddItem ? "Hide" : "Show"}
+              </button>
+            </div>
+            {showAddItem && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
               <input type="number" placeholder="Initial quantity" value={newItem.initial_quantity} onChange={e => setNewItem(n => ({ ...n, initial_quantity: e.target.value }))} />
