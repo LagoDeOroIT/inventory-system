@@ -230,270 +230,82 @@ export default function App() {
 
       
       {activeTab === "transactions" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-    <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
-    <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
-  </div>
-  <hr style={{ marginTop: 8 }} />
-</div>
-          <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-    <div>
-      <h3 style={{ margin: 0 }}>Record Inventory Transaction</h3>
-      <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
-        Log incoming and outgoing stock movements for accurate inventory tracking.
-      </p>
+  <>
+    <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+        <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
+        <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
+      </div>
+      <hr style={{ marginTop: 8 }} />
     </div>
-    <button
-      onClick={() => setShowForm(v => !v)}
-      style={{
-        background: "#1f2937",
-        color: "#fff",
-        border: "none",
-        borderRadius: 6,
-        padding: "6px 14px",
-        cursor: "pointer",
-        fontSize: 12,
-        fontWeight: 600,
-      }}
-    >
-      {showForm ? "Hide" : "Add Transaction"}
-    </button>
-  </div>
 
-  {showForm && (
-    <div
-      ref={searchRef}
-      style={{
-        display: "grid",
-        gridTemplateColumns: "2fr 1fr 1fr 1fr auto",
-        gap: 10,
-        marginTop: 12,
-        alignItems: "center",
-      }}
-    >
-      <input
-        placeholder="Search item"
-        value={itemSearch}
-        onFocus={() => setDropdownOpen(true)}
-        onChange={(e) => {
-          setItemSearch(e.target.value);
-          setDropdownOpen(true);
-        }}
-      />
-
-      {dropdownOpen && (
-        <div
-          style={{
-            position: "absolute",
-            background: "#fff",
-            border: "1px solid #e5e7eb",
-            borderRadius: 6,
-            marginTop: 4,
-            maxHeight: 200,
-            overflowY: "auto",
-            zIndex: 10,
-          }}
+    <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8, position: "relative" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <h3 style={{ margin: 0 }}>Record Inventory Transaction</h3>
+          <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+            Log incoming and outgoing stock movements for accurate inventory tracking.
+          </p>
+        </div>
+        <button
+          onClick={() => setShowForm(v => !v)}
+          style={{ background: "#1f2937", color: "#fff", border: "none", borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}
         >
-          {availableItems
-            .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
-            .map(i => (
-              <div
-                key={i.id}
-                onClick={() => {
-                  setForm(f => ({ ...f, item_id: i.id }));
-                  setItemSearch(i.item_name);
-                  setDropdownOpen(false);
-                }}
-                style={{
-                  padding: 8,
-                  cursor: "pointer",
-                  borderBottom: "1px solid #f3f4f6",
-                }}
-              >
-                <strong>{i.item_name}</strong> — Stock: {i.stock}
-              </div>
-            ))}
-        </div>
-      )
-  </div>
-)}
-          {availableItems.length === 0 && (
-            <div style={{ padding: 8, color: "#6b7280" }}>No items available</div>
-          )}
-        </div>
-      ) {
-          setItemSearch(e.target.value);
-          setDropdownOpen(true);
-        }}
-      />
-      <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-        <option value="IN">IN</option>
-        <option value="OUT">OUT</option>
-      </select>
-      <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
-      <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-      <button onClick={saveTransaction}>
-        {editingId ? "Update" : "Save"}
-      </button>
-    </div>
-  )}
-</div>
+          {showForm ? "Hide" : "Add Transaction"}
+        </button>
+      </div>
 
-<div style={{ display: "flex", gap: 16 }}>
+      {showForm && (
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr auto", gap: 10, marginTop: 12 }}>
+          <div style={{ position: "relative" }}>
+            <input
+              placeholder="Search item"
+              value={itemSearch}
+              onFocus={() => setDropdownOpen(true)}
+              onChange={e => {
+                setItemSearch(e.target.value);
+                setDropdownOpen(true);
+              }}
+            />
 
-            
-            <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
-              <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
-                <select
-                  value={inFilter}
-                  onChange={e => setInFilter(e.target.value)}
-                  style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
-                >
-                  <option value="all">All</option>
-                  <option value="item">Item</option>
-                  <option value="brand">Brand</option>
-                  <option value="quantity">Quantity</option>
-                </select>
-                <input
-                  placeholder="Search"
-                  value={inSearch}
-                  onChange={e => setInSearch(e.target.value)}
-                  style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
-                />
-              </div>
-              <table style={tableStyle}>
-                <thead>
-                  <tr>
-                    <th style={thtd}>Date</th>
-                    <th style={thtd}>Item</th>
-                    <th style={thtd}>Qty</th>
-                    <th style={thtd}>Brand</th>
-                    <th style={thtd}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
-                  {filteredTransactions
-                    .filter(t => t.type === "IN")
-                    .filter(t => {
-                      const q = inSearch.toLowerCase();
-                      if (!q) return true;
-                      if (inFilter === "item") return t.items?.item_name?.toLowerCase().includes(q);
-                      if (inFilter === "brand") return t.brand?.toLowerCase().includes(q);
-                      if (inFilter === "quantity") return String(t.quantity).includes(q);
-                      return (
-                        t.items?.item_name?.toLowerCase().includes(q) ||
-                        t.brand?.toLowerCase().includes(q) ||
-                        String(t.quantity).includes(q)
-                      );
-                    })
-                    .map(t => (
-                    <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
-                      <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-                      <td style={thtd}>{t.items?.item_name}</td>
-                      <td style={thtd}>{t.quantity}</td>
-                      <td style={thtd}>{t.brand}</td>
-                      <td style={thtd}>
-                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
-                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                          setEditingId(t.id);
-                          setForm(originalFormRef.current);
-                          setItemSearch(t.items?.item_name || "");
-                          setShowForm(true);
-                          setActiveTab("transactions");
-                        })}>✏️ Edit</button>
-                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
-                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
-                          loadData();
-                        })}>🗑️ Delete</button>
-                      </td>
-                    </tr>
+            {dropdownOpen && (
+              <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6, maxHeight: 200, overflowY: "auto", zIndex: 20 }}>
+                {availableItems
+                  .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
+                  .map(i => (
+                    <div
+                      key={i.id}
+                      onClick={() => {
+                        setForm(f => ({ ...f, item_id: i.id }));
+                        setItemSearch(i.item_name);
+                        setDropdownOpen(false);
+                      }}
+                      style={{ padding: 8, cursor: "pointer", borderBottom: "1px solid #f3f4f6" }}
+                    >
+                      <strong>{i.item_name}</strong> — Stock: {i.stock}
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
-
-            
-            <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
-              <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
-                <select
-                  value={outFilter}
-                  onChange={e => setOutFilter(e.target.value)}
-                  style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
-                >
-                  <option value="all">All</option>
-                  <option value="item">Item</option>
-                  <option value="brand">Brand</option>
-                  <option value="quantity">Quantity</option>
-                </select>
-                <input
-                  placeholder="Search"
-                  value={outSearch}
-                  onChange={e => setOutSearch(e.target.value)}
-                  style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
-                />
+                {availableItems.length === 0 && (
+                  <div style={{ padding: 8, color: "#6b7280" }}>No items available</div>
+                )}
               </div>
-              <table style={tableStyle}>
-                <thead>
-                  <tr>
-                    <th style={thtd}>Date</th>
-                    <th style={thtd}>Item</th>
-                    <th style={thtd}>Qty</th>
-                    <th style={thtd}>Brand</th>
-                    <th style={thtd}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
-                  {filteredTransactions
-                    .filter(t => t.type === "OUT")
-                    .filter(t => {
-                      const q = outSearch.toLowerCase();
-                      return (
-                        t.items?.item_name?.toLowerCase().includes(q) ||
-                        t.brand?.toLowerCase().includes(q) ||
-                        String(t.quantity).includes(q)
-                      );
-                    })
-                    .map(t => (
-                    <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
-                      <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-                      <td style={thtd}>{t.items?.item_name}</td>
-                      <td style={thtd}>{t.quantity}</td>
-                      <td style={thtd}>{t.brand}</td>
-                      <td style={thtd}>
-                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
-                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                          setEditingId(t.id);
-                          setForm(originalFormRef.current);
-                          setItemSearch(t.items?.item_name || "");
-                          setShowForm(true);
-                          setActiveTab("transactions");
-                        })}>✏️ Edit</button>
-                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
-                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
-                          loadData();
-                        })}>🗑️ Delete</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
+            )}
           </div>
-          
-        </>
-      )}
 
-      {activeTab === "deleted" && (
+          <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+            <option value="IN">IN</option>
+            <option value="OUT">OUT</option>
+          </select>
+          <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+          <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+          <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
+        </div>
+      )}
+    </div>
+  </>
+)}
+
+{activeTab === "deleted" && ( && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
   <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
