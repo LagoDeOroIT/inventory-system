@@ -83,14 +83,16 @@ export default function App() {
   });
 
   // item search
+  const [itemSearch, setItemSearch] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const searchRef = useRef(null);
+
   const filteredItemsForSearch = items.filter(i => {
     if (selectedStockRoom === "All Stock Rooms") return false;
     return i.location === selectedStockRoom &&
       i.item_name.toLowerCase().includes(itemSearch.toLowerCase());
   });
-  const [itemSearch, setItemSearch] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const searchRef = useRef(null);
+  
 
   // ================= AUTH =================
   useEffect(() => {
@@ -211,7 +213,7 @@ export default function App() {
 
   const { error } = isEditingItem && editingItemId
     ? await supabase.from("items").update(payload).eq("id", editingItemId)
-    : await supabase.from("items").insert([payload])([payload]);
+    : await supabase.from("items").insert([payload]);
 
   if (error) {
     console.error(error);
