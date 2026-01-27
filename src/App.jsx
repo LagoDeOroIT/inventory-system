@@ -534,40 +534,25 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
-                  {filteredTransactions.filter(t => t.type === "OUT")
-                    .filter(t => {
-                      const q = outSearch.toLowerCase();
-                      return (
-                        t.items?.item_name?.toLowerCase().includes(q) ||
-                        t.brand?.toLowerCase().includes(q) ||
-                        String(t.quantity).includes(q)
-                      );
-                    })
-                    .map(t => (
-                    <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
-                      <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-                      <td style={thtd}>{t.items?.item_name}</td>
-                      <td style={thtd}>{t.quantity}</td>
-                      <td style={thtd}>{t.brand}</td>
-                      <td style={thtd}>{t.volume_pack || "—"}</td>
-                      <td style={thtd}>
-                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
-                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                          setEditingId(t.id);
-                          setForm(originalFormRef.current);
-                          setItemSearch(t.items?.item_name || "");
-                          setShowForm(true);
-                          setActiveTab("transactions");
-                        })}>✏️ Edit</button>
-                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
-                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
-                          loadData();
-                        })}>🗑️ Delete</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+  {transactions.map(t => (
+    <tr
+      key={t.id}
+      style={editingId === t.id ? editingRowStyle : undefined}
+    >
+      <td style={thtd}>
+        {new Date(t.date).toLocaleDateString("en-CA")}
+      </td>
+      <td style={thtd}>{t.item_name}</td>
+      <td style={thtd}>{t.type}</td>
+      <td style={thtd}>{t.quantity}</td>
+      <td style={thtd}>{t.volume_pack}</td>
+      <td style={thtd}>
+        <button onClick={() => editTransaction(t)}>Edit</button>
+        <button onClick={() => deleteTransaction(t.id)}>Delete</button>
+      </td>
+    </tr>
+  ))}
+</tbody>
               </table>
             </div>
 
