@@ -157,12 +157,7 @@ export default function App() {
 
     const { error } = editingId
       ? await supabase.from("inventory_transactions").update(payload).eq("id", editingId)
-      : await supabase.from("inventory_transactions").insert([
-  {
-    ...newItem,
-    location: selectedStockRoom !== "All Stock Rooms" ? selectedStockRoom : null,
-  }
-]);
+      : await supabase.from("inventory_transactions").insert([payload]);
 
     if (error) return alert(error.message);
 
@@ -171,6 +166,13 @@ export default function App() {
     setEditingId(null);
     loadData();
   }
+
+  // ================= STOCK INVENTORY =================
+  const stockInventory = items.map(i => {
+    const related = transactions.filter(t => t.item_id === i.id);
+    const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
+    return { ...i, stock };
+  });
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
 
@@ -214,6 +216,12 @@ export default function App() {
   setShowAddItem(false);
   loadData();
 };
+
+  // ================= FILTERED TRANSACTIONS =================
+  const filteredTransactions = transactions.filter(t => {
+    if (selectedStockRoom === "All Stock Rooms") return true;
+    return t.location === selectedStockRoom;
+  });
 
   // ================= MONTHLY TOTALS =================
   const monthlyTotals = filteredTransactions.reduce((acc, t) => {
