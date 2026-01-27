@@ -2,24 +2,126 @@ import React, { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
-const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
+const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
+const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// ================= STYLES =================
+const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: 10 };
+const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" };
+const editingRowStyle = { background: "#fff7ed" }; // highlight edited row
+
+const emptyRow = (colSpan, text) => (
+  <tr>
+    <td colSpan={colSpan} style={{ textAlign: "center", padding: 12 }}>{text}</td>
+  </tr>
+);
 
 export default function App() {
-  // ================= CORE STATE =================
+  // ===== CONFIRM MODAL STATE =====
+  const [confirm, setConfirm] = useState(null);
+  const openConfirm = (message, onConfirm) => {
+    setConfirm({ message, onConfirm });
+  };
+  const closeConfirm = () => setConfirm(null);
+  const [session, setSession] = useState(null);
+  const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [deletedTransactions, setDeletedTransactions] = useState([]);
+  const [deletedSearch, setDeletedSearch] = useState("");
+  const [inSearch, setInSearch] = useState("");
+  const [inFilter, setInFilter] = useState("all");
+  const [outSearch, setOutSearch] = useState("");
+  const [outFilter, setOutFilter] = useState("all");
+
+  // reset search when filter changes
+  useEffect(() => {
+    setInSearch("");
+  }, [inFilter]);
+
+  useEffect(() => {
+    setOutSearch("");
+  }, [outFilter]);
+
+  // tabs
+  const [activeTab, setActiveTab] = useState("transactions");
+
+  // ===== STOCK ROOMS =====
+  const stockRooms = [
+    "All Stock Rooms",
+    "L1",
+    "L2 Room 1",
+    "L2 Room 2",
+    "L2 Room 3",
+    "L2 Room 4",
+    "L3",
+    "L5",
+    "L6",
+    "L7",
+    "Maintenance Bodega 1",
+    "Maintenance Bodega 2",
+    "Maintenance Bodega 3",
+    "SKI Stock Room",
+    "Quarry Stock Room",
+  ];
+
+  const [selectedStockRoom, setSelectedStockRoom] = useState("All Stock Rooms");
 
 
-// ================= STOCK ROOM =================
-const [selectedStockRoom, setSelectedStockRoom] = useState("All Stock Rooms");
-const [stockRooms, setStockRooms] = useState(["All Stock Rooms"]);
+  // form
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const originalFormRef = useRef(null);
+  const [form, setForm] = useState({
+    item_id: "",
+    type: "IN",
+    quantity: "",
+    date: "",
+    brand: "",
+    unit: "",
+    volume_pack: "",
+  });
 
+  // item search
+  const [itemSearch, setItemSearch] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const searchRef = useRef(null);
 
-// ================= AUTH =================
-const [session, setSession] = useState(null);
+  // ================= AUTH =================
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => data.subscription.unsubscribe();
+  }, []);
 
-useEffect(() => {
-  if (session) loadData();
-}, [session]);
+  // ================= LOAD DATA =================
+  async function loadData() {
+    const { data: itemsData } = await supabase
+      .from("items")
+      .select("id, item_name, unit_price, brand");
+
+    const { data: tx } = await supabase
+      .from("inventory_transactions")
+      .select("*, items(item_name)")
+      .eq("deleted", false)
+      .order("date", { ascending: false });
+
+    const { data: deletedTx } = await supabase
+      .from("inventory_transactions")
+      .select("*, items(item_name)")
+      .eq("deleted", true)
+      .order("deleted_at", { ascending: false });
+
+    setItems(itemsData || []);
+    setTransactions(tx || []);
+
+    // NOTE: stock room filtering is applied at render level
+    setDeletedTransactions(deletedTx || []);
+  }
+
+  useEffect(() => {
+    if (session) loadData();
+  }, [session]);
 
   // ================= SAVE =================
   function isFormChanged() {
@@ -192,14 +294,9 @@ useEffect(() => {
 
       
       <div style={{ textAlign: "center", marginBottom: 16 }}>
-  <h1 style={{ fontSize: 22, marginBottom: 4 }}>Lago De Oro Inventory System</h1>
-  <p style={{ fontSize: 12, marginTop: 0, color: "#6b7280" }}>Manage stock IN / OUT and reports</p>
-  {selectedStockRoom && selectedStockRoom !== "All Stock Rooms" && (
-    <div style={{ marginTop: 8, fontSize: 13, fontWeight: 600, color: "#1f2937" }}>
-      📍 Currently viewing stock room: <span style={{ color: "#2563eb" }}>{selectedStockRoom}</span>
-    </div>
-  )}
-</div>
+        <h1 style={{ fontSize: 22, marginBottom: 4 }}>Lago De Oro Inventory System</h1>
+        <p style={{ fontSize: 12, marginTop: 0, color: "#6b7280" }}>Manage stock IN / OUT and reports</p>
+      </div>
 
       
 <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
@@ -760,5 +857,5 @@ useEffect(() => {
         </>
       )}
     </div>
-    );
+  );
 }
