@@ -18,6 +18,10 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
+  // ===== MONTHLY REPORT STATE =====
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [monthlyReportRows, setMonthlyReportRows] = useState([]);
+
   // ===== CONFIRM MODAL STATE =====
   const [confirm, setConfirm] = useState(
 const [monthlyReportRows, setMonthlyReportRows] = useState([]);
@@ -257,29 +261,27 @@ useState(null);
     .filter(Boolean);
 
   // ================= MONTHLY REPORT (DETAILED) =================
-const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-const [monthlyReportRows, setMonthlyReportRows] = useState([]);
+  useEffect(() => {
+    const rows = filteredTransactions
+      .filter(t => {
+        if (!t.date) return false;
+        const d = new Date(t.date);
+        return d.getMonth() === selectedMonth && !t.deleted;
+      })
+      .map(t => ({
+        id: t.id,
+        date: new Date(t.date).toLocaleDateString("en-CA"),
+        description: t.items?.item_name || "",
+        brand: t.brand || "",
+        specs: t.volume_pack || "",
+        qty: t.quantity,
+        unit: t.unit || "",
+        unit_price: Number(t.unit_price || 0),
+        total_price: t.quantity * Number(t.unit_price || 0),
+      }));
 
-useEffect(() => {
-  if (activeTab !== "report") return;
-
-  const rows = filteredTransactions
-    .filter(t => !t.deleted)
-    .filter(t => new Date(t.date).getMonth() === selectedMonth)
-    .map(t => ({
-      id: t.id,
-      date: new Date(t.date).toLocaleDateString("en-CA"),
-      description: t.items?.item_name || "",
-      brand: t.brand || "",
-      specs: t.volume_pack || "",
-      qty: t.quantity,
-      unit: t.unit || "",
-      unit_price: Number(t.unit_price || 0),
-      total_price: Number(t.quantity || 0) * Number(t.unit_price || 0),
-    }));
-
-  setMonthlyReportRows(rows);
-}, [activeTab, filteredTransactions, selectedMonth]);
+    setMonthlyReportRows(rows);
+  }, [filteredTransactions, selectedMonth]);
 
 // ================= CLICK OUTSIDE =================
   useEffect(() => {
