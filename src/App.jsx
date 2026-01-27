@@ -18,28 +18,19 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
-  // ===== MONTHLY REPORT STATE =====
+  // ================= STATE =================
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [monthlyReportRows, setMonthlyReportRows] = useState([]);
 
-  // ===== MONTHLY REPORT STATE =====
-  
-  const [monthlyReportRows, setMonthlyReportRows] = useState([]);
-
-  // ===== CONFIRM MODAL STATE =====
-  const [confirm, setConfirm] = useState(
-const [monthlyReportRows, setMonthlyReportRows] = useState([]);
-
-
-useState(null);
-  const openConfirm = (message, onConfirm) => {
-    setConfirm({ message, onConfirm });
-  };
+  const [confirm, setConfirm] = useState(null);
+  const openConfirm = (message, onConfirm) => setConfirm({ message, onConfirm });
   const closeConfirm = () => setConfirm(null);
+
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
+
   const [deletedSearch, setDeletedSearch] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [inFilter, setInFilter] = useState("all");
@@ -763,46 +754,7 @@ useState(null);
         </thead>
         <tbody>
           {monthlyReportRows.length === 0 && emptyRow(8, 'No data')}
-          {monthlyReportRows.map(r => (
-            <tr key={r.id}>
-              <td style={thtd}>{r.date}</td>
-              <td style={thtd}>{r.description}</td>
-              <td style={thtd}>{r.brand}</td>
-              <td style={thtd}>{r.specs}</td>
-              <td style={thtd}>{r.qty}</td>
-              <td style={thtd}>{r.unit}</td>
-              <td style={thtd}>₱{r.unit_price.toFixed(2)}</td>
-              <td style={thtd}>₱{r.total_price.toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td style={thtd} colSpan={7}><strong>Grand Total</strong></td>
-            <td style={thtd}><strong>₱{monthlyReportRows.reduce((s,r)=>s+r.total_price,0).toFixed(2)}</strong></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-  </>
-)}
-          {monthlyReportRows.map((r) => (
-            <tr key={r.id}>
-              <td style={thtd}>{r.date}</td>
-              <td style={thtd}>{r.description}</td>
-              <td style={thtd}>{r.brand}</td>
-              <td style={thtd}>{r.specs}</td>
-              <td style={thtd}>{r.qty}</td>
-              <td style={thtd}>{r.unit}</td>
-              <td style={thtd}>₱{Number(r.unit_price).toFixed(2)}</td>
-              <td style={thtd}>₱{Number(r.total_price).toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </>
-)}
+          
               )} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
               <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
