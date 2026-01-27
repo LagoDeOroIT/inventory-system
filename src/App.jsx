@@ -230,51 +230,10 @@ export default function App() {
 };
 
   // ================= FILTERED TRANSACTIONS =================
-  const filteredTransactions = transactions.filter(t => {
-    if (selectedStockRoom === "All Stock Rooms") return true;
-    return t.location === selectedStockRoom;
-  });
-
-  // ================= MONTHLY TOTALS =================
-  const monthlyTotals = filteredTransactions.reduce((acc, t) => {
-    if (!t.date) return acc;
-    const month = t.date.slice(0, 7);
-    acc[month] = acc[month] || { IN: 0, OUT: 0 };
-    acc[month][t.type] += t.quantity * t.unit_price;
-    return acc;
-  }, {});
-
-  // ================= CLICK OUTSIDE =================
-  useEffect(() => {
-    const handler = e => searchRef.current && !searchRef.current.contains(e.target) && setDropdownOpen(false);
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  if (!session) {
-    return (
-      <div style={{ padding: 40 }}>
-        <h2>Inventory Login</h2>
-        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>
-          Login with Google
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ padding: 20 }}>
-
-      {/* ===== STOCK ROOM SELECTOR ===== */}
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <label style={{ fontSize: 12, color: "#374151" }}>Stock Room</label>
-          <select
-            value={selectedStockRoom}
-            onChange={e => setSelectedStockRoom(e.target.value)}
-            style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
-          >
-            {stockRooms.map(r => (
+  const filteredTransactions
+  .filter(t => t.type === activeTab)
+  .filter(t => search === "" || t.item.toLowerCase().includes(search.toLowerCase()))
+  .map(r => (
               <option key={r} value={r}>{r}</option>
             ))}
           </select>
@@ -536,7 +495,7 @@ export default function App() {
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
                 />
               </div>
-              <table style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
+              <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
                 <thead>
                   <tr>
                     <th style={thtd}>Date</th>
@@ -604,7 +563,7 @@ export default function App() {
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
                 />
               </div>
-              <table style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
+              <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
                 <thead>
                   <tr>
                     <th style={thtd}>Date</th>
@@ -682,7 +641,7 @@ export default function App() {
             />
           </div>
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
+          <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Date</th>
@@ -740,7 +699,7 @@ export default function App() {
   <hr style={{ marginTop: 8 }} />
 </div>
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
+          <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Month</th>
@@ -830,7 +789,7 @@ export default function App() {
           </div>
 
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
+          <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }} style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Item</th>
