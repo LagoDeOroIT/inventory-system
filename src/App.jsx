@@ -65,7 +65,7 @@ export default function App() {
     "Quarry Stock Room",
   ];
 
-  const [selectedStockRoom, setSelectedStockRoom] = useState("All Stock Rooms");
+  const [selectedStockRoom, setSelectedStockRoom] = useState("ALL");
 
 
   // form
