@@ -418,98 +418,61 @@ export default function App() {
           <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
     <div>
-      <h3 style={{ margin: 0 }}><h2 className="section-title">Record Inventory Transaction</h2>
-<p className="section-subtitle">Log incoming and outgoing stock movements for accurate inventory tracking.</p>
+      <h3 style={{ margin: 0 }}><h2 className="section-title">{/* ================= TRANSACTION SECTION ================= */}
+<div className="card">
 
-<form className="inventory-form">
-  <div className="form-row">
-    <div className="form-group">
-      <label>Item</label>
-      <input type="text" placeholder="Search or select item" />
-    </div>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <h3>Record Inventory Transaction</h3>
+    <button onClick={() => setShowTransactionForm(prev => !prev)}>
+      {showTransactionForm ? "Hide" : "Show"}
+    </button>
+  </div>
 
-    <div className="form-group">
-      <label>Transaction Type</label>
-      <select>
+  <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
+    Log incoming and outgoing stock movements for accurate inventory tracking.
+  </p>
+
+  {showTransactionForm && (
+    <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <input
+        type="text"
+        placeholder="Search item"
+        value={itemSearch}
+        onChange={e => setItemSearch(e.target.value)}
+      />
+
+      <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
         <option value="IN">Stock In</option>
         <option value="OUT">Stock Out</option>
       </select>
-    </div>
 
-    <div className="form-group">
-      <label>Quantity</label>
-      <input type="number" min="1" placeholder="Enter quantity" />
-    </div>
+      <input
+        type="number"
+        placeholder="Quantity"
+        value={form.quantity}
+        onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
+      />
 
-    <div className="form-group">
-      <label>Volume / Description</label>
-      <input type="text" placeholder="e.g. 11kg, box, pack" />
-    </div>
+      <input
+        type="text"
+        placeholder="Volume / Description (e.g. 11kg)"
+        value={form.volume_pack}
+        onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
+      />
 
-    <div className="form-group">
-      <label>Date</label>
-      <input type="date" />
-    </div>
+      <input
+        type="date"
+        value={form.date}
+        onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+      />
 
-    <div className="form-group form-actions">
-      <button type="button" className="btn-primary">Save Transaction</button>
+      <button onClick={saveTransaction}>
+        {editingId ? "Update" : "Save"}
+      </button>
     </div>
-  </div>
-</form>
-)}
+  )}
 </div>
-
-<div style={{ display: "flex", gap: 16 }}>
-
-            
-            <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
-              <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
-                <select
-                  value={inFilter}
-                  onChange={e => setInFilter(e.target.value)}
-                  style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
-                >
-                  <option value="all">All</option>
-                  <option value="item">Item</option>
-                  <option value="brand">Brand</option>
-                  <option value="quantity">Quantity</option>
-                </select>
-                <input
-                  placeholder="Search"
-                  value={inSearch}
-                  onChange={e => setInSearch(e.target.value)}
-                  style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
-                />
-              </div>
-              <table style={tableStyle}>
-                <thead>
-                  <tr>
-                    <th style={thtd}>Date</th>
-                    <th style={thtd}>Item</th>
-<th style={thtd}>Brand</th>
-<th style={thtd}>Current Stock</th>
-<th style={thtd}>Unit Price</th>
-<th style={thtd}>Stock Value</th>
-<th style={thtd}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
-                  {filteredTransactions.filter(t => t.type === "IN")
-                    .filter(t => {
-                      const q = inSearch.toLowerCase();
-                      if (!q) return true;
-                      if (inFilter === "item") return t.items?.item_name?.toLowerCase().includes(q);
-                      if (inFilter === "brand") return t.brand?.toLowerCase().includes(q);
-                      if (inFilter === "quantity") return String(t.quantity).includes(q);
-                      return (
-                        t.items?.item_name?.toLowerCase().includes(q) ||
-                        t.brand?.toLowerCase().includes(q) ||
-                        String(t.quantity).includes(q)
-                      );
-                    })
+{/* ================= END TRANSACTION SECTION ================= */
                     .map(t => (
                     <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
