@@ -26,6 +26,10 @@ export default function App() {
   const closeConfirm = () => setConfirm(null);
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
+
+const handleDelete = (id) => {
+  setItems(prevItems => prevItems.filter(item => item.id !== id));
+};
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [deletedSearch, setDeletedSearch] = useState("");
