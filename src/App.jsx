@@ -97,7 +97,7 @@ export default function App() {
   // ================= LOAD DATA =================
   async function loadData() {
     const { data: itemsData } = await supabase
-      .from("items")
+      .from('items').eq('location', selectedLocation)
       .select("id, item_name, unit_price, brand");
 
     const { data: tx } = await supabase
