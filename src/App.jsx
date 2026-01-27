@@ -2,29 +2,30 @@ import React, { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
-/* MOVED OUT OF JSX RETURN: Supabase query should be placed above return() inside the component body */
+const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
+// ================= LOAD DATA =================
+async function loadData() {
+  const { data: itemsData } = await supabase.from("items").select("*");
 
-    const { data: tx } = await supabase
-      .from("inventory_transactions")
-      .select("*, items(item_name)")
-      .eq("deleted", false)
-      .order("date", { ascending: false });
+  const { data: tx } = await supabase
+    .from("inventory_transactions")
+    .select("*, items(item_name)")
+    .eq("deleted", false)
+    .order("date", { ascending: false });
 
-    const { data: deletedTx } = await supabase
-      .from("inventory_transactions")
-      .select("*, items(item_name)")
-      .eq("deleted", true)
-      .order("deleted_at", { ascending: false });
+  const { data: deletedTx } = await supabase
+    .from("inventory_transactions")
+    .select("*, items(item_name)")
+    .eq("deleted", true)
+    .order("deleted_at", { ascending: false });
 
-    setItems(itemsData || []);
-    setTransactions(tx || []);
+  setItems(itemsData || []);
+  setTransactions(tx || []);
+  setDeletedTransactions(deletedTx || []);
+}
 
-    // NOTE: stock room filtering is applied at render level
-    setDeletedTransactions(deletedTx || []);
-  }
-
-  useEffect(() => {
+useEffect(() => {
     if (session) loadData();
   }, [session]);
 
