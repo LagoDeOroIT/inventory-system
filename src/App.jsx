@@ -157,7 +157,12 @@ export default function App() {
 
     const { error } = editingId
       ? await supabase.from("inventory_transactions").update(payload).eq("id", editingId)
-      : await supabase.from("inventory_transactions").insert(payload);
+      : await supabase.from("inventory_transactions").insert([
+  {
+    ...newItem,
+    location: selectedStockRoom !== "All Stock Rooms" ? selectedStockRoom : null,
+  }
+]);
 
     if (error) return alert(error.message);
 
