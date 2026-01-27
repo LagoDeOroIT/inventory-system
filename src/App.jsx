@@ -88,11 +88,6 @@ export default function App() {
 
   const availableItems = stockInventory;
 
-  // ===== Transactions Item Search (FIXED) =====
-// Removed invalid JSX that was outside return() and breaking the build
-
-  }
-
   return (
     <div style={{ padding: 20 }}>
 
@@ -102,10 +97,8 @@ export default function App() {
           <label style={{ fontSize: 12, color: "#374151" }}>Stock Room</label>
           <select
             value={selectedStockRoom}
-            onChange={e => set{availableItems
-      // show ALL items, including zero stock
-      .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
-      .mapd #d1d5db", fontSize: 12 }}
+            onChange={e => setSelectedStockRoom(e.target.value)}
+            style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
           >
             {stockRooms.map(r => (
               <option key={r} value={r}>{r}</option>
@@ -282,52 +275,49 @@ export default function App() {
       }}
     >
       <input
-  placeholder="Search item"
-  value={itemSearch}
-  onFocus={() => setDropdownOpen(true)}
-  onChange={(e) => {
-    setItemSearch(e.target.value);
-    setDropdownOpen(true);
-  }}
-/>
-
+        placeholder="Search item"
+        value={itemSearch}
+        onFocus={() => setDropdownOpen(true)}
+        onChange={(e) => {
+          setItemSearch(e.target.value);
+          setDropdownOpen(true);
         }}
       />
 
       {dropdownOpen && (
-  <div
-    style={{
-      position: "absolute",
-      background: "#fff",
-      border: "1px solid #e5e7eb",
-      borderRadius: 6,
-      marginTop: 4,
-      maxHeight: 200,
-      overflowY: "auto",
-      zIndex: 10,
-    }}
-  >
-    {availableItems
-      .filter(i =>
-        i.item_name.toLowerCase().includes(itemSearch.toLowerCase())
-      )
-      .map(i => (
         <div
-          key={i.id}
-          onClick={() => {
-            setForm(f => ({ ...f, item_id: i.id }));
-            setItemSearch(i.item_name);
-            setDropdownOpen(false);
-          }}
           style={{
-            padding: 8,
-            cursor: "pointer",
-            borderBottom: "1px solid #f3f4f6",
+            position: "absolute",
+            background: "#fff",
+            border: "1px solid #e5e7eb",
+            borderRadius: 6,
+            marginTop: 4,
+            maxHeight: 200,
+            overflowY: "auto",
+            zIndex: 10,
           }}
         >
-          <strong>{i.item_name}</strong> — Stock: {i.stock}
+          {availableItems
+            .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
+            .map(i => (
+              <div
+                key={i.id}
+                onClick={() => {
+                  setForm(f => ({ ...f, item_id: i.id }));
+                  setItemSearch(i.item_name);
+                  setDropdownOpen(false);
+                }}
+                style={{
+                  padding: 8,
+                  cursor: "pointer",
+                  borderBottom: "1px solid #f3f4f6",
+                }}
+              >
+                <strong>{i.item_name}</strong> — Stock: {i.stock}
+              </div>
+            ))}
         </div>
-      ))}
+      )
   </div>
 )}
           {availableItems.length === 0 && (
