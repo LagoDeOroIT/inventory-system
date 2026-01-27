@@ -230,88 +230,9 @@ export default function App() {
 };
 
   // ================= FILTERED TRANSACTIONS =================
-  const filteredTransactions
-  .filter(t => t.type === activeTab)
-  .filter(t => search === "" || t.item.toLowerCase().includes(search.toLowerCase()))
-  .map(r => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      
-      <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <h1 style={{ fontSize: 22, marginBottom: 4 }}>Lago De Oro Inventory System</h1>
-        <p style={{ fontSize: 12, marginTop: 0, color: "#6b7280" }}>Manage stock IN / OUT and reports</p>
-      </div>
-
-      
-<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
-  <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
-    <button
-      onClick={() => setActiveTab("stock")}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "stock" ? "#1f2937" : "transparent",
-        color: activeTab === "stock" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      📦 Stock Inventory
-    </button>
-
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("transactions");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("transactions");
-        }
-      }}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "transactions" ? "#1f2937" : "transparent",
-        color: activeTab === "transactions" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      📄 Transactions
-    </button>
-
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("report");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("report");
-        }
-      }}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "report" ? "#1f2937" : "transparent",
-        color: activeTab === "report" ? "#fff" : "#374151",
+  const filteredTransactions = Array.isArray(transactions)
+  ? transactions
+  : [];== "report" ? "#fff" : "#374151",
         fontWeight: 500,
       }}
     >
