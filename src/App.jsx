@@ -232,9 +232,6 @@ export default function App() {
   // ================= FILTERED TRANSACTIONS =================
   const filteredTransactions = Array.isArray(transactions) ? transactions : [];
 
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
           setActiveTab("transactions");
         }
       }}
