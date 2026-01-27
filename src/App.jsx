@@ -269,7 +269,6 @@ export default function App() {
   }, {});
 
   const selectedMonthData = monthlyReportData[selectedMonth] || [];
-}, []);
 
   if (!session) {
     return (
