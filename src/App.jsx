@@ -175,12 +175,12 @@ export default function App() {
   const [stockEditItem, setStockEditItem] = useState(null);
 
   const [newItem, setNewItem] = useState({
-    item_name: "",
-    brand: "",
-    unit_price: "",
-    initial_quantity: "",
-    location: "",
-  });
+  item_name: "",
+  brand: "",
+  unit_price: "",
+  initial_quantity: "",
+  location: selectedStockRoom !== "All Stock Rooms" ? selectedStockRoom : "",
+});
 
   async function handleSaveItem() {
     if (!newItem.item_name || !newItem.unit_price) {
