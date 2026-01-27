@@ -209,9 +209,9 @@ export default function App() {
     location: selectedStockRoom,
   };
 
-  const { error } = isEditingItem && stockEditItem
-    ? await supabase.from("items").update(payload).eq("id", stockEditItem.id)
-    : await supabase.from("items").insert([payload]);
+  const { error } = isEditingItem && editingItemId
+    ? await supabase.from("items").update(payload).eq("id", editingItemId)
+    : await supabase.from("items").insert([payload])([payload]);
 
   if (error) {
     console.error(error);
@@ -473,7 +473,7 @@ export default function App() {
             </div>
           ))}
         </div>
-      )
+      )}
       <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
         <option value="IN">IN</option>
         <option value="OUT">OUT</option>
@@ -834,6 +834,7 @@ export default function App() {
                       onClick={() => openConfirm("Edit this item?", () => {
                         setIsEditingItem(true);
                         setStockEditItem(i);
+                        setEditingItemId(i.id);
                         setNewItem({
                           item_name: i.item_name,
                           brand: i.brand || "",
