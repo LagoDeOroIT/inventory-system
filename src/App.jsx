@@ -6,6 +6,22 @@ const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env
 
 export default function App() {
 
+// ================= AUTH =================
+const [session, setSession] = useState(null);
+
+useEffect(() => {
+  supabase.auth.getSession().then(({ data }) => {
+    setSession(data.session);
+  });
+
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    setSession(session);
+  });
+
+  return () => subscription.unsubscribe();
+}, []);
+
+
 // ================= LOAD DATA =================
 async function loadData() {
   const { data: itemsData } = await supabase.from("items").select("*");
@@ -28,7 +44,7 @@ async function loadData() {
 }
 
 useEffect(() => {
-    if (session) loadData();
+  if (session) loadData();();
   }, [session]);
 
   // ================= SAVE =================
