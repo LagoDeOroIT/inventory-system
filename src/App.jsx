@@ -844,6 +844,17 @@ export default function App() {
                     >✏️ Edit</button>
                     <button
                       onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
+                        // prevent deleting item with existing transactions
+                        const { count } = await supabase
+                          .from("inventory_transactions")
+                          .select("id", { count: "exact", head: true })
+                          .eq("item_id", i.id);
+
+                        if (count && count > 0) {
+                          alert("Cannot delete item: transactions exist for this item");
+                          return;
+                        }
+
                         await supabase.from("items").delete().eq("id", i.id);
                         loadData();
                       })}
