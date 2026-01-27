@@ -305,7 +305,7 @@ export default function App() {
   </>
 )}
 
-{activeTab === "deleted" && ( && (
+{activeTab === "deleted" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
   <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
