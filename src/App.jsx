@@ -7,28 +7,9 @@ const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ================= STYLES =================
-const card = {
-  background: "#ffffff",
-  borderRadius: 12,
-  border: "1px solid #e5e7eb",
-  boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-};
-
-const tableStyle = {
-  width: "100%",
-  borderCollapse: "separate",
-  borderSpacing: 0,
-  marginTop: 10,
-  fontSize: 13,
-};
-
-const thtd = {
-  padding: "10px 12px",
-  borderBottom: "1px solid #e5e7eb",
-  textAlign: "left",
-};
-
-const editingRowStyle = { background: "#fef3c7" }; // highlight edited row
+const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: 10 };
+const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" };
+const editingRowStyle = { background: "#fff7ed" }; // highlight edited row
 
 const emptyRow = (colSpan, text) => (
   <tr>
@@ -265,12 +246,6 @@ export default function App() {
     };
   });
 
-  // ================= DASHBOARD SUMMARY METRICS =================
-  const totalItems = stockInventory.length;
-  const totalStockQty = stockInventory.reduce((s, i) => s + i.stock, 0);
-  const lowStockCount = stockInventory.filter(i => i.stock <= 5).length;
-  const totalStockValue = stockInventory.reduce((s, i) => s + i.stock * (i.unit_price || 0), 0);
-
   // ================= MONTHLY TOTALS =================
   const monthlyTotals = filteredTransactions.reduce((acc, t) => {
     if (!t.date) return acc;
@@ -299,8 +274,7 @@ export default function App() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f9fafb" }}>
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: 24 }}>
+    <div style={{ padding: 20 }}>
 
       {/* ===== STOCK ROOM SELECTOR ===== */}
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
@@ -319,34 +293,109 @@ export default function App() {
       </div>
 
       
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <div>
-          <h1 style={{ fontSize: 22, margin: 0, fontWeight: 600 }}>Lago De Oro Inventory</h1>
-          <p style={{ fontSize: 13, margin: "4px 0 0", color: "#6b7280" }}>Inventory, transactions, and reports dashboard</p>
-        </div>
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <h1 style={{ fontSize: 22, marginBottom: 4 }}>Lago De Oro Inventory System</h1>
+        <p style={{ fontSize: 12, marginTop: 0, color: "#6b7280" }}>Manage stock IN / OUT and reports</p>
       </div>
 
       
-<div style={{ marginBottom: 24 }}>
-  <div style={{ display: "flex", gap: 4, borderBottom: "1px solid #e5e7eb" }}>
-    {[{ id: "stock", label: "Inventory" }, { id: "transactions", label: "Transactions" }, { id: "report", label: "Monthly Report" }, { id: "deleted", label: "Delete History" }].map(tab => (
-      <button
-        key={tab.id}
-        onClick={() => setActiveTab(tab.id)}
-        style={{
-          padding: "10px 16px",
-          fontSize: 13,
-          fontWeight: 600,
-          border: "none",
-          background: "transparent",
-          borderBottom: activeTab === tab.id ? "3px solid #1f2937" : "3px solid transparent",
-          color: activeTab === tab.id ? "#111827" : "#6b7280",
-          cursor: "pointer",
-        }}
-      >
-        {tab.label}
-      </button>
-    ))}
+<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
+  <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
+    <button
+      onClick={() => setActiveTab("stock")}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "stock" ? "#1f2937" : "transparent",
+        color: activeTab === "stock" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📦 Stock Inventory
+    </button>
+
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("transactions");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("transactions");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "transactions" ? "#1f2937" : "transparent",
+        color: activeTab === "transactions" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📄 Transactions
+    </button>
+
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("report");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("report");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "report" ? "#1f2937" : "transparent",
+        color: activeTab === "report" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📊 Monthly Report
+    </button>
+
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("deleted");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("deleted");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "deleted" ? "#1f2937" : "transparent",
+        color: activeTab === "deleted" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      🗑️ Deleted History
+    </button>
   </div>
 </div>
 
@@ -688,54 +737,125 @@ export default function App() {
 
      {activeTab === "stock" && (
   <>
-    {/* ===== DASHBOARD SUMMARY CARDS ===== */}
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 20 }}>
-      <div style={{ ...card, padding: 16 }}>
-        <div style={{ fontSize: 12, color: "#6b7280" }}>Total Items</div>
-        <div style={{ fontSize: 22, fontWeight: 600 }}>{totalItems}</div>
+    <div
+      style={{
+        position: "sticky",
+        top: 0,
+        background: "#fff",
+        zIndex: 5,
+        paddingBottom: 8,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+        <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
+        <span style={{ fontSize: 12, color: "#6b7280" }}>
+          Total items: {stockInventory.length} | Low stock:{" "}
+          {stockInventory.filter(i => i.stock <= 5).length}
+        </span>
       </div>
-      <div style={{ ...card, padding: 16 }}>
-        <div style={{ fontSize: 12, color: "#6b7280" }}>Total Stock Quantity</div>
-        <div style={{ fontSize: 22, fontWeight: 600 }}>{totalStockQty}</div>
-      </div>
-      <div style={{ ...card, padding: 16, borderColor: lowStockCount ? "#fca5a5" : "#e5e7eb" }}>
-        <div style={{ fontSize: 12, color: "#6b7280" }}>Low Stock Items</div>
-        <div style={{ fontSize: 22, fontWeight: 600, color: lowStockCount ? "#b91c1c" : "#111827" }}>{lowStockCount}</div>
-      </div>
-      <div style={{ ...card, padding: 16 }}>
-        <div style={{ fontSize: 12, color: "#6b7280" }}>Total Stock Value</div>
-        <div style={{ fontSize: 22, fontWeight: 600 }}>₱{totalStockValue.toFixed(2)}</div>
-      </div>
+      <hr style={{ marginTop: 8 }} />
     </div>
 
-    {/* ===== STOCK INVENTORY TABLE ===== */}
-    <div style={{ maxHeight: 400, overflowY: "auto" }}>
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thtd}>Item</th>
-            <th style={thtd}>Brand</th>
-            <th style={thtd}>Current Stock</th>
-            <th style={thtd}>Unit Price</th>
-            <th style={thtd}>Stock Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          {stockInventory.length === 0 && emptyRow(5, "No stock data")}
-          {stockInventory.map(i => (
-            <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
-              <td style={thtd}>{i.item_name}</td>
-              <td style={thtd}>{i.brand}</td>
-              <td style={thtd}>{i.stock}</td>
-              <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-              <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </>
-)
+    <div
+      style={{
+        marginBottom: 16,
+        border: "1px solid #ddd",
+        padding: 12,
+        borderRadius: 6,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
+          <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+            Register a new product or supply into the inventory system.
+          </p>
+        </div>
+
+        <button
+          onClick={() => setShowAddItem(v => !v)}
+          style={{
+            background: "#1f2937",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            padding: "6px 12px",
+            cursor: "pointer",
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+        
+
+                {showAddItem ? "Hide" : "Show"}
+              </button>
+            </div>
+            {showAddItem && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
+              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
+              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />
+              <input type="number" placeholder="Initial quantity" value={newItem.initial_quantity} onChange={e => setNewItem(n => ({ ...n, initial_quantity: e.target.value }))} />
+              <select value={newItem.location} onChange={e => setNewItem(n => ({ ...n, location: e.target.value }))}>
+                <option value="">Select stock room</option>
+                {stockRooms.filter(r => r !== "All Stock Rooms").map(r => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+              <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
+            </div>
+          )}
+          </div>
+
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Current Stock</th>
+                <th style={thtd}>Unit Price</th>
+                <th style={thtd}>Stock Value</th>
+                <th style={thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stockInventory.length === 0 && emptyRow(6, "No stock data")}
+              {stockInventory.map(i => (
+                <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
+                  <td style={thtd}>{i.item_name}</td>
+                  <td style={thtd}>{i.brand}</td>
+                  <td style={thtd}>{i.stock}</td>
+                  <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+                  <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
+                  <td style={thtd}>
+                    <button
+                      style={{ marginRight: 6 }}
+                      onClick={() => openConfirm("Edit this item?", () => {
+                        setIsEditingItem(true);
+                        setStockEditItem(i);
+                        setNewItem({
+                          item_name: i.item_name,
+                          brand: i.brand || "",
+                          unit_price: i.unit_price,
+                        });
+                        setShowAddItem(true);
+                      })}
+                    >✏️ Edit</button>
+                    <button
+                      onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
+                        await supabase.from("items").delete().eq("id", i.id);
+                        loadData();
+                      })}
+                    >🗑️ Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        </>
+      )}
     </div>
   );
 }
