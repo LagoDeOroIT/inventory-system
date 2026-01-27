@@ -258,7 +258,7 @@ export default function App() {
     return (
       <div style={{ padding: 40 }}>
         <h2>Inventory Login</h2>
-        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>
+        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google"  ))}>
           Login with Google
         </button>
       </div>
@@ -534,14 +534,9 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-  {transactions.map(t => (
-    <tr
-      key={t.id}
-      style={editingId === t.id ? editingRowStyle : undefined}
-    >
-      <td style={thtd}>
-        {new Date(t.date).toLocaleDateString("en-CA")}
-      </td>
+  {Array.isArray(transactions) && transactions.map((t) => (
+    <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+      <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
       <td style={thtd}>{t.item_name}</td>
       <td style={thtd}>{t.type}</td>
       <td style={thtd}>{t.quantity}</td>
@@ -553,80 +548,6 @@ export default function App() {
     </tr>
   ))}
 </tbody>
-              </table>
-            </div>
-
-          </div>
-          
-        </>
-      )}
-
-      {activeTab === "deleted" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-    <h2 style={{ marginBottom: 4 }}>🗑️ Delete History</h2>
-    <span style={{ fontSize: 12, color: "#6b7280" }}>Deleted records: {deletedTransactions.length}</span>
-  </div>
-  <hr style={{ marginTop: 8 }} />
-</div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <input
-              placeholder="Search deleted items, brand, or quantity"
-              value={deletedSearch}
-              onChange={e => setDeletedSearch(e.target.value)}
-              style={{
-                padding: "8px 12px",
-                width: 320,
-                borderRadius: 6,
-                border: "1px solid #d1d5db",
-                fontSize: 14,
-              }}
-            />
-          </div>
-          <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Date</th>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Brand</th>
-                    <th style={thtd}>Volume Pack</th>
-                <th style={thtd}>Qty</th>
-                <th style={thtd}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {deletedTransactions.length === 0 && emptyRow(5, "No deleted records")}
-              {deletedTransactions
-                .filter(t => {
-                  const q = deletedSearch.toLowerCase();
-                  return (
-                    t.items?.item_name?.toLowerCase().includes(q) ||
-                    t.brand?.toLowerCase().includes(q) ||
-                    String(t.quantity).includes(q)
-                  );
-                })
-                .map(t => (
-                <tr key={t.id}>
-                  <td style={thtd}>{new Date(t.deleted_at || t.date).toLocaleDateString("en-CA")}</td>
-                  <td style={thtd}>{t.items?.item_name}</td>
-                  <td style={thtd}>{t.brand}</td>
-                      <td style={thtd}>{t.volume_pack || "—"}</td>
-                  <td style={thtd}>{t.quantity}</td>
-                  <td style={thtd}>
-                    <button onClick={() => openConfirm("Restore this transaction?", async () => {
-                      await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("id", t.id);
-                      loadData();
-                    })}>♻️ Restore</button>
-                    <button onClick={() => openConfirm("Permanently delete this transaction?", async () => {
-                      await supabase.from("inventory_transactions").delete().eq("id", t.id);
-                      loadData();
-                    })}>❌ Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
           </table>
         </div>
           
