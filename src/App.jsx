@@ -460,7 +460,6 @@ export default function App() {
               <div style={{ padding: 12, fontSize: 13, color: "#6b7280" }}>
                 No items found in <strong>{selectedStockRoom}</strong>
               </div>
-            )}
             {filteredItemsForSearch.map(i => (
               <div
                 key={i.id}
