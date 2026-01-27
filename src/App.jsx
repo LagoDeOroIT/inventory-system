@@ -5,6 +5,9 @@ import { createClient } from "@supabase/supabase-js";
 const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 export default function App() {
+  // ================= CORE STATE =================
+  const [transactions, setTransactions] = useState([]);
+
 
 // ================= STOCK ROOM =================
 const [selectedStockRoom, setSelectedStockRoom] = useState("All Stock Rooms");
