@@ -199,9 +199,14 @@ import { createClient } from "@supabase/supabase-js";
 
       
       <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <h1 style={{ fontSize: 22, marginBottom: 4 }}>Lago De Oro Inventory System</h1>
-        <p style={{ fontSize: 12, marginTop: 0, color: "#6b7280" }}>Manage stock IN / OUT and reports</p>
-      </div>
+  <h1 style={{ fontSize: 22, marginBottom: 4 }}>Lago De Oro Inventory System</h1>
+  <p style={{ fontSize: 12, marginTop: 0, color: "#6b7280" }}>Manage stock IN / OUT and reports</p>
+  {selectedStockRoom && selectedStockRoom !== "All Stock Rooms" && (
+    <div style={{ marginTop: 8, fontSize: 13, fontWeight: 600, color: "#1f2937" }}>
+      📍 Currently viewing stock room: <span style={{ color: "#2563eb" }}>{selectedStockRoom}</span>
+    </div>
+  )}
+</div>
 
       
 <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
