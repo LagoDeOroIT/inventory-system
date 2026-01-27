@@ -198,8 +198,8 @@ export default function App() {
           .eq("id", stockEditItem.id)
           .select()
       : await supabase
-          .from("items")
-          .insert({
+          .from('items').insert({
+      location: location,
             item_name: newItem.item_name,
             brand: newItem.brand || null,
             unit_price: Number(newItem.unit_price),
