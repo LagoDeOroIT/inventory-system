@@ -195,7 +195,7 @@ export default function App() {
   item_name: "",
   brand: "",
   unit_price: "",
-
+  
   location: selectedStockRoom !== "All Stock Rooms" ? selectedStockRoom : "",
 });
 
@@ -281,13 +281,13 @@ export default function App() {
         </div>
       </div>
 
-
+      
       <div style={{ textAlign: "center", marginBottom: 16 }}>
         <h1 style={{ fontSize: 22, marginBottom: 4 }}>Lago De Oro Inventory System</h1>
         <p style={{ fontSize: 12, marginTop: 0, color: "#6b7280" }}>Manage stock IN / OUT and reports</p>
       </div>
 
-
+      
 <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
   <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
     <button
@@ -388,7 +388,7 @@ export default function App() {
   </div>
 </div>
 
-
+      
       {confirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
           <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
@@ -402,7 +402,7 @@ export default function App() {
         </div>
       )}
 
-
+      
       {activeTab === "transactions" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
@@ -514,7 +514,7 @@ export default function App() {
 
 <div style={{ display: "flex", gap: 16 }}>
 
-
+            
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
@@ -541,10 +541,6 @@ export default function App() {
                   <tr>
                     <th style={thtd}>Date</th>
                     <th style={thtd}>Item</th>
-                    <th style={thtd}>Qty</th>
-                    <th style={thtd}>Brand</th>
-                    <th style={thtd}>Volume Pack</th>
-                    <th style={thtd}>Actions</th>
 <th style={thtd}>Brand</th>
 <th style={thtd}>Current Stock</th>
 <th style={thtd}>Unit Price</th>
@@ -594,7 +590,7 @@ export default function App() {
               </table>
             </div>
 
-
+            
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
@@ -666,7 +662,7 @@ export default function App() {
             </div>
 
           </div>
-
+          
         </>
       )}
 
@@ -738,7 +734,7 @@ export default function App() {
             </tbody>
           </table>
         </div>
-
+          
         </>
       )}
 
@@ -826,7 +822,7 @@ export default function App() {
             fontWeight: 600,
           }}
         >
-
+        
 
                 {showAddItem ? "Hide" : "Show"}
               </button>
@@ -859,33 +855,6 @@ export default function App() {
               {stockInventory.map(i => (
                 <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
                   <td style={thtd}>{i.item_name}</td>
-                  <td style={thtd}>{i.brand}</td>
-                  <td style={thtd}>{i.stock}</td>
-                  <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-                  <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
-                  <td style={thtd}>
-                    <button
-                      style={{ marginRight: 6 }}
-                      onClick={() => openConfirm("Edit this item?", () => {
-                        setIsEditingItem(true);
-                        setStockEditItem(i);
-                        setEditingItemId(i.id);
-                        setNewItem({
-                          item_name: i.item_name,
-                          brand: i.brand || "",
-                          unit_price: i.unit_price,
-                        });
-                        setShowAddItem(true);
-                      })}
-                    >✏️ Edit</button>
-                    <button
-                      onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
-                        await supabase.from("items").delete().eq("id", i.id);
-                        loadData();
-                      })}
-                    >🗑️ Delete</button>
-                  </td>
-                </tr>
 <td style={thtd}>{i.brand || "—"}</td>
 <td style={thtd}>{i.stock}</td>
 <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
