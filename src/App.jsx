@@ -18,23 +18,6 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
-  // ===== SAFE FALLBACKS TO PREVENT WHITE SCREEN =====
-  const isFormChanged = () => false;
-  const saveTransaction = () => {};
-  const loadData = () => {};
-
-  // ===== MISSING STATE FIXES =====
-  const [showAddItem, setShowAddItem] = useState(false);
-  const [isEditingItem, setIsEditingItem] = useState(false);
-  const [stockEditItem, setStockEditItem] = useState(null);
-  const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "", location: "" });
-
-  const handleSaveItem = () => {};
-
-  // ===== SAFE FALLBACKS TO PREVENT WHITE SCREEN =====
-  const isFormChanged = () => false;
-  const saveTransaction = () => {};
-  const loadData = () => {};
   // ===== CONFIRM MODAL STATE =====
   const [confirm, setConfirm] = useState(null);
   const openConfirm = (message, onConfirm) => {
@@ -102,13 +85,196 @@ export default function App() {
   // item search
   const [itemSearch, setItemSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const searchRef = useRef(null);
 
-  // derive stock inventory safely
-  const stockInventory = Array.isArray(items) ? items : [];
+  // items available in selected stock room (with current stock)
+  // show ALL items in selected stock room (even zero quantity)
   const availableItems = stockInventory;
 
-  // monthlyTotals fallback to avoid runtime crash
-  const monthlyTotals = {};
+  // ================= AUTH =================
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  // ================= LOAD DATA =================
+  async function loadData() {
+    const { data: itemsData } = await supabase
+      .from("items")
+      .select("id, item_name, unit_price, brand");
+
+    const { data: tx } = await supabase
+      .from("inventory_transactions")
+      .select("*, items(item_name)")
+      .eq("deleted", false)
+      .order("date", { ascending: false });
+
+    const { data: deletedTx } = await supabase
+      .from("inventory_transactions")
+      .select("*, items(item_name)")
+      .eq("deleted", true)
+      .order("deleted_at", { ascending: false });
+
+    setItems(itemsData || []);
+    setTransactions(tx || []);
+
+    // NOTE: stock room filtering is applied at render level
+    setDeletedTransactions(deletedTx || []);
+  }
+
+  useEffect(() => {
+    if (session) loadData();
+  }, [session]);
+
+  // ================= SAVE =================
+  function isFormChanged() {
+    if (!originalFormRef.current) return false;
+    return Object.keys(originalFormRef.current).some(k => String(originalFormRef.current[k] || "") !== String(form[k] || ""));
+  }
+
+  async function saveTransaction() {
+    if (!form.item_id || !form.quantity) return alert("Complete the form");
+    const item = items.find(i => i.id === Number(form.item_id));
+    if (!item) return alert("Item not found");
+
+    if (form.type === "OUT") {
+      const stockItem = stockInventory.find(i => i.id === item.id);
+      if (stockItem && Number(form.quantity) > stockItem.stock) {
+        alert("Cannot OUT more than available stock");
+        return;
+      }
+    }
+
+    const payload = {
+      location: selectedStockRoom === "All Stock Rooms" ? null : selectedStockRoom,
+      date: form.date || new Date().toISOString().slice(0, 10),
+      item_id: Number(form.item_id),
+      type: form.type,
+      quantity: Number(form.quantity),
+      unit_price: item.unit_price,
+      brand: form.brand || item.brand || null,
+      unit: form.unit || null,
+      volume_pack: form.volume_pack || null,
+      deleted: false,
+    };
+
+    const { error } = editingId
+      ? await supabase.from("inventory_transactions").update(payload).eq("id", editingId)
+      : await supabase.from("inventory_transactions").insert(payload);
+
+    if (error) return alert(error.message);
+
+    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", volume_pack: "" });
+    setItemSearch("");
+    setEditingId(null);
+    loadData();
+  }
+
+  // ================= ADD NEW ITEM (STOCK TAB) =================
+
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [isEditingItem, setIsEditingItem] = useState(false);
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [stockEditItem, setStockEditItem] = useState(null);
+
+  const [newItem, setNewItem] = useState({
+    item_name: "",
+    brand: "",
+    unit_price: "",
+    location: "",
+  });
+
+  async function handleSaveItem() {
+    if (!newItem.item_name || !newItem.unit_price) {
+      alert("Item name and unit price are required");
+      return;
+    }
+
+    const { data: insertedItem, error } = isEditingItem && stockEditItem
+      ? await supabase
+          .from("items")
+          .update({
+            item_name: newItem.item_name,
+            brand: newItem.brand || null,
+            unit_price: Number(newItem.unit_price),
+          })
+          .eq("id", stockEditItem.id)
+          .select()
+      : await supabase
+          .from("items")
+          .insert({
+            item_name: newItem.item_name,
+            brand: newItem.brand || null,
+            unit_price: Number(newItem.unit_price),
+          })
+          .select();
+
+    if (error) return alert(error.message);
+
+    const itemId = isEditingItem ? stockEditItem.id : insertedItem[0].id;
+
+    if (newItem.initial_quantity && newItem.location) {
+      await supabase.from("inventory_transactions").insert({
+        item_id: itemId,
+        type: "IN",
+        quantity: Number(newItem.initial_quantity),
+        date: new Date().toISOString().slice(0, 10),
+        unit_price: Number(newItem.unit_price),
+        brand: newItem.brand || null,
+        location: newItem.location,
+        deleted: false,
+      });
+    }
+
+    setNewItem({ item_name: "", brand: "", unit_price: "", initial_quantity: "", location: "" });
+    setIsEditingItem(false);
+    setStockEditItem(null);
+    setShowAddItem(false);
+    loadData();
+  }
+
+  // ================= STOCK INVENTORY =================
+  const filteredTransactions = selectedStockRoom === "All Stock Rooms"
+    ? transactions
+    : transactions.filter(t => t.location === selectedStockRoom);
+
+  const stockInventory = items.map(item => {
+    const related = filteredTransactions.filter(t => t.item_id === item.id);
+    const qtyIn = related.filter(t => t.type === "IN").reduce((s, t) => s + t.quantity, 0);
+    const qtyOut = related.filter(t => t.type === "OUT").reduce((s, t) => s + t.quantity, 0);
+    return {
+      ...item,
+      stock: qtyIn - qtyOut,
+    };
+  });
+
+  // ================= MONTHLY TOTALS =================
+  const monthlyTotals = filteredTransactions.reduce((acc, t) => {
+    if (!t.date) return acc;
+    const month = t.date.slice(0, 7);
+    acc[month] = acc[month] || { IN: 0, OUT: 0 };
+    acc[month][t.type] += t.quantity * t.unit_price;
+    return acc;
+  }, {});
+
+  // ================= CLICK OUTSIDE =================
+  useEffect(() => {
+    const handler = e => searchRef.current && !searchRef.current.contains(e.target) && setDropdownOpen(false);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  if (!session) {
+    return (
+      <div style={{ padding: 40 }}>
+        <h2>Inventory Login</h2>
+        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>
+          Login with Google
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: 20 }}>
@@ -252,82 +418,251 @@ export default function App() {
 
       
       {activeTab === "transactions" && (
-  <>
-    <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-        <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
-        <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
-      </div>
-      <hr style={{ marginTop: 8 }} />
+        <>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+    <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
+    <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
+  </div>
+  <hr style={{ marginTop: 8 }} />
+</div>
+          <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div>
+      <h3 style={{ margin: 0 }}>Record Inventory Transaction</h3>
+      <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+        Log incoming and outgoing stock movements for accurate inventory tracking.
+      </p>
     </div>
+    <button
+      onClick={() => setShowForm(v => !v)}
+      style={{
+        background: "#1f2937",
+        color: "#fff",
+        border: "none",
+        borderRadius: 6,
+        padding: "6px 14px",
+        cursor: "pointer",
+        fontSize: 12,
+        fontWeight: 600,
+      }}
+    >
+      {showForm ? "Hide" : "Add Transaction"}
+    </button>
+  </div>
 
-    <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8, position: "relative" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <h3 style={{ margin: 0 }}>Record Inventory Transaction</h3>
-          <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
-            Log incoming and outgoing stock movements for accurate inventory tracking.
-          </p>
-        </div>
-        <button
-          onClick={() => setShowForm(v => !v)}
-          style={{ background: "#1f2937", color: "#fff", border: "none", borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}
-        >
-          {showForm ? "Hide" : "Add Transaction"}
-        </button>
-      </div>
+  {showForm && (
+    <div
+      ref={searchRef}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "2fr 1fr 1fr 1fr auto",
+        gap: 10,
+        marginTop: 12,
+        alignItems: "center",
+      }}
+    >
+      <input
+        placeholder="Search item"
+        value={itemSearch}
+        onFocus={() => setDropdownOpen(true)}
+        onChange={e => {
+          setItemSearch(e.target.value);
+          setDropdownOpen(true);
+        }}
+      />
 
-      {showForm && (
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr auto", gap: 10, marginTop: 12 }}>
-          <div style={{ position: "relative" }}>
-            <input
-              placeholder="Search item"
-              value={itemSearch}
-              onFocus={() => setDropdownOpen(true)}
-              onChange={e => {
-                setItemSearch(e.target.value);
-                setDropdownOpen(true);
-              }}
-            />
-
-            {dropdownOpen && (
-              <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6, maxHeight: 200, overflowY: "auto", zIndex: 20 }}>
-                {availableItems
-                  .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
-                  .map(i => (
-                    <div
-                      key={i.id}
-                      onClick={() => {
-                        setForm(f => ({ ...f, item_id: i.id }));
-                        setItemSearch(i.item_name);
-                        setDropdownOpen(false);
-                      }}
-                      style={{ padding: 8, cursor: "pointer", borderBottom: "1px solid #f3f4f6" }}
-                    >
-                      <strong>{i.item_name}</strong> — Stock: {i.stock}
-                    </div>
-                  ))}
-                {availableItems.length === 0 && (
-                  <div style={{ padding: 8, color: "#6b7280" }}>No items available</div>
-                )}
+      {dropdownOpen && (
+        <div style={{ position: "absolute", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6, marginTop: 4, maxHeight: 200, overflowY: "auto", zIndex: 10 }}>
+          {availableItems
+            .filter(i => i.item_name.toLowerCase().includes(itemSearch.toLowerCase()))
+            .map(i => (
+              <div
+                key={i.id}
+                onClick={() => {
+                  setForm(f => ({ ...f, item_id: i.id }));
+                  setItemSearch(i.item_name);
+                  setDropdownOpen(false);
+                }}
+                style={{ padding: 8, cursor: "pointer", borderBottom: "1px solid #f3f4f6" }}
+              >
+                <strong>{i.item_name}</strong> — Stock: {i.stock}
               </div>
-            )}
-          </div>
-
-          <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-            <option value="IN">IN</option>
-            <option value="OUT">OUT</option>
-          </select>
-          <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
-          <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-          <button onClick={saveTransaction}>{editingId ? "Update" : "Save"}</button>
+            ))}
+          {availableItems.length === 0 && (
+            <div style={{ padding: 8, color: "#6b7280" }}>No items available</div>
+          )}
         </div>
-      )}
+      ) {
+          setItemSearch(e.target.value);
+          setDropdownOpen(true);
+        }}
+      />
+      <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+        <option value="IN">IN</option>
+        <option value="OUT">OUT</option>
+      </select>
+      <input type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+      <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+      <button onClick={saveTransaction}>
+        {editingId ? "Update" : "Save"}
+      </button>
     </div>
-  </>
-)}
+  )}
+</div>
 
-{activeTab === "deleted" && (
+<div style={{ display: "flex", gap: 16 }}>
+
+            
+            <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
+              <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
+                <select
+                  value={inFilter}
+                  onChange={e => setInFilter(e.target.value)}
+                  style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
+                >
+                  <option value="all">All</option>
+                  <option value="item">Item</option>
+                  <option value="brand">Brand</option>
+                  <option value="quantity">Quantity</option>
+                </select>
+                <input
+                  placeholder="Search"
+                  value={inSearch}
+                  onChange={e => setInSearch(e.target.value)}
+                  style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
+                />
+              </div>
+              <table style={tableStyle}>
+                <thead>
+                  <tr>
+                    <th style={thtd}>Date</th>
+                    <th style={thtd}>Item</th>
+                    <th style={thtd}>Qty</th>
+                    <th style={thtd}>Brand</th>
+                    <th style={thtd}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
+                  {filteredTransactions
+                    .filter(t => t.type === "IN")
+                    .filter(t => {
+                      const q = inSearch.toLowerCase();
+                      if (!q) return true;
+                      if (inFilter === "item") return t.items?.item_name?.toLowerCase().includes(q);
+                      if (inFilter === "brand") return t.brand?.toLowerCase().includes(q);
+                      if (inFilter === "quantity") return String(t.quantity).includes(q);
+                      return (
+                        t.items?.item_name?.toLowerCase().includes(q) ||
+                        t.brand?.toLowerCase().includes(q) ||
+                        String(t.quantity).includes(q)
+                      );
+                    })
+                    .map(t => (
+                    <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                      <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+                      <td style={thtd}>{t.items?.item_name}</td>
+                      <td style={thtd}>{t.quantity}</td>
+                      <td style={thtd}>{t.brand}</td>
+                      <td style={thtd}>
+                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
+                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+                          setEditingId(t.id);
+                          setForm(originalFormRef.current);
+                          setItemSearch(t.items?.item_name || "");
+                          setShowForm(true);
+                          setActiveTab("transactions");
+                        })}>✏️ Edit</button>
+                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
+                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
+                          loadData();
+                        })}>🗑️ Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            
+            <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
+              <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
+                <select
+                  value={outFilter}
+                  onChange={e => setOutFilter(e.target.value)}
+                  style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
+                >
+                  <option value="all">All</option>
+                  <option value="item">Item</option>
+                  <option value="brand">Brand</option>
+                  <option value="quantity">Quantity</option>
+                </select>
+                <input
+                  placeholder="Search"
+                  value={outSearch}
+                  onChange={e => setOutSearch(e.target.value)}
+                  style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
+                />
+              </div>
+              <table style={tableStyle}>
+                <thead>
+                  <tr>
+                    <th style={thtd}>Date</th>
+                    <th style={thtd}>Item</th>
+                    <th style={thtd}>Qty</th>
+                    <th style={thtd}>Brand</th>
+                    <th style={thtd}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
+                  {filteredTransactions
+                    .filter(t => t.type === "OUT")
+                    .filter(t => {
+                      const q = outSearch.toLowerCase();
+                      return (
+                        t.items?.item_name?.toLowerCase().includes(q) ||
+                        t.brand?.toLowerCase().includes(q) ||
+                        String(t.quantity).includes(q)
+                      );
+                    })
+                    .map(t => (
+                    <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                      <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+                      <td style={thtd}>{t.items?.item_name}</td>
+                      <td style={thtd}>{t.quantity}</td>
+                      <td style={thtd}>{t.brand}</td>
+                      <td style={thtd}>
+                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
+                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+                          setEditingId(t.id);
+                          setForm(originalFormRef.current);
+                          setItemSearch(t.items?.item_name || "");
+                          setShowForm(true);
+                          setActiveTab("transactions");
+                        })}>✏️ Edit</button>
+                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
+                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
+                          loadData();
+                        })}>🗑️ Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+          
+        </>
+      )}
+
+      {activeTab === "deleted" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
   <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
@@ -397,10 +732,7 @@ export default function App() {
         </>
       )}
 
-      // monthlyTotals fallback to avoid runtime crash
-  const monthlyTotals = {};
-
-  {activeTab === "report" && (
+      {activeTab === "report" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
   <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
