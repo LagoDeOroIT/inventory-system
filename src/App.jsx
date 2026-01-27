@@ -10,42 +10,8 @@ export default function App() {
 const [session, setSession] = useState(null);
 
 useEffect(() => {
-  supabase.auth.getSession().then(({ data }) => {
-    setSession(data.session);
-  });
-
-  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-    setSession(session);
-  });
-
-  return () => subscription.unsubscribe();
-}, []);
-
-
-// ================= LOAD DATA =================
-async function loadData() {
-  const { data: itemsData } = await supabase.from("items").select("*");
-
-  const { data: tx } = await supabase
-    .from("inventory_transactions")
-    .select("*, items(item_name)")
-    .eq("deleted", false)
-    .order("date", { ascending: false });
-
-  const { data: deletedTx } = await supabase
-    .from("inventory_transactions")
-    .select("*, items(item_name)")
-    .eq("deleted", true)
-    .order("deleted_at", { ascending: false });
-
-  setItems(itemsData || []);
-  setTransactions(tx || []);
-  setDeletedTransactions(deletedTx || []);
-}
-
-useEffect(() => {
-  if (session) loadData();();
-  }, [session]);
+  if (session) loadData();
+}, [session]);
 
   // ================= SAVE =================
   function isFormChanged() {
