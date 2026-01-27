@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";   
+import React, { useEffect, useRef, useState } from "react";    
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -302,6 +302,21 @@ export default function App() {
 <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
   <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
     <button
+      onClick={() => setActiveTab("stock")}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "stock" ? "#1f2937" : "transparent",
+        color: activeTab === "stock" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📦 Stock Inventory
+    </button>
+
+    <button
       onClick={() => {
         if (editingId && isFormChanged()) {
           openConfirm("Discard unsaved changes?", () => {
@@ -334,33 +349,6 @@ export default function App() {
           openConfirm("Discard unsaved changes?", () => {
             setEditingId(null);
             originalFormRef.current = null;
-            setActiveTab("deleted");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("deleted");
-        }
-      }}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "deleted" ? "#1f2937" : "transparent",
-        color: activeTab === "deleted" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      🗑️ Deleted History
-    </button>
-
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
             setActiveTab("report");
           });
         } else {
@@ -383,18 +371,30 @@ export default function App() {
     </button>
 
     <button
-      onClick={() => setActiveTab("stock")}
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("deleted");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("deleted");
+        }
+      }}
       style={{
         padding: "8px 16px",
         borderRadius: 999,
         border: "none",
         cursor: "pointer",
-        background: activeTab === "stock" ? "#1f2937" : "transparent",
-        color: activeTab === "stock" ? "#fff" : "#374151",
+        background: activeTab === "deleted" ? "#1f2937" : "transparent",
+        color: activeTab === "deleted" ? "#fff" : "#374151",
         fontWeight: 500,
       }}
     >
-      📦 Stock Inventory
+      🗑️ Deleted History
     </button>
   </div>
 </div>
