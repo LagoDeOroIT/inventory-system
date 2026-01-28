@@ -40,7 +40,6 @@ export default function App() {
       const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
       return () => data.subscription.unsubscribe();
     }, []);
-  }, []);
 
   // ================= LOAD DATA =================
   async function loadData() {
