@@ -37,8 +37,6 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [stockInventory, setStockInventory] = useState([]);
-
-  const([]);
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [deletedSearch, setDeletedSearch] = useState("");
