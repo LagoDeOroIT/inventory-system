@@ -287,8 +287,7 @@ export default function App() {
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <label style={{ fontSize: 12, color: "#374151" }}>Stock Room</label>
-          <select
-            value={selectedStockRoom}
+          <select style={{ width: "100%", height: 34 }}             value={selectedStockRoom}
             onChange={e => setSelectedStockRoom(e.target.value)}
             style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
           >
@@ -307,7 +306,7 @@ export default function App() {
 
       
 <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
-  <div style={{ display: "flex", gap: 12, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
+  <div style={{ display: "flex", gap: 16, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
     <button
       onClick={() => setActiveTab("stock")}
       style={{
@@ -460,7 +459,7 @@ export default function App() {
     ref={searchRef}
     style={{
       display: "grid",
-      gridTemplateColumns: "2.5fr 1.2fr 1fr 1.2fr 1.5fr 1.2fr",
+      gridTemplateColumns: "minmax(260px,2.5fr) minmax(140px,1.1fr) minmax(140px,1fr) minmax(180px,1.2fr) minmax(180px,1.4fr) minmax(150px,1.1fr)",
       gap: 12,
       marginTop: 12,
       alignItems: "center",
@@ -468,8 +467,7 @@ export default function App() {
     }}
   >
     <div style={{ position: "relative" }}>
-      <input
-        placeholder="Search by item name or SKU"
+      <input style={{ width: "100%", height: 34 }}         placeholder="Search by item name or SKU"
         value={itemSearch}
         onChange={e => {
           setItemSearch(e.target.value);
@@ -496,34 +494,29 @@ export default function App() {
       )}
     </div>
 
-    <select
-      value={form.type}
+    <select style={{ width: "100%", height: 34 }}       value={form.type}
       onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
     >
       <option value="IN">Inbound</option>
       <option value="OUT">Outbound</option>
     </select>
 
-    <input
-  placeholder="Quantity (Units)"
+    <input style={{ width: "100%", height: 34 }}   placeholder="Quantity (Units)"
   value={form.quantity}
   onChange={e => setForm({ ...form, quantity: e.target.value })}
 />
 
-<input
-  placeholder="Brand / Manufacturer"
+<input style={{ width: "100%", height: 34 }}   placeholder="Brand / Manufacturer"
   value={form.brand || ""}
   onChange={e => setForm({ ...form, brand: e.target.value })}
 />
 
-    <input
-      placeholder="Pack Size (e.g., 11 kg)"
+    <input style={{ width: "100%", height: 34 }}       placeholder="Pack Size (e.g., 11 kg)"
       value={form.volume_pack}
       onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
     />
 
-    <input
-      type="date"
+    <input style={{ width: "100%", height: 34 }}       type="date"
       value={form.date}
       onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
     />
@@ -542,8 +535,7 @@ export default function App() {
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
-                <select
-                  value={inFilter}
+                <select style={{ width: "100%", height: 34 }}                   value={inFilter}
                   onChange={e => setInFilter(e.target.value)}
                   style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
                 >
@@ -552,8 +544,7 @@ export default function App() {
                   <option value="brand">Brand</option>
                   <option value="quantity">Quantity</option>
                 </select>
-                <input
-                  placeholder="Search"
+                <input style={{ width: "100%", height: 34 }}                   placeholder="Search"
                   value={inSearch}
                   onChange={e => setInSearch(e.target.value)}
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
@@ -618,8 +609,7 @@ export default function App() {
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
-                <select
-                  value={outFilter}
+                <select style={{ width: "100%", height: 34 }}                   value={outFilter}
                   onChange={e => setOutFilter(e.target.value)}
                   style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
                 >
@@ -628,8 +618,7 @@ export default function App() {
                   <option value="brand">Brand</option>
                   <option value="quantity">Quantity</option>
                 </select>
-                <input
-                  placeholder="Search"
+                <input style={{ width: "100%", height: 34 }}                   placeholder="Search"
                   value={outSearch}
                   onChange={e => setOutSearch(e.target.value)}
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
@@ -699,8 +688,7 @@ export default function App() {
   <hr style={{ marginTop: 8 }} />
 </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <input
-              placeholder="Search deleted items, brand, or quantity"
+            <input style={{ width: "100%", height: 34 }}               placeholder="Search deleted items, brand, or quantity"
               value={deletedSearch}
               onChange={e => setDeletedSearch(e.target.value)}
               style={{
