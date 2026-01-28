@@ -560,8 +560,10 @@ export default function App() {
       <div>
         <label style={labelStyle}>Quantity</label>
         <input
-          value={form.quantity}
-          onChange={e => setForm({ ...form, quantity: e.target.value })}
+  type="number"
+  value={form.quantity}
+  onChange={e => setForm({ ...form, quantity: e.target.value })}
+/>
 </div>
 
       <div>
