@@ -547,14 +547,13 @@ export default function App() {
 
       <div>
         <label style={labelStyle}>Type</label>
-        <select
+<select
   value={form.type}
   onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
 >
->
-          <option value="IN">IN</option>
-          <option value="OUT">OUT</option>
-        </select>
+  <option value="IN">IN</option>
+  <option value="OUT">OUT</option>
+</select>
       </div>
 
       <div>
