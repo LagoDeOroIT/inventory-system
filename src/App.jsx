@@ -231,7 +231,6 @@ export default function App() {
         <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>
           Login with Google
         </button>
-      </div>
     );
   }
 
