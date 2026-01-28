@@ -175,6 +175,30 @@ export default function App() {
   loadData();
 };
 
+  // ================= STOCK INVENTORY (FIX: DEFINE BEFORE USE) =================
+  const stockInventory = items
+    .filter(i => selectedStockRoom === "All Stock Rooms" || i.location === selectedStockRoom)
+    .map(i => {
+      const related = transactions.filter(t => t.item_id === i.id);
+      const stock = related.reduce(
+        (sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity),
+        0
+      );
+      return { ...i, stock };
+    });
+
+  // ================= STOCK INVENTORY (FIX: DEFINE BEFORE USE) =================
+  const stockInventory = items
+    .filter(i => selectedStockRoom === "All Stock Rooms" || i.location === selectedStockRoom)
+    .map(i => {
+      const related = transactions.filter(t => t.item_id === i.id);
+      const stock = related.reduce(
+        (sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity),
+        0
+      );
+      return { ...i, stock };
+    });
+
   // ================= FILTERED TRANSACTIONS =================
   const filteredTransactions = transactions.filter(t => {
     if (selectedStockRoom === "All Stock Rooms") return true;
