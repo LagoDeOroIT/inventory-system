@@ -578,8 +578,9 @@ export default function App() {
         <label style={labelStyle}>Date</label>
         <input
           type="date"
-          value={form.date}
-          onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+  value={form.date}
+  onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+/>
 </div>
 
       <button
