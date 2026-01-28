@@ -706,7 +706,7 @@ export default function App() {
     </div>
   </div>
 )}
-      />
+
 
       {dropdownOpen && (
         <div>
