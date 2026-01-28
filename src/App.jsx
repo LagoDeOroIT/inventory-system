@@ -460,8 +460,8 @@ export default function App() {
     ref={searchRef}
     style={{
       display: "grid",
-      gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr auto",
-      gap: 10,
+      gridTemplateColumns: "2.5fr 1.2fr 1fr 1.2fr 1.5fr 1.2fr",
+      gap: 12,
       marginTop: 12,
       alignItems: "center",
       position: "relative",
@@ -528,7 +528,7 @@ export default function App() {
       onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
     />
 
-    <button onClick={saveTransaction}>
+    <button onClick={saveTransaction} style={{ gridColumn: "1 / -1", marginTop: 8, padding: "8px 14px", borderRadius: 6, border: "1px solid #1f2937", background: "#1f2937", color: "#fff", fontWeight: 600 }}>
       {editingId ? "Update Transaction" : "Save Transaction"}
     </button>
   </div>
