@@ -433,9 +433,9 @@ export default function App() {
           <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
     <div>
-      <h3 style={{ margin: 0 }}>Record Inventory Transaction</h3>
+      <h3 style={{ margin: 0 }}>Inventory Transaction Entry</h3>
       <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
-        Log incoming and outgoing stock movements for accurate inventory tracking.
+        Record inbound and outbound stock movements to maintain accurate inventory records.
       </p>
     </div>
     <button
@@ -469,7 +469,7 @@ export default function App() {
   >
     <div style={{ position: "relative" }}>
       <input
-        placeholder="Search item"
+        placeholder="Search by item name or SKU"
         value={itemSearch}
         onChange={e => {
           setItemSearch(e.target.value);
@@ -500,24 +500,24 @@ export default function App() {
       value={form.type}
       onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
     >
-      <option value="IN">IN</option>
-      <option value="OUT">OUT</option>
+      <option value="IN">Inbound</option>
+      <option value="OUT">Outbound</option>
     </select>
 
     <input
-  placeholder="Quantity"
+  placeholder="Quantity (Units)"
   value={form.quantity}
   onChange={e => setForm({ ...form, quantity: e.target.value })}
 />
 
 <input
-  placeholder="Brand"
+  placeholder="Brand / Manufacturer"
   value={form.brand || ""}
   onChange={e => setForm({ ...form, brand: e.target.value })}
 />
 
     <input
-      placeholder="Volume Pack (e.g. 11kg)"
+      placeholder="Pack Size (e.g., 11 kg)"
       value={form.volume_pack}
       onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
     />
@@ -529,7 +529,7 @@ export default function App() {
     />
 
     <button onClick={saveTransaction}>
-      {editingId ? "Update" : "Save"}
+      {editingId ? "Update Transaction" : "Save Transaction"}
     </button>
   </div>
 )}
