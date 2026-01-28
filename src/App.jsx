@@ -524,9 +524,7 @@ export default function App() {
     </div>
   </div>
 )}
-
-        />
-        {dropdownOpen && (
+{dropdownOpen && (
           <div style={dropdownStyle}>
             {filteredItemsForSearch.length === 0 && (
               <div style={dropdownItemStyle}>No items found</div>
@@ -564,16 +562,14 @@ export default function App() {
         <input
           value={form.quantity}
           onChange={e => setForm({ ...form, quantity: e.target.value })}
-/>
-      </div>
+</div>
 
       <div>
         <label style={labelStyle}>Brand</label>
         <input
           value={form.brand || ""}
           onChange={e => setForm({ ...form, brand: e.target.value })}
-/>
-      </div>
+</div>
 
       <div>
         <label style={labelStyle}>Volume Pack</label>
@@ -581,8 +577,7 @@ export default function App() {
           placeholder="e.g. 11kg"
           value={form.volume_pack}
           onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-/>
-      </div>
+</div>
 
       <div>
         <label style={labelStyle}>Date</label>
@@ -590,8 +585,7 @@ export default function App() {
           type="date"
           value={form.date}
           onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-/>
-      </div>
+</div>
 
       <button
         onClick={saveTransaction}
@@ -611,8 +605,7 @@ export default function App() {
     </div>
   </div>
 )}
-/>
-        {dropdownOpen && (
+{dropdownOpen && (
           <div style={dropdownStyle}>
             {filteredItemsForSearch.length === 0 && (
               <div style={dropdownItemStyle}>No items found</div>
@@ -650,16 +643,14 @@ export default function App() {
         <input
           value={form.quantity}
           onChange={e => setForm({ ...form, quantity: e.target.value })}
-/>
-      </div>
+</div>
 
       <div>
         <label style={labelStyle}>Brand</label>
         <input
           value={form.brand || ""}
           onChange={e => setForm({ ...form, brand: e.target.value })}
-/>
-      </div>
+</div>
 
       <div>
         <label style={labelStyle}>Volume Pack</label>
@@ -667,8 +658,7 @@ export default function App() {
           placeholder="e.g. 11kg"
           value={form.volume_pack}
           onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-/>
-      </div>
+</div>
 
       <div>
         <label style={labelStyle}>Date</label>
@@ -676,8 +666,7 @@ export default function App() {
           type="date"
           value={form.date}
           onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-/>
-      </div>
+</div>
 
       <button
         onClick={saveTransaction}
@@ -729,27 +718,19 @@ export default function App() {
   placeholder="Quantity"
   value={form.quantity}
   onChange={e => setForm({ ...form, quantity: e.target.value })}
-/>
-
 <input
   placeholder="Brand"
   value={form.brand || ""}
   onChange={e => setForm({ ...form, brand: e.target.value })}
-/>
-
-    <input
+<input
       placeholder="Volume Pack (e.g. 11kg)"
       value={form.volume_pack}
       onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-    />
-
-    <input
+<input
       type="date"
       value={form.date}
       onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-    />
-
-    <button onClick={saveTransaction}>
+<button onClick={saveTransaction}>
       {editingId ? "Update" : "Save"}
     </button>
   </div>
@@ -778,8 +759,7 @@ export default function App() {
                   value={inSearch}
                   onChange={e => setInSearch(e.target.value)}
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
-                />
-              </div>
+</div>
               <table style={tableStyle}>
                 <thead>
                   <tr>
@@ -854,8 +834,7 @@ export default function App() {
                   value={outSearch}
                   onChange={e => setOutSearch(e.target.value)}
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
-                />
-              </div>
+</div>
               <table style={tableStyle}>
                 <thead>
                   <tr>
@@ -931,8 +910,7 @@ export default function App() {
                 border: "1px solid #d1d5db",
                 fontSize: 14,
               }}
-            />
-          </div>
+</div>
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
