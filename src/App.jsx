@@ -819,7 +819,20 @@ export default function App() {
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
               <input type="number" placeholder="Volume/Pack" name="volume_pack" placeholder="e.g. 500g, per piece, 60pcs/case" />
-    <input type="text"" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />              
+    <input
+      type="text"
+      placeholder="Volume/Pack"
+      name="volume_pack"
+      value={newItem.volume_pack}
+      onChange={e => setNewItem(n => ({ ...n, volume_pack: e.target.value }))}
+    />
+
+    <input
+      type="number"
+      placeholder="Unit price"
+      value={newItem.unit_price}
+      onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))}
+    />              
               <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
             </div>
           )}
