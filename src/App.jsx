@@ -553,8 +553,7 @@ export default function App() {
         <select
           value={form.type}
           onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-          style={inputStyle}
-        >
+>
           <option value="IN">IN</option>
           <option value="OUT">OUT</option>
         </select>
@@ -565,8 +564,7 @@ export default function App() {
         <input
           value={form.quantity}
           onChange={e => setForm({ ...form, quantity: e.target.value })}
-          style={inputStyle}
-        />
+/>
       </div>
 
       <div>
@@ -574,8 +572,7 @@ export default function App() {
         <input
           value={form.brand || ""}
           onChange={e => setForm({ ...form, brand: e.target.value })}
-          style={inputStyle}
-        />
+/>
       </div>
 
       <div>
@@ -584,8 +581,7 @@ export default function App() {
           placeholder="e.g. 11kg"
           value={form.volume_pack}
           onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-          style={inputStyle}
-        />
+/>
       </div>
 
       <div>
@@ -594,8 +590,7 @@ export default function App() {
           type="date"
           value={form.date}
           onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-          style={inputStyle}
-        />
+/>
       </div>
 
       <button
@@ -616,8 +611,7 @@ export default function App() {
     </div>
   </div>
 )}
-          style={inputStyle}
-        />
+/>
         {dropdownOpen && (
           <div style={dropdownStyle}>
             {filteredItemsForSearch.length === 0 && (
@@ -645,8 +639,7 @@ export default function App() {
         <select
           value={form.type}
           onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-          style={inputStyle}
-        >
+>
           <option value="IN">IN</option>
           <option value="OUT">OUT</option>
         </select>
@@ -657,8 +650,7 @@ export default function App() {
         <input
           value={form.quantity}
           onChange={e => setForm({ ...form, quantity: e.target.value })}
-          style={inputStyle}
-        />
+/>
       </div>
 
       <div>
@@ -666,8 +658,7 @@ export default function App() {
         <input
           value={form.brand || ""}
           onChange={e => setForm({ ...form, brand: e.target.value })}
-          style={inputStyle}
-        />
+/>
       </div>
 
       <div>
@@ -676,8 +667,7 @@ export default function App() {
           placeholder="e.g. 11kg"
           value={form.volume_pack}
           onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-          style={inputStyle}
-        />
+/>
       </div>
 
       <div>
@@ -686,8 +676,7 @@ export default function App() {
           type="date"
           value={form.date}
           onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-          style={inputStyle}
-        />
+/>
       </div>
 
       <button
