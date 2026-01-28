@@ -569,8 +569,9 @@ export default function App() {
         <label style={labelStyle}>Volume Pack</label>
         <input
           placeholder="e.g. 11kg"
-          value={form.volume_pack}
-          onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
+  value={form.volume_pack}
+  onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
+/>
 </div>
 
       <div>
