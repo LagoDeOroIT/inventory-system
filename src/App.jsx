@@ -250,18 +250,18 @@ export default function App() {
 
     <button
       onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("transactions");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("transactions");
-        }
-      }}
+  if (editingId && isFormChanged()) {
+    openConfirm("Discard unsaved changes?", () => {
+      setEditingId(null);
+      originalFormRef.current = null;
+      setActiveTab("transactions");
+    });
+  } else {
+    setEditingId(null);
+    originalFormRef.current = null;
+    setActiveTab("transactions");
+  }
+}}
       style={{
         padding: "8px 16px",
         borderRadius: 999,
