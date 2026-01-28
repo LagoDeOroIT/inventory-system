@@ -749,6 +749,7 @@ export default function App() {
       )}
 
        {activeTab === "stock" && (
+        <div>
   <>
     <div
       style={{
