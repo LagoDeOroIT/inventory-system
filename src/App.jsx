@@ -9,7 +9,17 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // ================= STYLES =================
 const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: 10 };
 const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" };
-const editingRowStyle = { background: "#fff7ed" }; // highlight edited row
+const editingRowStyle = {
+  background: "#fef3c7"
+};
+
+const inRowStyle = {
+  background: "#f0fdf4" // subtle green
+};
+
+const outRowStyle = {
+  background: "#fef2f2" // subtle red
+}; // highlight edited row
 
 const emptyRow = (colSpan, text) => (
   <tr>
@@ -138,83 +148,63 @@ export default function App() {
   }
 
   async function saveTransaction() {
-    if (!form.quantity) return alert("Complete the form");
+  if (!selectedItem || !quantity) return;
 
-    let item = items.find(i => i.id === Number(form.item_id));
-
-    // CREATE NEW ITEM IF NOT FOUND (TRANSACTIONS IS SOURCE OF TRUTH)
-    if (!item && itemSearch) {
-      if (selectedStockRoom === "All Stock Rooms") {
-        alert("Select a stock room to create a new item");
-        return;
+  // 1️⃣ Save transaction (IN / OUT)
+  const { data: transaction, error: txError } = await supabase
+    .from("inventory_transactions")
+    .insert([
+      {
+        item_id: selectedItem.id,
+        type: transactionType,
+        quantity: Number(quantity),
+        brand,
+        volume_pack,
+        unit_price: Number(unitPrice) || 0,
+        date
       }
-      const { data: newItemData, error: itemErr } = await supabase
-        .from("items")
-        .insert([{ item_name: itemSearch, location: selectedStockRoom }])
-        .select()
-        .single();
+    ])
+    .select()
+    .single();
 
-      if (itemErr) return alert(itemErr.message);
-      item = newItemData;
-    }
-
-    if (!item) return alert("Item not found");
-
-    if (form.type === "OUT") {
-      const stockItem = stockInventory.find(i => i.id === item.id);
-      if (stockItem && Number(form.quantity) > stockItem.stock) {
-        alert("Cannot OUT more than available stock");
-        return;
-      }
-    }
-
-    const payload = {
-      location: selectedStockRoom === "All Stock Rooms" ? null : selectedStockRoom,
-      date: form.date || new Date().toISOString().slice(0, 10),
-      item_id: Number(item.id),
-      type: form.type,
-      quantity: Number(form.quantity),
-      unit_price: item.unit_price || 0,
-      brand: form.brand || item.brand || null,
-      unit: form.unit || null,
-      volume_pack: form.volume_pack || null,
-      deleted: false,
-    };
-
-    const { error } = editingId
-      ? await supabase.from("inventory_transactions").update(payload).eq("id", editingId)
-      : await supabase.from("inventory_transactions").insert([payload]);
-
-    if (error) return alert(error.message);
-
-    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", volume_pack: "" });
-    setItemSearch("");
-    setEditingId(null);
-    loadData();
+  if (txError) {
+    console.error(txError);
+    return;
   }
 
-  // ================= STOCK INVENTORY =================
-  const stockInventory = items
-  .filter(i => selectedStockRoom === "All Stock Rooms" || i.location === selectedStockRoom)
-  .map(i => {
-    const related = transactions.filter(t => t.item_id === i.id);
-    const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
-    return { ...i, stock };
-  });
+  // 2️⃣ Check stock inventory for SAME item + SAME brand
+  const { data: existingStock } = await supabase
+    .from("stock_inventory")
+    .select("id, quantity")
+    .eq("item_id", selectedItem.id)
+    .eq("brand", brand)
+    .maybeSingle();
 
-  // ================= ADD NEW ITEM (STOCK TAB) =================
+  if (existingStock) {
+    // 🔁 Update quantity if same item + same brand
+    await supabase
+      .from("stock_inventory")
+      .update({
+        quantity:
+          transactionType === "IN"
+            ? existingStock.quantity + Number(quantity)
+            : existingStock.quantity - Number(quantity)
+      })
+      .eq("id", existingStock.id);
+  } else {
+    // ➕ Insert new stock row if brand is different
+    await supabase.from("stock_inventory").insert([
+      {
+        item_id: selectedItem.id,
+        brand,
+        volume_pack,
+        quantity: transactionType === "IN" ? Number(quantity) : -Number(quantity)
+      }
+    ]);
+  }
 
-  const [showAddItem, setShowAddItem] = useState(false);
-  const [isEditingItem, setIsEditingItem] = useState(false);
-  const [editingItemId, setEditingItemId] = useState(null);
-  const [stockEditItem, setStockEditItem] = useState(null);
-
-  const [newItem, setNewItem] = useState({
-  item_name: "",
-  brand: "",
-  unit_price: "",
-  
-  location: selectedStockRoom !== "All Stock Rooms" ? selectedStockRoom : "",
+  resetForm();
+  fetchData();
 });
 
   const handleSaveItem = async () => {
@@ -535,16 +525,17 @@ export default function App() {
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
-                <select style={{ width: "100%", height: 34 }}                   value={inFilter}
+                <select
+                  value={inFilter}
                   onChange={e => setInFilter(e.target.value)}
                   style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
                 >
                   <option value="all">All</option>
                   <option value="item">Item</option>
                   <option value="brand">Brand</option>
-                  <option value="quantity">Quantity</option>
                 </select>
-                <input style={{ width: "100%", height: 34 }}                   placeholder="Search"
+                <input
+                  placeholder="Search"
                   value={inSearch}
                   onChange={e => setInSearch(e.target.value)}
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
@@ -555,49 +546,33 @@ export default function App() {
                   <tr>
                     <th style={thtd}>Date</th>
                     <th style={thtd}>Item</th>
-<th style={thtd}>Brand</th>
-<th style={thtd}>Current Stock</th>
-<th style={thtd}>Unit Price</th>
-<th style={thtd}>Stock Value</th>
-<th style={thtd}>Actions</th>
+                    <th style={thtd}>Brand</th>
+                    <th style={thtd}>Volume / Pack</th>
+                    <th style={thtd}>Unit Price</th>
+                    <th style={thtd}>Quantity</th>
+                    <th style={thtd}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
-                  {filteredTransactions.filter(t => t.type === "IN")
-                    .filter(t => {
-                      const q = inSearch.toLowerCase();
-                      if (!q) return true;
-                      if (inFilter === "item") return t.items?.item_name?.toLowerCase().includes(q);
-                      if (inFilter === "brand") return t.brand?.toLowerCase().includes(q);
-                      if (inFilter === "quantity") return String(t.quantity).includes(q);
-                      return (
-                        t.items?.item_name?.toLowerCase().includes(q) ||
-                        t.brand?.toLowerCase().includes(q) ||
-                        String(t.quantity).includes(q)
-                      );
-                    })
-                    .map(t => (
-                    <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                  {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(7, "No IN transactions")}
+                  {filteredTransactions.filter(t => t.type === "IN").map(t => (
+                    <tr
+  key={t.id}
+  style={
+    editingId === t.id
+      ? editingRowStyle
+      : t.type === "IN"
+      ? inRowStyle
+      : outRowStyle
+  }
+>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                       <td style={thtd}>{t.items?.item_name}</td>
-                      <td style={thtd}>{t.quantity}</td>
-                      <td style={thtd}>{t.brand}</td>
+                      <td style={thtd}>{t.brand || "—"}</td>
                       <td style={thtd}>{t.volume_pack || "—"}</td>
-                      <td style={thtd}>
-                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
-                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                          setEditingId(t.id);
-                          setForm(originalFormRef.current);
-                          setItemSearch(t.items?.item_name || "");
-                          setShowForm(true);
-                          setActiveTab("transactions");
-                        })}>✏️ Edit</button>
-                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
-                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
-                          loadData();
-                        })}>🗑️ Delete</button>
-                      </td>
+                      <td style={thtd}>₱{Number(t.unit_price || 0).toFixed(2)}</td>
+                      <td style={thtd}>{t.quantity}</td>
+                      <td style={thtd}>...</td>
                     </tr>
                   ))}
                 </tbody>
@@ -609,16 +584,17 @@ export default function App() {
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
-                <select style={{ width: "100%", height: 34 }}                   value={outFilter}
+                <select
+                  value={outFilter}
                   onChange={e => setOutFilter(e.target.value)}
                   style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
                 >
                   <option value="all">All</option>
                   <option value="item">Item</option>
                   <option value="brand">Brand</option>
-                  <option value="quantity">Quantity</option>
                 </select>
-                <input style={{ width: "100%", height: 34 }}                   placeholder="Search"
+                <input
+                  placeholder="Search"
                   value={outSearch}
                   onChange={e => setOutSearch(e.target.value)}
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
@@ -629,44 +605,33 @@ export default function App() {
                   <tr>
                     <th style={thtd}>Date</th>
                     <th style={thtd}>Item</th>
-                    <th style={thtd}>Qty</th>
                     <th style={thtd}>Brand</th>
-                    <th style={thtd}>Volume Pack</th>
+                    <th style={thtd}>Volume / Pack</th>
+                    <th style={thtd}>Unit Price</th>
+                    <th style={thtd}>Stock Value</th>
                     <th style={thtd}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(5, "No OUT transactions")}
-                  {filteredTransactions.filter(t => t.type === "OUT")
-                    .filter(t => {
-                      const q = outSearch.toLowerCase();
-                      return (
-                        t.items?.item_name?.toLowerCase().includes(q) ||
-                        t.brand?.toLowerCase().includes(q) ||
-                        String(t.quantity).includes(q)
-                      );
-                    })
-                    .map(t => (
-                    <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                  {filteredTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(7, "No OUT transactions")}
+                  {filteredTransactions.filter(t => t.type === "OUT").map(t => (
+                    <tr
+  key={t.id}
+  style={
+    editingId === t.id
+      ? editingRowStyle
+      : t.type === "IN"
+      ? inRowStyle
+      : outRowStyle
+  }
+>
                       <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
                       <td style={thtd}>{t.items?.item_name}</td>
-                      <td style={thtd}>{t.quantity}</td>
-                      <td style={thtd}>{t.brand}</td>
+                      <td style={thtd}>{t.brand || "—"}</td>
                       <td style={thtd}>{t.volume_pack || "—"}</td>
-                      <td style={thtd}>
-                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
-                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                          setEditingId(t.id);
-                          setForm(originalFormRef.current);
-                          setItemSearch(t.items?.item_name || "");
-                          setShowForm(true);
-                          setActiveTab("transactions");
-                        })}>✏️ Edit</button>
-                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
-                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
-                          loadData();
-                        })}>🗑️ Delete</button>
-                      </td>
+                      <td style={thtd}>₱{Number(t.unit_price || 0).toFixed(2)}</td>
+                      <td style={thtd}>₱{(t.quantity * (t.unit_price || 0)).toFixed(2)}</td>
+                      <td style={thtd}>...</td>
                     </tr>
                   ))}
                 </tbody>
