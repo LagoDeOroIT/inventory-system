@@ -815,6 +815,5 @@ export default function App() {
           </table>
         
       )}
-    </div>
-  );
+    )
 }
