@@ -764,12 +764,12 @@ export default function App() {
       {activeTab === "report" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-    <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
-    <span style={{ fontSize: 12, color: "#6b7280" }}>Months tracked: {Object.keys(monthlyTotals).length}</span>
-  </div>
-  <hr style={{ marginTop: 8 }} />
-</div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+          <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
+          <span style={{ fontSize: 12, color: "#6b7280" }}>Months tracked: {Object.keys(monthlyTotals).length}</span>
+          </div>
+            <hr style={{ marginTop: 8 }} />
+          </div>
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
@@ -796,77 +796,35 @@ export default function App() {
       )}
 
        {activeTab === "stock" && (
-  <>
-    <div
-      style={{
-        position: "sticky",
-        top: 0,
-        background: "#fff",
-        zIndex: 5,
-        paddingBottom: 8,
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-        <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
-        <span style={{ fontSize: 12, color: "#6b7280" }}>
-          Total items: {stockInventory.length} | Low stock:{" "}
-          {stockInventory.filter(i => i.stock <= 5).length}
-        </span>
-      </div>
-      <hr style={{ marginTop: 8 }} />
-    </div>
-
-    <div
-      style={{
-        marginBottom: 16,
-        border: "1px solid #ddd",
-        padding: 12,
-        borderRadius: 6,
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          {/* Inventory item creation REMOVED — items can only be created via Transactions */}
-          <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
-            Register a new product or supply into the inventory system.
-          </p>
-        </div>
-
-        <button
-          onClick={() => setShowAddItem(v => !v)}
+      <>
+        {/* STOCK INVENTORY HEADER */}
+        <div
           style={{
-            background: "#1f2937",
-            color: "#fff",
-            border: "none",
-            borderRadius: 6,
-            padding: "6px 12px",
-            cursor: "pointer",
-            fontSize: 12,
-            fontWeight: 600,
+            position: "sticky",
+            top: 0,
+            background: "#fff",
+            zIndex: 5,
+            paddingBottom: 8,
           }}
         >
-        
-
-                {showAddItem ? "Hide" : "Show"}
-              </button>
-            </div>
-            {showAddItem && (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
-              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
-              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />              
-              <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
-            </div>
-          )}
+          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+            <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
+            <span style={{ fontSize: 12, color: "#6b7280" }}>
+              Total items: {stockInventory.length} | Low stock:{" "}
+              {stockInventory.filter(i => i.stock <= 5).length}
+            </span>
           </div>
+          <hr style={{ marginTop: 8 }} />
+        </div>
 
-          <div style={{ maxHeight: 400, overflowY: "auto" }}>
+        {/* STOCK TABLE */}
+        <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Item</th>
                 <th style={thtd}>Brand</th>
-                    <th style={thtd}>Volume Pack</th>
+                <th style={thtd}>Volume Pack</th>
                 <th style={thtd}>Current Stock</th>
                 <th style={thtd}>Unit Price</th>
                 <th style={thtd}>Stock Value</th>
@@ -876,41 +834,55 @@ export default function App() {
             <tbody>
               {stockInventory.length === 0 && emptyRow(6, "No stock data")}
               {stockInventory.map(i => (
-                <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
+                <tr
+                  key={i.id}
+                  style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}
+                >
                   <td style={thtd}>{i.item_name}</td>
-<td style={thtd}>{i.brand || "—"}</td>
-<td style={thtd}>{i.stock}</td>
-<td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-<td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
-<td style={thtd}>
-  <button
-    style={{ marginRight: 6 }}
-    onClick={() => openConfirm("Edit this item?", () => {
-      setIsEditingItem(true);
-      setStockEditItem(i);
-      setEditingItemId(i.id);
-      setNewItem({
-        item_name: i.item_name,
-        brand: i.brand || "",
-        unit_price: i.unit_price,
-      });
-      setShowAddItem(true);
-    })}
-  >✏️ Edit</button>
-  <button
-    onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
-      await supabase.from("items").delete().eq("id", i.id);
-      loadData();
-    })}
-  >🗑️ Delete</button>
-</td>
-</tr>
+                  <td style={thtd}>{i.brand || "—"}</td>
+                  <td style={thtd}>{i.stock}</td>
+                  <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+                  <td style={thtd}>
+                    ₱{(i.stock * (i.unit_price || 0)).toFixed(2)}
+                  </td>
+                  <td style={thtd}>
+                    <button
+                      style={{ marginRight: 6 }}
+                      onClick={() =>
+                        openConfirm("Edit this item?", () => {
+                          setIsEditingItem(true);
+                          setStockEditItem(i);
+                          setEditingItemId(i.id);
+                          setNewItem({
+                            item_name: i.item_name,
+                            brand: i.brand || "",
+                            unit_price: i.unit_price,
+                          });
+                        })
+                      }
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      onClick={() =>
+                        openConfirm(
+                          "Permanently delete this item? This cannot be undone.",
+                          async () => {
+                            await supabase.from("items").delete().eq("id", i.id);
+                            loadData();
+                          }
+                        )
+                      }
+                    >
+                      🗑️ Delete
+                    </button>
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
         </div>
-        </>
-      )}
-  );
-}
-
+      </>
+    )}
+  </>
+);
