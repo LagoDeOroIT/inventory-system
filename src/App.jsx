@@ -536,35 +536,45 @@ export default function App() {
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
                 />
               </div>
-              <table class="table table-bordered table-striped">
-<thead>
-<tr>
-<th>Item</th>
-<th>Brand</th>
-<th>Volume Pack</th>
-<th>Current Stock</th>
-<th>Unit Price</th>
-<th>Stock Value</th>
-<th>Actions</th>
-</tr>
-</thead>
-                <tbody>
-<?php foreach ($items as $row): ?>
-<tr class="<?= ($row['quantity'] <= 0) ? 'table-danger' : '' ?>">
-<td><?= htmlspecialchars($row['item_name']) ?></td>
-<td><?= htmlspecialchars($row['brand']) ?></td>
-<td><?= (int)$row['volume_pack'] ?></td>
-<td><?= (int)$row['quantity'] ?></td>
-<td>₱<?= number_format($row['unit_price'], 2) ?></td>
-<td>₱<?= number_format($row['quantity'] * $row['unit_price'], 2) ?></td>
-<td>
-    <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-warning">Edit</a>
-    <a href="delete.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Delete this item?')">Delete</a>
-</td>
-</tr>
-<?php endforeach; ?>
-</tbody>
-              </table>
+              <table className="table table-bordered table-striped">
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Brand</th>
+      <th>Volume Pack</th>
+      <th>Current Stock</th>
+      <th>Unit Price</th>
+      <th>Stock Value</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {items.map((row) => (
+      <tr key={row.id} className={row.quantity <= 0 ? "table-danger" : ""}>
+        <td>{row.item_name}</td>
+        <td>{row.brand}</td>
+        <td>{row.volume_pack}</td>
+        <td>{row.quantity}</td>
+        <td>₱{Number(row.unit_price).toFixed(2)}</td>
+        <td>₱{(row.quantity * row.unit_price).toFixed(2)}</td>
+        <td>
+          <button
+            className="btn btn-sm btn-warning me-1"
+            onClick={() => editItem(row.id)}
+          >
+            Edit
+          </button>
+          <button
+            className="btn btn-sm btn-danger"
+            onClick={() => deleteItem(row.id)}
+          >
+            Delete
+          </button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
             </div>
 
             
