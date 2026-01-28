@@ -504,10 +504,17 @@ export default function App() {
       <option value="OUT">OUT</option>
     </select>
 
-    <input placeholder="Quantity" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} />
+    <input
+  placeholder="Quantity"
+  value={form.quantity}
+  onChange={e => setForm({ ...form, quantity: e.target.value })}
+/>
 
-<input placeholder="Brand" value={form.brand || ""} onChange={e => setForm({ ...form, brand: e.target.value })} /> setForm(f => ({ ...f, quantity: e.target.value }))}
-    />
+<input
+  placeholder="Brand"
+  value={form.brand || ""}
+  onChange={e => setForm({ ...form, brand: e.target.value })}
+/>
 
     <input
       placeholder="Volume Pack (e.g. 11kg)"
