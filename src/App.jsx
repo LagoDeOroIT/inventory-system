@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";    
+import React, { useEffect, useRef, useState } from "react";     
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -138,8 +138,26 @@ export default function App() {
   }
 
   async function saveTransaction() {
-    if (!form.item_id || !form.quantity) return alert("Complete the form");
-    const item = items.find(i => i.id === Number(form.item_id));
+    if (!form.quantity) return alert("Complete the form");
+
+    let item = items.find(i => i.id === Number(form.item_id));
+
+    // CREATE NEW ITEM IF NOT FOUND (TRANSACTIONS IS SOURCE OF TRUTH)
+    if (!item && itemSearch) {
+      if (selectedStockRoom === "All Stock Rooms") {
+        alert("Select a stock room to create a new item");
+        return;
+      }
+      const { data: newItemData, error: itemErr } = await supabase
+        .from("items")
+        .insert([{ item_name: itemSearch, location: selectedStockRoom }])
+        .select()
+        .single();
+
+      if (itemErr) return alert(itemErr.message);
+      item = newItemData;
+    }
+
     if (!item) return alert("Item not found");
 
     if (form.type === "OUT") {
@@ -153,10 +171,10 @@ export default function App() {
     const payload = {
       location: selectedStockRoom === "All Stock Rooms" ? null : selectedStockRoom,
       date: form.date || new Date().toISOString().slice(0, 10),
-      item_id: Number(form.item_id),
+      item_id: Number(item.id),
       type: form.type,
       quantity: Number(form.quantity),
-      unit_price: item.unit_price,
+      unit_price: item.unit_price || 0,
       brand: form.brand || item.brand || null,
       unit: form.unit || null,
       volume_pack: form.volume_pack || null,
@@ -803,91 +821,5 @@ export default function App() {
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
-          <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
-            Register a new product or supply into the inventory system.
-          </p>
-        </div>
-
-        <button
-          onClick={() => setShowAddItem(v => !v)}
-          style={{
-            background: "#1f2937",
-            color: "#fff",
-            border: "none",
-            borderRadius: 6,
-            padding: "6px 12px",
-            cursor: "pointer",
-            fontSize: 12,
-            fontWeight: 600,
-          }}
-        >
-        
-
-                {showAddItem ? "Hide" : "Show"}
-              </button>
-            </div>
-            {showAddItem && (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
-              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
-              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />              
-              <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
-            </div>
-          )}
-          </div>
-
-          <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Brand</th>
-                    <th style={thtd}>Volume Pack</th>
-                <th style={thtd}>Current Stock</th>
-                <th style={thtd}>Unit Price</th>
-                <th style={thtd}>Stock Value</th>
-                <th style={thtd}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stockInventory.length === 0 && emptyRow(6, "No stock data")}
-              {stockInventory.map(i => (
-                <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
-                  <td style={thtd}>{i.item_name}</td>
-<td style={thtd}>{i.brand || "—"}</td>
-<td style={thtd}>{i.stock}</td>
-<td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-<td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
-<td style={thtd}>
-  <button
-    style={{ marginRight: 6 }}
-    onClick={() => openConfirm("Edit this item?", () => {
-      setIsEditingItem(true);
-      setStockEditItem(i);
-      setEditingItemId(i.id);
-      setNewItem({
-        item_name: i.item_name,
-        brand: i.brand || "",
-        unit_price: i.unit_price,
-      });
-      setShowAddItem(true);
-    })}
-  >✏️ Edit</button>
-  <button
-    onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
-      await supabase.from("items").delete().eq("id", i.id);
-      loadData();
-    })}
-  >🗑️ Delete</button>
-</td>
-</tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        </>
-      )}
-    </div>
-  );
+          <h3 style={{ margin: 0 }}>/* INVENTORY ITEM CREATION REMOVED — MANAGED VIA TRANSACTIONS ONLY */
 }
