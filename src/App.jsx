@@ -137,10 +137,17 @@ export default function App() {
     return Object.keys(originalFormRef.current).some(k => String(originalFormRef.current[k] || "") !== String(form[k] || ""));
   }
 
-  async function saveTransaction() {
-    if (!form.item_id || !form.quantity) return alert("Complete the form");
+  async async function saveTransaction() {
+    if (!form.item_id || !form.quantity || !form.date) {
+      alert("Complete the form");
+      return;
+    }
+
     const item = items.find(i => i.id === Number(form.item_id));
-    if (!item) return alert("Item not found");
+    if (!item) {
+      alert("Item not found");
+      return;
+    }
 
     if (form.type === "OUT") {
       const stockItem = stockInventory.find(i => i.id === item.id);
@@ -151,12 +158,36 @@ export default function App() {
     }
 
     const payload = {
-    item_name: newItem.item_name,
-    brand: newItem.brand,
-    volume_pack: newItem.volume_pack || null,
-    unit_price: Number(newItem.unit_price) || 0,
-    location: selectedStockRoom,
-  };
+      item_id: item.id,
+      type: form.type,
+      quantity: Number(form.quantity),
+      date: form.date,
+      brand: item.brand || null,
+      unit_price: Number(item.unit_price) || 0,
+      volume_pack: form.volume_pack || item.volume_pack || null,
+      location: selectedStockRoom,
+      deleted: false,
+    };
+
+    let res;
+    if (editingId) {
+      res = await supabase.from("inventory_transactions").update(payload).eq("id", editingId);
+    } else {
+      res = await supabase.from("inventory_transactions").insert([payload]);
+    }
+
+    if (res.error) {
+      console.error(res.error);
+      alert(res.error.message);
+      return;
+    }
+
+    setEditingId(null);
+    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", volume_pack: "" });
+    setItemSearch("");
+    setShowForm(false);
+    loadData();
+  }
 
   const { error } = isEditingItem && editingItemId
     ? await supabase.from("items").update(payload).eq("id", editingItemId)
@@ -176,10 +207,7 @@ export default function App() {
 };
 
   // ================= STOCK INVENTORY (FIX: DEFINE BEFORE USE) =================
-  const stockInventory = items
-    .filter(i => selectedStockRoom === "All Stock Rooms" || i.location === selectedStockRoom)
-    .map(i => {
-      const related = transactions.filter(t => t.item_id === i.id);
+  
       const stock = related.reduce(
         (sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity),
         0
@@ -187,13 +215,13 @@ export default function App() {
       return { ...i, stock };
     });
 
-  // ================= STOCK INVENTORY (FIX: DEFINE BEFORE USE) =================
+  // ================= STOCK INVENTORY (SINGLE SOURCE OF TRUTH) =================
   const stockInventory = items
     .filter(i => selectedStockRoom === "All Stock Rooms" || i.location === selectedStockRoom)
     .map(i => {
-      const related = transactions.filter(t => t.item_id === i.id);
+      const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
       const stock = related.reduce(
-        (sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity),
+        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
         0
       );
       return { ...i, stock };
