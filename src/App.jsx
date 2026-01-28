@@ -11,44 +11,6 @@ const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: 10 };
 const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" };
 const editingRowStyle = { background: "#fff7ed" }; // highlight edited row
 
-// ===== FORM UI STYLES =====
-const labelStyle = {
-  fontSize: 11,
-  fontWeight: 600,
-  color: "#374151",
-  marginBottom: 4,
-  display: "block",
-};
-
-const inputStyle = {
-  width: "100%",
-  height: 38,
-  padding: "8px 10px",
-  borderRadius: 8,
-  border: "1px solid #d1d5db",
-  fontSize: 13,
-};
-
-const dropdownStyle = {
-  position: "absolute",
-  top: "100%",
-  left: 0,
-  right: 0,
-  background: "#fff",
-  border: "1px solid #d1d5db",
-  borderRadius: 8,
-  marginTop: 4,
-  maxHeight: 180,
-  overflowY: "auto",
-  zIndex: 20,
-};
-
-const dropdownItemStyle = {
-  padding: "8px 10px",
-  cursor: "pointer",
-  fontSize: 13,
-}; // highlight edited row
-
 const emptyRow = (colSpan, text) => (
   <tr>
     <td colSpan={colSpan} style={{ textAlign: "center", padding: 12 }}>{text}</td>
@@ -494,138 +456,27 @@ export default function App() {
   </div>
 
   {showForm && (
-  <div>
-    <label style={labelStyle}>Type</label>
-    <select
-      value={form.type}
-      onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-    >
-      <option value="IN">IN</option>
-      <option value="OUT">OUT</option>
-    </select>
-  </div>
-)}
-/>
-</div>
-
-      <div>
-        <label style={labelStyle}>Volume Pack</label>
-        <input
-          placeholder="e.g. 11kg"
-  value={form.volume_pack}
-  onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-/>
-</div>
-
-      <div>
-        <label style={labelStyle}>Date</label>
-        <input
-          type="date"
-  value={form.date}
-  onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-/>
-</div>
-
-      <button
-        onClick={saveTransaction}
-        style={{
-          height: 38,
-          padding: "0 18px",
-          borderRadius: 8,
-          border: "none",
-          background: "#1f2937",
-          color: "#fff",
-          fontWeight: 600,
-          cursor: "pointer",
+  <div
+    ref={searchRef}
+    style={{
+      display: "grid",
+      gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr auto",
+      gap: 10,
+      marginTop: 12,
+      alignItems: "center",
+      position: "relative",
+    }}
+  >
+    <div style={{ position: "relative" }}>
+      <input
+        placeholder="Search item"
+        value={itemSearch}
+        onChange={e => {
+          setItemSearch(e.target.value);
+          setDropdownOpen(true);
         }}
-      >
-        {editingId ? "Update" : "Save"}
-      </button>
-    </div>
-  </div>
-)}
-{dropdownOpen && (
-          <div style={dropdownStyle}>
-            {filteredItemsForSearch.length === 0 && (
-              <div style={dropdownItemStyle}>No items found</div>
-            )}
-            {filteredItemsForSearch.map(i => (
-              <div
-                key={i.id}
-                style={dropdownItemStyle}
-                onMouseDown={() => {
-                  setForm(f => ({ ...f, item_id: i.id }));
-                  setItemSearch(i.item_name);
-                  setDropdownOpen(false);
-                }}
-              >
-                {i.item_name}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <label style={labelStyle}>Type</label>
-        <select
-          value={form.type}
-          onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
->
-          <option value="IN">IN</option>
-          <option value="OUT">OUT</option>
-        </select>
-      </div>
-
-      <div>
-        <label style={labelStyle}>Quantity</label>
-        <input
-          value={form.quantity}
-          onChange={e => setForm({ ...form, quantity: e.target.value })}
-</div>
-
-      <div>
-        <label style={labelStyle}>Brand</label>
-        <input
-          value={form.brand || ""}
-          onChange={e => setForm({ ...form, brand: e.target.value })}
-</div>
-
-      <div>
-        <label style={labelStyle}>Volume Pack</label>
-        <input
-          placeholder="e.g. 11kg"
-          value={form.volume_pack}
-          onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-</div>
-
-      <div>
-        <label style={labelStyle}>Date</label>
-        <input
-          type="date"
-          value={form.date}
-          onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-</div>
-
-      <button
-        onClick={saveTransaction}
-        style={{
-          height: 38,
-          padding: "0 18px",
-          borderRadius: 8,
-          border: "none",
-          background: "#1f2937",
-          color: "#fff",
-          fontWeight: 600,
-          cursor: "pointer",
-        }}
-      >
-        {editingId ? "Update" : "Save"}
-      </button>
-    </div>
-  </div>
-)}
-
+        onFocus={() => setDropdownOpen(true)}
+      />
 
       {dropdownOpen && (
         <div>
@@ -657,19 +508,27 @@ export default function App() {
   placeholder="Quantity"
   value={form.quantity}
   onChange={e => setForm({ ...form, quantity: e.target.value })}
+/>
+
 <input
   placeholder="Brand"
   value={form.brand || ""}
   onChange={e => setForm({ ...form, brand: e.target.value })}
-<input
+/>
+
+    <input
       placeholder="Volume Pack (e.g. 11kg)"
       value={form.volume_pack}
       onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-<input
+    />
+
+    <input
       type="date"
       value={form.date}
       onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-<button onClick={saveTransaction}>
+    />
+
+    <button onClick={saveTransaction}>
       {editingId ? "Update" : "Save"}
     </button>
   </div>
@@ -698,7 +557,8 @@ export default function App() {
                   value={inSearch}
                   onChange={e => setInSearch(e.target.value)}
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
-</div>
+                />
+              </div>
               <table style={tableStyle}>
                 <thead>
                   <tr>
@@ -773,7 +633,8 @@ export default function App() {
                   value={outSearch}
                   onChange={e => setOutSearch(e.target.value)}
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
-</div>
+                />
+              </div>
               <table style={tableStyle}>
                 <thead>
                   <tr>
@@ -849,7 +710,8 @@ export default function App() {
                 border: "1px solid #d1d5db",
                 fontSize: 14,
               }}
-</div>
+            />
+          </div>
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
