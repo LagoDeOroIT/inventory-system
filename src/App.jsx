@@ -770,11 +770,18 @@ export default function App() {
       </div>
       <hr style={{ marginTop: 8 }} />
     </div>
-
-    >
-
-    
-            <tbody>
+    <table style={tableStyle}>
+      <thead>
+        <tr>
+          <th style={thtd}>Item</th>
+          <th style={thtd}>Brand</th>
+          <th style={thtd}>Stock</th>
+          <th style={thtd}>Unit Price</th>
+          <th style={thtd}>Stock Value</th>
+          <th style={thtd}>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
               {stockInventory.length === 0 && emptyRow(6, "No stock data")}
               {stockInventory.map(i => (
                 <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
