@@ -177,16 +177,23 @@ export default function App() {
 
   // ================= STOCK INVENTORY =================
   const stockInventory = items
-  .filter(i => selectedStockRoom === "All Stock Rooms" || i.location === selectedStockRoom)
-  .map(i => {
-    const related = transactions.filter(t => t.item_id === i.id);
-    const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
-    const lastTx = related.slice().sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-    return { ...i, stock, volume_pack: lastTx?.volume_pack || null };
-  });
-    const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
-    return { ...i, stock };
-  });
+    .filter(i => selectedStockRoom === "All Stock Rooms" || i.location === selectedStockRoom)
+    .map(i => {
+      const related = transactions.filter(t => t.item_id === i.id);
+      const stock = related.reduce(
+        (sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity),
+        0
+      );
+      const lastTx = related
+        .slice()
+        .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+      return {
+        ...i,
+        stock,
+        volume_pack: lastTx?.volume_pack || null,
+      };
+    });
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
 
