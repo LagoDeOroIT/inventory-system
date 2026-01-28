@@ -711,7 +711,8 @@ export default function App() {
               ))}
             </tbody>
       </table>
-
+          </div>
+        </>
       )}
 
       {activeTab === "report" && (
@@ -744,8 +745,8 @@ export default function App() {
                 ))}
             </tbody>
           </table>
-        </div>
-        
+          </div>
+        </>
       )}
 
        {activeTab === "stock" && (
