@@ -11,6 +11,44 @@ const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: 10 };
 const thtd = { border: "1px solid #ccc", padding: 8, textAlign: "left" };
 const editingRowStyle = { background: "#fff7ed" }; // highlight edited row
 
+// ===== FORM UI STYLES =====
+const labelStyle = {
+  fontSize: 11,
+  fontWeight: 600,
+  color: "#374151",
+  marginBottom: 4,
+  display: "block",
+};
+
+const inputStyle = {
+  width: "100%",
+  height: 38,
+  padding: "8px 10px",
+  borderRadius: 8,
+  border: "1px solid #d1d5db",
+  fontSize: 13,
+};
+
+const dropdownStyle = {
+  position: "absolute",
+  top: "100%",
+  left: 0,
+  right: 0,
+  background: "#fff",
+  border: "1px solid #d1d5db",
+  borderRadius: 8,
+  marginTop: 4,
+  maxHeight: 180,
+  overflowY: "auto",
+  zIndex: 20,
+};
+
+const dropdownItemStyle = {
+  padding: "8px 10px",
+  cursor: "pointer",
+  fontSize: 13,
+}; // highlight edited row
+
 const emptyRow = (colSpan, text) => (
   <tr>
     <td colSpan={colSpan} style={{ textAlign: "center", padding: 12 }}>{text}</td>
@@ -459,23 +497,123 @@ export default function App() {
   <div
     ref={searchRef}
     style={{
-      display: "grid",
-      gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr auto",
-      gap: 10,
-      marginTop: 12,
-      alignItems: "center",
-      position: "relative",
+      marginTop: 16,
+      padding: 16,
+      border: "1px solid #e5e7eb",
+      borderRadius: 10,
+      background: "#fafafa",
     }}
   >
-    <div style={{ position: "relative" }}>
-      <input
-        placeholder="Search item"
-        value={itemSearch}
-        onChange={e => {
-          setItemSearch(e.target.value);
-          setDropdownOpen(true);
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "2fr 1fr 1fr 1fr 1.5fr 1fr auto",
+        gap: 12,
+        alignItems: "end",
+      }}
+    >
+      <div style={{ position: "relative" }}>
+        <label style={labelStyle}>Item</label>
+        <input
+          placeholder="Search item"
+          value={itemSearch}
+          onChange={e => {
+            setItemSearch(e.target.value);
+            setDropdownOpen(true);
+          }}
+          onFocus={() => setDropdownOpen(true)}
+          style={inputStyle}
+        />
+        {dropdownOpen && (
+          <div style={dropdownStyle}>
+            {filteredItemsForSearch.length === 0 && (
+              <div style={dropdownItemStyle}>No items found</div>
+            )}
+            {filteredItemsForSearch.map(i => (
+              <div
+                key={i.id}
+                style={dropdownItemStyle}
+                onMouseDown={() => {
+                  setForm(f => ({ ...f, item_id: i.id }));
+                  setItemSearch(i.item_name);
+                  setDropdownOpen(false);
+                }}
+              >
+                {i.item_name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label style={labelStyle}>Type</label>
+        <select
+          value={form.type}
+          onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+          style={inputStyle}
+        >
+          <option value="IN">IN</option>
+          <option value="OUT">OUT</option>
+        </select>
+      </div>
+
+      <div>
+        <label style={labelStyle}>Quantity</label>
+        <input
+          value={form.quantity}
+          onChange={e => setForm({ ...form, quantity: e.target.value })}
+          style={inputStyle}
+        />
+      </div>
+
+      <div>
+        <label style={labelStyle}>Brand</label>
+        <input
+          value={form.brand || ""}
+          onChange={e => setForm({ ...form, brand: e.target.value })}
+          style={inputStyle}
+        />
+      </div>
+
+      <div>
+        <label style={labelStyle}>Volume Pack</label>
+        <input
+          placeholder="e.g. 11kg"
+          value={form.volume_pack}
+          onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
+          style={inputStyle}
+        />
+      </div>
+
+      <div>
+        <label style={labelStyle}>Date</label>
+        <input
+          type="date"
+          value={form.date}
+          onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+          style={inputStyle}
+        />
+      </div>
+
+      <button
+        onClick={saveTransaction}
+        style={{
+          height: 38,
+          padding: "0 18px",
+          borderRadius: 8,
+          border: "none",
+          background: "#1f2937",
+          color: "#fff",
+          fontWeight: 600,
+          cursor: "pointer",
         }}
-        onFocus={() => setDropdownOpen(true)}
+      >
+        {editingId ? "Update" : "Save"}
+      </button>
+    </div>
+  </div>
+)}
       />
 
       {dropdownOpen && (
