@@ -494,73 +494,17 @@ export default function App() {
   </div>
 
   {showForm && (
-  <div
-    style={{
-      border: "1px solid #e5e7eb",
-      borderRadius: 8,
-      padding: 16,
-      marginBottom: 16,
-      background: "#fafafa",
-    }}
-  >
-    <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-      {/* form inputs */}
-    </div>
-
-    <div style={{ marginTop: 12 }}>
-      <button
-        style={{
-          background: "#1f2937",
-          color: "#fff",
-          padding: "6px 16px",
-          borderRadius: 6,
-          border: "none",
-          cursor: "pointer",
-          fontWeight: 600,
-        }}
-      >
-        {editingId ? "Update" : "Save"}
-      </button>
-    </div>
-  )}
-{dropdownOpen && (
-          <div style={dropdownStyle}>
-            {filteredItemsForSearch.length === 0 && (
-              <div style={dropdownItemStyle}>No items found</div>
-            )}
-            {filteredItemsForSearch.map(i => (
-              <div
-                key={i.id}
-                style={dropdownItemStyle}
-                onMouseDown={() => {
-                  setForm(f => ({ ...f, item_id: i.id }));
-                  setItemSearch(i.item_name);
-                  setDropdownOpen(false);
-                }}
-              >
-                {i.item_name}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <label style={labelStyle}>Type</label>
-<select
-  value={form.type}
-  onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
->
-  <option value="IN">IN</option>
-  <option value="OUT">OUT</option>
-</select>
-      </div>
-
-      <div>
-        <label style={labelStyle}>Quantity</label>
-        <input
-  value={form.brand || ""}
-  onChange={e => setForm({ ...form, brand: e.target.value })}
+  <div>
+    <label style={labelStyle}>Type</label>
+    <select
+      value={form.type}
+      onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+    >
+      <option value="IN">IN</option>
+      <option value="OUT">OUT</option>
+    </select>
+  </div>
+)}
 />
 </div>
 
