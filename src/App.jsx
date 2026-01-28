@@ -208,7 +208,7 @@ export default function App() {
 
   resetForm();
   fetchData();
-});
+}
 
   const handleSaveItem = async () => {
   if (!selectedStockRoom || selectedStockRoom === "All Stock Rooms") {
