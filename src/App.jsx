@@ -106,7 +106,7 @@ export default function App() {
   async function loadData() {
     const { data: itemsData } = await supabase
       .from("items")
-      .select("id, item_name, unit_price, brand, location");
+      .select("id, item_name, unit_price, brand, volume_pack, location");
 
     const { data: tx } = await supabase
       .from("inventory_transactions")
@@ -151,63 +151,9 @@ export default function App() {
     }
 
     const payload = {
-      location: selectedStockRoom === "All Stock Rooms" ? null : selectedStockRoom,
-      date: form.date || new Date().toISOString().slice(0, 10),
-      item_id: Number(form.item_id),
-      type: form.type,
-      quantity: Number(form.quantity),
-      unit_price: item.unit_price,
-      brand: form.brand || item.brand || null,
-      unit: form.unit || null,
-      volume_pack: form.volume_pack || null,
-      deleted: false,
-    };
-
-    const { error } = editingId
-      ? await supabase.from("inventory_transactions").update(payload).eq("id", editingId)
-      : await supabase.from("inventory_transactions").insert([payload]);
-
-    if (error) return alert(error.message);
-
-    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", volume_pack: "" });
-    setItemSearch("");
-    setEditingId(null);
-    loadData();
-  }
-
-  // ================= STOCK INVENTORY =================
-  const stockInventory = items
-  .filter(i => selectedStockRoom === "All Stock Rooms" || i.location === selectedStockRoom)
-  .map(i => {
-    const related = transactions.filter(t => t.item_id === i.id);
-    const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
-    return { ...i, stock };
-  });
-
-  // ================= ADD NEW ITEM (STOCK TAB) =================
-
-  const [showAddItem, setShowAddItem] = useState(false);
-  const [isEditingItem, setIsEditingItem] = useState(false);
-  const [editingItemId, setEditingItemId] = useState(null);
-  const [stockEditItem, setStockEditItem] = useState(null);
-
-  const [newItem, setNewItem] = useState({
-  item_name: "",
-  brand: "",
-  unit_price: "",
-  
-  location: selectedStockRoom !== "All Stock Rooms" ? selectedStockRoom : "",
-});
-
-  const handleSaveItem = async () => {
-  if (!selectedStockRoom || selectedStockRoom === "All Stock Rooms") {
-    alert("Please select a stock room first");
-    return;
-  }
-
-  const payload = {
     item_name: newItem.item_name,
     brand: newItem.brand,
+    volume_pack: newItem.volume_pack || null,
     unit_price: Number(newItem.unit_price) || 0,
     location: selectedStockRoom,
   };
