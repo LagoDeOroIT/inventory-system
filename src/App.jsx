@@ -232,48 +232,6 @@ export default function App() {
   // ================= FILTERED TRANSACTIONS =================
   const filteredTransactions = Array.isArray(transactions) ? transactions : [];
 
-          setActiveTab("transactions");
-        }
-      }}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "transactions" ? "#1f2937" : "transparent",
-        color: activeTab === "transactions" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      📄 Transactions
-    </button>
-
-    <button
-      onClick={() => {
-  if (editingId && isFormChanged()) {
-    openConfirm("Discard unsaved changes?", () => {
-      setEditingId(null);
-      originalFormRef.current = null;
-      setActiveTab("transactions");
-    });
-  } else {
-    setEditingId(null);
-    originalFormRef.current = null;
-    setActiveTab("transactions");
-  }
-}}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "transactions" ? "#1f2937" : "transparent",
-        color: activeTab === "transactions" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      📄 Transactions
-    </button>
   </div>
 
   {showForm && (
