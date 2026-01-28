@@ -818,14 +818,13 @@ export default function App() {
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
-              <input type="number" placeholder="Volume/Pack" name="volume_pack" placeholder="e.g. 500g, per piece, 60pcs/case" />
-    <input
-      type="text"
-      placeholder="Volume/Pack"
-      name="volume_pack"
-      value={newItem.volume_pack}
-      onChange={e => setNewItem(n => ({ ...n, volume_pack: e.target.value }))}
-    />
+              <label>Volume/Pack</label>
+<input
+  type="text"
+  placeholder="e.g. 500g, per piece, 60pcs/case"
+  value={newItem.volume_pack}
+  onChange={e => setNewItem(n => ({ ...n, volume_pack: e.target.value }))}
+/>
 
     <input
       type="number"
