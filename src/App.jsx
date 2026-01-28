@@ -36,10 +36,71 @@ export default function App() {
 
   // reset search when filter changes
   useEffect(() => {
-      supabase.auth.getSession().then(({ data }) => setSession(data.session));
-      const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-      return () => data.subscription.unsubscribe();
-    }, []);
+    setInSearch("");
+  }, [inFilter]);
+
+  useEffect(() => {
+    setOutSearch("");
+  }, [outFilter]);
+
+  // tabs
+  const [activeTab, setActiveTab] = useState("stock");
+
+  // ===== STOCK ROOMS =====
+  const stockRooms = [
+    "All Stock Rooms",
+    "L1",
+    "L2 Room 1",
+    "L2 Room 2",
+    "L2 Room 3",
+    "L2 Room 4",
+    "L3",
+    "L5",
+    "L6",
+    "L7",
+    "Maintenance Bodega 1",
+    "Maintenance Bodega 2",
+    "Maintenance Bodega 3",
+    "SKI Stock Room",
+    "Quarry Stock Room",
+  ];
+
+  const [selectedStockRoom, setSelectedStockRoom] = useState("All Stock Rooms");
+
+
+  // form
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const originalFormRef = useRef(null);
+  const [form, setForm] = useState({
+    item_id: "",
+    type: "IN",
+    quantity: "",
+    date: "",
+    brand: "",
+    unit: "",
+    volume_pack: "",
+  });
+
+  // item search
+  const [itemSearch, setItemSearch] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const searchRef = useRef(null);
+
+  const filteredItemsForSearch = items.filter(i => {
+    if (selectedStockRoom === "All Stock Rooms") return false;
+    return (
+      i.location === selectedStockRoom &&
+      i.item_name.toLowerCase().includes(itemSearch.toLowerCase())
+    );
+  });
+
+  // ================= AUTH =================
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => data.subscription.unsubscribe();
+  }, []);
 
   // ================= LOAD DATA =================
   async function loadData() {
@@ -141,6 +202,51 @@ export default function App() {
     return { ...i, stock };
   });
 
+  // ================= ADD NEW ITEM (STOCK TAB) =================
+
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [isEditingItem, setIsEditingItem] = useState(false);
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [stockEditItem, setStockEditItem] = useState(null);
+
+  const [newItem, setNewItem] = useState({
+  item_name: "",
+  brand: "",
+  unit_price: "",
+  
+  location: selectedStockRoom !== "All Stock Rooms" ? selectedStockRoom : "",
+});
+
+  const handleSaveItem = async () => {
+  if (!selectedStockRoom || selectedStockRoom === "All Stock Rooms") {
+    alert("Please select a stock room first");
+    return;
+  }
+
+  const payload = {
+    item_name: newItem.item_name,
+    brand: newItem.brand,
+    unit_price: Number(newItem.unit_price) || 0,
+    location: selectedStockRoom,
+  };
+
+  const { error } = isEditingItem && editingItemId
+    ? await supabase.from("items").update(payload).eq("id", editingItemId)
+    : await supabase.from("items").insert([payload]);
+
+  if (error) {
+    console.error(error);
+    alert(error.message);
+    return;
+  }
+
+  setNewItem({ item_name: "", brand: "", unit_price: "", location: selectedStockRoom });
+  setIsEditingItem(false);
+  setStockEditItem(null);
+  setShowAddItem(false);
+  loadData();
+};
+
   // ================= FILTERED TRANSACTIONS =================
   const filteredTransactions = transactions.filter(t => {
     if (selectedStockRoom === "All Stock Rooms") return true;
@@ -172,7 +278,6 @@ export default function App() {
         </button>
       </div>
     );
-  };
   }
 
   return (
@@ -581,7 +686,7 @@ export default function App() {
 
           </div>
           
-        
+        </>
       )}
 
       {activeTab === "deleted" && (
@@ -650,8 +755,9 @@ export default function App() {
                 </tr>
               ))}
             </tbody>
-      </table>
-          </div>
+          </table>
+        </div>
+          
         </>
       )}
 
@@ -685,61 +791,126 @@ export default function App() {
                 ))}
             </tbody>
           </table>
-          </div>
+        </div>
         </>
       )}
 
        {activeTab === "stock" && (
   <>
-    <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+    <div
+      style={{
+        position: "sticky",
+        top: 0,
+        background: "#fff",
+        zIndex: 5,
+        paddingBottom: 8,
+      }}
+    >
       <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
         <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
         <span style={{ fontSize: 12, color: "#6b7280" }}>
-          Total items: {stockInventory.length} | Low stock: {stockInventory.filter(i => i.stock <= 5).length}
+          Total items: {stockInventory.length} | Low stock:{" "}
+          {stockInventory.filter(i => i.stock <= 5).length}
         </span>
       </div>
       <hr style={{ marginTop: 8 }} />
     </div>
 
-    <table style={tableStyle}>
-      <thead>
-        <tr>
-          <th style={thtd}>Item</th>
-          <th style={thtd}>Brand</th>
-          <th style={thtd}>Stock</th>
-          <th style={thtd}>Unit Price</th>
-          <th style={thtd}>Stock Value</th>
-          <th style={thtd}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {stockInventory.length === 0 && emptyRow(6, "No stock data")}
-        {stockInventory.map(i => (
-          <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
-            <td style={thtd}>{i.item_name}</td>
-            <td style={thtd}>{i.brand || "—"}</td>
-            <td style={thtd}>{i.stock}</td>
-            <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-            <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
-            <td style={thtd}>
-              <button style={{ marginRight: 6 }} onClick={() => openConfirm("Edit this item?", () => {
-                setIsEditingItem(true);
-                setStockEditItem(i);
-                setEditingItemId(i.id);
-                setNewItem({ item_name: i.item_name, brand: i.brand || "", unit_price: i.unit_price });
-              })}>✏️ Edit</button>
-              <button onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
-                await supabase.from("items").delete().eq("id", i.id);
-                loadData();
-              })}>🗑️ Delete</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </>
-)}
+    <div
+      style={{
+        marginBottom: 16,
+        border: "1px solid #ddd",
+        padding: 12,
+        borderRadius: 6,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          {/* Inventory item creation REMOVED — items can only be created via Transactions */}
+          <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+            Register a new product or supply into the inventory system.
+          </p>
+        </div>
 
+        <button
+          onClick={() => setShowAddItem(v => !v)}
+          style={{
+            background: "#1f2937",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            padding: "6px 12px",
+            cursor: "pointer",
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+        
+
+                {showAddItem ? "Hide" : "Show"}
+              </button>
+            </div>
+            {showAddItem && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
+              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
+              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />              
+              <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
+            </div>
+          )}
+          </div>
+
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                    <th style={thtd}>Volume Pack</th>
+                <th style={thtd}>Current Stock</th>
+                <th style={thtd}>Unit Price</th>
+                <th style={thtd}>Stock Value</th>
+                <th style={thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stockInventory.length === 0 && emptyRow(6, "No stock data")}
+              {stockInventory.map(i => (
+                <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
+                  <td style={thtd}>{i.item_name}</td>
+<td style={thtd}>{i.brand || "—"}</td>
+<td style={thtd}>{i.stock}</td>
+<td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+<td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
+<td style={thtd}>
+  <button
+    style={{ marginRight: 6 }}
+    onClick={() => openConfirm("Edit this item?", () => {
+      setIsEditingItem(true);
+      setStockEditItem(i);
+      setEditingItemId(i.id);
+      setNewItem({
+        item_name: i.item_name,
+        brand: i.brand || "",
+        unit_price: i.unit_price,
+      });
+      setShowAddItem(true);
+    })}
+  >✏️ Edit</button>
+  <button
+    onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
+      await supabase.from("items").delete().eq("id", i.id);
+      loadData();
+    })}
+  >🗑️ Delete</button>
+</td>
+</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        </>
+      )}
     </div>
   );
 }
