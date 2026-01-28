@@ -151,12 +151,65 @@ export default function App() {
     }
 
     const payload = {
+      location: selectedStockRoom === "All Stock Rooms" ? null : selectedStockRoom,
+      date: form.date || new Date().toISOString().slice(0, 10),
+      item_id: Number(form.item_id),
+      type: form.type,
+      quantity: Number(form.quantity),
+      unit_price: item.unit_price,
+      brand: form.brand || item.brand || null,
+      unit: form.unit || null,
+      volume_pack: form.volume_pack || null,
+      deleted: false,
+    };
+
+    const { error } = editingId
+      ? await supabase.from("inventory_transactions").update(payload).eq("id", editingId)
+      : await supabase.from("inventory_transactions").insert([payload]);
+
+    if (error) return alert(error.message);
+
+    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", volume_pack: "" });
+    setItemSearch("");
+    setEditingId(null);
+    loadData();
+  }
+
+  // ================= STOCK INVENTORY =================
+  const stockInventory = items
+  .filter(i => selectedStockRoom === "All Stock Rooms" || i.location === selectedStockRoom)
+  .map(i => {
+    const related = transactions.filter(t => t.item_id === i.id);
+    const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
+    return { ...i, stock };
+  });
+
+  // ================= ADD NEW ITEM (STOCK TAB) =================
+
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [isEditingItem, setIsEditingItem] = useState(false);
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [stockEditItem, setStockEditItem] = useState(null);
+
+  const [newItem, setNewItem] = useState({
+  item_name: "",
+  brand: "",
+  unit_price: "",
+  
+  location: selectedStockRoom !== "All Stock Rooms" ? selectedStockRoom : "",
+});
+
+  const handleSaveItem = async () => {
+  if (!selectedStockRoom || selectedStockRoom === "All Stock Rooms") {
+    alert("Please select a stock room first");
+    return;
+  }
+
+  const payload = {
     item_name: newItem.item_name,
     brand: newItem.brand,
     unit_price: Number(newItem.unit_price) || 0,
-    volume_pack: newItem.volume_pack || null,
     location: selectedStockRoom,
-  };dStockRoom,
   };
 
   const { error } = isEditingItem && editingItemId
@@ -765,8 +818,64 @@ export default function App() {
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
               <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
-              <input placeholder="Volume pack (e.g. 11kg, 1L)" value={newItem.volume_pack} onChange={e => setNewItem(n => ({ ...n, volume_pack: e.target.value }))} />
-              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />      )}
+              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />              
+              <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
+            </div>
+          )}
+          </div>
+
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                    <th style={thtd}>Volume Pack</th>
+                <th style={thtd}>Current Stock</th>
+                <th style={thtd}>Unit Price</th>
+                <th style={thtd}>Stock Value</th>
+                <th style={thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stockInventory.length === 0 && emptyRow(6, "No stock data")}
+              {stockInventory.map(i => (
+                <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
+  <td style={thtd}>{i.item_name}</td>
+  <td style={thtd}>{i.brand || "—"}</td>
+  <td style={thtd}>{i.volume_pack || "—"}</td>
+  <td style={thtd}>{i.stock}</td>
+  <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+  <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
+  <td style={thtd}>
+    <button
+      style={{ marginRight: 6 }}
+      onClick={() => openConfirm("Edit this item?", () => {
+        setIsEditingItem(true);
+        setStockEditItem(i);
+        setEditingItemId(i.id);
+        setNewItem({
+          item_name: i.item_name,
+          brand: i.brand || "",
+          unit_price: i.unit_price,
+        });
+        setShowAddItem(true);
+      })}
+    >✏️ Edit</button>
+    <button
+      onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
+        await supabase.from("items").delete().eq("id", i.id);
+        loadData();
+      })}
+    >🗑️ Delete</button>
+  </td>
+</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        </>
+      )}
     </div>
   );
 }
