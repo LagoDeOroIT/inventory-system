@@ -614,6 +614,98 @@ export default function App() {
     </div>
   </div>
 )}
+          style={inputStyle}
+        />
+        {dropdownOpen && (
+          <div style={dropdownStyle}>
+            {filteredItemsForSearch.length === 0 && (
+              <div style={dropdownItemStyle}>No items found</div>
+            )}
+            {filteredItemsForSearch.map(i => (
+              <div
+                key={i.id}
+                style={dropdownItemStyle}
+                onMouseDown={() => {
+                  setForm(f => ({ ...f, item_id: i.id }));
+                  setItemSearch(i.item_name);
+                  setDropdownOpen(false);
+                }}
+              >
+                {i.item_name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label style={labelStyle}>Type</label>
+        <select
+          value={form.type}
+          onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+          style={inputStyle}
+        >
+          <option value="IN">IN</option>
+          <option value="OUT">OUT</option>
+        </select>
+      </div>
+
+      <div>
+        <label style={labelStyle}>Quantity</label>
+        <input
+          value={form.quantity}
+          onChange={e => setForm({ ...form, quantity: e.target.value })}
+          style={inputStyle}
+        />
+      </div>
+
+      <div>
+        <label style={labelStyle}>Brand</label>
+        <input
+          value={form.brand || ""}
+          onChange={e => setForm({ ...form, brand: e.target.value })}
+          style={inputStyle}
+        />
+      </div>
+
+      <div>
+        <label style={labelStyle}>Volume Pack</label>
+        <input
+          placeholder="e.g. 11kg"
+          value={form.volume_pack}
+          onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
+          style={inputStyle}
+        />
+      </div>
+
+      <div>
+        <label style={labelStyle}>Date</label>
+        <input
+          type="date"
+          value={form.date}
+          onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+          style={inputStyle}
+        />
+      </div>
+
+      <button
+        onClick={saveTransaction}
+        style={{
+          height: 38,
+          padding: "0 18px",
+          borderRadius: 8,
+          border: "none",
+          background: "#1f2937",
+          color: "#fff",
+          fontWeight: 600,
+          cursor: "pointer",
+        }}
+      >
+        {editingId ? "Update" : "Save"}
+      </button>
+    </div>
+  </div>
+)}
       />
 
       {dropdownOpen && (
