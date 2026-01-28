@@ -522,8 +522,7 @@ export default function App() {
         {editingId ? "Update" : "Save"}
       </button>
     </div>
-  </div>
-)}
+  )}
 {dropdownOpen && (
           <div style={dropdownStyle}>
             {filteredItemsForSearch.length === 0 && (
