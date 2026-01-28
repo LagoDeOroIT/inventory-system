@@ -495,33 +495,35 @@ export default function App() {
 
   {showForm && (
   <div
-    ref={searchRef}
     style={{
-      marginTop: 16,
-      padding: 16,
       border: "1px solid #e5e7eb",
-      borderRadius: 10,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 16,
       background: "#fafafa",
     }}
   >
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "2fr 1fr 1fr 1fr 1.5fr 1fr auto",
-        gap: 12,
-        alignItems: "end",
-      }}
-    >
-      <div style={{ position: "relative" }}>
-        <label style={labelStyle}>Item</label>
-        <input
-          placeholder="Search item"
-          value={itemSearch}
-          onChange={e => {
-            setItemSearch(e.target.value);
-            setDropdownOpen(true);
-          }}
-          onFocus={() => setDropdownOpen(true)}
+    <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+      {/* form inputs */}
+    </div>
+
+    <div style={{ marginTop: 12 }}>
+      <button
+        style={{
+          background: "#1f2937",
+          color: "#fff",
+          padding: "6px 16px",
+          borderRadius: 6,
+          border: "none",
+          cursor: "pointer",
+          fontWeight: 600,
+        }}
+      >
+        {editingId ? "Update" : "Save"}
+      </button>
+    </div>
+  </div>
+)}
           style={inputStyle}
         />
         {dropdownOpen && (
