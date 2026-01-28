@@ -710,10 +710,8 @@ export default function App() {
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
-          
-        
+      </table>
+
       )}
 
       {activeTab === "report" && (
