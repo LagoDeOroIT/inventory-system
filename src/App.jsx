@@ -36,71 +36,10 @@ export default function App() {
 
   // reset search when filter changes
   useEffect(() => {
-    setInSearch("");
-  }, [inFilter]);
-
-  useEffect(() => {
-    setOutSearch("");
-  }, [outFilter]);
-
-  // tabs
-  const [activeTab, setActiveTab] = useState("stock");
-
-  // ===== STOCK ROOMS =====
-  const stockRooms = [
-    "All Stock Rooms",
-    "L1",
-    "L2 Room 1",
-    "L2 Room 2",
-    "L2 Room 3",
-    "L2 Room 4",
-    "L3",
-    "L5",
-    "L6",
-    "L7",
-    "Maintenance Bodega 1",
-    "Maintenance Bodega 2",
-    "Maintenance Bodega 3",
-    "SKI Stock Room",
-    "Quarry Stock Room",
-  ];
-
-  const [selectedStockRoom, setSelectedStockRoom] = useState("All Stock Rooms");
-
-
-  // form
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const originalFormRef = useRef(null);
-  const [form, setForm] = useState({
-    item_id: "",
-    type: "IN",
-    quantity: "",
-    date: "",
-    brand: "",
-    unit: "",
-    volume_pack: "",
-  });
-
-  // item search
-  const [itemSearch, setItemSearch] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const searchRef = useRef(null);
-
-  const filteredItemsForSearch = items.filter(i => {
-    if (selectedStockRoom === "All Stock Rooms") return false;
-    return (
-    <div>
-      i.location === selectedStockRoom &&
-      i.item_name.toLowerCase().includes(itemSearch.toLowerCase())
-    );
-  });
-
-  // ================= AUTH =================
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
+      supabase.auth.getSession().then(({ data }) => setSession(data.session));
+      const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+      return () => data.subscription.unsubscribe();
+    }, []);
   }, []);
 
   // ================= LOAD DATA =================
