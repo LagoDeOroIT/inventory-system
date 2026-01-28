@@ -36,6 +36,9 @@ export default function App() {
   const closeConfirm = () => setConfirm(null);
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
+  const [stockInventory, setStockInventory] = useState([]);
+
+  const([]);
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
   const [deletedSearch, setDeletedSearch] = useState("");
@@ -130,11 +133,38 @@ export default function App() {
       .eq("deleted", true)
       .order("deleted_at", { ascending: false });
 
+    const { data: stockData, error: stockError } = await supabase
+      .from("stock_inventory")
+      .select(`
+        id,
+        quantity,
+        brand,
+        volume_pack,
+        items (
+          item_name,
+          unit_price
+        )
+      `);
+
+    if (stockError) {
+      console.error(stockError);
+    }
+
     setItems(itemsData || []);
     setTransactions(tx || []);
-
-    // NOTE: stock room filtering is applied at render level
     setDeletedTransactions(deletedTx || []);
+
+    setStockInventory(
+      (stockData || []).map(row => ({
+        id: row.id,
+        item_name: row.items?.item_name,
+        unit_price: row.items?.unit_price || 0,
+        brand: row.brand,
+        volume_pack: row.volume_pack,
+        stock: row.quantity,
+      }))
+    );
+  }
   }
 
   useEffect(() => {
