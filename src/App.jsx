@@ -536,57 +536,34 @@ export default function App() {
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
                 />
               </div>
-              <table style={tableStyle}>
-                <thead>
-                  <tr>
-                    <th style={thtd}>Date</th>
-                    <th style={thtd}>Item</th>
-<th style={thtd}>Brand</th>
-<th style={thtd}>Current Stock</th>
-<th style={thtd}>Unit Price</th>
-<th style={thtd}>Stock Value</th>
-<th style={thtd}>Actions</th>
-                  </tr>
-                </thead>
+              <table class="table table-bordered table-striped">
+<thead>
+<tr>
+<th>Item</th>
+<th>Brand</th>
+<th>Volume Pack</th>
+<th>Current Stock</th>
+<th>Unit Price</th>
+<th>Stock Value</th>
+<th>Actions</th>
+</tr>
+</thead>
                 <tbody>
-                  {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
-                  {filteredTransactions.filter(t => t.type === "IN")
-                    .filter(t => {
-                      const q = inSearch.toLowerCase();
-                      if (!q) return true;
-                      if (inFilter === "item") return t.items?.item_name?.toLowerCase().includes(q);
-                      if (inFilter === "brand") return t.brand?.toLowerCase().includes(q);
-                      if (inFilter === "quantity") return String(t.quantity).includes(q);
-                      return (
-                        t.items?.item_name?.toLowerCase().includes(q) ||
-                        t.brand?.toLowerCase().includes(q) ||
-                        String(t.quantity).includes(q)
-                      );
-                    })
-                    .map(t => (
-                    <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
-                      <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
-                      <td style={thtd}>{t.items?.item_name}</td>
-                      <td style={thtd}>{t.quantity}</td>
-                      <td style={thtd}>{t.brand}</td>
-                      <td style={thtd}>{t.volume_pack || "—"}</td>
-                      <td style={thtd}>
-                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
-                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
-                          setEditingId(t.id);
-                          setForm(originalFormRef.current);
-                          setItemSearch(t.items?.item_name || "");
-                          setShowForm(true);
-                          setActiveTab("transactions");
-                        })}>✏️ Edit</button>
-                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
-                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
-                          loadData();
-                        })}>🗑️ Delete</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+<?php foreach ($items as $row): ?>
+<tr class="<?= ($row['quantity'] <= 0) ? 'table-danger' : '' ?>">
+<td><?= htmlspecialchars($row['item_name']) ?></td>
+<td><?= htmlspecialchars($row['brand']) ?></td>
+<td><?= (int)$row['volume_pack'] ?></td>
+<td><?= (int)$row['quantity'] ?></td>
+<td>₱<?= number_format($row['unit_price'], 2) ?></td>
+<td>₱<?= number_format($row['quantity'] * $row['unit_price'], 2) ?></td>
+<td>
+    <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-warning">Edit</a>
+    <a href="delete.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Delete this item?')">Delete</a>
+</td>
+</tr>
+<?php endforeach; ?>
+</tbody>
               </table>
             </div>
 
