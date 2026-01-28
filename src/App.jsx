@@ -181,6 +181,10 @@ export default function App() {
   .map(i => {
     const related = transactions.filter(t => t.item_id === i.id);
     const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
+    const lastTx = related.slice().sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+    return { ...i, stock, volume_pack: lastTx?.volume_pack || null };
+  });
+    const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
     return { ...i, stock };
   });
 
@@ -620,7 +624,10 @@ export default function App() {
                     <th style={thtd}>Qty</th>
                     <th style={thtd}>Brand</th>
                     <th style={thtd}>Volume Pack</th>
-                    <th style={thtd}>Actions</th>
+                <th style={thtd}>Current Stock</th>
+                <th style={thtd}>Unit Price</th>
+                <th style={thtd}>Stock Value</th>
+                <th style={thtd}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -856,6 +863,7 @@ export default function App() {
                 <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
                   <td style={thtd}>{i.item_name}</td>
 <td style={thtd}>{i.brand || "—"}</td>
+<td style={thtd}>{i.volume_pack || "—"}</td>
 <td style={thtd}>{i.stock}</td>
 <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
 <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
