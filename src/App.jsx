@@ -536,45 +536,58 @@ export default function App() {
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
                 />
               </div>
-              <table className="table table-bordered table-striped">
-  <thead>
-    <tr>
-      <th>Item</th>
-      <th>Brand</th>
-      <th>Volume Pack</th>
-      <th>Current Stock</th>
-      <th>Unit Price</th>
-      <th>Stock Value</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {items.map((row) => (
-      <tr key={row.id} className={row.quantity <= 0 ? "table-danger" : ""}>
-        <td>{row.item_name}</td>
-        <td>{row.brand}</td>
-        <td>{row.volume_pack}</td>
-        <td>{row.quantity}</td>
-        <td>₱{Number(row.unit_price).toFixed(2)}</td>
-        <td>₱{(row.quantity * row.unit_price).toFixed(2)}</td>
-        <td>
-          <button
-            className="btn btn-sm btn-warning me-1"
-            onClick={() => editItem(row.id)}
-          >
-            Edit
-          </button>
-          <button
-            className="btn btn-sm btn-danger"
-            onClick={() => deleteItem(row.id)}
-          >
-            Delete
-          </button>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
+              <table style={tableStyle}>
+                <thead>
+                  <tr>
+                    <th style={thtd}>Date</th>
+                    <th style={thtd}>Item</th>
+<th style={thtd}>Brand</th>
+<th style={thtd}>Current Stock</th>
+<th style={thtd}>Unit Price</th>
+<th style={thtd}>Stock Value</th>
+<th style={thtd}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(5, "No IN transactions")}
+                  {filteredTransactions.filter(t => t.type === "IN")
+                    .filter(t => {
+                      const q = inSearch.toLowerCase();
+                      if (!q) return true;
+                      if (inFilter === "item") return t.items?.item_name?.toLowerCase().includes(q);
+                      if (inFilter === "brand") return t.brand?.toLowerCase().includes(q);
+                      if (inFilter === "quantity") return String(t.quantity).includes(q);
+                      return (
+                        t.items?.item_name?.toLowerCase().includes(q) ||
+                        t.brand?.toLowerCase().includes(q) ||
+                        String(t.quantity).includes(q)
+                      );
+                    })
+                    .map(t => (
+                    <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                      <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+                      <td style={thtd}>{t.items?.item_name}</td>
+                      <td style={thtd}>{t.quantity}</td>
+                      <td style={thtd}>{t.brand}</td>
+                      <td style={thtd}>{t.volume_pack || "—"}</td>
+                      <td style={thtd}>
+                        <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
+                          originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+                          setEditingId(t.id);
+                          setForm(originalFormRef.current);
+                          setItemSearch(t.items?.item_name || "");
+                          setShowForm(true);
+                          setActiveTab("transactions");
+                        })}>✏️ Edit</button>
+                        <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
+                          await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
+                          loadData();
+                        })}>🗑️ Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             
@@ -841,34 +854,33 @@ export default function App() {
               {stockInventory.length === 0 && emptyRow(6, "No stock data")}
               {stockInventory.map(i => (
                 <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
-  <td style={thtd}>{i.item_name}</td>
-  <td style={thtd}>{i.brand || "—"}</td>
-  <td style={thtd}>{i.volume_pack || "—"}</td>
-  <td style={thtd}>{i.stock}</td>
-  <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-  <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
-  <td style={thtd}>
-    <button
-      style={{ marginRight: 6 }}
-      onClick={() => openConfirm("Edit this item?", () => {
-        setIsEditingItem(true);
-        setStockEditItem(i);
-        setEditingItemId(i.id);
-        setNewItem({
-          item_name: i.item_name,
-          brand: i.brand || "",
-          unit_price: i.unit_price,
-        });
-        setShowAddItem(true);
-      })}
-    >✏️ Edit</button>
-    <button
-      onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
-        await supabase.from("items").delete().eq("id", i.id);
-        loadData();
-      })}
-    >🗑️ Delete</button>
-  </td>
+                  <td style={thtd}>{i.item_name}</td>
+<td style={thtd}>{i.brand || "—"}</td>
+<td style={thtd}>{i.stock}</td>
+<td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+<td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
+<td style={thtd}>
+  <button
+    style={{ marginRight: 6 }}
+    onClick={() => openConfirm("Edit this item?", () => {
+      setIsEditingItem(true);
+      setStockEditItem(i);
+      setEditingItemId(i.id);
+      setNewItem({
+        item_name: i.item_name,
+        brand: i.brand || "",
+        unit_price: i.unit_price,
+      });
+      setShowAddItem(true);
+    })}
+  >✏️ Edit</button>
+  <button
+    onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
+      await supabase.from("items").delete().eq("id", i.id);
+      loadData();
+    })}
+  >🗑️ Delete</button>
+</td>
 </tr>
               ))}
             </tbody>
