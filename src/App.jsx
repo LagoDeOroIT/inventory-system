@@ -1,3 +1,4 @@
+function App() {
 
   const [showAddItem, setShowAddItem] = useState(false);
   const [isEditingItem, setIsEditingItem] = useState(false);
@@ -703,3 +704,5 @@
       )}
     </div>
   );
+
+}
