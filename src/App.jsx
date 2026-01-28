@@ -169,26 +169,25 @@ export default function App() {
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
 
-  const [showAddItem, setShowAddItem] = useState(false);
-  const [isEditingItem, setIsEditingItem] = useState(false);
-  const [editingItemId, setEditingItemId] = useState(null);
-  const [stockEditItem, setStockEditItem] = useState(null);
+const [showAddItem, setShowAddItem] = useState(false);
+const [isEditingItem, setIsEditingItem] = useState(false);
+const [editingItemId, setEditingItemId] = useState(null);
+const [stockEditItem, setStockEditItem] = useState(null);
 
-  const [newItem, setNewItem] = useState({
-    item_name: "",
-    brand: "",
-    unit_price: "",
-    initial_quantity: "",
-    location: "",
-  });
+const [newItem, setNewItem] = useState({
+  item_name: "",
+  brand: "",
+  unit_price: "",
+});
 
-  async function handleSaveItem() {
-    if (!newItem.item_name || !newItem.unit_price) {
-      alert("Item name and unit price are required");
-      return;
-    }
+async function handleSaveItem() {
+  if (!newItem.item_name || !newItem.unit_price) {
+    alert("Item name and unit price are required");
+    return;
+  }
 
-    const { data: insertedItem, error } = isEditingItem && stockEditItem
+  const { data: insertedItem, error } =
+    isEditingItem && stockEditItem
       ? await supabase
           .from("items")
           .update({
@@ -207,29 +206,22 @@ export default function App() {
           })
           .select();
 
-    if (error) return alert(error.message);
-
-    const itemId = isEditingItem ? stockEditItem.id : insertedItem[0].id;
-
-    if (newItem.initial_quantity && newItem.location) {
-      await supabase.from("inventory_transactions").insert({
-        item_id: itemId,
-        type: "IN",
-        quantity: Number(newItem.initial_quantity),
-        date: new Date().toISOString().slice(0, 10),
-        unit_price: Number(newItem.unit_price),
-        brand: newItem.brand || null,
-        location: newItem.location,
-        deleted: false,
-      });
-    }
-
-    setNewItem({ item_name: "", brand: "", unit_price: "", initial_quantity: "", location: "" });
-    setIsEditingItem(false);
-    setStockEditItem(null);
-    setShowAddItem(false);
-    loadData();
+  if (error) {
+    alert(error.message);
+    return;
   }
+
+  setNewItem({
+    item_name: "",
+    brand: "",
+    unit_price: "",
+  });
+
+  setIsEditingItem(false);
+  setStockEditItem(null);
+  setShowAddItem(false);
+  loadData();
+}
 
   // ================= STOCK INVENTORY =================
   const filteredTransactions = selectedStockRoom === "All Stock Rooms"
