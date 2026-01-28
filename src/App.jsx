@@ -560,17 +560,9 @@ export default function App() {
       <div>
         <label style={labelStyle}>Quantity</label>
         <input
-  type="number"
-  value={form.quantity}
-  onChange={e => setForm({ ...form, quantity: e.target.value })}
+  value={form.brand || ""}
+  onChange={e => setForm({ ...form, brand: e.target.value })}
 />
-</div>
-
-      <div>
-        <label style={labelStyle}>Brand</label>
-        <input
-          value={form.brand || ""}
-          onChange={e => setForm({ ...form, brand: e.target.value })}
 </div>
 
       <div>
