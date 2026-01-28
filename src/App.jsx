@@ -790,7 +790,7 @@ export default function App() {
         </>
       )}
 
-     {activeTab === "stock" && (
+       {activeTab === "stock" && (
   <>
     <div
       style={{
@@ -821,5 +821,91 @@ export default function App() {
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <h3 style={{ margin: 0 }}>/* INVENTORY ITEM CREATION REMOVED — MANAGED VIA TRANSACTIONS ONLY */
+          <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
+          <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+            Register a new product or supply into the inventory system.
+          </p>
+        </div>
+
+        <button
+          onClick={() => setShowAddItem(v => !v)}
+          style={{
+            background: "#1f2937",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            padding: "6px 12px",
+            cursor: "pointer",
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+        
+
+                {showAddItem ? "Hide" : "Show"}
+              </button>
+            </div>
+            {showAddItem && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(n => ({ ...n, item_name: e.target.value }))} />
+              <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(n => ({ ...n, brand: e.target.value }))} />
+              <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(n => ({ ...n, unit_price: e.target.value }))} />              
+              <button onClick={handleSaveItem}>{isEditingItem ? "Update Item" : "Add Item"}</button>
+            </div>
+          )}
+          </div>
+
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                    <th style={thtd}>Volume Pack</th>
+                <th style={thtd}>Current Stock</th>
+                <th style={thtd}>Unit Price</th>
+                <th style={thtd}>Stock Value</th>
+                <th style={thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stockInventory.length === 0 && emptyRow(6, "No stock data")}
+              {stockInventory.map(i => (
+                <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
+                  <td style={thtd}>{i.item_name}</td>
+<td style={thtd}>{i.brand || "—"}</td>
+<td style={thtd}>{i.stock}</td>
+<td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+<td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
+<td style={thtd}>
+  <button
+    style={{ marginRight: 6 }}
+    onClick={() => openConfirm("Edit this item?", () => {
+      setIsEditingItem(true);
+      setStockEditItem(i);
+      setEditingItemId(i.id);
+      setNewItem({
+        item_name: i.item_name,
+        brand: i.brand || "",
+        unit_price: i.unit_price,
+      });
+      setShowAddItem(true);
+    })}
+  >✏️ Edit</button>
+  <button
+    onClick={() => openConfirm("Permanently delete this item? This cannot be undone.", async () => {
+      await supabase.from("items").delete().eq("id", i.id);
+      loadData();
+    })}
+  >🗑️ Delete</button>
+</td>
+</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        </>
+      )}
+    </div>
+  );
 }
