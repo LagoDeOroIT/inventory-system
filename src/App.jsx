@@ -843,6 +843,8 @@ export default function App() {
                 <tr key={i.id} style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}>
                   <td style={thtd}>{i.item_name}</td>
 <td style={thtd}>{i.brand || "—"}</td>
+<td style={thtd}>{i.volume_pack || "—"}</td>
+<td style={thtd}>{i.volume_pack || "—"}</td>
 <td style={thtd}>{i.stock}</td>
 <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
 <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
