@@ -270,8 +270,8 @@ export default function App() {
   }, []);
 
   if (!session) {
-    return (
-      {/* INVENTORY ITEM CREATION UI REMOVED — ITEMS ARE CREATED VIA TRANSACTIONS ONLY */}
+    return <div>Please log in.</div>;
+  }
 
         <button
           onClick={() => setShowAddItem(v => !v)}
