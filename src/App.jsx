@@ -90,6 +90,7 @@ export default function App() {
   const filteredItemsForSearch = items.filter(i => {
     if (selectedStockRoom === "All Stock Rooms") return false;
     return (
+    <div>
       i.location === selectedStockRoom &&
       i.item_name.toLowerCase().includes(itemSearch.toLowerCase())
     );
