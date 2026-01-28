@@ -195,7 +195,7 @@ export default function App() {
   item_name: "",
   brand: "",
   unit_price: "",
-  
+
   location: selectedStockRoom !== "All Stock Rooms" ? selectedStockRoom : "",
 });
 
@@ -232,6 +232,48 @@ export default function App() {
   // ================= FILTERED TRANSACTIONS =================
   const filteredTransactions = Array.isArray(transactions) ? transactions : [];
 
+          setActiveTab("transactions");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "transactions" ? "#1f2937" : "transparent",
+        color: activeTab === "transactions" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📄 Transactions
+    </button>
+
+    <button
+      onClick={() => {
+  if (editingId && isFormChanged()) {
+    openConfirm("Discard unsaved changes?", () => {
+      setEditingId(null);
+      originalFormRef.current = null;
+      setActiveTab("transactions");
+    });
+  } else {
+    setEditingId(null);
+    originalFormRef.current = null;
+    setActiveTab("transactions");
+  }
+}}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "transactions" ? "#1f2937" : "transparent",
+        color: activeTab === "transactions" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📄 Transactions
+    </button>
   </div>
 
   {showForm && (
@@ -311,7 +353,7 @@ export default function App() {
 
 <div style={{ display: "flex", gap: 16 }}>
 
-            
+
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
@@ -379,7 +421,7 @@ export default function App() {
               </table>
             </div>
 
-            
+
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
@@ -451,7 +493,7 @@ export default function App() {
             </div>
 
           </div>
-          
+
         </>
       )}
 
@@ -523,7 +565,7 @@ export default function App() {
             </tbody>
           </table>
         </div>
-          
+
         </>
       )}
 
@@ -611,7 +653,7 @@ export default function App() {
             fontWeight: 600,
           }}
         >
-        
+
 
                 {showAddItem ? "Hide" : "Show"}
               </button>
