@@ -137,7 +137,7 @@ export default function App() {
     return Object.keys(originalFormRef.current).some(k => String(originalFormRef.current[k] || "") !== String(form[k] || ""));
   }
 
-  async async function saveTransaction() {
+  async function saveTransaction() {
     if (!form.item_id || !form.quantity || !form.date) {
       alert("Complete the form");
       return;
@@ -216,6 +216,7 @@ export default function App() {
     });
 
   // ================= STOCK INVENTORY (SINGLE SOURCE OF TRUTH) =================
+  // NOTE: removed duplicate stockInventory declaration
   const stockInventory = items
     .filter(i => selectedStockRoom === "All Stock Rooms" || i.location === selectedStockRoom)
     .map(i => {
