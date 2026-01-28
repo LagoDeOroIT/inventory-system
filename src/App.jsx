@@ -813,8 +813,7 @@ export default function App() {
               ))}
             </tbody>
           </table>
-        
       )}
-      </div>
+
     )
   }
