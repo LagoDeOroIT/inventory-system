@@ -151,7 +151,7 @@ export default function App() {
   if (!selectedItem || !quantity) return;
 
   // 1️⃣ Save transaction (IN / OUT)
-  const { data: transaction, error: txError } = await supabase
+  const { error: txError } = await supabase
     .from("inventory_transactions")
     .insert([
       {
@@ -163,9 +163,7 @@ export default function App() {
         unit_price: Number(unitPrice) || 0,
         date
       }
-    ])
-    .select()
-    .single();
+    ]);
 
   if (txError) {
     console.error(txError);
@@ -173,12 +171,17 @@ export default function App() {
   }
 
   // 2️⃣ Check stock inventory for SAME item + SAME brand
-  const { data: existingStock } = await supabase
+  const { data: existingStock, error: stockError } = await supabase
     .from("stock_inventory")
     .select("id, quantity")
     .eq("item_id", selectedItem.id)
     .eq("brand", brand)
     .maybeSingle();
+
+  if (stockError) {
+    console.error(stockError);
+    return;
+  }
 
   if (existingStock) {
     // 🔁 Update quantity if same item + same brand
