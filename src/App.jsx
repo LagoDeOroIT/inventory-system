@@ -524,7 +524,7 @@ export default function App() {
     </div>
   </div>
 )}
-          style={inputStyle}
+
         />
         {dropdownOpen && (
           <div style={dropdownStyle}>
