@@ -504,11 +504,9 @@ export default function App() {
       <option value="OUT">OUT</option>
     </select>
 
-    <input
-      type="number"
-      placeholder="Quantity"
-      value={form.quantity}
-      onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
+    <input placeholder="Quantity" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} />
+
+<input placeholder="Brand" value={form.brand || ""} onChange={e => setForm({ ...form, brand: e.target.value })} /> setForm(f => ({ ...f, quantity: e.target.value }))}
     />
 
     <input
@@ -821,7 +819,7 @@ export default function App() {
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <h3 style={{ margin: 0 }}>Create New Inventory Item</h3>
+          {/* Inventory item creation REMOVED — items can only be created via Transactions */}
           <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
             Register a new product or supply into the inventory system.
           </p>
