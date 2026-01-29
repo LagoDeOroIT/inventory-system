@@ -275,7 +275,6 @@ export default function App() {
 
   const totalInValue = inReport.reduce((s, t) => s + t.quantity * t.unit_price, 0);
   const totalOutValue = outReport.reduce((s, t) => s + t.quantity * t.unit_price, 0);
- {});
 
   // ================= CLICK OUTSIDE =================
   useEffect(() => {
