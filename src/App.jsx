@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { createClient } from "@supabase/supabase-js";
 
-export default function App() {
 
 // ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
