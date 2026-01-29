@@ -553,13 +553,13 @@ export default function App() {
               <table style={tableStyle}>
                 <thead>
                   <tr>
-                    <th style={thtd}>Date</th>
-                    <th style={thtd}>Item</th>
-<th style={thtd}>Brand</th>
-<th style={thtd}>Current Stock</th>
-<th style={thtd}>Unit Price</th>
-<th style={thtd}>Total Stock Price</th>
-<th style={thtd}>Actions</th>
+                    <th>Date</th>
+<th>Item</th>
+<th>Brand</th>
+<th>Volume/Pack</th>
+<th>Quantity</th>
+<th>Unit Price</th>
+<th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
