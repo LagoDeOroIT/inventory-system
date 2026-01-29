@@ -34,8 +34,9 @@ export default function App() {
   }, [inFilter]);
 
   useEffect(() => {
-    setOutSearch("");
-  }, [outFilter]);
+    if (session) loadData();
+  }, [session]);
+, [outFilter]);
 
   // tabs
   const [activeTab, setActiveTab] = useState("stock");
