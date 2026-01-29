@@ -254,27 +254,13 @@ export default function App() {
   });
 
   // ================= MONTHLY TOTALS =================
-  const [selectedMonth, setSelectedMonth] = useState("all");
-
   const monthlyTotals = filteredTransactions.reduce((acc, t) => {
     if (!t.date) return acc;
     const month = t.date.slice(0, 7);
-    acc[month] = acc[month] || { IN: [], OUT: [] };
-    acc[month][t.type].push(t);
+    acc[month] = acc[month] || { IN: 0, OUT: 0 };
+    acc[month][t.type] += t.quantity * t.unit_price;
     return acc;
   }, {});
-
-  const availableMonths = Object.keys(monthlyTotals).sort().reverse();
-
-  const reportTransactions = selectedMonth === "all"
-    ? filteredTransactions
-    : filteredTransactions.filter(t => t.date?.startsWith(selectedMonth));
-
-  const inReport = reportTransactions.filter(t => t.type === "IN");
-  const outReport = reportTransactions.filter(t => t.type === "OUT");
-
-  const totalInValue = inReport.reduce((s, t) => s + t.quantity * t.unit_price, 0);
-  const totalOutValue = outReport.reduce((s, t) => s + t.quantity * t.unit_price, 0);
 
   // ================= CLICK OUTSIDE =================
   useEffect(() => {
@@ -287,14 +273,330 @@ export default function App() {
     return (
       <div style={{ padding: 40 }}>
         <h2>Inventory Login</h2>
-        <div style={{ display: "flex", gap: 6 }}>
-<button
-  onClick={() => openEdit(item)}
->
-  ✏️ Edit
-</button>
+        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>
+          Login with Google
+        </button>
+      </div>
+    );
+  }
 
-<button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
+  return (
+    <div style={{ padding: 20 }}>
+
+      {/* ===== STOCK ROOM SELECTOR ===== */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <label style={{ fontSize: 12, color: "#374151" }}>Stock Room</label>
+          <select style={{ width: "100%", height: 34 }}             value={selectedStockRoom}
+            onChange={e => setSelectedStockRoom(e.target.value)}
+            style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
+          >
+            {stockRooms.map(r => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <h1 style={{ fontSize: 22, marginBottom: 4 }}>Lago De Oro Inventory System</h1>
+        <p style={{ fontSize: 12, marginTop: 0, color: "#6b7280" }}>Manage stock IN / OUT and reports</p>
+      </div>
+
+      
+<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
+  <div style={{ display: "flex", gap: 16, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
+    <button
+      onClick={() => setActiveTab("stock")}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "stock" ? "#1f2937" : "transparent",
+        color: activeTab === "stock" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📦 Stock Inventory
+    </button>
+
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("transactions");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("transactions");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "transactions" ? "#1f2937" : "transparent",
+        color: activeTab === "transactions" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📄 Transactions
+    </button>
+
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("report");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("report");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "report" ? "#1f2937" : "transparent",
+        color: activeTab === "report" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📊 Monthly Report
+    </button>
+
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("deleted");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("deleted");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "deleted" ? "#1f2937" : "transparent",
+        color: activeTab === "deleted" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      🗑️ Deleted History
+    </button>
+  </div>
+</div>
+
+      
+      {confirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
+            <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
+            <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
+              <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      
+      {activeTab === "transactions" && (
+        <>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+    <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
+    <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
+  </div>
+  <hr style={{ marginTop: 8 }} />
+</div>
+          <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div>
+      <h3 style={{ margin: 0 }}>Inventory Transaction Entry</h3>
+      <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+        Record inbound and outbound stock movements to maintain accurate inventory records.
+      </p>
+    </div>
+    <button
+      onClick={() => setShowForm(v => !v)}
+      style={{
+        background: "#1f2937",
+        color: "#fff",
+        border: "none",
+        borderRadius: 6,
+        padding: "6px 14px",
+        cursor: "pointer",
+        fontSize: 12,
+        fontWeight: 600,
+      }}
+    >
+      {showForm ? "Hide" : "Add Transaction"}
+    </button>
+  </div>
+
+  {showForm && (
+  <div
+    ref={searchRef}
+    style={{
+      display: "grid",
+      gridTemplateColumns: "minmax(260px,2.5fr) minmax(140px,1.1fr) minmax(140px,1fr) minmax(180px,1.2fr) minmax(180px,1.4fr) minmax(150px,1.1fr)",
+      gap: 12,
+      marginTop: 12,
+      alignItems: "center",
+      position: "relative",
+    }}
+  >
+    <div style={{ position: "relative" }}>
+      <input style={{ width: "100%", height: 34 }}         placeholder="Search by item name or SKU"
+        value={itemSearch}
+        onChange={e => {
+          setItemSearch(e.target.value);
+          setDropdownOpen(true);
+        }}
+        onFocus={() => setDropdownOpen(true)}
+      />
+
+      {dropdownOpen && (
+        <div>
+          {filteredItemsForSearch.map(i => (
+            <div
+              key={i.id}
+              onMouseDown={() => {
+                setForm(f => ({ ...f, item_id: i.id }));
+                setItemSearch(i.item_name);
+                setDropdownOpen(false);
+              }}
+            >
+              {i.item_name}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <select style={{ width: "100%", height: 34 }}       value={form.type}
+      onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+    >
+      <option value="IN">Inbound</option>
+      <option value="OUT">Outbound</option>
+    </select>
+
+    <input style={{ width: "100%", height: 34 }}   placeholder="Quantity (Units)"
+  value={form.quantity}
+  onChange={e => setForm({ ...form, quantity: e.target.value })}
+/>
+
+<input style={{ width: "100%", height: 34 }}   placeholder="Brand / Manufacturer"
+  value={form.brand || ""}
+  onChange={e => setForm({ ...form, brand: e.target.value })}
+/>
+
+    <input style={{ width: "100%", height: 34 }}       placeholder="Pack Size (e.g., 11 kg)"
+      value={form.volume_pack}
+      onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
+    />
+
+    <input style={{ width: "100%", height: 34 }}       type="date"
+      value={form.date}
+      onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+    />
+
+    <button onClick={saveTransaction} style={{ gridColumn: "1 / -1", marginTop: 8, padding: "8px 14px", borderRadius: 6, border: "1px solid #1f2937", background: "#1f2937", color: "#fff", fontWeight: 600 }}>
+      {editingId ? "Update Transaction" : "Save Transaction"}
+    </button>
+  </div>
+)}
+</div>
+
+<div style={{ display: "flex", gap: 16 }}>
+
+            
+            <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
+              <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
+                <select style={{ width: "100%", height: 34 }}                   value={inFilter}
+                  onChange={e => setInFilter(e.target.value)}
+                  style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
+                >
+                  <option value="all">All</option>
+                  <option value="item">Item</option>
+                  <option value="brand">Brand</option>
+                  <option value="quantity">Quantity</option>
+                </select>
+                <input style={{ width: "100%", height: 34 }}                   placeholder="Search"
+                  value={inSearch}
+                  onChange={e => setInSearch(e.target.value)}
+                  style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
+                />
+              </div>
+              
+
+
+
+
+<table style={tableStyle}>
+  <thead>
+    <tr>
+      <th style={thtd}>Date</th>
+      <th style={thtd}>Item</th>
+      <th style={thtd}>Brand</th>
+      <th style={thtd}>Volume/Pack</th>
+      <th style={thtd}>Quantity</th>
+      <th style={thtd}>Unit Price</th>
+      <th style={thtd}>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(7, "No IN transactions")}
+    {filteredTransactions
+      .filter(t => t.type === "IN")
+      .filter(t => {
+        const q = inSearch.toLowerCase();
+        return (
+          t.items?.item_name?.toLowerCase().includes(q) ||
+          t.brand?.toLowerCase().includes(q) ||
+          String(t.quantity).includes(q)
+        );
+      })
+      .map(t => (
+        <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+          <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+          <td style={thtd}>{t.items?.item_name}</td>
+          <td style={thtd}>{t.brand || "—"}</td>
+          <td style={thtd}>{t.volume_pack || "—"}</td>
+          <td style={thtd}>{t.quantity}</td>
+          <td style={thtd}>₱{Number(t.unit_price || 0).toFixed(2)}</td>
+          <td style={thtd}>
+            <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
+              originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+              setEditingId(t.id);
+              setForm(originalFormRef.current);
+              setItemSearch(t.items?.item_name || "");
+              setShowForm(true);
+              setActiveTab("transactions");
+            })}>✏️ Edit</button>
+            <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
               await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
               loadData();
             })}>🗑️ Delete</button>
@@ -459,85 +761,100 @@ export default function App() {
       {activeTab === "report" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
-              <select
-                value={selectedMonth}
-                onChange={e => setSelectedMonth(e.target.value)}
-                style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
-              >
-                <option value="all">All Months</option>
-                {availableMonths.map(m => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
-            </div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+          <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
+          <span style={{ fontSize: 12, color: "#6b7280" }}>Months tracked: {Object.keys(monthlyTotals).length}</span>
+          </div>
             <hr style={{ marginTop: 8 }} />
           </div>
-
-          <h4>⬇️ IN Monthly Report</h4>
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
           <table style={tableStyle}>
             <thead>
               <tr>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Brand</th>
-                <th style={thtd}>Volume/Pack</th>
-                <th style={thtd}>Quantity IN</th>
-                <th style={thtd}>Unit Price</th>
-                <th style={thtd}>Total</th>
+                <th style={thtd}>Month</th>
+                <th style={thtd}>IN Total</th>
+                <th style={thtd}>OUT Total</th>
               </tr>
             </thead>
             <tbody>
-              {inReport.length === 0 && emptyRow(6, "No IN data")}
-              {inReport.map(t => (
-                <tr key={t.id}>
-                  <td style={thtd}>{t.items?.item_name}</td>
-                  <td style={thtd}>{t.brand || "—"}</td>
-                  <td style={thtd}>{t.volume_pack || "—"}</td>
-                  <td style={thtd}>{t.quantity}</td>
-                  <td style={thtd}>₱{t.unit_price.toFixed(2)}</td>
-                  <td style={thtd}>₱{(t.quantity * t.unit_price).toFixed(2)}</td>
-                </tr>
-              ))}
-              <tr>
-                <td style={thtd} colSpan={5}><strong>Total IN Value</strong></td>
-                <td style={thtd}><strong>₱{totalInValue.toFixed(2)}</strong></td>
-              </tr>
+              {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
+              {Object.entries(monthlyTotals)
+                .map(([m, v]) => (
+                  <tr key={m}>
+                    <td style={thtd}>{m}</td>
+                    <td style={thtd}>₱{v.IN.toFixed(2)}</td>
+                    <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
+                  </tr>
+                ))}
             </tbody>
           </table>
-
-          <h4 style={{ marginTop: 20 }}>⬆️ OUT Monthly Report</h4>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Brand</th>
-                <th style={thtd}>Volume/Pack</th>
-                <th style={thtd}>Quantity OUT</th>
-                <th style={thtd}>Unit Price</th>
-                <th style={thtd}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {outReport.length === 0 && emptyRow(6, "No OUT data")}
-              {outReport.map(t => (
-                <tr key={t.id}>
-                  <td style={thtd}>{t.items?.item_name}</td>
-                  <td style={thtd}>{t.brand || "—"}</td>
-                  <td style={thtd}>{t.volume_pack || "—"}</td>
-                  <td style={thtd}>{t.quantity}</td>
-                  <td style={thtd}>₱{t.unit_price.toFixed(2)}</td>
-                  <td style={thtd}>₱{(t.quantity * t.unit_price).toFixed(2)}</td>
-                </tr>
-              ))}
-              <tr>
-                <td style={thtd} colSpan={5}><strong>Total OUT Value</strong></td>
-                <td style={thtd}><strong>₱{totalOutValue.toFixed(2)}</strong></td>
-              </tr>
-            </tbody>
-          </table>
+        </div>
         </>
-      )};
+      )}
+
+       {activeTab === "stock" && (
+      <>
+        {/* STOCK INVENTORY HEADER */}
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            background: "#fff",
+            zIndex: 5,
+            paddingBottom: 8,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+            <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
+            <span style={{ fontSize: 12, color: "#6b7280" }}>
+              Total items: {stockInventory.length} | Low stock:{" "}
+              {stockInventory.filter(i => i.stock <= 5).length}
+            </span>
+          </div>
+          <hr style={{ marginTop: 8 }} />
+        </div>
+
+        {/* STOCK TABLE */}
+        <div style={{ maxHeight: 400, overflowY: "auto" }}>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Volume Pack</th>
+                <th style={thtd}>Current Stock</th>
+                <th style={thtd}>Unit Price</th>
+                <th style={thtd}>Total Stock Price</th>
+                <th style={thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stockInventory.length === 0 && emptyRow(6, "No stock data")}
+              {stockInventory.map(i => (
+                <tr
+                  key={i.id}
+                  style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}
+                >
+                  <td style={thtd}>{i.item_name}</td>
+                  <td style={thtd}>{i.brand || "—"}</td>
+                  <td style={thtd}>{i.stock}</td>
+                  <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+                  <td style={thtd}>
+                    ₱{(i.stock * (i.unit_price || 0)).toFixed(2)}
+                  </td>
+                  <td style={thtd}>
+                    <button
+                      style={{ marginRight: 6 }}
+                      onClick={() =>
+                        openConfirm("Edit this item?", () => {
+                          setIsEditingItem(true);
+                          setStockEditItem(i);
+                          setEditingItemId(i.id);
+                          setNewItem({
+                            item_name: i.item_name,
+                            brand: i.brand || "",
+                            unit_price: i.unit_price,
+                          });
                         })
                       }
                     >
