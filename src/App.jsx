@@ -467,43 +467,15 @@ export default function App() {
     }}
   >
     <div style={{ position: "relative" }}>
-      <input style={{ width: "100%", height: 34 }}         placeholder="Search by item name or SKU"
-        value={itemSearch}
-        onChange={e => {
-          setItemSearch(e.target.value);
-          setDropdownOpen(true);
-        }}
-        onFocus={() => setDropdownOpen(true)}
-      />
-
-      {dropdownOpen && (
-        <div>
-          {filteredItemsForSearch.map(i => (
-            <div
-              key={i.id}
-              onMouseDown={() => {
-                setForm(f => ({ ...f, item_id: i.id }));
-                setItemSearch(i.item_name);
-                setDropdownOpen(false);
-              }}
-            >
-              {i.item_name}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-
-    <select style={{ width: "100%", height: 34 }}       value={form.type}
-      onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-    >
-      <option value="IN">Inbound</option>
-      <option value="OUT">Outbound</option>
-    </select>
-
-    <input style={{ width: "100%", height: 34 }}   placeholder="Quantity (Units)</label>
-    <input type="number" class="form-control" id="quantity" placeholder="Quantity (Units)">
-</div>
+      <label htmlFor="quantity">Quantity (Units)</label>
+    <input
+      type="number"
+      id="quantity"
+      className="form-control"
+      style={{ width: "100%", height: 34 }}
+      placeholder="Quantity (Units)"
+    />
+  </div>
 
 <div class="col">
     <label for="price">Unit Price</label>
