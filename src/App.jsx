@@ -477,10 +477,16 @@ export default function App() {
     />
   </div>
 
-<div class="col">
-    <label for="price">Unit Price</label>
-    <input type="number" step="0.01" class="form-control" id="price" placeholder="Unit Price"> setForm({ ...form, brand: e.target.value })}
-/>
+<div className="col">
+  <label htmlFor="price">Unit Price</label>
+  <input
+    type="number"
+    step="0.01"
+    id="price"
+    className="form-control"
+    placeholder="Unit Price"
+    onChange={(e) => setForm({ ...form, price: e.target.value })}
+  />
 
     <input style={{ width: "100%", height: 34 }}       placeholder="Pack Size (e.g., 11 kg)"
       value={form.volume_pack}
