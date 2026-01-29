@@ -562,7 +562,8 @@ table {
 </style>
 
 <style>
-/* TABLE BORDER FIX – FINAL */
+/* TABLE BORDER FIX – CLEAN */
+<style>
 table {
     border-collapse: collapse;
 }
