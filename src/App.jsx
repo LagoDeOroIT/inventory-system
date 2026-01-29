@@ -506,6 +506,16 @@ export default function App() {
   onChange={e => setForm({ ...form, quantity: e.target.value })}
 />
 
+<input
+  type="number"
+  step="0.01"
+  min="0"
+  placeholder="Price"
+  className="form-input"
+/>
+
+
+
 <input style={{ width: "100%", height: 34 }}   placeholder="Brand / Manufacturer"
   value={form.brand || ""}
   onChange={e => setForm({ ...form, brand: e.target.value })}
