@@ -607,6 +607,81 @@ export default function App() {
 </table>
             </div>
 
+            {/* OUT TRANSACTIONS TABLE */}
+            <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
+              <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
+                <select
+                  value={outFilter}
+                  onChange={e => setOutFilter(e.target.value)}
+                  style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
+                >
+                  <option value="all">All</option>
+                  <option value="item">Item</option>
+                  <option value="brand">Brand</option>
+                  <option value="quantity">Quantity</option>
+                </select>
+                <input
+                  placeholder="Search"
+                  value={outSearch}
+                  onChange={e => setOutSearch(e.target.value)}
+                  style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
+                />
+              </div>
+
+              <table style={tableStyle}>
+                <thead>
+                  <tr>
+                    <th style={thtd}>Date</th>
+                    <th style={thtd}>Item</th>
+                    <th style={thtd}>Brand</th>
+                    <th style={thtd}>Volume/Pack</th>
+                    <th style={thtd}>Quantity</th>
+                    <th style={thtd}>Unit Price</th>
+                    <th style={thtd}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTransactions.filter(t => t.type === "OUT").length === 0 && emptyRow(7, "No OUT transactions")}
+                  {filteredTransactions
+                    .filter(t => t.type === "OUT")
+                    .filter(t => {
+                      const q = outSearch.toLowerCase();
+                      return (
+                        t.items?.item_name?.toLowerCase().includes(q) ||
+                        t.brand?.toLowerCase().includes(q) ||
+                        String(t.quantity).includes(q)
+                      );
+                    })
+                    .map(t => (
+                      <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+                        <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+                        <td style={thtd}>{t.items?.item_name}</td>
+                        <td style={thtd}>{t.brand || "—"}</td>
+                        <td style={thtd}>{t.volume_pack || "—"}</td>
+                        <td style={thtd}>{t.quantity}</td>
+                        <td style={thtd}>₱{Number(t.unit_price || 0).toFixed(2)}</td>
+                        <td style={thtd}>
+                          <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
+                            originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+                            setEditingId(t.id);
+                            setForm(originalFormRef.current);
+                            setItemSearch(t.items?.item_name || "");
+                            setShowForm(true);
+                            setActiveTab("transactions");
+                          })}>✏️ Edit</button>
+                          <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
+                            await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
+                            loadData();
+                          })}>🗑️ Delete</button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+
           </div>
           
         </>
