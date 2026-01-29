@@ -551,14 +551,17 @@ export default function App() {
                 />
               </div>
               <style>
-/* FORCE table column borders (FIXED) */
+<style>
+/* TABLE BORDERS – FINAL, VALID */
 table {
-    border-collapse: collapse !important;
+    border-collapse: collapse;
 }
-.table-bordered th,
-.table-bordered td {
-    border: 1px solid #000 !important;
+
+table th,
+table td {
+    border: 1px solid #000;
 }
+</style>
 </style>
 
 <style>
