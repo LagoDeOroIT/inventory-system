@@ -501,14 +501,13 @@ export default function App() {
       <option value="OUT">Outbound</option>
     </select>
 
-    <input style={{ width: "100%", height: 34 }}   placeholder="Quantity (Units)"
-  value={form.quantity}
-  onChange={e => setForm({ ...form, quantity: e.target.value })}
-/>
+    <input style={{ width: "100%", height: 34 }}   placeholder="Quantity (Units)</label>
+    <input type="number" class="form-control" id="quantity" placeholder="Quantity (Units)">
+</div>
 
-<input style={{ width: "100%", height: 34 }}   placeholder="Brand / Manufacturer"
-  value={form.brand || ""}
-  onChange={e => setForm({ ...form, brand: e.target.value })}
+<div class="col">
+    <label for="price">Unit Price</label>
+    <input type="number" step="0.01" class="form-control" id="price" placeholder="Unit Price"> setForm({ ...form, brand: e.target.value })}
 />
 
     <input style={{ width: "100%", height: 34 }}       placeholder="Pack Size (e.g., 11 kg)"
