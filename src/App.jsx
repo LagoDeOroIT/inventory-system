@@ -76,6 +76,7 @@ export default function App() {
     item_id: "",
     type: "IN",
     quantity: "",
+    unit_price: "",
     date: "",
     brand: "",
     unit: "",
@@ -174,7 +175,7 @@ export default function App() {
       item_id: Number(item.id),
       type: form.type,
       quantity: Number(form.quantity),
-      unit_price: item.unit_price || 0,
+      unit_price: Number(form.unit_price) || item.unit_price || 0,
       brand: form.brand || item.brand || null,
       unit: form.unit || null,
       volume_pack: form.volume_pack || null,
@@ -187,7 +188,7 @@ export default function App() {
 
     if (error) return alert(error.message);
 
-    setForm({ item_id: "", type: "IN", quantity: "", date: "", brand: "", unit: "", volume_pack: "" });
+    setForm({ item_id: "", type: "IN", quantity: "", unit_price: "", date: "", brand: "", unit: "", volume_pack: "" });
     setItemSearch("");
     setEditingId(null);
     loadData();
@@ -511,7 +512,9 @@ export default function App() {
   step="0.01"
   min="0"
   placeholder="Price"
-  className="form-input"
+  value={form.unit_price}
+  onChange={e => setForm({ ...form, unit_price: e.target.value })}
+  style={{ width: "100%", height: 34 }}
 />
 
 
@@ -599,7 +602,7 @@ export default function App() {
           <td style={thtd}>₱{Number(t.unit_price || 0).toFixed(2)}</td>
           <td style={thtd}>
             <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
-              originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+              originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), unit_price: String(t.unit_price || ""), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
               setEditingId(t.id);
               setForm(originalFormRef.current);
               setItemSearch(t.items?.item_name || "");
@@ -674,7 +677,7 @@ export default function App() {
                         <td style={thtd}>₱{Number(t.unit_price || 0).toFixed(2)}</td>
                         <td style={thtd}>
                           <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
-                            originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+                            originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), unit_price: String(t.unit_price || ""), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
                             setEditingId(t.id);
                             setForm(originalFormRef.current);
                             setItemSearch(t.items?.item_name || "");
