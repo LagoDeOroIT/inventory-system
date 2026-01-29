@@ -550,7 +550,7 @@ export default function App() {
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
                 />
               </div>
-              <table style={tableStyle}>
+              <table class="table table-bordered" style={tableStyle}>
                 <thead>
                   <tr>
                     <th>Date</th>
