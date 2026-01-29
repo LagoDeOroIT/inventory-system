@@ -554,7 +554,6 @@ export default function App() {
 
 
 
-
 <table style={tableStyle}>
   <thead>
     <tr>
@@ -761,100 +760,99 @@ export default function App() {
       {activeTab === "report" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-          <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
-          <span style={{ fontSize: 12, color: "#6b7280" }}>Months tracked: {Object.keys(monthlyTotals).length}</span>
-          </div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+              <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
+              <span style={{ fontSize: 12, color: "#6b7280" }}>Detailed IN / OUT and Stock Summary</span>
+            </div>
             <hr style={{ marginTop: 8 }} />
           </div>
-          <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Month</th>
-                <th style={thtd}>IN Total</th>
-                <th style={thtd}>OUT Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
-              {Object.entries(monthlyTotals)
-                .map(([m, v]) => (
-                  <tr key={m}>
-                    <td style={thtd}>{m}</td>
-                    <td style={thtd}>₱{v.IN.toFixed(2)}</td>
-                    <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-        </>
-      )}
 
-       {activeTab === "stock" && (
-      <>
-        {/* STOCK INVENTORY HEADER */}
-        <div
-          style={{
-            position: "sticky",
-            top: 0,
-            background: "#fff",
-            zIndex: 5,
-            paddingBottom: 8,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-            <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
-            <span style={{ fontSize: 12, color: "#6b7280" }}>
-              Total items: {stockInventory.length} | Low stock:{" "}
-              {stockInventory.filter(i => i.stock <= 5).length}
-            </span>
-          </div>
-          <hr style={{ marginTop: 8 }} />
-        </div>
-
-        {/* STOCK TABLE */}
-        <div style={{ maxHeight: 400, overflowY: "auto" }}>
+          {/* ===== IN SUMMARY TABLE ===== */}
+          <h4>⬇️ Monthly IN Summary</h4>
           <table style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Item</th>
                 <th style={thtd}>Brand</th>
-                <th style={thtd}>Volume Pack</th>
-                <th style={thtd}>Current Stock</th>
+                <th style={thtd}>Total IN Qty</th>
                 <th style={thtd}>Unit Price</th>
-                <th style={thtd}>Total Stock Price</th>
-                <th style={thtd}>Actions</th>
+                <th style={thtd}>Total Value</th>
               </tr>
             </thead>
             <tbody>
-              {stockInventory.length === 0 && emptyRow(6, "No stock data")}
+              {stockInventory.map(i => {
+                const inQty = transactions
+                  .filter(t => t.item_id === i.id && t.type === "IN")
+                  .reduce((s, t) => s + t.quantity, 0);
+                return (
+                  <tr key={i.id}>
+                    <td style={thtd}>{i.item_name}</td>
+                    <td style={thtd}>{i.brand || "—"}</td>
+                    <td style={thtd}>{inQty}</td>
+                    <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+                    <td style={thtd}>₱{(inQty * (i.unit_price || 0)).toFixed(2)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {/* ===== OUT SUMMARY TABLE ===== */}
+          <h4 style={{ marginTop: 24 }}>⬆️ Monthly OUT Summary</h4>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Total OUT Qty</th>
+                <th style={thtd}>Unit Price</th>
+                <th style={thtd}>Total Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stockInventory.map(i => {
+                const outQty = transactions
+                  .filter(t => t.item_id === i.id && t.type === "OUT")
+                  .reduce((s, t) => s + t.quantity, 0);
+                return (
+                  <tr key={i.id}>
+                    <td style={thtd}>{i.item_name}</td>
+                    <td style={thtd}>{i.brand || "—"}</td>
+                    <td style={thtd}>{outQty}</td>
+                    <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+                    <td style={thtd}>₱{(outQty * (i.unit_price || 0)).toFixed(2)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {/* ===== CURRENT STOCK STATUS ===== */}
+          <h4 style={{ marginTop: 24 }}>📦 Current Stock Status</h4>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Stock Qty</th>
+                <th style={thtd}>Unit Price</th>
+                <th style={thtd}>Stock Value</th>
+              </tr>
+            </thead>
+            <tbody>
               {stockInventory.map(i => (
-                <tr
-                  key={i.id}
-                  style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}
-                >
+                <tr key={i.id}>
                   <td style={thtd}>{i.item_name}</td>
                   <td style={thtd}>{i.brand || "—"}</td>
                   <td style={thtd}>{i.stock}</td>
                   <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-                  <td style={thtd}>
-                    ₱{(i.stock * (i.unit_price || 0)).toFixed(2)}
-                  </td>
-                  <td style={thtd}>
-                    <button
-                      style={{ marginRight: 6 }}
-                      onClick={() =>
-                        openConfirm("Edit this item?", () => {
-                          setIsEditingItem(true);
-                          setStockEditItem(i);
-                          setEditingItemId(i.id);
-                          setNewItem({
-                            item_name: i.item_name,
-                            brand: i.brand || "",
-                            unit_price: i.unit_price,
-                          });
+                  <td style={thtd}>₱{(i.stock * (i.unit_price || 0)).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )};
                         })
                       }
                     >
@@ -884,3 +882,126 @@ export default function App() {
     </div>
     );
 }
+
+/* =============================
+   MONTHLY REPORT TABLES
+   IN / OUT / CURRENT STOCK STATUS
+   ============================= */
+
+// Helper formatters (safe, non-breaking)
+const peso = (v) => `₱${Number(v || 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+
+// EXPECTED DATA SHAPES (adjust mapping if your keys differ):
+// monthlyIn: [{ item_name, brand, qty, unit_price, stock_qty }]
+// monthlyOut: [{ item_name, brand, qty, unit_price, stock_qty }]
+// stockItems: [{ item_name, brand, stock_qty, unit_price }]
+
+export function MonthlyInTable({ monthlyIn = [] }) {
+  const totalQty = monthlyIn.reduce((s,r)=>s+Number(r.qty||0),0);
+  const totalVal = monthlyIn.reduce((s,r)=>s+Number(r.qty||0)*Number(r.unit_price||0),0);
+  return (
+    <div className="card">
+      <h3>Items IN — Monthly</h3>
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Item</th><th>Brand</th><th>IN Qty</th><th>Unit Price</th><th>IN Value</th><th>Current Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          {monthlyIn.map((r,i)=>(
+            <tr key={i}>
+              <td>{r.item_name}</td>
+              <td>{r.brand}</td>
+              <td>{r.qty}</td>
+              <td>{peso(r.unit_price)}</td>
+              <td>{peso(Number(r.qty||0)*Number(r.unit_price||0))}</td>
+              <td>{r.stock_qty}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colSpan={2}>TOTAL</th>
+            <th>{totalQty}</th>
+            <th></th>
+            <th>{peso(totalVal)}</th>
+            <th></th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  );
+}
+
+export function MonthlyOutTable({ monthlyOut = [] }) {
+  const totalQty = monthlyOut.reduce((s,r)=>s+Number(r.qty||0),0);
+  const totalVal = monthlyOut.reduce((s,r)=>s+Number(r.qty||0)*Number(r.unit_price||0),0);
+  return (
+    <div className="card">
+      <h3>Items OUT — Monthly</h3>
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Item</th><th>Brand</th><th>OUT Qty</th><th>Unit Price</th><th>OUT Value</th><th>Current Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          {monthlyOut.map((r,i)=>(
+            <tr key={i}>
+              <td>{r.item_name}</td>
+              <td>{r.brand}</td>
+              <td>{r.qty}</td>
+              <td>{peso(r.unit_price)}</td>
+              <td>{peso(Number(r.qty||0)*Number(r.unit_price||0))}</td>
+              <td>{r.stock_qty}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colSpan={2}>TOTAL</th>
+            <th>{totalQty}</th>
+            <th></th>
+            <th>{peso(totalVal)}</th>
+            <th></th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  );
+}
+
+export function CurrentStockStatusTable({ stockItems = [] }) {
+  const totalVal = stockItems.reduce((s,r)=>s+Number(r.stock_qty||0)*Number(r.unit_price||0),0);
+  return (
+    <div className="card">
+      <h3>Current Stock Status</h3>
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Item</th><th>Brand</th><th>Stock Qty</th><th>Unit Price</th><th>Stock Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {stockItems.map((r,i)=>(
+            <tr key={i}>
+              <td>{r.item_name}</td>
+              <td>{r.brand}</td>
+              <td>{r.stock_qty}</td>
+              <td>{peso(r.unit_price)}</td>
+              <td>{peso(Number(r.stock_qty||0)*Number(r.unit_price||0))}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colSpan={4}>TOTAL STOCK VALUE</th>
+            <th>{peso(totalVal)}</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  );
+}
+
