@@ -28,25 +28,8 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
-  // ===== CONFIRM MODAL STATE =====
-  const [confirm, setConfirm] = useState(null);
-  const openConfirm = (message, onConfirm) => {
-    setConfirm({ message, onConfirm });
-  };
-  const closeConfirm = () => setConfirm(null);
-  const [session, setSession] = useState(null);
-  const [items, setItems] = useState([]);
-  const [stockInventory, setStockInventory] = useState([]);
-  const [transactions, setTransactions] = useState([]);
-  const [deletedTransactions, setDeletedTransactions] = useState([]);
-  const [deletedSearch, setDeletedSearch] = useState("");
-  const [inSearch, setInSearch] = useState("");
-  const [inFilter, setInFilter] = useState("all");
-  const [outSearch, setOutSearch] = useState("");
-  const [outFilter, setOutFilter] = useState("all");
-
-  // reset search when filter changes
-  useEffect(() => {
+  // ================= CONFIRM MODAL STATE =================
+(() => {
     setInSearch("");
   }, [inFilter]);
 
