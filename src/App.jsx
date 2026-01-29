@@ -29,7 +29,7 @@ const emptyRow = (colSpan, text) => (
   </tr>
 );
 
-export default function App() {
+function App() {
   // ================= CONFIRM MODAL STATE =================
 (() => {
     setInSearch("");
@@ -856,5 +856,5 @@ export default function App() {
                 )}
     </div>
   );
-
 }
+
