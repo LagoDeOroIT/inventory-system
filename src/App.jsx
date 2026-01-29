@@ -274,7 +274,8 @@ function App() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
-export default function App() {
+// REMOVED duplicate App declaration
+
 
   if (!session) {
     return (
