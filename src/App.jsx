@@ -274,6 +274,7 @@ export default function App() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+export default function App() {
 
   if (!session) {
     return (
@@ -855,3 +856,5 @@ export default function App() {
                 )}
     </div>
   );
+
+}
