@@ -815,7 +815,7 @@ export default function App() {
                 <th style={thtd}>Volume Pack</th>
                 <th style={thtd}>Current Stock</th>
                 <th style={thtd}>Unit Price</th>
-                <th style={thtd}>Stock Value</th>
+                <th style={thtd}>Total Stock Price</th>
                 <th style={thtd}>Actions</th>
               </tr>
             </thead>
