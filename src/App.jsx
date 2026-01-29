@@ -35,7 +35,7 @@ export default function App() {
 
   useEffect(() => {
     if (session) loadData();
-  }
+  }, [session]);
 
   // tabs
   const [activeTab, setActiveTab] = useState("stock");
