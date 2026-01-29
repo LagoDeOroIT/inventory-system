@@ -254,13 +254,28 @@ export default function App() {
   });
 
   // ================= MONTHLY TOTALS =================
+  const [selectedMonth, setSelectedMonth] = useState("all");
+
   const monthlyTotals = filteredTransactions.reduce((acc, t) => {
     if (!t.date) return acc;
     const month = t.date.slice(0, 7);
-    acc[month] = acc[month] || { IN: 0, OUT: 0 };
-    acc[month][t.type] += t.quantity * t.unit_price;
+    acc[month] = acc[month] || { IN: [], OUT: [] };
+    acc[month][t.type].push(t);
     return acc;
   }, {});
+
+  const availableMonths = Object.keys(monthlyTotals).sort().reverse();
+
+  const reportTransactions = selectedMonth === "all"
+    ? filteredTransactions
+    : filteredTransactions.filter(t => t.date?.startsWith(selectedMonth));
+
+  const inReport = reportTransactions.filter(t => t.type === "IN");
+  const outReport = reportTransactions.filter(t => t.type === "OUT");
+
+  const totalInValue = inReport.reduce((s, t) => s + t.quantity * t.unit_price, 0);
+  const totalOutValue = outReport.reduce((s, t) => s + t.quantity * t.unit_price, 0);
+ {});
 
   // ================= CLICK OUTSIDE =================
   useEffect(() => {
@@ -761,100 +776,85 @@ export default function App() {
       {activeTab === "report" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-          <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
-          <span style={{ fontSize: 12, color: "#6b7280" }}>Months tracked: {Object.keys(monthlyTotals).length}</span>
-          </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <h2 style={{ marginBottom: 4 }}>📊 Monthly Report</h2>
+              <select
+                value={selectedMonth}
+                onChange={e => setSelectedMonth(e.target.value)}
+                style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
+              >
+                <option value="all">All Months</option>
+                {availableMonths.map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
             <hr style={{ marginTop: 8 }} />
           </div>
-          <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Month</th>
-                <th style={thtd}>IN Total</th>
-                <th style={thtd}>OUT Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(monthlyTotals).length === 0 && emptyRow(3, "No data")}
-              {Object.entries(monthlyTotals)
-                .map(([m, v]) => (
-                  <tr key={m}>
-                    <td style={thtd}>{m}</td>
-                    <td style={thtd}>₱{v.IN.toFixed(2)}</td>
-                    <td style={thtd}>₱{v.OUT.toFixed(2)}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-        </>
-      )}
 
-       {activeTab === "stock" && (
-      <>
-        {/* STOCK INVENTORY HEADER */}
-        <div
-          style={{
-            position: "sticky",
-            top: 0,
-            background: "#fff",
-            zIndex: 5,
-            paddingBottom: 8,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-            <h2 style={{ marginBottom: 4 }}>📦 Stock Inventory</h2>
-            <span style={{ fontSize: 12, color: "#6b7280" }}>
-              Total items: {stockInventory.length} | Low stock:{" "}
-              {stockInventory.filter(i => i.stock <= 5).length}
-            </span>
-          </div>
-          <hr style={{ marginTop: 8 }} />
-        </div>
-
-        {/* STOCK TABLE */}
-        <div style={{ maxHeight: 400, overflowY: "auto" }}>
+          <h4>⬇️ IN Monthly Report</h4>
           <table style={tableStyle}>
             <thead>
               <tr>
                 <th style={thtd}>Item</th>
                 <th style={thtd}>Brand</th>
-                <th style={thtd}>Volume Pack</th>
-                <th style={thtd}>Current Stock</th>
+                <th style={thtd}>Volume/Pack</th>
+                <th style={thtd}>Quantity IN</th>
                 <th style={thtd}>Unit Price</th>
-                <th style={thtd}>Total Stock Price</th>
-                <th style={thtd}>Actions</th>
+                <th style={thtd}>Total</th>
               </tr>
             </thead>
             <tbody>
-              {stockInventory.length === 0 && emptyRow(6, "No stock data")}
-              {stockInventory.map(i => (
-                <tr
-                  key={i.id}
-                  style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}
-                >
-                  <td style={thtd}>{i.item_name}</td>
-                  <td style={thtd}>{i.brand || "—"}</td>
-                  <td style={thtd}>{i.stock}</td>
-                  <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-                  <td style={thtd}>
-                    ₱{(i.stock * (i.unit_price || 0)).toFixed(2)}
-                  </td>
-                  <td style={thtd}>
-                    <button
-                      style={{ marginRight: 6 }}
-                      onClick={() =>
-                        openConfirm("Edit this item?", () => {
-                          setIsEditingItem(true);
-                          setStockEditItem(i);
-                          setEditingItemId(i.id);
-                          setNewItem({
-                            item_name: i.item_name,
-                            brand: i.brand || "",
-                            unit_price: i.unit_price,
-                          });
+              {inReport.length === 0 && emptyRow(6, "No IN data")}
+              {inReport.map(t => (
+                <tr key={t.id}>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.brand || "—"}</td>
+                  <td style={thtd}>{t.volume_pack || "—"}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>₱{t.unit_price.toFixed(2)}</td>
+                  <td style={thtd}>₱{(t.quantity * t.unit_price).toFixed(2)}</td>
+                </tr>
+              ))}
+              <tr>
+                <td style={thtd} colSpan={5}><strong>Total IN Value</strong></td>
+                <td style={thtd}><strong>₱{totalInValue.toFixed(2)}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h4 style={{ marginTop: 20 }}>⬆️ OUT Monthly Report</h4>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Volume/Pack</th>
+                <th style={thtd}>Quantity OUT</th>
+                <th style={thtd}>Unit Price</th>
+                <th style={thtd}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {outReport.length === 0 && emptyRow(6, "No OUT data")}
+              {outReport.map(t => (
+                <tr key={t.id}>
+                  <td style={thtd}>{t.items?.item_name}</td>
+                  <td style={thtd}>{t.brand || "—"}</td>
+                  <td style={thtd}>{t.volume_pack || "—"}</td>
+                  <td style={thtd}>{t.quantity}</td>
+                  <td style={thtd}>₱{t.unit_price.toFixed(2)}</td>
+                  <td style={thtd}>₱{(t.quantity * t.unit_price).toFixed(2)}</td>
+                </tr>
+              ))}
+              <tr>
+                <td style={thtd} colSpan={5}><strong>Total OUT Value</strong></td>
+                <td style={thtd}><strong>₱{totalOutValue.toFixed(2)}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </>
+      )};
                         })
                       }
                     >
