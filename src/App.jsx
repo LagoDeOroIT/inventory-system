@@ -1,5 +1,6 @@
-export default function App() {
-import React, { useEffect, useRef, useState } from "react";     
+import React, { useEffect, useRef, useState } from "react";
+
+export default function App() {     
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -854,5 +855,5 @@ export default function App() {
                 )}
     </div>
   );
-
 }
+
