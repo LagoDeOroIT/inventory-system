@@ -207,9 +207,29 @@ export default function App() {
   .filter(i => selectedStockRoom === "All Stock Rooms" || i.location === selectedStockRoom)
   .map(i => {
     const related = transactions.filter(t => t.item_id === i.id);
-    const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? t.quantity : -t.quantity), 0);
-    return { ...i, stock };
+
+    const stock = related.reduce(
+      (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
+      0
+    );
+
+    // latest transaction = source of truth for price / brand
+    const latestTx = related
+      .slice()
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+
+    return {
+      id: i.id,
+      item_name: i.item_name,
+      brand: latestTx?.brand || i.brand || "—",
+      volume_pack: latestTx?.volume_pack || "—",
+      unit_price: Number(latestTx?.unit_price ?? i.unit_price ?? 0),
+      stock,
+      location: i.location
+    };
   });
+
+
 
   // ================= ADD NEW ITEM (STOCK TAB) =================
 
@@ -850,19 +870,19 @@ export default function App() {
               </tr>
             </thead>
             <tbody>
-              {stockInventory.length === 0 && emptyRow(6, "No stock data")}
+              {stockInventory.length === 0 && emptyRow(7, "No stock data")}
               {stockInventory.map(i => (
                 <tr
                   key={i.id}
                   style={i.stock <= 5 ? { background: "#fee2e2" } : undefined}
                 >
                   <td style={thtd}>{i.item_name}</td>
-                  <td style={thtd}>{i.brand || "—"}</td>
+                  <td style={thtd}>{i.brand}</td>
+                  <td style={thtd}>{i.volume_pack}</td>
                   <td style={thtd}>{i.stock}</td>
-                  <td style={thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-                  <td style={thtd}>
-                    ₱{(i.stock * (i.unit_price || 0)).toFixed(2)}
-                  </td>
+                  <td style={thtd}>₱{i.unit_price.toFixed(2)}</td>
+                  <td style={thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
+
                   <td style={thtd}>
                     <button
                       style={{ marginRight: 6 }}
