@@ -550,32 +550,10 @@ export default function App() {
                   style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
                 />
               </div>
-              <style>
-<style>
-/* TABLE BORDERS – FINAL, VALID */
-table {
-    border-collapse: collapse;
-}
-
-table th,
-table td {
-    border: 1px solid #000;
-}
-</style>
+              
 </style>
 
-<style>
-/* TABLE BORDER FIX – CLEAN */
-<style>
-table {
-    border-collapse: collapse;
-}
 
-table th,
-table td {
-    border: 1px solid #000;
-}
-</style>
 
 <table class="table table-bordered" class="table table-bordered" style={tableStyle}>
                 <thead>
