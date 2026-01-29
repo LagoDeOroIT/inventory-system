@@ -1,3 +1,4 @@
+export default function App() {
 import React, { useEffect, useRef, useState } from "react";     
 import { createClient } from "@supabase/supabase-js";
 
@@ -853,3 +854,5 @@ export default function App() {
                 )}
     </div>
   );
+
+}
