@@ -229,53 +229,6 @@ export default function App() {
     };
   });
 
-
-
-  // ================= ADD NEW ITEM (STOCK TAB) =================
-
-  const [showAddItem, setShowAddItem] = useState(false);
-  const [isEditingItem, setIsEditingItem] = useState(false);
-  const [editingItemId, setEditingItemId] = useState(null);
-  const [stockEditItem, setStockEditItem] = useState(null);
-
-  const [newItem, setNewItem] = useState({
-  item_name: "",
-  brand: "",
-  unit_price: "",
-  
-  location: selectedStockRoom !== "All Stock Rooms" ? selectedStockRoom : "",
-});
-
-  const handleSaveItem = async () => {
-  if (!selectedStockRoom || selectedStockRoom === "All Stock Rooms") {
-    alert("Please select a stock room first");
-    return;
-  }
-
-  const payload = {
-    item_name: newItem.item_name,
-    brand: newItem.brand,
-    unit_price: Number(newItem.unit_price) || 0,
-    location: selectedStockRoom,
-  };
-
-  const { error } = isEditingItem && editingItemId
-    ? await supabase.from("items").update(payload).eq("id", editingItemId)
-    : await supabase.from("items").insert([payload]);
-
-  if (error) {
-    console.error(error);
-    alert(error.message);
-    return;
-  }
-
-  setNewItem({ item_name: "", brand: "", unit_price: "", location: selectedStockRoom });
-  setIsEditingItem(false);
-  setStockEditItem(null);
-  setShowAddItem(false);
-  loadData();
-};
-
   // ================= FILTERED TRANSACTIONS =================
   const filteredTransactions = transactions.filter(t => {
     if (selectedStockRoom === "All Stock Rooms") return true;
@@ -452,17 +405,17 @@ export default function App() {
       {activeTab === "transactions" && (
         <>
           <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-    <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
-    <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
-  </div>
-  <hr style={{ marginTop: 8 }} />
-</div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+                <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
+                <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
+              </div>
+            <hr style={{ marginTop: 8 }} />
+          </div>
           <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-    <div>
-      <h3 style={{ margin: 0 }}>Inventory Transaction Entry</h3>
-      <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <h3 style={{ margin: 0 }}>Inventory Transaction Entry</h3>
+            <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
         Record inbound and outbound stock movements to maintain accurate inventory records.
       </p>
     </div>
