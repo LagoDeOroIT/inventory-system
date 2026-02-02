@@ -1,7 +1,4 @@
-
-
-import React, { // (useEffect hook moved inside component)
-  useEffect, useRef, useState } from "react";     
+import React, { useEffect, useRef, useState } from "react";     
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -22,17 +19,6 @@ const emptyRow = (colSpan, text) => (
 
 export default function App() {
   // ===== CONFIRM MODAL STATE =====
-  // Close confirm modal on ESC key
-  useEffect(() => {
-    if (!confirm) return;
-    const onKeyDown = (e) => {
-      if (e.key === "Escape") setConfirm(null);
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [confirm]);
-
-
   const [confirm, setConfirm] = useState(null);
   const openConfirm = (message, onConfirm) => {
     setConfirm({ message, onConfirm });
