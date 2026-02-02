@@ -402,12 +402,10 @@ export default function App() {
   + Add Inventory Transaction
 </button>
 
-<!-- Inventory Transaction Modal -->
-<div id="inventoryModal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <h2>Inventory Transaction Entry</h2>
-    <p class="subtitle">Record inbound and outbound stock movements to maintain accurate inventory records.</p>
+{/* Inventory Transaction Modal */}
+<div id="inventoryModal" className="modal">
+  <div className="modal-content">
+    <span className="close">&times;</span>
 
     <form id="inventoryForm">
       <input type="text" placeholder="Search by item name or SKU" required />
@@ -423,7 +421,7 @@ export default function App() {
       <input type="text" placeholder="Pack Size (e.g., 11 kg)" />
       <input type="date" required />
 
-      <button type="submit" class="btn-save">Save Transaction</button>
+      <button type="submit" className="btn-save">Save Transaction</button>
     </form>
   </div>
 </div>
