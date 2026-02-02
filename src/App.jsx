@@ -981,35 +981,4 @@ useEffect(() => {
 
 /* ===== Modal Styles ===== */
 /* You can move this to your CSS file */
-<style>{`
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
 
-.modal-content {
-  background: #fff;
-  width: 90%;
-  max-width: 900px;
-  border-radius: 12px;
-  padding: 20px;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.close-modal-btn {
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-}
-`}</style>
