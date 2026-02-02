@@ -430,8 +430,7 @@ export default function App() {
   </div>
 )}
 </div>
-      {/* FIX: wrapped correctly inside JSX return */}
-      <div style={{ display: "flex", gap: 16 }}>
+            <div style={{ display: "flex", gap: 16 }}>
 
             
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
