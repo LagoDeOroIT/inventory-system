@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+
 import React, { useEffect, useRef, useState } from "react";     
 import { createClient } from "@supabase/supabase-js";
 
@@ -925,3 +927,86 @@ export default function App() {
     </div>
     );
 }
+
+
+// ===== Modal State =====
+const [showTransactionModal, setShowTransactionModal] = useState(false);
+
+{/* Trigger Button */}
+<button
+  className="open-modal-btn"
+  onClick={() => setShowTransactionModal(true)}
+>
+  + New Inventory Transaction
+</button>
+
+{/* Modal Overlay */}
+{showTransactionModal && (
+  <div
+    className="modal-overlay"
+    onClick={() => setShowTransactionModal(false)}
+  >
+  <div className="modal-overlay">
+    <div
+        className="modal-content"
+        onClick={(e) => e.stopPropagation()}
+      >
+      <div className="modal-header">
+        <h2>Inventory Transaction Entry</h2>
+        <button
+          className="close-modal-btn"
+          onClick={() => setShowTransactionModal(false)}
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Existing Inventory Transaction form goes here unchanged */}
+    </div>
+  </div>
+)}
+
+
+// ===== Close on ESC key =====
+useEffect(() => {
+  const onKeyDown = (e) => {
+    if (e.key === "Escape") setShowTransactionModal(false);
+  };
+  if (showTransactionModal) window.addEventListener("keydown", onKeyDown);
+  return () => window.removeEventListener("keydown", onKeyDown);
+}, [showTransactionModal]);
+
+/* ===== Modal Styles ===== */
+/* You can move this to your CSS file */
+<style>{`
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #fff;
+  width: 90%;
+  max-width: 900px;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+`}</style>
