@@ -933,6 +933,15 @@ export default function App() {
 // ===== Modal State =====
 const [showTransactionModal, setShowTransactionModal] = useState(false);
 
+// ===== Close on ESC key =====
+useEffect(() => {
+  const onKeyDown = (e) => {
+    if (e.key === "Escape") setShowTransactionModal(false);
+  };
+  if (showTransactionModal) window.addEventListener("keydown", onKeyDown);
+  return () => window.removeEventListener("keydown", onKeyDown);
+}, [showTransactionModal]);
+
 {/* Trigger Button */}
 <button
   className="open-modal-btn"
@@ -968,14 +977,7 @@ const [showTransactionModal, setShowTransactionModal] = useState(false);
 )}
 
 
-// ===== Close on ESC key =====
-useEffect(() => {
-  const onKeyDown = (e) => {
-    if (e.key === "Escape") setShowTransactionModal(false);
-  };
-  if (showTransactionModal) window.addEventListener("keydown", onKeyDown);
-  return () => window.removeEventListener("keydown", onKeyDown);
-}, [showTransactionModal]);
+
 
 /* ===== Modal Styles ===== */
 /* You can move this to your CSS file */
