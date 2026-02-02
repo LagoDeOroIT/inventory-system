@@ -426,22 +426,7 @@ export default function App() {
   </div>
 </div>
 
-<!-- Modal Script -->
-<!-- Modal Script -->
-<script>
-  const modal = document.getElementById("inventoryModal");
-  const openBtn = document.getElementById("openInventoryModal");
-  const closeBtn = document.querySelector(".close");
-
-  if (openBtn && modal && closeBtn) {
-    openBtn.onclick = () => modal.style.display = "block";
-    closeBtn.onclick = () => modal.style.display = "none";
-
-    window.onclick = (e) => {
-      if (e.target === modal) modal.style.display = "none";
-    };
-  }
-</script>
+{/* Modal logic handled via React state – script removed */}
   </div>
 )}
 </div>
