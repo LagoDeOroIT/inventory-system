@@ -22,6 +22,17 @@ const emptyRow = (colSpan, text) => (
 
 export default function App() {
   // ===== CONFIRM MODAL STATE =====
+  // Close confirm modal on ESC key
+  useEffect(() => {
+    if (!confirm) return;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setConfirm(null);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [confirm]);
+
+
   const [confirm, setConfirm] = useState(null);
   const openConfirm = (message, onConfirm) => {
     setConfirm({ message, onConfirm });
@@ -928,57 +939,3 @@ export default function App() {
     </div>
     );
 }
-
-
-// ===== Modal State =====
-const [showTransactionModal, setShowTransactionModal] = useState(false);
-
-// ===== Close on ESC key =====
-useEffect(() => {
-  const onKeyDown = (e) => {
-    if (e.key === "Escape") setShowTransactionModal(false);
-  };
-  if (showTransactionModal) window.addEventListener("keydown", onKeyDown);
-  return () => window.removeEventListener("keydown", onKeyDown);
-}, [showTransactionModal]);
-
-{/* Trigger Button */}
-<button
-  className="open-modal-btn"
-  onClick={() => setShowTransactionModal(true)}
->
-  + New Inventory Transaction
-</button>
-
-{/* Modal Overlay */}
-{showTransactionModal && (
-  <div
-    className="modal-overlay"
-    onClick={() => setShowTransactionModal(false)}
-  >
-  <div className="modal-overlay">
-    <div
-        className="modal-content"
-        onClick={(e) => e.stopPropagation()}
-      >
-      <div className="modal-header">
-        <h2>Inventory Transaction Entry</h2>
-        <button
-          className="close-modal-btn"
-          onClick={() => setShowTransactionModal(false)}
-        >
-          ✕
-        </button>
-      </div>
-
-      {/* Existing Inventory Transaction form goes here unchanged */}
-    </div>
-  </div>
-)}
-
-
-
-
-/* ===== Modal Styles ===== */
-/* You can move this to your CSS file */
-
