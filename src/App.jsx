@@ -414,110 +414,51 @@ export default function App() {
           <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <h3 style={{ margin: 0 }}>Inventory Transaction Entry</h3>
-            <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
-        Record inbound and outbound stock movements to maintain accurate inventory records.
-      </p>
-    </div>
-    <button
-      onClick={() => setShowForm(v => !v)}
-      style={{
-        background: "#1f2937",
-        color: "#fff",
-        border: "none",
-        borderRadius: 6,
-        padding: "6px 14px",
-        cursor: "pointer",
-        fontSize: 12,
-        fontWeight: 600,
-      }}
-    >
-      {showForm ? "Hide" : "Add Transaction"}
-    </button>
+            <h3 style={{ margin: 0 }}><!-- Inventory Transaction Modal Trigger -->
+<button id="openInventoryModal" class="btn-primary">+ Add Inventory Transaction</button>
+
+<!-- Inventory Transaction Modal -->
+<div id="inventoryModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Inventory Transaction Entry</h2>
+    <p class="subtitle">Record inbound and outbound stock movements to maintain accurate inventory records.</p>
+
+    <form id="inventoryForm">
+      <input type="text" placeholder="Search by item name or SKU" required />
+
+      <select required>
+        <option value="Inbound">Inbound</option>
+        <option value="Outbound">Outbound</option>
+      </select>
+
+      <input type="number" placeholder="Quantity (Units)" required />
+      <input type="number" placeholder="Price" step="0.01" />
+      <input type="text" placeholder="Brand / Manufacturer" />
+      <input type="text" placeholder="Pack Size (e.g., 11 kg)" />
+      <input type="date" required />
+
+      <button type="submit" class="btn-save">Save Transaction</button>
+    </form>
   </div>
+</div>
 
-  {showForm && (
-  <div
-    ref={searchRef}
-    style={{
-      display: "grid",
-      gridTemplateColumns: "minmax(260px,2.5fr) minmax(140px,1.1fr) minmax(140px,1fr) minmax(180px,1.2fr) minmax(180px,1.4fr) minmax(150px,1.1fr)",
-      gap: 12,
-      marginTop: 12,
-      alignItems: "center",
-      position: "relative",
-    }}
-  >
-    <div style={{ position: "relative" }}>
-      <input style={{ width: "100%", height: 34 }}         placeholder="Search by item name or SKU"
-        value={itemSearch}
-        onChange={e => {
-          setItemSearch(e.target.value);
-          setDropdownOpen(true);
-        }}
-        onFocus={() => setDropdownOpen(true)}
-      />
+<!-- Modal Script -->
+<!-- Modal Script -->
+<script>
+  const modal = document.getElementById("inventoryModal");
+  const openBtn = document.getElementById("openInventoryModal");
+  const closeBtn = document.querySelector(".close");
 
-      {dropdownOpen && (
-        <div>
-          {filteredItemsForSearch.map(i => (
-            <div
-              key={i.id}
-              onMouseDown={() => {
-                setForm(f => ({ ...f, item_id: i.id }));
-                setItemSearch(i.item_name);
-                setDropdownOpen(false);
-              }}
-            >
-              {i.item_name}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+  if (openBtn && modal && closeBtn) {
+    openBtn.onclick = () => modal.style.display = "block";
+    closeBtn.onclick = () => modal.style.display = "none";
 
-    <select style={{ width: "100%", height: 34 }}       value={form.type}
-      onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-    >
-      <option value="IN">Inbound</option>
-      <option value="OUT">Outbound</option>
-    </select>
-
-    <input style={{ width: "100%", height: 34 }}   placeholder="Quantity (Units)"
-  value={form.quantity}
-  onChange={e => setForm({ ...form, quantity: e.target.value })}
-/>
-
-<input
-  type="number"
-  step="0.01"
-  min="0"
-  placeholder="Price"
-  value={form.unit_price}
-  onChange={e => setForm({ ...form, unit_price: e.target.value })}
-  style={{ width: "100%", height: 34 }}
-/>
-
-
-
-<input style={{ width: "100%", height: 34 }}   placeholder="Brand / Manufacturer"
-  value={form.brand || ""}
-  onChange={e => setForm({ ...form, brand: e.target.value })}
-/>
-
-    <input style={{ width: "100%", height: 34 }}       placeholder="Pack Size (e.g., 11 kg)"
-      value={form.volume_pack}
-      onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-    />
-
-    <input style={{ width: "100%", height: 34 }}       type="date"
-      value={form.date}
-      onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-    />
-
-    <button onClick={saveTransaction} style={{ gridColumn: "1 / -1", marginTop: 8, padding: "8px 14px", borderRadius: 6, border: "1px solid #1f2937", background: "#1f2937", color: "#fff", fontWeight: 600 }}>
-      {editingId ? "Update Transaction" : "Save Transaction"}
-    </button>
+    window.onclick = (e) => {
+      if (e.target === modal) modal.style.display = "none";
+    };
+  }
+</script>
   </div>
 )}
 </div>
