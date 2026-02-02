@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
 
-import React, { useEffect, useRef, useState } from "react";     
+
+import React, { // (useEffect hook moved inside component)
+  useEffect, useRef, useState } from "react";     
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
