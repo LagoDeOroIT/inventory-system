@@ -391,46 +391,138 @@ export default function App() {
       {confirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
           <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
-            <h3 style={{ margin: 0 }}>
-  Inventory Transactions
-</h3>
-<button
-  id="openInventoryModal"
-  className="btn-primary"
-  style={{ marginLeft: "auto" }}
->
-  + Add Inventory Transaction
-</button>
+            <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
+            <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
+              <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
-{/* Inventory Transaction Modal */}
-<div id="inventoryModal" className="modal">
-  <div className="modal-content">
-    <span className="close">&times;</span>
-
-    <form id="inventoryForm">
-      <input type="text" placeholder="Search by item name or SKU" required />
-
-      <select required>
-        <option value="Inbound">Inbound</option>
-        <option value="Outbound">Outbound</option>
-      </select>
-
-      <input type="number" placeholder="Quantity (Units)" required />
-      <input type="number" placeholder="Price" step="0.01" />
-      <input type="text" placeholder="Brand / Manufacturer" />
-      <input type="text" placeholder="Pack Size (e.g., 11 kg)" />
-      <input type="date" required />
-
-      <button type="submit" className="btn-save">Save Transaction</button>
-    </form>
+      
+      {activeTab === "transactions" && (
+        <>
+          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+                <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
+                <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
+              </div>
+            <hr style={{ marginTop: 8 }} />
+          </div>
+          <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <h3 style={{ margin: 0 }}>Inventory Transaction Entry</h3>
+            <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+        Record inbound and outbound stock movements to maintain accurate inventory records.
+      </p>
+    </div>
+    <button
+      onClick={() => setShowForm(v => !v)}
+      style={{
+        background: "#1f2937",
+        color: "#fff",
+        border: "none",
+        borderRadius: 6,
+        padding: "6px 14px",
+        cursor: "pointer",
+        fontSize: 12,
+        fontWeight: 600,
+      }}
+    >
+      {showForm ? "Hide" : "Add Transaction"}
+    </button>
   </div>
-</div>
 
-{/* Modal logic handled via React state – script removed */}
+  {showForm && (
+  <div
+    ref={searchRef}
+    style={{
+      display: "grid",
+      gridTemplateColumns: "minmax(260px,2.5fr) minmax(140px,1.1fr) minmax(140px,1fr) minmax(180px,1.2fr) minmax(180px,1.4fr) minmax(150px,1.1fr)",
+      gap: 12,
+      marginTop: 12,
+      alignItems: "center",
+      position: "relative",
+    }}
+  >
+    <div style={{ position: "relative" }}>
+      <input style={{ width: "100%", height: 34 }}         placeholder="Search by item name or SKU"
+        value={itemSearch}
+        onChange={e => {
+          setItemSearch(e.target.value);
+          setDropdownOpen(true);
+        }}
+        onFocus={() => setDropdownOpen(true)}
+      />
+
+      {dropdownOpen && (
+        <div>
+          {filteredItemsForSearch.map(i => (
+            <div
+              key={i.id}
+              onMouseDown={() => {
+                setForm(f => ({ ...f, item_id: i.id }));
+                setItemSearch(i.item_name);
+                setDropdownOpen(false);
+              }}
+            >
+              {i.item_name}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <select style={{ width: "100%", height: 34 }}       value={form.type}
+      onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+    >
+      <option value="IN">Inbound</option>
+      <option value="OUT">Outbound</option>
+    </select>
+
+    <input style={{ width: "100%", height: 34 }}   placeholder="Quantity (Units)"
+  value={form.quantity}
+  onChange={e => setForm({ ...form, quantity: e.target.value })}
+/>
+
+<input
+  type="number"
+  step="0.01"
+  min="0"
+  placeholder="Price"
+  value={form.unit_price}
+  onChange={e => setForm({ ...form, unit_price: e.target.value })}
+  style={{ width: "100%", height: 34 }}
+/>
+
+
+
+<input style={{ width: "100%", height: 34 }}   placeholder="Brand / Manufacturer"
+  value={form.brand || ""}
+  onChange={e => setForm({ ...form, brand: e.target.value })}
+/>
+
+    <input style={{ width: "100%", height: 34 }}       placeholder="Pack Size (e.g., 11 kg)"
+      value={form.volume_pack}
+      onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
+    />
+
+    <input style={{ width: "100%", height: 34 }}       type="date"
+      value={form.date}
+      onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+    />
+
+    <button onClick={saveTransaction} style={{ gridColumn: "1 / -1", marginTop: 8, padding: "8px 14px", borderRadius: 6, border: "1px solid #1f2937", background: "#1f2937", color: "#fff", fontWeight: 600 }}>
+      {editingId ? "Update Transaction" : "Save Transaction"}
+    </button>
   </div>
 )}
 </div>
-            <div style={{ display: "flex", gap: 16 }}>
+
+<div style={{ display: "flex", gap: 16 }}>
 
             
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
