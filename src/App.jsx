@@ -131,8 +131,9 @@ export default function App() {
   useEffect(() => {
     if (session) loadData();
 
-    // 🔒 CLOSE MODAL AFTER SAVE / UPDATE
-    setShowForm(false);
+    // ✅ Auto-close modal after successful save / update
+    setShowModal(false);
+
   }, [session]);
 
   // ================= SAVE =================
