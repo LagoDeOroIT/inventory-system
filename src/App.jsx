@@ -412,31 +412,25 @@ export default function App() {
       <hr style={{ marginTop: 8 }} />
     </div>
 
-    <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <h3 style={{ margin: 0 }}>Inventory Transaction Entry</h3>
-          <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
-            Record inbound and outbound stock movements to maintain accurate inventory records.
-          </p>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          style={{
-            background: "#1f2937",
-            color: "#fff",
-            border: "none",
-            borderRadius: 6,
-            padding: "6px 14px",
-            cursor: "pointer",
-            fontSize: 12,
-            fontWeight: 600,
-          }}
-        >
-          Add Transaction
-        </button>
-      </div>
-    </div>
+   <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 24 }}>
+  <button
+    onClick={() => setShowForm(true)}
+    style={{
+      padding: "12px 20px",
+      backgroundColor: "#111827",
+      color: "#ffffff",
+      border: "none",
+      borderRadius: 8,
+      fontSize: 14,
+      fontWeight: 600,
+      cursor: "pointer",
+      boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
+    }}
+  >
+    + Add Transaction
+  </button>
+</div>
+
 
     {/* ================= TRANSACTIONS FORM MODAL ================= */}
     {showForm && (
