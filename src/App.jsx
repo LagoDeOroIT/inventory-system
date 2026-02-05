@@ -130,6 +130,9 @@ export default function App() {
 
   useEffect(() => {
     if (session) loadData();
+
+    // 🔒 CLOSE MODAL AFTER SAVE / UPDATE
+    setShowForm(false);
   }, [session]);
 
   // ================= SAVE =================
