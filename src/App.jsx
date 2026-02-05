@@ -419,108 +419,83 @@ export default function App() {
         Record inbound and outbound stock movements to maintain accurate inventory records.
       </p>
     </div>
-    <button
-      onClick={() => setShowForm(v => !v)}
-      style={{
-        background: "#1f2937",
-        color: "#fff",
-        border: "none",
-        borderRadius: 6,
-        padding: "6px 14px",
-        cursor: "pointer",
-        fontSize: 12,
-        fontWeight: 600,
-      }}
-    >
-      {showForm ? "Hide" : "Add Transaction"}
-    </button>
-  </div>
 
-  {showForm && (
-  <div
-    ref={searchRef}
-    style={{
-      display: "grid",
-      gridTemplateColumns: "minmax(260px,2.5fr) minmax(140px,1.1fr) minmax(140px,1fr) minmax(180px,1.2fr) minmax(180px,1.4fr) minmax(150px,1.1fr)",
-      gap: 12,
-      marginTop: 12,
-      alignItems: "center",
-      position: "relative",
-    }}
-  >
-    <div style={{ position: "relative" }}>
-      <input style={{ width: "100%", height: 34 }}         placeholder="Search by item name or SKU"
-        value={itemSearch}
-        onChange={e => {
-          setItemSearch(e.target.value);
-          setDropdownOpen(true);
-        }}
-        onFocus={() => setDropdownOpen(true)}
-      />
+  export default function Inventory() {
+  const [showModal, setShowModal] = useState(false);
 
-      {dropdownOpen && (
-        <div>
-          {filteredItemsForSearch.map(i => (
-            <div
-              key={i.id}
-              onMouseDown={() => {
-                setForm(f => ({ ...f, item_id: i.id }));
-                setItemSearch(i.item_name);
-                setDropdownOpen(false);
-              }}
-            >
-              {i.item_name}
+  const handleSaveTransaction = () => {
+    // existing save logic stays here
+    setShowModal(false);
+  };
+              
+     return (
+    <div className="p-6">
+      {/* Open Modal Button */}
+      <button
+        onClick={() => setShowModal(true)}
+        className="px-4 py-2 bg-black text-white rounded"
+      >
+        New Inventory Transaction
+      </button>
+
+      {/* MODAL */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white w-full max-w-5xl rounded-lg shadow-lg p-6 relative">
+
+            {/* Header */}
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-xl font-bold">Inventory Transaction Entry</h2>
+                <p className="text-sm text-gray-600">
+                  Record inbound and outbound stock movements to maintain accurate inventory records.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-500 hover:text-black text-xl"
+              >
+                ✕
+              </button>
             </div>
-          ))}
+
+            {/* Form */}
+            <div className="grid grid-cols-6 gap-3 mb-6">
+              <input className="col-span-2 border p-2 rounded" placeholder="Search by item name or SKU" />
+              <select className="border p-2 rounded">
+                <option>Inbound</option>
+                <option>Outbound</option>
+              </select>
+              <input className="border p-2 rounded" placeholder="Quantity (Units)" />
+              <input className="border p-2 rounded" placeholder="Price" />
+              <input className="border p-2 rounded" placeholder="Brand / Manufacturer" />
+              <input className="border p-2 rounded" placeholder="Pack Size (e.g., 11 kg)" />
+              <input type="date" className="border p-2 rounded col-span-2" />
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 border rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveTransaction}
+                className="px-6 py-2 bg-black text-white rounded"
+              >
+                Save Transaction
+              </button>
+            </div>
+
+          </div>
         </div>
       )}
     </div>
+  );
+}
 
-    <select style={{ width: "100%", height: 34 }}       value={form.type}
-      onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-    >
-      <option value="IN">Inbound</option>
-      <option value="OUT">Outbound</option>
-    </select>
-
-    <input style={{ width: "100%", height: 34 }}   placeholder="Quantity (Units)"
-  value={form.quantity}
-  onChange={e => setForm({ ...form, quantity: e.target.value })}
-/>
-
-<input
-  type="number"
-  step="0.01"
-  min="0"
-  placeholder="Price"
-  value={form.unit_price}
-  onChange={e => setForm({ ...form, unit_price: e.target.value })}
-  style={{ width: "100%", height: 34 }}
-/>
-
-
-
-<input style={{ width: "100%", height: 34 }}   placeholder="Brand / Manufacturer"
-  value={form.brand || ""}
-  onChange={e => setForm({ ...form, brand: e.target.value })}
-/>
-
-    <input style={{ width: "100%", height: 34 }}       placeholder="Pack Size (e.g., 11 kg)"
-      value={form.volume_pack}
-      onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-    />
-
-    <input style={{ width: "100%", height: 34 }}       type="date"
-      value={form.date}
-      onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-    />
-
-    <button onClick={saveTransaction} style={{ gridColumn: "1 / -1", marginTop: 8, padding: "8px 14px", borderRadius: 6, border: "1px solid #1f2937", background: "#1f2937", color: "#fff", fontWeight: 600 }}>
-      {editingId ? "Update Transaction" : "Save Transaction"}
-    </button>
-  </div>
-)}
-</div>
 
 <div style={{ display: "flex", gap: 16 }}>
 
