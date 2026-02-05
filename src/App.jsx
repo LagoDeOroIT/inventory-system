@@ -403,126 +403,216 @@ export default function App() {
 
       
       {activeTab === "transactions" && (
-        <>
-          <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-                <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
-                <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
-              </div>
-            <hr style={{ marginTop: 8 }} />
-          </div>
-          <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <h3 style={{ margin: 0 }}>Inventory Transaction Entry</h3>
-            <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
-        Record inbound and outbound stock movements to maintain accurate inventory records.
-      </p>
+  <>
+    <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+        <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
+        <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
+      </div>
+      <hr style={{ marginTop: 8 }} />
     </div>
-    <button
-      onClick={() => setShowForm(v => !v)}
-      style={{
-        background: "#1f2937",
-        color: "#fff",
-        border: "none",
-        borderRadius: 6,
-        padding: "6px 14px",
-        cursor: "pointer",
-        fontSize: 12,
-        fontWeight: 600,
-      }}
-    >
-      {showForm ? "Hide" : "Add Transaction"}
-    </button>
-  </div>
 
-  {showForm && (
-  <div
-    ref={searchRef}
-    style={{
-      display: "grid",
-      gridTemplateColumns: "minmax(260px,2.5fr) minmax(140px,1.1fr) minmax(140px,1fr) minmax(180px,1.2fr) minmax(180px,1.4fr) minmax(150px,1.1fr)",
-      gap: 12,
-      marginTop: 12,
-      alignItems: "center",
-      position: "relative",
-    }}
-  >
-    <div style={{ position: "relative" }}>
-      <input style={{ width: "100%", height: 34 }}         placeholder="Search by item name or SKU"
-        value={itemSearch}
-        onChange={e => {
-          setItemSearch(e.target.value);
-          setDropdownOpen(true);
-        }}
-        onFocus={() => setDropdownOpen(true)}
-      />
-
-      {dropdownOpen && (
+    <div style={{ marginBottom: 20, border: "1px solid #e5e7eb", padding: 16, borderRadius: 8 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          {filteredItemsForSearch.map(i => (
-            <div
-              key={i.id}
-              onMouseDown={() => {
-                setForm(f => ({ ...f, item_id: i.id }));
-                setItemSearch(i.item_name);
-                setDropdownOpen(false);
+          <h3 style={{ margin: 0 }}>Inventory Transaction Entry</h3>
+          <p style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+            Record inbound and outbound stock movements to maintain accurate inventory records.
+          </p>
+        </div>
+        <button
+          onClick={() => setShowForm(true)}
+          style={{
+            background: "#1f2937",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            padding: "6px 14px",
+            cursor: "pointer",
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+          Add Transaction
+        </button>
+      </div>
+    </div>
+
+    {/* ================= TRANSACTIONS FORM MODAL ================= */}
+    {showForm && (
+      <div style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.55)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000
+      }}>
+        <div style={{
+          background: "#fff",
+          padding: 24,
+          borderRadius: 8,
+          width: 700,
+          maxHeight: "90vh",
+          overflowY: "auto",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+          position: "relative"
+        }}>
+          <h3 style={{ marginTop: 0, marginBottom: 16 }}>{editingId ? "Edit Transaction" : "Add Transaction"}</h3>
+
+          <button
+            onClick={() => {
+              if (editingId && isFormChanged()) {
+                openConfirm("Discard unsaved changes?", () => {
+                  setEditingId(null);
+                  originalFormRef.current = null;
+                  setShowForm(false);
+                });
+              } else {
+                setEditingId(null);
+                originalFormRef.current = null;
+                setShowForm(false);
+              }
+            }}
+            style={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              background: "transparent",
+              border: "none",
+              fontSize: 20,
+              cursor: "pointer"
+            }}
+          >
+            &times;
+          </button>
+
+          <div
+            ref={searchRef}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(260px,2.5fr) minmax(140px,1.1fr) minmax(140px,1fr) minmax(180px,1.2fr) minmax(180px,1.4fr) minmax(150px,1.1fr)",
+              gap: 12,
+              marginTop: 12,
+              alignItems: "center",
+            }}
+          >
+            <div style={{ position: "relative" }}>
+              <input
+                style={{ width: "100%", height: 34 }}
+                placeholder="Search by item name or SKU"
+                value={itemSearch}
+                onChange={e => {
+                  setItemSearch(e.target.value);
+                  setDropdownOpen(true);
+                }}
+                onFocus={() => setDropdownOpen(true)}
+              />
+              {dropdownOpen && (
+                <div style={{
+                  position: "absolute",
+                  top: 36,
+                  left: 0,
+                  right: 0,
+                  maxHeight: 150,
+                  overflowY: "auto",
+                  border: "1px solid #d1d5db",
+                  borderRadius: 6,
+                  background: "#fff",
+                  zIndex: 10
+                }}>
+                  {filteredItemsForSearch.map(i => (
+                    <div
+                      key={i.id}
+                      onMouseDown={() => {
+                        setForm(f => ({ ...f, item_id: i.id }));
+                        setItemSearch(i.item_name);
+                        setDropdownOpen(false);
+                      }}
+                      style={{ padding: "6px 12px", cursor: "pointer" }}
+                    >
+                      {i.item_name}
+                    </div>
+                  ))}
+                  {filteredItemsForSearch.length === 0 && (
+                    <div style={{ padding: "6px 12px", color: "#6b7280" }}>No results</div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <select
+              style={{ width: "100%", height: 34 }}
+              value={form.type}
+              onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+            >
+              <option value="IN">Inbound</option>
+              <option value="OUT">Outbound</option>
+            </select>
+
+            <input
+              style={{ width: "100%", height: 34 }}
+              placeholder="Quantity (Units)"
+              value={form.quantity}
+              onChange={e => setForm({ ...form, quantity: e.target.value })}
+            />
+
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="Price"
+              value={form.unit_price}
+              onChange={e => setForm({ ...form, unit_price: e.target.value })}
+              style={{ width: "100%", height: 34 }}
+            />
+
+            <input
+              style={{ width: "100%", height: 34 }}
+              placeholder="Brand / Manufacturer"
+              value={form.brand || ""}
+              onChange={e => setForm({ ...form, brand: e.target.value })}
+            />
+
+            <input
+              style={{ width: "100%", height: 34 }}
+              placeholder="Pack Size (e.g., 11 kg)"
+              value={form.volume_pack}
+              onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
+            />
+
+            <input
+              style={{ width: "100%", height: 34 }}
+              type="date"
+              value={form.date}
+              onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+            />
+
+            <button
+              onClick={saveTransaction}
+              style={{
+                gridColumn: "1 / -1",
+                marginTop: 8,
+                padding: "8px 14px",
+                borderRadius: 6,
+                border: "1px solid #1f2937",
+                background: "#1f2937",
+                color: "#fff",
+                fontWeight: 600
               }}
             >
-              {i.item_name}
-            </div>
-          ))}
+              {editingId ? "Update Transaction" : "Save Transaction"}
+            </button>
+          </div>
         </div>
-      )}
-    </div>
+      </div>
+    )}
 
-    <select style={{ width: "100%", height: 34 }}       value={form.type}
-      onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-    >
-      <option value="IN">Inbound</option>
-      <option value="OUT">Outbound</option>
-    </select>
-
-    <input style={{ width: "100%", height: 34 }}   placeholder="Quantity (Units)"
-  value={form.quantity}
-  onChange={e => setForm({ ...form, quantity: e.target.value })}
-/>
-
-<input
-  type="number"
-  step="0.01"
-  min="0"
-  placeholder="Price"
-  value={form.unit_price}
-  onChange={e => setForm({ ...form, unit_price: e.target.value })}
-  style={{ width: "100%", height: 34 }}
-/>
+    {/* ================= TRANSACTIONS TABLES (IN & OUT) ================= */}
 
 
-
-<input style={{ width: "100%", height: 34 }}   placeholder="Brand / Manufacturer"
-  value={form.brand || ""}
-  onChange={e => setForm({ ...form, brand: e.target.value })}
-/>
-
-    <input style={{ width: "100%", height: 34 }}       placeholder="Pack Size (e.g., 11 kg)"
-      value={form.volume_pack}
-      onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
-    />
-
-    <input style={{ width: "100%", height: 34 }}       type="date"
-      value={form.date}
-      onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-    />
-
-    <button onClick={saveTransaction} style={{ gridColumn: "1 / -1", marginTop: 8, padding: "8px 14px", borderRadius: 6, border: "1px solid #1f2937", background: "#1f2937", color: "#fff", fontWeight: 600 }}>
-      {editingId ? "Update Transaction" : "Save Transaction"}
-    </button>
-  </div>
-)}
-</div>
-
-<div style={{ display: "flex", gap: 16 }}>
+    <div style={{ display: "flex", gap: 16 }}>
 
             
             <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
