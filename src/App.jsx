@@ -132,7 +132,6 @@ export default function App() {
     if (session) loadData();
 
     // ✅ Auto-close modal after successful save / update
-    setShowModal(false);
 
   }, [session]);
 
