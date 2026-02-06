@@ -36,8 +36,104 @@ export default function App() {
 
   // reset search when filter changes
   useEffect(() => {
-  if (session) loadData();
-}, [session]);
+    setInSearch("");
+  }, [inFilter]);
+
+  useEffect(() => {
+    setOutSearch("");
+  }, [outFilter]);
+
+  // tabs
+  const [activeTab, setActiveTab] = useState("stock");
+
+  // ===== STOCK ROOMS =====
+  const stockRooms = [
+    "All Stock Rooms",
+    "L1",
+    "L2 Room 1",
+    "L2 Room 2",
+    "L2 Room 3",
+    "L2 Room 4",
+    "L3",
+    "L5",
+    "L6",
+    "L7",
+    "Maintenance Bodega 1",
+    "Maintenance Bodega 2",
+    "Maintenance Bodega 3",
+    "SKI Stock Room",
+    "Quarry Stock Room",
+  ];
+
+  const [selectedStockRoom, setSelectedStockRoom] = useState("All Stock Rooms");
+
+
+  // form
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const originalFormRef = useRef(null);
+  const [form, setForm] = useState({
+    item_id: "",
+    type: "IN",
+    quantity: "",
+    unit_price: "",
+    date: "",
+    brand: "",
+    unit: "",
+    volume_pack: "",
+  });
+
+  // item search
+  const [itemSearch, setItemSearch] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const searchRef = useRef(null);
+
+  const filteredItemsForSearch = items.filter(i => {
+    if (selectedStockRoom === "All Stock Rooms") return false;
+    return (
+      i.location === selectedStockRoom &&
+      i.item_name.toLowerCase().includes(itemSearch.toLowerCase())
+    );
+  });
+
+  // ================= AUTH =================
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  // ================= LOAD DATA =================
+  async function loadData() {
+    const { data: itemsData } = await supabase
+      .from("items")
+      .select("id, item_name, unit_price, brand, location");
+
+    const { data: tx } = await supabase
+      .from("inventory_transactions")
+      .select("*, items(item_name)")
+      .eq("deleted", false)
+      .order("date", { ascending: false });
+
+    const { data: deletedTx } = await supabase
+      .from("inventory_transactions")
+      .select("*, items(item_name)")
+      .eq("deleted", true)
+      .order("deleted_at", { ascending: false });
+
+    setItems(itemsData || []);
+    setTransactions(tx || []);
+
+    // NOTE: stock room filtering is applied at render level
+    setDeletedTransactions(deletedTx || []);
+  }
+
+  useEffect(() => {
+    if (session) loadData();
+
+    // 🔒 CLOSE MODAL AFTER SAVE / UPDATE
+    setShowForm(false);
+  }, [session]);
 
   // ================= SAVE =================
   function isFormChanged() {
@@ -89,7 +185,7 @@ export default function App() {
       deleted: false,
     };
 
-    // UPDATE ITEM UNIT PRICE ON IN TRANSACTION
+    // 🔧 UPDATE ITEM UNIT PRICE ON IN TRANSACTION
     if (form.type === "IN" && form.unit_price) {
       await supabase
         .from("items")
@@ -106,8 +202,6 @@ export default function App() {
     setForm({ item_id: "", type: "IN", quantity: "", unit_price: "", date: "", brand: "", unit: "", volume_pack: "" });
     setItemSearch("");
     setEditingId(null);
-    originalFormRef.current = null;
-    setShowForm(false); // CLOSE MODAL AFTER SAVE / UPDATE
     loadData();
   }
 
