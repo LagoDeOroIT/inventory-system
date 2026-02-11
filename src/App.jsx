@@ -267,51 +267,71 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
+      {/* ================= INVENTORY TAB ================= */}
+      {activeTab === "stock" && (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2>Inventory</h2>
+            <button onClick={() => setShowItemModal(true)}>+ Add Item</button>
+          </div>
 
-      {/* ===== STOCK ROOM SELECTOR ===== */}
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <label style={{ fontSize: 12, color: "#374151" }}>Stock Room</label>
-          <select style={{ width: "100%", height: 34 }}             value={selectedStockRoom}
-            onChange={e => setSelectedStockRoom(e.target.value)}
-            style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
-          >
-            {stockRooms.map(r => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </select>
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={thtd}>Item</th>
+                <th style={thtd}>Brand</th>
+                <th style={thtd}>Unit Price</th>
+                <th style={thtd}>Stock</th>
+                <th style={thtd}>Location</th>
+                <th style={thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stockInventory.length === 0 && emptyRow(6, "No inventory data")}
+              {stockInventory.map(row => (
+                <tr key={row.id}>
+                  <td style={thtd}>{row.item_name}</td>
+                  <td style={thtd}>{row.brand}</td>
+                  <td style={thtd}>₱ {row.unit_price.toFixed(2)}</td>
+                  <td style={thtd}>{row.stock}</td>
+                  <td style={thtd}>{row.location}</td>
+                  <td style={thtd}>
+                    <button onClick={() => openEditItem(row)}>Edit</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      </div>
+      )}
 
-      
-      <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <h1 style={{ fontSize: 22, marginBottom: 4 }}>Lago De Oro Inventory System</h1>
-        <p style={{ fontSize: 12, marginTop: 0, color: "#6b7280" }}>Manage stock IN / OUT and reports</p>
-      </div>
+      {/* ================= ITEM MODAL ================= */}
+      {showItemModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "#fff", padding: 20, width: 420, borderRadius: 10 }}>
+            <h3>{editingItemId ? "Edit Item" : "Add Item"}</h3>
 
-      
-<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
-  <div style={{ display: "flex", gap: 16, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
-    <button
-      onClick={() => setActiveTab("stock")}
-      style={{
-        padding: "8px 16px",
-        borderRadius: 999,
-        border: "none",
-        cursor: "pointer",
-        background: activeTab === "stock" ? "#1f2937" : "transparent",
-        color: activeTab === "stock" ? "#fff" : "#374151",
-        fontWeight: 500,
-      }}
-    >
-      📦 Stock Inventory
-    </button>
+            <div style={{ display: "grid", gap: 10 }}>
+              <input placeholder="Item name" value={itemForm.item_name} onChange={e => setItemForm({ ...itemForm, item_name: e.target.value })} />
+              <input placeholder="Brand" value={itemForm.brand} onChange={e => setItemForm({ ...itemForm, brand: e.target.value })} />
+              <input placeholder="Unit price" type="number" value={itemForm.unit_price} onChange={e => setItemForm({ ...itemForm, unit_price: e.target.value })} />
 
-    <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
+              <select value={itemForm.location} onChange={e => setItemForm({ ...itemForm, location: e.target.value })}>
+                {stockRooms.filter(r => r !== "All Stock Rooms").map(r => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+                <button onClick={() => closeItemModal()}>Cancel</button>
+                <button onClick={saveItem}>Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+    );
             originalFormRef.current = null;
             setActiveTab("transactions");
           });
@@ -629,7 +649,6 @@ export default function App() {
                 />
               </div>
               
-
 
 
 
