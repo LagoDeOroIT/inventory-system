@@ -355,19 +355,20 @@ export default function App() {
     </button>
 
     <button
-      onClick={() => {
-        if (editingId && isFormChanged()) {
-          openConfirm("Discard unsaved changes?", () => {
-            setEditingId(null);
-            originalFormRef.current = null;
-            setActiveTab("transactions");
-          });
-        } else {
-          setEditingId(null);
-          originalFormRef.current = null;
-          setActiveTab("transactions");
-        }
-      }}>
+     onClick={() => {
+  const resetAndSwitch = () => {
+    setEditingId(null);
+    originalFormRef.current = null;
+    setActiveTab("transactions");
+  };
+
+  if (editingId && isFormChanged()) {
+    openConfirm("Discard unsaved changes?", resetAndSwitch);
+  } else {
+    resetAndSwitch();
+  }
+}}
+>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
