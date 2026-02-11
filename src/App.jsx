@@ -267,71 +267,51 @@ export default function App() {
 
   return (
     <div style={{ padding: 20 }}>
-      {/* ================= INVENTORY TAB ================= */}
-      {activeTab === "stock" && (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <h2>Inventory</h2>
-            <button onClick={() => setShowItemModal(true)}>+ Add Item</button>
-          </div>
 
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thtd}>Item</th>
-                <th style={thtd}>Brand</th>
-                <th style={thtd}>Unit Price</th>
-                <th style={thtd}>Stock</th>
-                <th style={thtd}>Location</th>
-                <th style={thtd}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stockInventory.length === 0 && emptyRow(6, "No inventory data")}
-              {stockInventory.map(row => (
-                <tr key={row.id}>
-                  <td style={thtd}>{row.item_name}</td>
-                  <td style={thtd}>{row.brand}</td>
-                  <td style={thtd}>₱ {row.unit_price.toFixed(2)}</td>
-                  <td style={thtd}>{row.stock}</td>
-                  <td style={thtd}>{row.location}</td>
-                  <td style={thtd}>
-                    <button onClick={() => openEditItem(row)}>Edit</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* ===== STOCK ROOM SELECTOR ===== */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <label style={{ fontSize: 12, color: "#374151" }}>Stock Room</label>
+          <select style={{ width: "100%", height: 34 }}             value={selectedStockRoom}
+            onChange={e => setSelectedStockRoom(e.target.value)}
+            style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
+          >
+            {stockRooms.map(r => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
         </div>
-      )}
+      </div>
 
-      {/* ================= ITEM MODAL ================= */}
-      {showItemModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ background: "#fff", padding: 20, width: 420, borderRadius: 10 }}>
-            <h3>{editingItemId ? "Edit Item" : "Add Item"}</h3>
+      
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <h1 style={{ fontSize: 22, marginBottom: 4 }}>Lago De Oro Inventory System</h1>
+        <p style={{ fontSize: 12, marginTop: 0, color: "#6b7280" }}>Manage stock IN / OUT and reports</p>
+      </div>
 
-            <div style={{ display: "grid", gap: 10 }}>
-              <input placeholder="Item name" value={itemForm.item_name} onChange={e => setItemForm({ ...itemForm, item_name: e.target.value })} />
-              <input placeholder="Brand" value={itemForm.brand} onChange={e => setItemForm({ ...itemForm, brand: e.target.value })} />
-              <input placeholder="Unit price" type="number" value={itemForm.unit_price} onChange={e => setItemForm({ ...itemForm, unit_price: e.target.value })} />
+      
+<div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
+  <div style={{ display: "flex", gap: 16, padding: 8, background: "#f3f4f6", borderRadius: 999 }}>
+    <button
+      onClick={() => setActiveTab("stock")}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "stock" ? "#1f2937" : "transparent",
+        color: activeTab === "stock" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📦 Stock Inventory
+    </button>
 
-              <select value={itemForm.location} onChange={e => setItemForm({ ...itemForm, location: e.target.value })}>
-                {stockRooms.filter(r => r !== "All Stock Rooms").map(r => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
-              </select>
-
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-                <button onClick={() => closeItemModal()}>Cancel</button>
-                <button onClick={saveItem}>Save</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-    );
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
             originalFormRef.current = null;
             setActiveTab("transactions");
           });
@@ -355,20 +335,358 @@ export default function App() {
     </button>
 
     <button
-     onClick={() => {
-  const resetAndSwitch = () => {
-    setEditingId(null);
-    originalFormRef.current = null;
-    setActiveTab("transactions");
-  };
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("report");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("report");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "report" ? "#1f2937" : "transparent",
+        color: activeTab === "report" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      📊 Monthly Report
+    </button>
 
-  if (editingId && isFormChanged()) {
-    openConfirm("Discard unsaved changes?", resetAndSwitch);
-  } else {
-    resetAndSwitch();
-  }
-}}
->
+    <button
+      onClick={() => {
+        if (editingId && isFormChanged()) {
+          openConfirm("Discard unsaved changes?", () => {
+            setEditingId(null);
+            originalFormRef.current = null;
+            setActiveTab("deleted");
+          });
+        } else {
+          setEditingId(null);
+          originalFormRef.current = null;
+          setActiveTab("deleted");
+        }
+      }}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: "none",
+        cursor: "pointer",
+        background: activeTab === "deleted" ? "#1f2937" : "transparent",
+        color: activeTab === "deleted" ? "#fff" : "#374151",
+        fontWeight: 500,
+      }}
+    >
+      🗑️ Deleted History
+    </button>
+  </div>
+</div>
+
+      
+      {confirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "#fff", padding: 24, borderRadius: 8, width: 360, boxShadow: "0 10px 30px rgba(0,0,0,0.25)", textAlign: "center" }}>
+            <h3 style={{ marginTop: 0, marginBottom: 10 }}>Confirm Action</h3>
+            <p style={{ marginBottom: 24, color: "#444" }}>{confirm.message}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <button style={{ flex: 1, background: "#1f2937", color: "#fff", padding: "8px 0", borderRadius: 4 }} onClick={() => { confirm.onConfirm(); closeConfirm(); }}>Confirm</button>
+              <button style={{ flex: 1, background: "#e5e7eb", padding: "8px 0", borderRadius: 4 }} onClick={closeConfirm}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      
+      {activeTab === "transactions" && (
+  <>
+    <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 5, paddingBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+        <h2 style={{ fontSize: 16, marginTop: 16, marginBottom: 4 }}>📄 Transactions History</h2>
+        <span style={{ fontSize: 12, color: "#6b7280" }}>Total records: {transactions.length}</span>
+      </div>
+      <hr style={{ marginTop: 8 }} />
+    </div>
+
+   <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 24 }}>
+  <button
+    onClick={() => setShowForm(true)}
+    style={{
+      padding: "12px 20px",
+      backgroundColor: "#111827",
+      color: "#ffffff",
+      border: "none",
+      borderRadius: 8,
+      fontSize: 14,
+      fontWeight: 600,
+      cursor: "pointer",
+      boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
+    }}
+  >
+    + Add Transaction
+  </button>
+</div>
+
+
+    {/* ================= TRANSACTIONS FORM MODAL ================= */}
+    {showForm && (
+  <div style={{
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.55)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000
+  }}>
+    <div style={{
+      background: "#fff",
+      borderRadius: 12,
+      width: 700,
+      maxWidth: "95%",
+      padding: 24,
+      boxShadow: "0 15px 35px rgba(0,0,0,0.25)",
+      display: "flex",
+      flexDirection: "column",
+      gap: 20
+    }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h3 style={{ margin: 0, fontSize: 20, fontWeight: 600, color: "#1f2937" }}>
+          {editingId ? "Edit Transaction" : "Add Transaction"}
+        </h3>
+        <button
+          onClick={() => setShowForm(false)}
+          style={{
+            fontSize: 24,
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+            color: "#6b7280"
+          }}
+        >
+          &times;
+        </button>
+      </div>
+
+      {/* Form Fields - Inline */}
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <input
+          type="text"
+          placeholder="Search by item name or SKU"
+          value={itemSearch}
+          onChange={e => setItemSearch(e.target.value)}
+          style={{
+            flex: 2,
+            height: 40,
+            padding: "0 12px",
+            borderRadius: 8,
+            border: "1px solid #d1d5db",
+            fontSize: 14
+          }}
+        />
+        <select
+          value={form.type}
+          onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+          style={{
+            flex: 1,
+            height: 40,
+            borderRadius: 8,
+            border: "1px solid #d1d5db",
+            fontSize: 14,
+            padding: "0 8px"
+          }}
+        >
+          <option value="IN">Inbound</option>
+          <option value="OUT">Outbound</option>
+        </select>
+        <input
+          type="number"
+          placeholder="Quantity"
+          value={form.quantity}
+          onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
+          style={{
+            flex: 1,
+            height: 40,
+            padding: "0 12px",
+            borderRadius: 8,
+            border: "1px solid #d1d5db",
+            fontSize: 14
+          }}
+        />
+        <input
+          type="number"
+          placeholder="Price"
+          value={form.unit_price}
+          onChange={e => setForm(f => ({ ...f, unit_price: e.target.value }))}
+          style={{
+            flex: 1,
+            height: 40,
+            padding: "0 12px",
+            borderRadius: 8,
+            border: "1px solid #d1d5db",
+            fontSize: 14
+          }}
+        />
+        <input
+          type="text"
+          placeholder="Brand / Manufacturer"
+          value={form.brand || ""}
+          onChange={e => setForm(f => ({ ...f, brand: e.target.value }))}
+          style={{
+            flex: 1,
+            height: 40,
+            padding: "0 12px",
+            borderRadius: 8,
+            border: "1px solid #d1d5db",
+            fontSize: 14
+          }}
+        />
+        <input
+          type="text"
+          placeholder="Pack Size (e.g., 11 kg)"
+          value={form.volume_pack}
+          onChange={e => setForm(f => ({ ...f, volume_pack: e.target.value }))}
+          style={{
+            flex: 1,
+            height: 40,
+            padding: "0 12px",
+            borderRadius: 8,
+            border: "1px solid #d1d5db",
+            fontSize: 14
+          }}
+        />
+        <input
+          type="date"
+          value={form.date}
+          onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+          style={{
+            flex: 1,
+            height: 40,
+            padding: "0 12px",
+            borderRadius: 8,
+            border: "1px solid #d1d5db",
+            fontSize: 14
+          }}
+        />
+      </div>
+
+      {/* Save Button */}
+      <button
+        onClick={saveTransaction}
+        style={{
+          width: "100%",
+          height: 44,
+          borderRadius: 8,
+          border: "none",
+          background: "#1f2937",
+          color: "#fff",
+          fontWeight: 600,
+          fontSize: 14,
+          cursor: "pointer",
+          transition: "0.2s",
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = "#111827"}
+        onMouseLeave={e => e.currentTarget.style.background = "#1f2937"}
+      >
+        {editingId ? "Update Transaction" : "Save Transaction"}
+      </button>
+    </div>
+  </div>
+)}
+
+
+    {/* ================= TRANSACTIONS TABLES (IN & OUT) ================= */}
+
+
+    <div style={{ display: "flex", gap: 16 }}>
+
+            
+            <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
+              <h4 style={{ marginTop: 0, textAlign: "center" }}>⬇️ IN Transactions</h4>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
+                <select style={{ width: "100%", height: 34 }}                   value={inFilter}
+                  onChange={e => setInFilter(e.target.value)}
+                  style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
+                >
+                  <option value="all">All</option>
+                  <option value="item">Item</option>
+                  <option value="brand">Brand</option>
+                  <option value="quantity">Quantity</option>
+                </select>
+                <input style={{ width: "100%", height: 34 }}                   placeholder="Search"
+                  value={inSearch}
+                  onChange={e => setInSearch(e.target.value)}
+                  style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 13 }}
+                />
+              </div>
+              
+
+
+
+
+<table style={tableStyle}>
+  <thead>
+    <tr>
+      <th style={thtd}>Date</th>
+      <th style={thtd}>Item</th>
+      <th style={thtd}>Brand</th>
+      <th style={thtd}>Volume/Pack</th>
+      <th style={thtd}>Quantity</th>
+      <th style={thtd}>Unit Price</th>
+      <th style={thtd}>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {filteredTransactions.filter(t => t.type === "IN").length === 0 && emptyRow(7, "No IN transactions")}
+    {filteredTransactions
+      .filter(t => t.type === "IN")
+      .filter(t => {
+        const q = inSearch.toLowerCase();
+        return (
+          t.items?.item_name?.toLowerCase().includes(q) ||
+          t.brand?.toLowerCase().includes(q) ||
+          String(t.quantity).includes(q)
+        );
+      })
+      .map(t => (
+        <tr key={t.id} style={editingId === t.id ? editingRowStyle : undefined}>
+          <td style={thtd}>{new Date(t.date).toLocaleDateString("en-CA")}</td>
+          <td style={thtd}>{t.items?.item_name}</td>
+          <td style={thtd}>{t.brand || "—"}</td>
+          <td style={thtd}>{t.volume_pack || "—"}</td>
+          <td style={thtd}>{t.quantity}</td>
+          <td style={thtd}>₱{Number(t.unit_price || 0).toFixed(2)}</td>
+          <td style={thtd}>
+            <button disabled={editingId && editingId !== t.id} onClick={() => openConfirm("Edit this transaction?", () => {
+              originalFormRef.current = { item_id: t.item_id, type: t.type, quantity: String(t.quantity), unit_price: String(t.unit_price || ""), date: t.date, brand: t.brand || "", unit: t.unit || "", volume_pack: t.volume_pack || "" };
+              setEditingId(t.id);
+              setForm(originalFormRef.current);
+              setItemSearch(t.items?.item_name || "");
+              setShowForm(true);
+              setActiveTab("transactions");
+            })}>✏️ Edit</button>
+            <button disabled={!!editingId} onClick={() => openConfirm("Delete this transaction?", async () => {
+              await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", t.id);
+              loadData();
+            })}>🗑️ Delete</button>
+          </td>
+        </tr>
+      ))}
+  </tbody>
+</table>
+            </div>
+
+            {/* OUT TRANSACTIONS TABLE */}
+            <div style={{ flex: 1, maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 6, padding: 8 }}>
               <h4 style={{ marginTop: 0, textAlign: "center" }}>⬆️ OUT Transactions</h4>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <label style={{ fontSize: 12, color: "#6b7280" }}>Filter</label>
