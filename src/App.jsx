@@ -57,7 +57,7 @@ export default function App() {
   const [inSearch, setInSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState(""); // "transaction" | "item" | "newOption" | "stockRoomPrompt"
-  const [form, setForm] = useState({ date:"", item_id:"", brand:"", type:"IN", quantity:"", price:"", item_name:"" });
+  const [form, setForm] = useState({ date:"", item_id:"", brand:"", type:"IN", quantity:"", price:"", item_name:"", id: null });
 
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
@@ -86,14 +86,17 @@ export default function App() {
 
   const filteredTransactions = transactions.filter(t => !selectedStockRoom || t.location === selectedStockRoom);
 
-  const stockInventory = items.map(i => {
+  const stockInventory = items.filter(i => !i.deleted).map(i => {
     const related = transactions.filter(t => t.item_id === i.id);
     const stock = related.reduce((sum, t) => sum + (t.type==="IN"? Number(t.quantity):-Number(t.quantity)),0);
     return { id:i.id, item_name:i.item_name, brand:i.brand, unit_price:i.unit_price, stock };
   });
 
+  const deletedItems = items.filter(i => i.deleted);
+
   const handleFormChange = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
 
+  // ================= SUBMIT =================
   const handleSubmit = async () => {
     if(modalType==="transaction"){
       if(!form.item_id || !form.quantity || !form.date) return alert("Fill required fields");
@@ -105,12 +108,28 @@ export default function App() {
       }]);
     } else if(modalType==="item"){
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
-      const { data } = await supabase.from("items").insert([{ item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom }]);
-      if(data?.length) form.item_id = data[0].id;
+
+      if(form.id){ 
+        // EDIT existing item
+        await supabase.from("items").update({
+          item_name: form.item_name,
+          brand: form.brand,
+          unit_price: Number(form.price)
+        }).eq("id", form.id);
+      } else { 
+        // ADD new item
+        const { data } = await supabase.from("items").insert([{
+          item_name: form.item_name,
+          brand: form.brand,
+          unit_price: Number(form.price),
+          location: selectedStockRoom
+        }]);
+        if(data?.length) form.item_id = data[0].id;
+      }
     }
     setShowModal(false);
     setModalType("");
-    setForm({ date:"", item_id:"", brand:"", type:"IN", quantity:"", price:"", item_name:"" });
+    setForm({ date:"", item_id:"", brand:"", type:"IN", quantity:"", price:"", item_name:"", id:null });
     loadData();
   };
 
@@ -122,6 +141,25 @@ export default function App() {
       setModalType("newOption");
       setShowModal(true);
     }
+  };
+
+  // ================= EDIT / DELETE / RESTORE =================
+  const handleEditItem = (item) => {
+    setForm({ id: item.id, item_name: item.item_name, brand: item.brand, price: item.unit_price });
+    setModalType("item");
+    setShowModal(true);
+  };
+
+  const handleDeleteItem = async (item) => {
+    if(!confirm(`Are you sure you want to delete "${item.item_name}"?`)) return;
+    await supabase.from("items").update({ deleted: true }).eq("id", item.id);
+    loadData();
+  };
+
+  const handleRestoreItem = async (item) => {
+    if(!confirm(`Do you want to restore "${item.item_name}"?`)) return;
+    await supabase.from("items").update({ deleted: false }).eq("id", item.id);
+    loadData();
   };
 
   if(!session) return (
@@ -154,7 +192,9 @@ export default function App() {
       {/* Main */}
       <div style={styles.main}>
         <div style={styles.header}>
-          <div style={styles.title}>{activeTab === "stock" ? "Stock Inventory" : activeTab === "transactions" ? "Transactions" : activeTab === "deleted" ? "Deleted History" : "Monthly Report"}</div>
+          <div style={styles.title}>
+            {activeTab === "stock" ? "Stock Inventory" : activeTab === "transactions" ? "Transactions" : activeTab === "deleted" ? "Deleted History" : "Monthly Report"}
+          </div>
         </div>
 
         {/* ================= STOCK TAB ================= */}
@@ -167,16 +207,50 @@ export default function App() {
                   <th style={styles.thtd}>Item Name</th>
                   <th style={styles.thtd}>Brand</th>
                   <th style={styles.thtd}>Price</th>
+                  <th style={styles.thtd}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {stockInventory.length===0 && emptyRow(4,"No stock data")}
-                {stockInventory.map(i=>(
+                {stockInventory.length===0 && emptyRow(5,"No stock data")}
+                {stockInventory.map(i => (
                   <tr key={i.id}>
                     <td style={styles.thtd}>{i.stock}</td>
                     <td style={styles.thtd}>{i.item_name}</td>
                     <td style={styles.thtd}>{i.brand}</td>
                     <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
+                    <td style={styles.thtd}>
+                      <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => handleEditItem(i)}>Edit</button>
+                      <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => handleDeleteItem(i)}>Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ================= DELETED HISTORY TAB ================= */}
+        {activeTab==="deleted" && (
+          <div style={styles.card}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.thtd}>Item Name</th>
+                  <th style={styles.thtd}>Brand</th>
+                  <th style={styles.thtd}>Price</th>
+                  <th style={styles.thtd}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deletedItems.length===0 && emptyRow(4,"No deleted items")}
+                {deletedItems.map(i=>(
+                  <tr key={i.id}>
+                    <td style={styles.thtd}>{i.item_name}</td>
+                    <td style={styles.thtd}>{i.brand}</td>
+                    <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
+                    <td style={styles.thtd}>
+                      <button style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff" }} onClick={() => handleRestoreItem(i)}>Restore</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -243,7 +317,7 @@ export default function App() {
               {/* ADD ITEM MODAL */}
               {modalType==="item" && (
                 <>
-                  <h3>New Item</h3>
+                  <h3>{form.id ? "Edit Item" : "New Item"}</h3>
                   <input style={styles.input} placeholder="Item Name" value={form.item_name} onChange={e=>handleFormChange("item_name",e.target.value)} />
                   <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e=>handleFormChange("brand",e.target.value)} />
                   <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e=>handleFormChange("price",e.target.value)} />
