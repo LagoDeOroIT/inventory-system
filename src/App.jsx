@@ -239,7 +239,7 @@ export default function App() {
       {/* MAIN */}
       <main style={styles.main}>
         <div style={styles.header}>
-          <h1 style={styles.h1}>Enterprise Inventory System</h1>
+          <h1 style={styles.h1}>Inventory System</h1>
           <div style={{ display: "flex", gap: 12 }}>
             <select style={styles.select} value={room} onChange={(e) => setRoom(e.target.value)}>
               {rooms.map((r) => (
