@@ -18,6 +18,9 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
+  const [showItemModal, setShowItemModal] = useState(false);
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });({ item_name: "", brand: "", unit_price: "" });
   // ===== CONFIRM MODAL STATE =====
   const [confirm, setConfirm] = useState(null);
   const openConfirm = (message, onConfirm) => {
@@ -272,14 +275,7 @@ export default function App() {
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <label style={{ fontSize: 12, color: "#374151" }}>Stock Room</label>
-          <select style={{ width: "100%", height: 34 }}             value={selectedStockRoom}
-            onChange={e => setSelectedStockRoom(e.target.value)}
-            style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #d1d5db", fontSize: 12 }}
-          >
-            {stockRooms.map(r => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </select>
+          
         </div>
       </div>
 
@@ -762,8 +758,55 @@ export default function App() {
 
           </div>
           
-        </>
-      )}
+        
+        {/* ITEM MODAL */}
+        {showItemModal && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 2000 }}>
+            <div style={{ background: "#fff", borderRadius: 12, width: 520, maxWidth: "95%", padding: 24, boxShadow: "0 15px 35px rgba(0,0,0,0.25)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h3 style={{ margin: 0 }}>{editingItemId ? "Edit Item" : "Add New Item"}</h3>
+                <button onClick={() => { setShowItemModal(false); setEditingItemId(null); }} style={{ fontSize: 24, border: "none", background: "transparent", cursor: "pointer" }}>&times;</button>
+              </div>
+
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <input placeholder="Item name" value={newItem.item_name} onChange={e => setNewItem(f => ({ ...f, item_name: e.target.value }))} style={{ flex: 1, height: 40, padding: "0 12px", borderRadius: 8, border: "1px solid #d1d5db" }} />
+                <input placeholder="Brand" value={newItem.brand} onChange={e => setNewItem(f => ({ ...f, brand: e.target.value }))} style={{ flex: 1, height: 40, padding: "0 12px", borderRadius: 8, border: "1px solid #d1d5db" }} />
+                <select value={newItem.category} onChange={e => setNewItem(f => ({ ...f, category: e.target.value }))} style={{ flex: 1, height: 40, padding: "0 12px", borderRadius: 8, border: "1px solid #d1d5db" }}>
+                  <option value="">Select Category</option>
+                  <option>Office Supplies</option>
+                  <option>Cleaning Supplies</option>
+                  <option>Electrical</option>
+                  <option>Hardware</option>
+                  <option>IT Equipment</option>
+                  <option>Medical</option>
+                  <option>Food & Pantry</option>
+                </select> value={newItem.brand} onChange={e => setNewItem(f => ({ ...f, brand: e.target.value }))} style={{ flex: 1, height: 40, padding: "0 12px", borderRadius: 8, border: "1px solid #d1d5db" }} />
+                <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e => setNewItem(f => ({ ...f, unit_price: e.target.value }))} style={{ flex: 1, height: 40, padding: "0 12px", borderRadius: 8, border: "1px solid #d1d5db" }} />
+              </div>
+
+              <button
+                onClick={async () => {
+                  if (!newItem.item_name) return alert("Item name required");
+                  if (editingItemId) {
+                    await supabase.from("items").update({ item_name: newItem.item_name, brand: newItem.brand, unit_price: Number(newItem.unit_price) || 0 }).eq("id", editingItemId);({ item_name: newItem.item_name, brand: newItem.brand, unit_price: Number(newItem.unit_price) || 0 }).eq("id", editingItemId);
+                  } else {
+                    if (selectedStockRoom === "All Stock Rooms") return alert("Select a stock room first");
+                    await supabase.from("items").insert([{ item_name: newItem.item_name, brand: newItem.brand, unit_price: Number(newItem.unit_price) || 0, location: selectedStockRoom }]);([{ item_name: newItem.item_name, brand: newItem.brand, unit_price: Number(newItem.unit_price) || 0, location: selectedStockRoom }]);
+                  }
+                  setShowItemModal(false);
+                  setEditingItemId(null);
+                  setNewItem({ item_name: "", brand: "", unit_price: "" });
+                  loadData();
+                }}
+                style={{ marginTop: 16, width: "100%", height: 44, borderRadius: 8, border: "none", background: "#1f2937", color: "#fff", fontWeight: 600 }}
+              >
+                {editingItemId ? "Update Item" : "Save Item"}
+              </button>
+            </div>
+          </div>
+        )}
+      </>
+    )}
 
       {activeTab === "deleted" && (
         <>
@@ -871,6 +914,27 @@ export default function App() {
       )}
 
        {activeTab === "stock" && (
+      <>
+        {/* ADD ITEM BUTTON */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+          <button
+            onClick={() => setShowItemModal(true)}
+            style={{
+              padding: "12px 20px",
+              backgroundColor: "#111827",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: "pointer",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
+            }}
+          >
+            + Add / Edit Item
+          </button>
+        </div>
+
       <>
         {/* STOCK INVENTORY HEADER */}
         <div
