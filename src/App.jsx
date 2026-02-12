@@ -239,7 +239,7 @@ export default function App() {
           </div>
         )}
 
-                        {/* ================= TRANSACTIONS TAB ================= */}
+                                    {/* ================= TRANSACTIONS TAB ================= */}
         {activeTab === "transactions" && (
           <div style={styles.card}>
             <input
@@ -264,31 +264,31 @@ export default function App() {
                   t => t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())
                 ).length === 0 && emptyRow(6, "No transactions")}
 
-                {filteredTransactions.filter(
-                  t => t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())
-                ).map(t => (
-                  <tr key={t.id}>
-                    <td style={styles.thtd}>{t.date}</td>
-                    <td style={styles.thtd}>{t.items?.item_name}</td>
-                    <td style={styles.thtd}>{t.items?.brand}</td>
-                    <td style={styles.thtd}>{t.type}</td>
-                    <td style={styles.thtd}>{t.quantity}</td>
-                    <td style={styles.thtd}>
-                      <button
-                        style={{ ...styles.buttonSecondary, marginRight: 8 }}
-                        onClick={() => handleEditTransaction(t)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
-                        onClick={() => handleDeleteTransaction(t)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {filteredTransactions
+                  .filter(t => t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase()))
+                  .map(t => (
+                    <tr key={t.id}>
+                      <td style={styles.thtd}>{t.date}</td>
+                      <td style={styles.thtd}>{t.items?.item_name}</td>
+                      <td style={styles.thtd}>{t.items?.brand}</td>
+                      <td style={styles.thtd}>{t.type}</td>
+                      <td style={styles.thtd}>{t.quantity}</td>
+                      <td style={styles.thtd}>
+                        <button
+                          style={{ ...styles.buttonSecondary, marginRight: 8 }}
+                          onClick={() => handleEditTransaction(t)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                          onClick={() => handleDeleteTransaction(t)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -314,35 +314,43 @@ export default function App() {
                 </tr>
               </thead>
               <tbody>
+                {deletedItems
+                  .filter(
+                    i =>
+                      i.item_name.toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+                      i.brand.toLowerCase().includes(deletedItemSearch.toLowerCase())
+                  )
+                  .map(i => (
+                    <tr key={i.id}>
+                      <td style={styles.thtd}>{i.item_name}</td>
+                      <td style={styles.thtd}>{i.brand}</td>
+                      <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
+                      <td style={styles.thtd}>
+                        <button
+                          style={{
+                            ...styles.buttonSecondary,
+                            marginRight: 8,
+                            background: "#60a5fa",
+                            color: "#fff",
+                          }}
+                          onClick={() => handleRestoreItem(i)}
+                        >
+                          Restore
+                        </button>
+                        <button
+                          style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                          onClick={() => handlePermanentDeleteItem(i)}
+                        >
+                          Delete Permanently
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 {deletedItems.filter(
-                  i => i.item_name.toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
-                       i.brand.toLowerCase().includes(deletedItemSearch.toLowerCase())
+                  i =>
+                    i.item_name.toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+                    i.brand.toLowerCase().includes(deletedItemSearch.toLowerCase())
                 ).length === 0 && emptyRow(4, "No deleted items")}
-
-                {deletedItems.filter(
-                  i => i.item_name.toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
-                       i.brand.toLowerCase().includes(deletedItemSearch.toLowerCase())
-                ).map(i => (
-                  <tr key={i.id}>
-                    <td style={styles.thtd}>{i.item_name}</td>
-                    <td style={styles.thtd}>{i.brand}</td>
-                    <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
-                    <td style={styles.thtd}>
-                      <button
-                        style={{ ...styles.buttonSecondary, marginRight: 8, background: "#60a5fa", color: "#fff" }}
-                        onClick={() => handleRestoreItem(i)}
-                      >
-                        Restore
-                      </button>
-                      <button
-                        style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
-                        onClick={() => handlePermanentDeleteItem(i)}
-                      >
-                        Delete Permanently
-                      </button>
-                    </td>
-                  </tr>
-                ))}
               </tbody>
             </table>
 
@@ -365,35 +373,39 @@ export default function App() {
                 </tr>
               </thead>
               <tbody>
-                {deletedTransactions.filter(
-                  t => t.items?.item_name.toLowerCase().includes(deletedTxSearch.toLowerCase())
+                {deletedTransactions
+                  .filter(t => t.items?.item_name.toLowerCase().includes(deletedTxSearch.toLowerCase()))
+                  .map(t => (
+                    <tr key={t.id}>
+                      <td style={styles.thtd}>{t.date}</td>
+                      <td style={styles.thtd}>{t.items?.item_name}</td>
+                      <td style={styles.thtd}>{t.items?.brand}</td>
+                      <td style={styles.thtd}>{t.type}</td>
+                      <td style={styles.thtd}>{t.quantity}</td>
+                      <td style={styles.thtd}>
+                        <button
+                          style={{
+                            ...styles.buttonSecondary,
+                            marginRight: 8,
+                            background: "#60a5fa",
+                            color: "#fff",
+                          }}
+                          onClick={() => handleRestoreTransaction(t)}
+                        >
+                          Restore
+                        </button>
+                        <button
+                          style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                          onClick={() => handlePermanentDeleteTransaction(t)}
+                        >
+                          Delete Permanently
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                {deletedTransactions.filter(t =>
+                  t.items?.item_name.toLowerCase().includes(deletedTxSearch.toLowerCase())
                 ).length === 0 && emptyRow(6, "No deleted transactions")}
-
-                {deletedTransactions.filter(
-                  t => t.items?.item_name.toLowerCase().includes(deletedTxSearch.toLowerCase())
-                ).map(t => (
-                  <tr key={t.id}>
-                    <td style={styles.thtd}>{t.date}</td>
-                    <td style={styles.thtd}>{t.items?.item_name}</td>
-                    <td style={styles.thtd}>{t.items?.brand}</td>
-                    <td style={styles.thtd}>{t.type}</td>
-                    <td style={styles.thtd}>{t.quantity}</td>
-                    <td style={styles.thtd}>
-                      <button
-                        style={{ ...styles.buttonSecondary, marginRight: 8, background: "#60a5fa", color: "#fff" }}
-                        onClick={() => handleRestoreTransaction(t)}
-                      >
-                        Restore
-                      </button>
-                      <button
-                        style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
-                        onClick={() => handlePermanentDeleteTransaction(t)}
-                      >
-                        Delete Permanently
-                      </button>
-                    </td>
-                  </tr>
-                ))}
               </tbody>
             </table>
           </div>
