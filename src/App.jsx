@@ -21,11 +21,25 @@ const styles = {
     fontWeight: 600,
   }),
   card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)", marginBottom: 24 },
-  buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer", marginBottom: 12 },
+  buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer", marginRight: 12 },
+  buttonSecondary: { background: "#e5e7eb", color: "#374151", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
   input: { width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #d1d5db", marginBottom: 12 },
   table: { width: "100%", borderCollapse: "collapse" },
   thtd: { border: "1px solid #e5e7eb", padding: 8, textAlign: "left" },
   emptyRow: { textAlign: "center", padding: 12, color: "#6b7280" },
+  modalOverlay: { position: "fixed", top:0, left:0, width:"100%", height:"100%", background:"rgba(0,0,0,0.5)", display:"flex", justifyContent:"center", alignItems:"center", zIndex:1000 },
+  modalCard: { background:"#fff", padding:24, borderRadius:8, width:"400px", boxShadow:"0 4px 12px rgba(0,0,0,0.15)" },
+  toggleGroup: { display:"flex", gap:12, marginBottom:12 },
+  toggleButton: (active) => ({
+    flex:1,
+    padding:"8px 0",
+    borderRadius:6,
+    border: active ? "none" : "1px solid #d1d5db",
+    background: active ? "#1f2937" : "#fff",
+    color: active ? "#fff" : "#374151",
+    cursor:"pointer",
+    fontWeight:600,
+  }),
 };
 
 // ================= EMPTY ROW =================
@@ -50,7 +64,6 @@ export default function App() {
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const originalFormRef = useRef(null);
   const [form, setForm] = useState({
     item_id: "", type: "IN", quantity: "", unit_price: "", date: "", brand: "", unit: "", volume_pack: ""
   });
@@ -87,7 +100,6 @@ export default function App() {
 
   useEffect(() => {
     if (session) loadData();
-    setShowForm(false);
   }, [session]);
 
   // ================= FILTERED TRANSACTIONS =================
@@ -99,7 +111,21 @@ export default function App() {
     return { id:i.id, item_name:i.item_name, brand:latestTx?.brand||i.brand||"—", volume_pack:latestTx?.volume_pack||"—", unit_price:Number(latestTx?.unit_price ?? i.unit_price ?? 0), stock, location:i.location };
   });
 
-  // ================= UI =================
+  // ================= HANDLE FORM =================
+  const handleFormChange = (key, value) => setForm(prev=>({...prev,[key]:value}));
+
+  const handleSubmit = async () => {
+    if(!form.item_id || !form.quantity || !form.unit_price || !form.date) return alert("Please fill all required fields");
+    if(editingId){
+      await supabase.from("inventory_transactions").update(form).eq("id",editingId);
+    } else {
+      await supabase.from("inventory_transactions").insert([form]);
+    }
+    setShowForm(false);
+    setForm({ item_id: "", type: "IN", quantity: "", unit_price: "", date: "", brand: "", unit: "", volume_pack: "" });
+    loadData();
+  };
+
   if(!session) return (
     <div style={{ padding:40, textAlign:"center" }}>
       <h2>Inventory Login</h2>
@@ -170,6 +196,7 @@ export default function App() {
       {activeTab==="transactions" && (
         <div style={styles.card}>
           <h2>📄 Transactions</h2>
+          <button style={styles.buttonPrimary} onClick={()=>setShowForm(true)}>+ Add Transaction</button>
           <input style={styles.input} placeholder="Search by item, type or date..." value={inSearch} onChange={e=>setInSearch(e.target.value)} />
           <div style={{ maxHeight:400, overflowY:"auto" }}>
             <table style={styles.table}>
@@ -207,83 +234,35 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= DELETED TAB ================= */}
-      {activeTab==="deleted" && (
-        <div style={styles.card}>
-          <h2>🗑️ Deleted Transactions</h2>
-          <input style={styles.input} placeholder="Search by item, type or date..." value={deletedSearch} onChange={e=>setDeletedSearch(e.target.value)} />
-          <div style={{ maxHeight:400, overflowY:"auto" }}>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.thtd}>Date</th>
-                  <th style={styles.thtd}>Item</th>
-                  <th style={styles.thtd}>Type</th>
-                  <th style={styles.thtd}>Qty</th>
-                  <th style={styles.thtd}>Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deletedTransactions
-                  .filter(t=>{
-                    const search=deletedSearch.toLowerCase();
-                    return t.items?.item_name.toLowerCase().includes(search) || t.type.toLowerCase().includes(search) || (t.deleted_at||"").includes(search);
-                  })
-                  .map(t=>(
-                    <tr key={t.id}>
-                      <td style={styles.thtd}>{t.deleted_at||t.date}</td>
-                      <td style={styles.thtd}>{t.items?.item_name}</td>
-                      <td style={styles.thtd}>{t.type}</td>
-                      <td style={styles.thtd}>{t.quantity}</td>
-                      <td style={styles.thtd}>₱{t.unit_price.toFixed(2)}</td>
-                    </tr>
-                ))}
-                {deletedTransactions.filter(t=>{
-                  const search=deletedSearch.toLowerCase();
-                  return t.items?.item_name.toLowerCase().includes(search) || t.type.toLowerCase().includes(search) || (t.deleted_at||"").includes(search);
-                }).length===0 && emptyRow(5,"No matching deleted transactions")}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      {/* ================= MODAL FORM ================= */}
+      {showForm && (
+        <div style={styles.modalOverlay} onClick={()=>setShowForm(false)}>
+          <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
+            <h3>{editingId ? "Edit Transaction" : "New Transaction"}</h3>
 
-      {/* ================= REPORT TAB ================= */}
-      {activeTab==="report" && (
-        <div style={styles.card}>
-          <h2>📊 Monthly Report</h2>
-          <div style={{ maxHeight:400, overflowY:"auto" }}>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.thtd}>Month</th>
-                  <th style={styles.thtd}>IN Total</th>
-                  <th style={styles.thtd}>OUT Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.keys(transactions.reduce((acc,t)=>{
-                  if(!t.date) return acc;
-                  const month=t.date.slice(0,7);
-                  acc[month]=acc[month]||{IN:0,OUT:0};
-                  acc[month][t.type]+=t.quantity*t.unit_price;
-                  return acc;
-                },{})).length===0 && emptyRow(3,"No data")}
-                {Object.entries(transactions.reduce((acc,t)=>{
-                  if(!t.date) return acc;
-                  const month=t.date.slice(0,7);
-                  acc[month]=acc[month]||{IN:0,OUT:0};
-                  acc[month][t.type]+=t.quantity*t.unit_price;
-                  return acc;
-                },{})).map(([m,v])=>(
-                  <tr key={m}>
-                    <td style={styles.thtd}>{m}</td>
-                    <td style={styles.thtd}>₱{v.IN.toFixed(2)}</td>
-                    <td style={styles.thtd}>₱{v.OUT.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {/* Item Selector */}
+            <input style={styles.input} list="items-list" placeholder="Select item..." value={form.item_id} onChange={e=>handleFormChange("item_id",e.target.value)} />
+            <datalist id="items-list">
+              {items.map(i=><option key={i.id} value={i.id}>{i.item_name}</option>)}
+            </datalist>
+
+            {/* IN/OUT Toggle */}
+            <div style={styles.toggleGroup}>
+              <button style={styles.toggleButton(form.type==="IN")} onClick={()=>handleFormChange("type","IN")}>IN</button>
+              <button style={styles.toggleButton(form.type==="OUT")} onClick={()=>handleFormChange("type","OUT")}>OUT</button>
+            </div>
+
+            <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e=>handleFormChange("quantity",e.target.value)} />
+            <input style={styles.input} type="number" placeholder="Unit Price" value={form.unit_price} onChange={e=>handleFormChange("unit_price",e.target.value)} />
+            <input style={styles.input} type="date" placeholder="Date" value={form.date} onChange={e=>handleFormChange("date",e.target.value)} />
+            <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e=>handleFormChange("brand",e.target.value)} />
+            <input style={styles.input} placeholder="Unit" value={form.unit} onChange={e=>handleFormChange("unit",e.target.value)} />
+            <input style={styles.input} placeholder="Volume / Pack" value={form.volume_pack} onChange={e=>handleFormChange("volume_pack",e.target.value)} />
+
+            <div style={{ display:"flex", justifyContent:"flex-end", marginTop:12 }}>
+              <button style={styles.buttonSecondary} onClick={()=>setShowForm(false)}>Cancel</button>
+              <button style={styles.buttonPrimary} onClick={handleSubmit}>{editingId ? "Update" : "Submit"}</button>
+            </div>
           </div>
         </div>
       )}
