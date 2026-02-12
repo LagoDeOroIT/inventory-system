@@ -962,3 +962,103 @@ export default function App() {
     </div>
     );
 }
+
+
+// ================== INVENTORY ADD / EDIT BUTTON + MODAL ==================
+// Add this inside your Inventory (stock) tab UI
+
+/* BUTTON */
+<div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
+  <button
+    onClick={() => {
+      setEditingItem(null);
+      setShowItemModal(true);
+    }}
+    style={{
+      padding: "8px 14px",
+      background: "#1976d2",
+      color: "white",
+      border: "none",
+      borderRadius: 6,
+      cursor: "pointer",
+    }}
+  >
+    ➕ Add New Item
+  </button>
+</div>
+
+/* STATE (put near other useState hooks) */
+const [showItemModal, setShowItemModal] = useState(false);
+const [editingItem, setEditingItem] = useState(null);
+const [itemForm, setItemForm] = useState({ name: "", sku: "", qty: 0, price: 0 });
+
+/* EDIT BUTTON in your item list */
+<button
+  onClick={() => {
+    setEditingItem(item);
+    setItemForm(item);
+    setShowItemModal(true);
+  }}
+  style={{ padding: 4, fontSize: 12 }}
+>
+  ✏️ Edit
+</button>
+
+/* MODAL UI */
+{showItemModal && (
+  <div style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(0,0,0,0.4)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+  }}>
+    <div style={{ background: "white", padding: 20, borderRadius: 8, width: 300 }}>
+      <h3>{editingItem ? "Edit Item" : "Add New Item"}</h3>
+
+      <input
+        placeholder="Item Name"
+        value={itemForm.name}
+        onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })}
+      />
+      <input
+        placeholder="SKU"
+        value={itemForm.sku}
+        onChange={(e) => setItemForm({ ...itemForm, sku: e.target.value })}
+      />
+      <input
+        type="number"
+        placeholder="Quantity"
+        value={itemForm.qty}
+        onChange={(e) => setItemForm({ ...itemForm, qty: Number(e.target.value) })}
+      />
+      <input
+        type="number"
+        placeholder="Price"
+        value={itemForm.price}
+        onChange={(e) => setItemForm({ ...itemForm, price: Number(e.target.value) })}
+      />
+
+      <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+        <button
+          onClick={() => {
+            if (editingItem) {
+              setStock(stock.map((s) => (s.id === editingItem.id ? itemForm : s)));
+            } else {
+              setStock([...stock, { ...itemForm, id: Date.now() }]);
+            }
+            setShowItemModal(false);
+          }}
+        >
+          Save
+        </button>
+        <button onClick={() => setShowItemModal(false)}>Cancel</button>
+      </div>
+    </div>
+  </div>
+)}
