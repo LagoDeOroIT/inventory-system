@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";     
+import React, { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -17,24 +17,19 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
-  // ================= STATE =================
+  // ================= STATES =================
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [deletedTransactions, setDeletedTransactions] = useState([]);
-  const [deletedSearch, setDeletedSearch] = useState("");
-  const [inSearch, setInSearch] = useState("");
-  const [inFilter, setInFilter] = useState("all");
-  const [outSearch, setOutSearch] = useState("");
-  const [outFilter, setOutFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("stock");
+  const [selectedStockRoom, setSelectedStockRoom] = useState("All Stock Rooms");
+  const [confirm, setConfirm] = useState(null);
 
-  const [showItemModal, setShowItemModal] = useState(false);
-  const [editingItemId, setEditingItemId] = useState(null);
-  const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "" });
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState({
+  // Transaction modal
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [editingTxId, setEditingTxId] = useState(null);
+  const [txForm, setTxForm] = useState({
     item_id: "",
     type: "IN",
     quantity: "",
@@ -44,42 +39,39 @@ export default function App() {
     unit: "",
     volume_pack: "",
   });
-  const originalFormRef = useRef(null);
-
   const [itemSearch, setItemSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const searchRef = useRef(null);
 
-  const [confirm, setConfirm] = useState(null);
-  const openConfirm = (message, onConfirm) => setConfirm({ message, onConfirm });
-  const closeConfirm = () => setConfirm(null);
+  // Stock modal
+  const [showItemModal, setShowItemModal] = useState(false);
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [newItem, setNewItem] = useState({ item_name: "", brand: "", unit_price: "", category: "" });
 
+  const originalTxRef = useRef(null);
+
+  // Filters
+  const [inSearch, setInSearch] = useState("");
+  const [inFilter, setInFilter] = useState("all");
+  const [outSearch, setOutSearch] = useState("");
+  const [outFilter, setOutFilter] = useState("all");
+  const [deletedSearch, setDeletedSearch] = useState("");
+
+  // Stock Rooms
   const stockRooms = [
     "All Stock Rooms", "L1", "L2 Room 1", "L2 Room 2", "L2 Room 3", "L2 Room 4",
     "L3", "L5", "L6", "L7", "Maintenance Bodega 1", "Maintenance Bodega 2",
     "Maintenance Bodega 3", "SKI Stock Room", "Quarry Stock Room",
   ];
-  const [selectedStockRoom, setSelectedStockRoom] = useState("All Stock Rooms");
 
-  // ================= EFFECTS =================
+  // ================= CONFIRM MODAL =================
+  const openConfirm = (message, onConfirm) => setConfirm({ message, onConfirm });
+  const closeConfirm = () => setConfirm(null);
+
+  // ================= AUTH =================
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => { setInSearch(""); }, [inFilter]);
-  useEffect(() => { setOutSearch(""); }, [outFilter]);
-
-  useEffect(() => {
-    if (session) loadData();
-    setShowForm(false);
-  }, [session]);
-
-  useEffect(() => {
-    const handler = e => searchRef.current && !searchRef.current.contains(e.target) && setDropdownOpen(false);
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   // ================= LOAD DATA =================
@@ -87,60 +79,15 @@ export default function App() {
     const { data: itemsData } = await supabase.from("items").select("id, item_name, unit_price, brand, location");
     const { data: tx } = await supabase.from("inventory_transactions").select("*, items(item_name)").eq("deleted", false).order("date", { ascending: false });
     const { data: deletedTx } = await supabase.from("inventory_transactions").select("*, items(item_name)").eq("deleted", true).order("deleted_at", { ascending: false });
+
     setItems(itemsData || []);
     setTransactions(tx || []);
     setDeletedTransactions(deletedTx || []);
   }
 
-  // ================= HELPER =================
-  function isFormChanged() {
-    if (!originalFormRef.current) return false;
-    return Object.keys(originalFormRef.current).some(k => String(originalFormRef.current[k] || "") !== String(form[k] || ""));
-  }
-
-  async function saveTransaction() {
-    if (!form.quantity) return alert("Complete the form");
-    let item = items.find(i => i.id === Number(form.item_id));
-    if (!item && itemSearch) {
-      if (selectedStockRoom === "All Stock Rooms") return alert("Select a stock room to create a new item");
-      const { data: newItemData, error: itemErr } = await supabase.from("items").insert([{ item_name: itemSearch, location: selectedStockRoom }]).select().single();
-      if (itemErr) return alert(itemErr.message);
-      item = newItemData;
-    }
-    if (!item) return alert("Item not found");
-    if (form.type === "OUT") {
-      const stockItem = stockInventory.find(i => i.id === item.id);
-      if (stockItem && Number(form.quantity) > stockItem.stock) return alert("Cannot OUT more than available stock");
-    }
-
-    const payload = {
-      location: selectedStockRoom === "All Stock Rooms" ? null : selectedStockRoom,
-      date: form.date || new Date().toISOString().slice(0, 10),
-      item_id: Number(item.id),
-      type: form.type,
-      quantity: Number(form.quantity),
-      unit_price: Number(form.unit_price) || item.unit_price || 0,
-      brand: form.brand || item.brand || null,
-      unit: form.unit || null,
-      volume_pack: form.volume_pack || null,
-      deleted: false,
-    };
-
-    if (form.type === "IN" && form.unit_price) {
-      await supabase.from("items").update({ unit_price: Number(form.unit_price) }).eq("id", item.id);
-    }
-
-    const { error } = editingId
-      ? await supabase.from("inventory_transactions").update(payload).eq("id", editingId)
-      : await supabase.from("inventory_transactions").insert([payload]);
-
-    if (error) return alert(error.message);
-
-    setForm({ item_id: "", type: "IN", quantity: "", unit_price: "", date: "", brand: "", unit: "", volume_pack: "" });
-    setItemSearch("");
-    setEditingId(null);
-    loadData();
-  }
+  useEffect(() => {
+    if (session) loadData();
+  }, [session]);
 
   // ================= STOCK INVENTORY =================
   const stockInventory = items
@@ -160,8 +107,10 @@ export default function App() {
       };
     });
 
-  const filteredTransactions = transactions.filter(t => selectedStockRoom === "All Stock Rooms" || t.location === selectedStockRoom);
+  // ================= FILTERED TRANSACTIONS =================
+  const filteredTransactions = transactions.filter(t => selectedStockRoom === "All Stock Rooms" ? true : t.location === selectedStockRoom);
 
+  // ================= MONTHLY TOTALS =================
   const monthlyTotals = filteredTransactions.reduce((acc, t) => {
     if (!t.date) return acc;
     const month = t.date.slice(0, 7);
@@ -170,62 +119,120 @@ export default function App() {
     return acc;
   }, {});
 
-  if (!session) return (
-    <div style={{ padding: 40 }}>
-      <h2>Inventory Login</h2>
-      <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>Login with Google</button>
-    </div>
-  );
+  // ================= SAVE TRANSACTION =================
+  async function saveTransaction() {
+    if (!txForm.quantity) return alert("Complete the form");
+    let item = items.find(i => i.id === Number(txForm.item_id));
+    if (!item && itemSearch) {
+      if (selectedStockRoom === "All Stock Rooms") return alert("Select a stock room to create a new item");
+      const { data: newItemData, error: itemErr } = await supabase.from("items").insert([{ item_name: itemSearch, location: selectedStockRoom }]).select().single();
+      if (itemErr) return alert(itemErr.message);
+      item = newItemData;
+    }
+    if (!item) return alert("Item not found");
+
+    if (txForm.type === "OUT") {
+      const stockItem = stockInventory.find(i => i.id === item.id);
+      if (stockItem && Number(txForm.quantity) > stockItem.stock) return alert("Cannot OUT more than available stock");
+    }
+
+    const payload = {
+      location: selectedStockRoom === "All Stock Rooms" ? null : selectedStockRoom,
+      date: txForm.date || new Date().toISOString().slice(0, 10),
+      item_id: Number(item.id),
+      type: txForm.type,
+      quantity: Number(txForm.quantity),
+      unit_price: Number(txForm.unit_price) || item.unit_price || 0,
+      brand: txForm.brand || item.brand || null,
+      unit: txForm.unit || null,
+      volume_pack: txForm.volume_pack || null,
+      deleted: false,
+    };
+
+    if (txForm.type === "IN" && txForm.unit_price) {
+      await supabase.from("items").update({ unit_price: Number(txForm.unit_price) }).eq("id", item.id);
+    }
+
+    const { error } = editingTxId
+      ? await supabase.from("inventory_transactions").update(payload).eq("id", editingTxId)
+      : await supabase.from("inventory_transactions").insert([payload]);
+
+    if (error) return alert(error.message);
+
+    setTxForm({ item_id: "", type: "IN", quantity: "", unit_price: "", date: "", brand: "", unit: "", volume_pack: "" });
+    setItemSearch("");
+    setEditingTxId(null);
+    setShowTransactionModal(false);
+    loadData();
+  }
+
+  // ================= CLICK OUTSIDE =================
+  const searchRef = useRef(null);
+  useEffect(() => {
+    const handler = e => searchRef.current && !searchRef.current.contains(e.target) && setDropdownOpen(false);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // ================= RENDER =================
+  if (!session) {
+    return (
+      <div style={{ padding: 40 }}>
+        <h2>Inventory Login</h2>
+        <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}>Login with Google</button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: 20 }}>
-      {/* HEADER */}
-      <h1 style={{ fontSize: 22, marginBottom: 8 }}>Lago De Oro Inventory System</h1>
-      <div style={{ marginBottom: 16 }}>
-        <label>Stock Room:</label>
-        <select value={selectedStockRoom} onChange={e => setSelectedStockRoom(e.target.value)}>
-          {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
-        </select>
-      </div>
-
-      {/* TABS */}
-      <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
-        {["stock", "transactions", "report", "deleted"].map(tab => (
+      {/* TAB NAV */}
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: 24, gap: 16 }}>
+        {["stock","transactions","report","deleted"].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            style={{ padding: "8px 16px", borderRadius: 999, border: "none", cursor: "pointer",
-                     background: activeTab === tab ? "#1f2937" : "transparent",
-                     color: activeTab === tab ? "#fff" : "#374151" }}
+            style={{
+              padding:"8px 16px",
+              borderRadius:999,
+              border:"none",
+              cursor:"pointer",
+              background: activeTab===tab?"#1f2937":"transparent",
+              color: activeTab===tab?"#fff":"#374151",
+              fontWeight:500
+            }}
           >
-            {tab === "stock" ? "📦 Stock" : tab === "transactions" ? "📄 Transactions" : tab === "report" ? "📊 Report" : "🗑️ Deleted"}
+            {tab==="stock"?"📦 Stock":tab==="transactions"?"📄 Transactions":tab==="report"?"📊 Report":"🗑️ Deleted"}
           </button>
         ))}
       </div>
 
-      {/* ================= STOCK INVENTORY ================= */}
-      {activeTab === "stock" && (
+      {/* ================= STOCK INVENTORY TAB ================= */}
+      {activeTab==="stock" && (
         <div>
-          <button onClick={() => { setShowItemModal(true); setEditingItemId(null); setNewItem({ item_name:"", brand:"", unit_price:"" }); }}
-                  style={{ marginBottom: 12 }}>+ Add / Edit Item</button>
-
-          <div style={{ maxHeight: 400, overflowY: "auto" }}>
+          <button onClick={()=>{setShowItemModal(true); setEditingItemId(null)}} style={{ marginBottom:12, padding:"12px 20px", background:"#111827", color:"#fff", border:"none", borderRadius:8, cursor:"pointer" }}>+ Add / Edit Item</button>
+          <div style={{ maxHeight:400, overflowY:"auto" }}>
             <table style={tableStyle}>
               <thead>
                 <tr>
-                  <th style={thtd}>Item</th>
-                  <th style={thtd}>Brand</th>
-                  <th style={thtd}>Volume Pack</th>
-                  <th style={thtd}>Stock</th>
-                  <th style={thtd}>Unit Price</th>
-                  <th style={thtd}>Total Price</th>
-                  <th style={thtd}>Actions</th>
+                  <th style={thtd}>Item</th><th style={thtd}>Brand</th><th style={thtd}>Volume Pack</th><th style={thtd}>Stock</th><th style={thtd}>Unit Price</th><th style={thtd}>Total Value</th><th style={thtd}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {stockInventory.length === 0 && emptyRow(7, "No stock data")}
+                {stockInventory.length===0 && emptyRow(7,"No stock data")}
                 {stockInventory.map(i => (
-                  <StockRow key={i.id} item={i} loadData={loadData} setShowItemModal={setShowItemModal} setEditingItemId={setEditingItemId} setNewItem={setNewItem} />
+                  <tr key={i.id} style={i.stock<=5?{background:"#fee2e2"}:undefined}>
+                    <td style={thtd}>{i.item_name}</td>
+                    <td style={thtd}>{i.brand}</td>
+                    <td style={thtd}>{i.volume_pack}</td>
+                    <td style={thtd}>{i.stock}</td>
+                    <td style={thtd}>₱{i.unit_price.toFixed(2)}</td>
+                    <td style={thtd}>₱{(i.unit_price*i.stock).toFixed(2)}</td>
+                    <td style={thtd}>
+                      <button style={{marginRight:6}} onClick={()=>{setShowItemModal(true); setEditingItemId(i.id); setNewItem({item_name:i.item_name, brand:i.brand, unit_price:i.unit_price})}}>✏️ Edit</button>
+                      <button onClick={()=>openConfirm("Permanently delete this item?", async ()=>{await supabase.from("items").delete().eq("id",i.id); loadData();})}>🗑️ Delete</button>
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -233,116 +240,127 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= ITEM MODAL ================= */}
-      {showItemModal && (
-        <ItemModal newItem={newItem} setNewItem={setNewItem} editingItemId={editingItemId} setShowItemModal={setShowItemModal} loadData={loadData} selectedStockRoom={selectedStockRoom} />
-      )}
-
-      {/* ================= CONFIRM MODAL ================= */}
-      {confirm && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", display:"flex", justifyContent:"center", alignItems:"center", zIndex:2000 }}>
-          <div style={{ background:"#fff",borderRadius:12,width:400,padding:24 }}>
-            <p style={{ marginBottom:24 }}>{confirm.message}</p>
-            <div style={{ display:"flex",justifyContent:"flex-end",gap:12 }}>
-              <button onClick={closeConfirm} style={{padding:"8px 16px",borderRadius:6,border:"none"}}>Cancel</button>
-              <button onClick={()=>{ confirm.onConfirm(); closeConfirm(); }} style={{padding:"8px 16px",borderRadius:6,border:"none",background:"#1f2937",color:"#fff"}}>Yes</button>
+      {/* ================= TRANSACTIONS MODAL ================= */}
+      {showTransactionModal && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", display:"flex", justifyContent:"center", alignItems:"center", zIndex:1000 }}>
+          <div style={{ background:"#fff", padding:24, borderRadius:12, width:600, position:"relative" }}>
+            <h3>{editingTxId?"Edit Transaction":"Add Transaction"}</h3>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:12, position:"relative" }} ref={searchRef}>
+              {/* Autocomplete input */}
+              <input placeholder="Item Name" value={itemSearch} onChange={e=>{setItemSearch(e.target.value); setTxForm(f=>({...f,item_id:""}))}} style={{ flex:1, padding:"8px 12px", borderRadius:8, border:"1px solid #d1d5db"}}/>
+              {itemSearch && (
+                <div style={{ position:"absolute", top:40, left:0, right:0, background:"#fff", border:"1px solid #ccc", maxHeight:180, overflowY:"auto", zIndex:1001, borderRadius:4 }}>
+                  {items.filter(i=>i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).map(i=>{
+                    const stockItem = stockInventory.find(s=>s.id===i.id);
+                    const lowStock = stockItem && stockItem.stock<=5;
+                    return (
+                      <div key={i.id} style={{ padding:8, cursor:"pointer", background:lowStock?"#fee2e2":"transparent", display:"flex", justifyContent:"space-between" }}
+                        onClick={()=>{setItemSearch(i.item_name); setTxForm(f=>({...f,item_id:i.id})); setDropdownOpen(false)}}>
+                        <span>{i.item_name} {i.brand?`(${i.brand})`:''}</span>
+                        {lowStock && <span style={{color:"#b91c1c", fontWeight:"bold"}}>Low Stock</span>}
+                      </div>
+                    )
+                  })}
+                  {items.filter(i=>i.item_name.toLowerCase().includes(itemSearch.toLowerCase())).length===0 && <div style={{ padding:8, color:"#888"}}>Create new item: "{itemSearch}"</div>}
+                </div>
+              )}
+              <select value={txForm.type} onChange={e=>setTxForm(f=>({...f,type:e.target.value}))}><option value="IN">IN</option><option value="OUT">OUT</option></select>
+              <input type="number" placeholder="Quantity" value={txForm.quantity} onChange={e=>setTxForm(f=>({...f,quantity:e.target.value}))}/>
+              <input type="number" placeholder="Unit Price" value={txForm.unit_price} onChange={e=>setTxForm(f=>({...f,unit_price:e.target.value}))}/>
+              <input type="text" placeholder="Brand" value={txForm.brand} onChange={e=>setTxForm(f=>({...f,brand:e.target.value}))}/>
+              <input type="text" placeholder="Volume Pack" value={txForm.volume_pack} onChange={e=>setTxForm(f=>({...f,volume_pack:e.target.value}))}/>
+              <input type="date" value={txForm.date} onChange={e=>setTxForm(f=>({...f,date:e.target.value}))}/>
+            </div>
+            <div style={{ marginTop:12, display:"flex", justifyContent:"flex-end", gap:8 }}>
+              <button onClick={()=>setShowTransactionModal(false)}>Cancel</button>
+              <button onClick={saveTransaction}>Save</button>
             </div>
           </div>
         </div>
       )}
-    </div>
-  );
-}
 
-// ================= STOCK ROW COMPONENT WITH QUICK IN/OUT =================
-function StockRow({ item, loadData, setShowItemModal, setEditingItemId, setNewItem }) {
-  const [showQuickForm, setShowQuickForm] = useState(false);
-  const [quickForm, setQuickForm] = useState({ type: "IN", quantity: "", unit_price: item.unit_price });
-
-  const handleQuickSubmit = async () => {
-    if (!quickForm.quantity) return alert("Enter quantity");
-    const payload = {
-      location: item.location,
-      date: new Date().toISOString().slice(0, 10),
-      item_id: item.id,
-      type: quickForm.type,
-      quantity: Number(quickForm.quantity),
-      unit_price: Number(quickForm.unit_price || item.unit_price),
-    };
-    if (quickForm.type === "OUT" && Number(quickForm.quantity) > item.stock) return alert("Cannot OUT more than available stock");
-    await supabase.from("inventory_transactions").insert([payload]);
-    setQuickForm({ type: "IN", quantity: "", unit_price: item.unit_price });
-    setShowQuickForm(false);
-    loadData();
-  };
-
-  return (
-    <>
-      <tr style={item.stock <=5 ? { background:"#fee2e2"} : undefined}>
-        <td style={thtd}>{item.item_name}</td>
-        <td style={thtd}>{item.brand}</td>
-        <td style={thtd}>{item.volume_pack}</td>
-        <td style={thtd}>{item.stock}</td>
-        <td style={thtd}>₱{item.unit_price.toFixed(2)}</td>
-        <td style={thtd}>₱{(item.stock*item.unit_price).toFixed(2)}</td>
-        <td style={thtd}>
-          <button onClick={() => { setEditingItemId(item.id); setNewItem({ item_name:item.item_name, brand:item.brand, unit_price:item.unit_price }); setShowItemModal(true); }}>✏️ Edit</button>
-          <button onClick={() => openConfirm("Delete this item?", async () => { await supabase.from("items").delete().eq("id", item.id); loadData(); })}>🗑️ Delete</button>
-          <button onClick={() => setShowQuickForm(f=>!f)}>⚡ Quick IN/OUT</button>
-        </td>
-      </tr>
-      {showQuickForm && (
-        <tr style={{ background:"#f9fafb"}}>
-          <td colSpan={7} style={{ padding:8 }}>
-            <div style={{ display:"flex", gap:12, alignItems:"center"}}>
-              <select value={quickForm.type} onChange={e=>setQuickForm(f=>({...f,type:e.target.value}))}>
-                <option value="IN">IN</option>
-                <option value="OUT">OUT</option>
-              </select>
-              <input type="number" placeholder="Quantity" value={quickForm.quantity} onChange={e=>setQuickForm(f=>({...f,quantity:e.target.value}))} />
-              <input type="number" placeholder="Unit Price" value={quickForm.unit_price} onChange={e=>setQuickForm(f=>({...f,unit_price:e.target.value}))} />
-              <button onClick={handleQuickSubmit}>Save</button>
-              <button onClick={()=>setShowQuickForm(false)}>Cancel</button>
+      {/* ================= CONFIRM MODAL ================= */}
+      {confirm && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", display:"flex", justifyContent:"center", alignItems:"center", zIndex:1000 }}>
+          <div style={{ background:"#fff", padding:24, borderRadius:8, width:360, boxShadow:"0 10px 30px rgba(0,0,0,0.25)", textAlign:"center" }}>
+            <h3>Confirm Action</h3>
+            <p>{confirm.message}</p>
+            <div style={{ display:"flex", gap:10 }}>
+              <button style={{ flex:1, background:"#1f2937", color:"#fff"}} onClick={()=>{confirm.onConfirm(); closeConfirm();}}>Confirm</button>
+              <button style={{ flex:1, background:"#e5e7eb"}} onClick={closeConfirm}>Cancel</button>
             </div>
-          </td>
-        </tr>
+          </div>
+        </div>
       )}
-    </>
-  );
-}
 
-// ================= ITEM MODAL COMPONENT =================
-function ItemModal({ newItem, setNewItem, editingItemId, setShowItemModal, loadData, selectedStockRoom }) {
-  const handleSave = async () => {
-    if (!newItem.item_name) return alert("Item name required");
-    if (editingItemId) {
-      await supabase.from("items").update({ item_name:newItem.item_name, brand:newItem.brand, unit_price:Number(newItem.unit_price)||0 }).eq("id", editingItemId);
-    } else {
-      if (selectedStockRoom === "All Stock Rooms") return alert("Select a stock room first");
-      await supabase.from("items").insert([{ item_name:newItem.item_name, brand:newItem.brand, unit_price:Number(newItem.unit_price)||0, location:selectedStockRoom }]);
-    }
-    setShowItemModal(false);
-    setNewItem({ item_name:"", brand:"", unit_price:"" });
-    loadData();
-  };
+      {/* ================= ITEM MODAL ================= */}
+      {showItemModal && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", display:"flex", justifyContent:"center", alignItems:"center", zIndex:1000 }}>
+          <div style={{ background:"#fff", borderRadius:12, width:520, maxWidth:"95%", padding:24 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
+              <h3>{editingItemId?"Edit Item":"Add Item"}</h3>
+              <button onClick={()=>{setShowItemModal(false); setEditingItemId(null)}}>&times;</button>
+            </div>
+            <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
+              <input placeholder="Item name" value={newItem.item_name} onChange={e=>setNewItem(f=>({...f,item_name:e.target.value}))} style={{ flex:1 }}/>
+              <input placeholder="Brand" value={newItem.brand} onChange={e=>setNewItem(f=>({...f,brand:e.target.value}))} style={{ flex:1 }}/>
+              <input type="number" placeholder="Unit Price" value={newItem.unit_price} onChange={e=>setNewItem(f=>({...f,unit_price:e.target.value}))} style={{ flex:1 }}/>
+            </div>
+            <button style={{ marginTop:16, padding:"8px 16px", background:"#111827", color:"#fff", border:"none", borderRadius:6 }} onClick={async ()=>{
+              if(!newItem.item_name) return alert("Item name required");
+              if(editingItemId){
+                await supabase.from("items").update(newItem).eq("id",editingItemId);
+              }else{
+                await supabase.from("items").insert([{...newItem, location:"L1"}]);
+              }
+              loadData(); setShowItemModal(false); setEditingItemId(null);
+            }}>Save</button>
+          </div>
+        </div>
+      )}
 
-  return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", display:"flex", justifyContent:"center", alignItems:"center", zIndex:2000 }}>
-      <div style={{ background:"#fff", borderRadius:12, width:520, padding:24 }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-          <h3>{editingItemId ? "Edit Item":"Add New Item"}</h3>
-          <button onClick={()=>setShowItemModal(false)}>&times;</button>
+      {/* ================= REPORT TAB ================= */}
+      {activeTab==="report" && (
+        <div>
+          <h3>Monthly Report</h3>
+          <table style={tableStyle}>
+            <thead><tr><th style={thtd}>Month</th><th style={thtd}>IN Total</th><th style={thtd}>OUT Total</th></tr></thead>
+            <tbody>
+              {Object.keys(monthlyTotals).length===0 && emptyRow(3,"No data")}
+              {Object.entries(monthlyTotals).map(([month, t])=>(
+                <tr key={month}>
+                  <td style={thtd}>{month}</td>
+                  <td style={thtd}>₱{t.IN.toFixed(2)}</td>
+                  <td style={thtd}>₱{t.OUT.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
-          <input placeholder="Item name" value={newItem.item_name} onChange={e=>setNewItem(f=>({...f,item_name:e.target.value}))} />
-          <input placeholder="Brand" value={newItem.brand} onChange={e=>setNewItem(f=>({...f,brand:e.target.value}))} />
-          <input type="number" placeholder="Unit price" value={newItem.unit_price} onChange={e=>setNewItem(f=>({...f,unit_price:e.target.value}))} />
+      )}
+
+      {/* ================= DELETED TAB ================= */}
+      {activeTab==="deleted" && (
+        <div>
+          <h3>Deleted Transactions</h3>
+          <div style={{ maxHeight:400, overflowY:"auto" }}>
+            <table style={tableStyle}>
+              <thead><tr><th style={thtd}>Item</th><th style={thtd}>Type</th><th style={thtd}>Quantity</th><th style={thtd}>Deleted At</th></tr></thead>
+              <tbody>
+                {deletedTransactions.length===0 && emptyRow(4,"No deleted transactions")}
+                {deletedTransactions.map(d=>(
+                  <tr key={d.id}>
+                    <td style={thtd}>{d.items?.item_name}</td>
+                    <td style={thtd}>{d.type}</td>
+                    <td style={thtd}>{d.quantity}</td>
+                    <td style={thtd}>{d.deleted_at?.slice(0,10)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div style={{ display:"flex", justifyContent:"flex-end", marginTop:16 }}>
-          <button onClick={()=>setShowItemModal(false)} style={{ marginRight:12 }}>Cancel</button>
-          <button onClick={handleSave}>Save</button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
