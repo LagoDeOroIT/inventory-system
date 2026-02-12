@@ -526,4 +526,3 @@ export default function App() {
       )}
     </div> {/* End of main */}
   </div> {/* End of container */}
-);
