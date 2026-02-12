@@ -179,7 +179,28 @@ export default function App() {
     </div>
   );
 
- return (
+ // ================= FILTERED DATA =================
+const filteredStock = stockInventory.filter(
+  (i) =>
+    i.item_name.toLowerCase().includes(inSearch.toLowerCase()) ||
+    i.brand.toLowerCase().includes(inSearch.toLowerCase())
+);
+
+const filteredTx = filteredTransactions.filter((t) =>
+  t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())
+);
+
+const filteredDeletedItems = deletedItems.filter(
+  (i) =>
+    i.item_name.toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+    i.brand.toLowerCase().includes(deletedItemSearch.toLowerCase())
+);
+
+const filteredDeletedTx = deletedTransactions.filter((t) =>
+  t.items?.item_name.toLowerCase().includes(deletedTxSearch.toLowerCase())
+);
+
+return (
   <div style={styles.container}>
     {/* Sidebar */}
     <div style={styles.sidebar}>
@@ -233,6 +254,7 @@ export default function App() {
           </button>
         </div>
       </div>
+
       <button style={styles.buttonPrimary} onClick={handleNewClick}>
         + New
       </button>
@@ -253,231 +275,209 @@ export default function App() {
       </div>
 
       {/* ================= STOCK TAB ================= */}
-      {activeTab === "stock" && (() => {
-        const filteredStock = stockInventory.filter(
-          (i) =>
-            i.item_name.toLowerCase().includes(inSearch.toLowerCase()) ||
-            i.brand.toLowerCase().includes(inSearch.toLowerCase())
-        );
-        return (
-          <div style={styles.card}>
-            <input
-              style={styles.input}
-              placeholder="Search stock inventory..."
-              value={inSearch}
-              onChange={(e) => setInSearch(e.target.value)}
-            />
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.thtd}>Available Stocks</th>
-                  <th style={styles.thtd}>Item Name</th>
-                  <th style={styles.thtd}>Brand</th>
-                  <th style={styles.thtd}>Price</th>
-                  <th style={styles.thtd}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredStock.length === 0
-                  ? emptyRow(5, "No stock data")
-                  : filteredStock.map((i) => (
-                      <tr key={i.id}>
-                        <td style={styles.thtd}>{i.stock}</td>
-                        <td style={styles.thtd}>{i.item_name}</td>
-                        <td style={styles.thtd}>{i.brand}</td>
-                        <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
-                        <td style={styles.thtd}>
-                          <button
-                            style={{ ...styles.buttonSecondary, marginRight: 8 }}
-                            onClick={() => handleEditItem(i)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
-                            onClick={() => handleDeleteItem(i)}
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-              </tbody>
-            </table>
-          </div>
-        );
-      })()}
+      {activeTab === "stock" && (
+        <div style={styles.card}>
+          <input
+            style={styles.input}
+            placeholder="Search stock inventory..."
+            value={inSearch}
+            onChange={(e) => setInSearch(e.target.value)}
+          />
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.thtd}>Available Stocks</th>
+                <th style={styles.thtd}>Item Name</th>
+                <th style={styles.thtd}>Brand</th>
+                <th style={styles.thtd}>Price</th>
+                <th style={styles.thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredStock.length === 0
+                ? emptyRow(5, "No stock data")
+                : filteredStock.map((i) => (
+                    <tr key={i.id}>
+                      <td style={styles.thtd}>{i.stock}</td>
+                      <td style={styles.thtd}>{i.item_name}</td>
+                      <td style={styles.thtd}>{i.brand}</td>
+                      <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
+                      <td style={styles.thtd}>
+                        <button
+                          style={{ ...styles.buttonSecondary, marginRight: 8 }}
+                          onClick={() => handleEditItem(i)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                          onClick={() => handleDeleteItem(i)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* ================= TRANSACTIONS TAB ================= */}
-      {activeTab === "transactions" && (() => {
-        const filteredTx = filteredTransactions.filter((t) =>
-          t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())
-        );
-        return (
-          <div style={styles.card}>
-            <input
-              style={styles.input}
-              placeholder="Search transactions..."
-              value={inSearch}
-              onChange={(e) => setInSearch(e.target.value)}
-            />
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.thtd}>Date</th>
-                  <th style={styles.thtd}>Item</th>
-                  <th style={styles.thtd}>Brand</th>
-                  <th style={styles.thtd}>Type</th>
-                  <th style={styles.thtd}>Qty</th>
-                  <th style={styles.thtd}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTx.length === 0
-                  ? emptyRow(6, "No transactions")
-                  : filteredTx.map((t) => (
-                      <tr key={t.id}>
-                        <td style={styles.thtd}>{t.date}</td>
-                        <td style={styles.thtd}>{t.items?.item_name}</td>
-                        <td style={styles.thtd}>{t.items?.brand}</td>
-                        <td style={styles.thtd}>{t.type}</td>
-                        <td style={styles.thtd}>{t.quantity}</td>
-                        <td style={styles.thtd}>
-                          <button
-                            style={{ ...styles.buttonSecondary, marginRight: 8 }}
-                            onClick={() => handleEditTransaction(t)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
-                            onClick={() => handleDeleteTransaction(t)}
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-              </tbody>
-            </table>
-          </div>
-        );
-      })()}
+      {activeTab === "transactions" && (
+        <div style={styles.card}>
+          <input
+            style={styles.input}
+            placeholder="Search transactions..."
+            value={inSearch}
+            onChange={(e) => setInSearch(e.target.value)}
+          />
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.thtd}>Date</th>
+                <th style={styles.thtd}>Item</th>
+                <th style={styles.thtd}>Brand</th>
+                <th style={styles.thtd}>Type</th>
+                <th style={styles.thtd}>Qty</th>
+                <th style={styles.thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTx.length === 0
+                ? emptyRow(6, "No transactions")
+                : filteredTx.map((t) => (
+                    <tr key={t.id}>
+                      <td style={styles.thtd}>{t.date}</td>
+                      <td style={styles.thtd}>{t.items?.item_name}</td>
+                      <td style={styles.thtd}>{t.items?.brand}</td>
+                      <td style={styles.thtd}>{t.type}</td>
+                      <td style={styles.thtd}>{t.quantity}</td>
+                      <td style={styles.thtd}>
+                        <button
+                          style={{ ...styles.buttonSecondary, marginRight: 8 }}
+                          onClick={() => handleEditTransaction(t)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                          onClick={() => handleDeleteTransaction(t)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* ================= DELETED HISTORY TAB ================= */}
-      {activeTab === "deleted" && (() => {
-        const filteredDeletedItems = deletedItems.filter(
-          (i) =>
-            i.item_name.toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
-            i.brand.toLowerCase().includes(deletedItemSearch.toLowerCase())
-        );
-        const filteredDeletedTx = deletedTransactions.filter((t) =>
-          t.items?.item_name.toLowerCase().includes(deletedTxSearch.toLowerCase())
-        );
-        return (
-          <div style={styles.card}>
-            <h3>Deleted Items</h3>
-            <input
-              style={styles.input}
-              placeholder="Search deleted items..."
-              value={deletedItemSearch}
-              onChange={(e) => setDeletedItemSearch(e.target.value)}
-            />
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.thtd}>Item Name</th>
-                  <th style={styles.thtd}>Brand</th>
-                  <th style={styles.thtd}>Price</th>
-                  <th style={styles.thtd}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredDeletedItems.length === 0
-                  ? emptyRow(4, "No deleted items")
-                  : filteredDeletedItems.map((i) => (
-                      <tr key={i.id}>
-                        <td style={styles.thtd}>{i.item_name}</td>
-                        <td style={styles.thtd}>{i.brand}</td>
-                        <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
-                        <td style={styles.thtd}>
-                          <button
-                            style={{
-                              ...styles.buttonSecondary,
-                              marginRight: 8,
-                              background: "#60a5fa",
-                              color: "#fff",
-                            }}
-                            onClick={() => handleRestoreItem(i)}
-                          >
-                            Restore
-                          </button>
-                          <button
-                            style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
-                            onClick={() => handlePermanentDeleteItem(i)}
-                          >
-                            Delete Permanently
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-              </tbody>
-            </table>
+      {activeTab === "deleted" && (
+        <div style={styles.card}>
+          <h3>Deleted Items</h3>
+          <input
+            style={styles.input}
+            placeholder="Search deleted items..."
+            value={deletedItemSearch}
+            onChange={(e) => setDeletedItemSearch(e.target.value)}
+          />
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.thtd}>Item Name</th>
+                <th style={styles.thtd}>Brand</th>
+                <th style={styles.thtd}>Price</th>
+                <th style={styles.thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredDeletedItems.length === 0
+                ? emptyRow(4, "No deleted items")
+                : filteredDeletedItems.map((i) => (
+                    <tr key={i.id}>
+                      <td style={styles.thtd}>{i.item_name}</td>
+                      <td style={styles.thtd}>{i.brand}</td>
+                      <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
+                      <td style={styles.thtd}>
+                        <button
+                          style={{
+                            ...styles.buttonSecondary,
+                            marginRight: 8,
+                            background: "#60a5fa",
+                            color: "#fff",
+                          }}
+                          onClick={() => handleRestoreItem(i)}
+                        >
+                          Restore
+                        </button>
+                        <button
+                          style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                          onClick={() => handlePermanentDeleteItem(i)}
+                        >
+                          Delete Permanently
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+            </tbody>
+          </table>
 
-            <h3 style={{ marginTop: 24 }}>Deleted Transactions</h3>
-            <input
-              style={styles.input}
-              placeholder="Search deleted transactions..."
-              value={deletedTxSearch}
-              onChange={(e) => setDeletedTxSearch(e.target.value)}
-            />
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.thtd}>Date</th>
-                  <th style={styles.thtd}>Item</th>
-                  <th style={styles.thtd}>Brand</th>
-                  <th style={styles.thtd}>Type</th>
-                  <th style={styles.thtd}>Qty</th>
-                  <th style={styles.thtd}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredDeletedTx.length === 0
-                  ? emptyRow(6, "No deleted transactions")
-                  : filteredDeletedTx.map((t) => (
-                      <tr key={t.id}>
-                        <td style={styles.thtd}>{t.date}</td>
-                        <td style={styles.thtd}>{t.items?.item_name}</td>
-                        <td style={styles.thtd}>{t.items?.brand}</td>
-                        <td style={styles.thtd}>{t.type}</td>
-                        <td style={styles.thtd}>{t.quantity}</td>
-                        <td style={styles.thtd}>
-                          <button
-                            style={{
-                              ...styles.buttonSecondary,
-                              marginRight: 8,
-                              background: "#60a5fa",
-                              color: "#fff",
-                            }}
-                            onClick={() => handleRestoreTransaction(t)}
-                          >
-                            Restore
-                          </button>
-                          <button
-                            style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
-                            onClick={() => handlePermanentDeleteTransaction(t)}
-                          >
-                            Delete Permanently
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-              </tbody>
-            </table>
-          </div>
-        );
-      })()}
+          <h3 style={{ marginTop: 24 }}>Deleted Transactions</h3>
+          <input
+            style={styles.input}
+            placeholder="Search deleted transactions..."
+            value={deletedTxSearch}
+            onChange={(e) => setDeletedTxSearch(e.target.value)}
+          />
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.thtd}>Date</th>
+                <th style={styles.thtd}>Item</th>
+                <th style={styles.thtd}>Brand</th>
+                <th style={styles.thtd}>Type</th>
+                <th style={styles.thtd}>Qty</th>
+                <th style={styles.thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredDeletedTx.length === 0
+                ? emptyRow(6, "No deleted transactions")
+                : filteredDeletedTx.map((t) => (
+                    <tr key={t.id}>
+                      <td style={styles.thtd}>{t.date}</td>
+                      <td style={styles.thtd}>{t.items?.item_name}</td>
+                      <td style={styles.thtd}>{t.items?.brand}</td>
+                      <td style={styles.thtd}>{t.type}</td>
+                      <td style={styles.thtd}>{t.quantity}</td>
+                      <td style={styles.thtd}>
+                        <button
+                          style={{
+                            ...styles.buttonSecondary,
+                            marginRight: 8,
+                            background: "#60a5fa",
+                            color: "#fff",
+                          }}
+                          onClick={() => handleRestoreTransaction(t)}
+                        >
+                          Restore
+                        </button>
+                        <button
+                          style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                          onClick={() => handlePermanentDeleteTransaction(t)}
+                        >
+                          Delete Permanently
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div> {/* closes main */}
   </div> {/* closes container */}
 );
