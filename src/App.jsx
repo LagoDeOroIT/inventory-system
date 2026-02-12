@@ -76,7 +76,6 @@ export default function App() {
     const { data: itemsData } = await supabase.from("items").select("*");
     const { data: tx } = await supabase.from("inventory_transactions")
       .select("*, items(item_name, brand, unit_price)")
-      .eq("deleted", false)
       .order("date", { ascending: false });
     setItems(itemsData || []);
     setTransactions(tx || []);
@@ -87,12 +86,13 @@ export default function App() {
   const filteredTransactions = transactions.filter(t => !selectedStockRoom || t.location === selectedStockRoom);
 
   const stockInventory = items.filter(i => !i.deleted).map(i => {
-    const related = transactions.filter(t => t.item_id === i.id);
+    const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
     const stock = related.reduce((sum, t) => sum + (t.type==="IN"? Number(t.quantity):-Number(t.quantity)),0);
     return { id:i.id, item_name:i.item_name, brand:i.brand, unit_price:i.unit_price, stock };
   });
 
   const deletedItems = items.filter(i => i.deleted);
+  const deletedTransactions = transactions.filter(t => t.deleted);
 
   const handleFormChange = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
 
@@ -100,17 +100,36 @@ export default function App() {
   const handleSubmit = async () => {
     if(modalType==="transaction"){
       if(!form.item_id || !form.quantity || !form.date) return alert("Fill required fields");
-      await supabase.from("inventory_transactions").insert([{
-        ...form,
-        location: selectedStockRoom,
-        brand: form.brand,
-        unit_price: items.find(i=>i.id===form.item_id)?.unit_price || 0
-      }]);
+
+      if(form.id){
+        // EDIT existing transaction
+        if(!confirm(`Are you sure you want to save changes for this transaction?`)) return;
+        await supabase.from("inventory_transactions").update({
+          date: form.date,
+          item_id: form.item_id,
+          brand: form.brand,
+          type: form.type,
+          quantity: Number(form.quantity),
+          unit_price: items.find(i=>i.id===form.item_id)?.unit_price || 0
+        }).eq("id", form.id);
+      } else {
+        // ADD new transaction
+        await supabase.from("inventory_transactions").insert([{
+          date: form.date,
+          item_id: form.item_id,
+          brand: form.brand,
+          type: form.type,
+          quantity: Number(form.quantity),
+          location: selectedStockRoom,
+          unit_price: items.find(i=>i.id===form.item_id)?.unit_price || 0
+        }]);
+      }
     } else if(modalType==="item"){
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
 
       if(form.id){ 
         // EDIT existing item
+        if(!confirm(`Are you sure you want to save changes to "${form.item_name}"?`)) return;
         await supabase.from("items").update({
           item_name: form.item_name,
           brand: form.brand,
@@ -143,22 +162,54 @@ export default function App() {
     }
   };
 
-  // ================= EDIT / DELETE / RESTORE =================
+  // ================= ITEM HANDLERS =================
   const handleEditItem = (item) => {
     setForm({ id: item.id, item_name: item.item_name, brand: item.brand, price: item.unit_price });
     setModalType("item");
     setShowModal(true);
   };
-
   const handleDeleteItem = async (item) => {
     if(!confirm(`Are you sure you want to delete "${item.item_name}"?`)) return;
     await supabase.from("items").update({ deleted: true }).eq("id", item.id);
     loadData();
   };
-
   const handleRestoreItem = async (item) => {
     if(!confirm(`Do you want to restore "${item.item_name}"?`)) return;
     await supabase.from("items").update({ deleted: false }).eq("id", item.id);
+    loadData();
+  };
+  const handlePermanentDeleteItem = async (item) => {
+    if(!confirm(`Are you sure you want to permanently delete "${item.item_name}"? This cannot be undone.`)) return;
+    await supabase.from("items").delete().eq("id", item.id);
+    loadData();
+  };
+
+  // ================= TRANSACTION HANDLERS =================
+  const handleEditTransaction = (tx) => {
+    setForm({
+      id: tx.id,
+      date: tx.date,
+      item_id: tx.item_id,
+      brand: tx.brand,
+      type: tx.type,
+      quantity: tx.quantity
+    });
+    setModalType("transaction");
+    setShowModal(true);
+  };
+  const handleDeleteTransaction = async (tx) => {
+    if(!confirm(`Are you sure you want to delete this transaction for "${tx.items?.item_name}"?`)) return;
+    await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", tx.id);
+    loadData();
+  };
+  const handleRestoreTransaction = async (tx) => {
+    if(!confirm(`Do you want to restore this transaction for "${tx.items?.item_name}"?`)) return;
+    await supabase.from("inventory_transactions").update({ deleted: false }).eq("id", tx.id);
+    loadData();
+  };
+  const handlePermanentDeleteTransaction = async (tx) => {
+    if(!confirm(`Permanently delete this transaction for "${tx.items?.item_name}"? This cannot be undone.`)) return;
+    await supabase.from("inventory_transactions").delete().eq("id", tx.id);
     loadData();
   };
 
@@ -229,9 +280,45 @@ export default function App() {
           </div>
         )}
 
+        {/* ================= TRANSACTIONS TAB ================= */}
+        {activeTab==="transactions" && (
+          <div style={styles.card}>
+            <input style={styles.input} placeholder="Search..." value={inSearch} onChange={e=>setInSearch(e.target.value)} />
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.thtd}>Date</th>
+                  <th style={styles.thtd}>Item</th>
+                  <th style={styles.thtd}>Brand</th>
+                  <th style={styles.thtd}>Type</th>
+                  <th style={styles.thtd}>Qty</th>
+                  <th style={styles.thtd}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length===0 && emptyRow(6,"No transactions")}
+                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t=>(
+                  <tr key={t.id}>
+                    <td style={styles.thtd}>{t.date}</td>
+                    <td style={styles.thtd}>{t.items?.item_name}</td>
+                    <td style={styles.thtd}>{t.items?.brand}</td>
+                    <td style={styles.thtd}>{t.type}</td>
+                    <td style={styles.thtd}>{t.quantity}</td>
+                    <td style={styles.thtd}>
+                      <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => handleEditTransaction(t)}>Edit</button>
+                      <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => handleDeleteTransaction(t)}>Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
         {/* ================= DELETED HISTORY TAB ================= */}
         {activeTab==="deleted" && (
           <div style={styles.card}>
+            <h3>Deleted Inventory</h3>
             <table style={styles.table}>
               <thead>
                 <tr>
@@ -249,19 +336,15 @@ export default function App() {
                     <td style={styles.thtd}>{i.brand}</td>
                     <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
                     <td style={styles.thtd}>
-                      <button style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff" }} onClick={() => handleRestoreItem(i)}>Restore</button>
+                      <button style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff", marginRight: 8 }} onClick={() => handleRestoreItem(i)}>Restore</button>
+                      <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => handlePermanentDeleteItem(i)}>Delete Permanently</button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        )}
 
-        {/* ================= TRANSACTIONS TAB ================= */}
-        {activeTab==="transactions" && (
-          <div style={styles.card}>
-            <input style={styles.input} placeholder="Search..." value={inSearch} onChange={e=>setInSearch(e.target.value)} />
+            <h3 style={{ marginTop:24 }}>Deleted Transactions</h3>
             <table style={styles.table}>
               <thead>
                 <tr>
@@ -270,17 +353,22 @@ export default function App() {
                   <th style={styles.thtd}>Brand</th>
                   <th style={styles.thtd}>Type</th>
                   <th style={styles.thtd}>Qty</th>
+                  <th style={styles.thtd}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length===0 && emptyRow(5,"No transactions")}
-                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t=>(
+                {deletedTransactions.length===0 && emptyRow(6,"No deleted transactions")}
+                {deletedTransactions.map(t=>(
                   <tr key={t.id}>
                     <td style={styles.thtd}>{t.date}</td>
                     <td style={styles.thtd}>{t.items?.item_name}</td>
                     <td style={styles.thtd}>{t.items?.brand}</td>
                     <td style={styles.thtd}>{t.type}</td>
                     <td style={styles.thtd}>{t.quantity}</td>
+                    <td style={styles.thtd}>
+                      <button style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff", marginRight: 8 }} onClick={() => handleRestoreTransaction(t)}>Restore</button>
+                      <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => handlePermanentDeleteTransaction(t)}>Delete Permanently</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -322,7 +410,7 @@ export default function App() {
                   <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e=>handleFormChange("brand",e.target.value)} />
                   <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e=>handleFormChange("price",e.target.value)} />
                   <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                    <button style={styles.buttonPrimary} onClick={handleSubmit}>Submit</button>
+                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
                     <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
                   </div>
                 </>
@@ -331,7 +419,7 @@ export default function App() {
               {/* ADD TRANSACTION MODAL */}
               {modalType==="transaction" && (
                 <>
-                  <h3>New Transaction</h3>
+                  <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
                   <input style={styles.input} type="date" value={form.date} onChange={e=>handleFormChange("date",e.target.value)} />
                   <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_id} onChange={e=>handleFormChange("item_id",e.target.value)} />
                   <datalist id="items-list">{items.map(i=><option key={i.id} value={i.id}>{i.item_name}</option>)}</datalist>
@@ -342,16 +430,14 @@ export default function App() {
                   </div>
                   <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e=>handleFormChange("quantity",e.target.value)} />
                   <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                    <button style={styles.buttonPrimary} onClick={handleSubmit}>Submit</button>
+                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
                     <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
                   </div>
                 </>
               )}
-
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
