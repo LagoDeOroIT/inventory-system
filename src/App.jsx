@@ -519,10 +519,11 @@ export default function App() {
       )}
 
       {/* ================= REPORT TAB ================= */}
-      {activeTab === "report" && (
-        <div style={styles.card}>
-          <h3>Monthly Report (Coming Soon)</h3>
-        </div>
-      )}
+      {activeTab === "deleted" && (
+  <div style={styles.card}>
+    {/* ... your deleted items + transactions tables ... */}
+  </div>
+)}  {/* <-- only this closing brace, no extra ) */}
+
     </div> {/* End of main */}
   </div> {/* End of container */}
