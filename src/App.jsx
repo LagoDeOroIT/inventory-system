@@ -281,50 +281,39 @@ export default function App() {
         )}
 
         {/* ================= TRANSACTIONS TAB ================= */}
-{activeTab==="transactions" && (
-  <div style={styles.card}>
-    <input
-      style={styles.input}
-      placeholder="Search by item..."
-      value={inSearch}
-      onChange={e=>setInSearch(e.target.value)}
-    />
-    <table style={styles.table}>
-      <thead>
-        <tr>
-          <th style={styles.thtd}>Date</th>
-          <th style={styles.thtd}>Item</th>
-          <th style={styles.thtd}>Brand</th>
-          <th style={styles.thtd}>Type</th>
-          <th style={styles.thtd}>Qty</th>
-          <th style={styles.thtd}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {transactions
-          .filter(t => (!selectedStockRoom || t.location === selectedStockRoom) &&
-                       (!inSearch || t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())))
-          .map(t => (
-          <tr key={t.id}>
-            <td style={styles.thtd}>{t.date}</td>
-            <td style={styles.thtd}>{t.items?.item_name}</td>
-            <td style={styles.thtd}>{t.items?.brand}</td>
-            <td style={styles.thtd}>{t.type}</td>
-            <td style={styles.thtd}>{t.quantity}</td>
-            <td style={styles.thtd}>
-              <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => handleEditTransaction(t)}>Edit</button>
-              <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => handleDeleteTransaction(t)}>Delete</button>
-            </td>
-          </tr>
-        ))}
-        {transactions.filter(t => (!selectedStockRoom || t.location === selectedStockRoom) &&
-                                   (!inSearch || t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())))
-          .length === 0 && emptyRow(6, "No transactions")}
-      </tbody>
-    </table>
-  </div>
-)}
-
+        {activeTab==="transactions" && (
+          <div style={styles.card}>
+            <input style={styles.input} placeholder="Search..." value={inSearch} onChange={e=>setInSearch(e.target.value)} />
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.thtd}>Date</th>
+                  <th style={styles.thtd}>Item</th>
+                  <th style={styles.thtd}>Brand</th>
+                  <th style={styles.thtd}>Type</th>
+                  <th style={styles.thtd}>Qty</th>
+                  <th style={styles.thtd}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length===0 && emptyRow(6,"No transactions")}
+                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t=>(
+                  <tr key={t.id}>
+                    <td style={styles.thtd}>{t.date}</td>
+                    <td style={styles.thtd}>{t.items?.item_name}</td>
+                    <td style={styles.thtd}>{t.items?.brand}</td>
+                    <td style={styles.thtd}>{t.type}</td>
+                    <td style={styles.thtd}>{t.quantity}</td>
+                    <td style={styles.thtd}>
+                      <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => handleEditTransaction(t)}>Edit</button>
+                      <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => handleDeleteTransaction(t)}>Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* ================= DELETED HISTORY TAB ================= */}
         {activeTab==="deleted" && (
@@ -427,78 +416,29 @@ export default function App() {
                 </>
               )}
 
-             {/* ADD / EDIT TRANSACTION MODAL */}
-{modalType==="transaction" && (
-  <>
-    <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
-    
-    {/* Date */}
-    <input
-      style={styles.input}
-      type="date"
-      value={form.date}
-      onChange={e => handleFormChange("date", e.target.value)}
-    />
-
-    {/* Item Selection */}
-    <select
-      style={styles.input}
-      value={form.item_id}
-      onChange={e => {
-        const selectedItem = items.find(i => i.id === e.target.value);
-        handleFormChange("item_id", selectedItem?.id || "");
-        handleFormChange("brand", selectedItem?.brand || "");
-        handleFormChange("unit_price", selectedItem?.unit_price || 0);
-      }}
-    >
-      <option value="">Select Item</option>
-      {items.map(i => (
-        <option key={i.id} value={i.id}>{i.item_name}</option>
-      ))}
-    </select>
-
-    {/* Auto-fill brand */}
-    <input
-      style={styles.input}
-      placeholder="Brand"
-      value={form.brand}
-      readOnly
-    />
-
-    {/* IN / OUT toggle */}
-    <div style={styles.toggleGroup}>
-      <button
-        style={styles.toggleButton(form.type==="IN")}
-        onClick={() => handleFormChange("type", "IN")}
-      >IN</button>
-      <button
-        style={styles.toggleButton(form.type==="OUT")}
-        onClick={() => handleFormChange("type", "OUT")}
-      >OUT</button>
+              {/* ADD TRANSACTION MODAL */}
+              {modalType==="transaction" && (
+                <>
+                  <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
+                  <input style={styles.input} type="date" value={form.date} onChange={e=>handleFormChange("date",e.target.value)} />
+                  <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_id} onChange={e=>handleFormChange("item_id",e.target.value)} />
+                  <datalist id="items-list">{items.map(i=><option key={i.id} value={i.id}>{i.item_name}</option>)}</datalist>
+                  <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e=>handleFormChange("brand",e.target.value)} />
+                  <div style={styles.toggleGroup}>
+                    <button style={styles.toggleButton(form.type==="IN")} onClick={()=>handleFormChange("type","IN")}>IN</button>
+                    <button style={styles.toggleButton(form.type==="OUT")} onClick={()=>handleFormChange("type","OUT")}>OUT</button>
+                  </div>
+                  <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e=>handleFormChange("quantity",e.target.value)} />
+                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+                    <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-
-    {/* Quantity */}
-    <input
-      style={styles.input}
-      type="number"
-      min={1}
-      placeholder="Quantity"
-      value={form.quantity}
-      onChange={e => handleFormChange("quantity", e.target.value)}
-    />
-
-    <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-      <button
-        style={styles.buttonPrimary}
-        onClick={() => {
-          if(!form.date || !form.item_id || !form.quantity) return alert("Please fill required fields!");
-          handleSubmit();
-        }}
-      >
-        {form.id ? "Save Changes" : "Submit"}
-      </button>
-      <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
-    </div>
-  </>
-)}
-
+  );
+}
