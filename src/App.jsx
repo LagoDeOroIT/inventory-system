@@ -351,3 +351,7 @@ export default function App() {
             </table>
           </div>
         )}
+      </div> {/* closes main */}
+    </div> {/* closes container */}
+  );
+}
