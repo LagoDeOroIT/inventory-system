@@ -378,84 +378,95 @@ export default function App() {
         )}
 
          {/* ================= MODAL ================= */}
-        {showModal && (
-          <div style={styles.modalOverlay} onClick={()=>setShowModal(false)}>
-            <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
-              {/* ADD TRANSACTION MODAL */}
-              {modalType==="transaction" && (
-                <>
-                  <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
-                  <input style={styles.input} type="date" value={form.date} onChange={e=>handleFormChange("date",e.target.value)} />
-                  <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_name} onChange={e=>handleFormChange("item_name",e.target.value)} />
-                  <datalist id="items-list">{items.filter(i=>i.location===selectedStockRoom).map(i=><option key={i.id} value={i.item_name}></option>)}</datalist>
-                  <input style={styles.input} placeholder="Brand" value={form.brand} readOnly />
-                  <div style={styles.toggleGroup}>
-                    <button style={styles.toggleButton(form.type==="IN")} onClick={()=>handleFormChange("type","IN")}>IN</button>
-                    <button style={styles.toggleButton(form.type==="OUT")} onClick={()=>handleFormChange("type","OUT")}>OUT</button>
-                  </div>
-                  <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e=>handleFormChange("quantity",e.target.value)} />
-                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
-                    <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
-                 </div>  {/* closes modalCard */}
-               </div>    {/* closes modalOverlay */}
-              )}         {/* closes showModal && (...) */}
+{showModal && (
+  <div style={styles.modalOverlay} onClick={()=>setShowModal(false)}>
+    <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
 
+      {/* ADD TRANSACTION MODAL */}
+      {modalType==="transaction" && (
+        <>
+          <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
 
+          <input style={styles.input} type="date" value={form.date}
+            onChange={e=>handleFormChange("date",e.target.value)} />
 
-              {/* STOCK ROOM PROMPT */}
-              {modalType==="stockRoomPrompt" && (
-                <>
-                  <h3>Select Stock Room First</h3>
-                  <select style={styles.input} value={selectedStockRoom} onChange={e=>{setSelectedStockRoom(e.target.value); setModalType("newOption");}}>
-                    <option value="">Select Stock Room</option>
-                    {stockRooms.map(r=><option key={r} value={r}>{r}</option>)}
-                  </select>
-                  <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
-                </>
-              )}
+          <input style={styles.input} list="items-list" placeholder="Select Item"
+            value={form.item_name}
+            onChange={e=>handleFormChange("item_name",e.target.value)} />
 
-              {/* ADD ITEM MODAL */}
-              {modalType==="item" && (
-                <>
-                  <h3>{form.id ? "Edit Item" : "New Item"}</h3>
-                  <input style={styles.input} placeholder="Item Name" value={form.item_name} onChange={e=>handleFormChange("item_name",e.target.value)} />
-                  <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e=>handleFormChange("brand",e.target.value)} />
-                  <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e=>handleFormChange("price",e.target.value)} />
-                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
-                    <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
-                  </div>
-                </>
-              )}
+          <datalist id="items-list">
+            {items.filter(i=>i.location===selectedStockRoom).map(i=>(
+              <option key={i.id} value={i.item_name} />
+            ))}
+          </datalist>
 
+          <input style={styles.input} placeholder="Brand" value={form.brand} readOnly />
 
-        {/* ================= CONFIRM MODAL ================= */}
-        {confirmAction && (
-          <div style={styles.modalOverlay} onClick={()=>setConfirmAction(null)}>
-            <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
-              <h3>Confirm Action</h3>
-              <p>Are you sure you want to {confirmAction.type.includes("delete") ? "delete" : "restore"} this {confirmAction.type.includes("Tx") ? "transaction" : "item"}?</p>
-              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                <button style={styles.buttonPrimary} onClick={async ()=>{
-                  const { type, data } = confirmAction;
-                  if(type==="deleteItem") await supabase.from("items").update({ deleted:true }).eq("id", data.id);
-                  else if(type==="permanentDeleteItem") await supabase.from("items").delete().eq("id", data.id);
-                  else if(type==="restoreItem") await supabase.from("items").update({ deleted:false }).eq("id", data.id);
-                  else if(type==="deleteTx") await supabase.from("inventory_transactions").update({ deleted:true }).eq("id", data.id);
-                  else if(type==="permanentDeleteTx") await supabase.from("inventory_transactions").delete().eq("id", data.id);
-                  else if(type==="restoreTx") await supabase.from("inventory_transactions").update({ deleted:false }).eq("id", data.id);
-
-                  setConfirmAction(null);
-                  loadData();
-                }}>Yes</button>
-                <button style={styles.buttonSecondary} onClick={()=>setConfirmAction(null)}>Cancel</button>
-              </div>
-            </div>
+          <div style={styles.toggleGroup}>
+            <button style={styles.toggleButton(form.type==="IN")}
+              onClick={()=>handleFormChange("type","IN")}>IN</button>
+            <button style={styles.toggleButton(form.type==="OUT")}
+              onClick={()=>handleFormChange("type","OUT")}>OUT</button>
           </div>
-        )}
 
-      </div>
+          <input style={styles.input} type="number" placeholder="Quantity"
+            value={form.quantity}
+            onChange={e=>handleFormChange("quantity",e.target.value)} />
+
+          <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+            <button style={styles.buttonPrimary} onClick={handleSubmit}>
+              {form.id ? "Save Changes" : "Submit"}
+            </button>
+            <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>
+              Cancel
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* STOCK ROOM PROMPT */}
+      {modalType==="stockRoomPrompt" && (
+        <>
+          <h3>Select Stock Room First</h3>
+          <select style={styles.input} value={selectedStockRoom}
+            onChange={e=>{setSelectedStockRoom(e.target.value); setModalType("newOption");}}>
+            <option value="">Select Stock Room</option>
+            {stockRooms.map(r=><option key={r} value={r}>{r}</option>)}
+          </select>
+          <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>
+            Cancel
+          </button>
+        </>
+      )}
+
+      {/* ADD ITEM MODAL */}
+      {modalType==="item" && (
+        <>
+          <h3>{form.id ? "Edit Item" : "New Item"}</h3>
+
+          <input style={styles.input} placeholder="Item Name"
+            value={form.item_name}
+            onChange={e=>handleFormChange("item_name",e.target.value)} />
+
+          <input style={styles.input} placeholder="Brand"
+            value={form.brand}
+            onChange={e=>handleFormChange("brand",e.target.value)} />
+
+          <input style={styles.input} type="number" placeholder="Price"
+            value={form.price}
+            onChange={e=>handleFormChange("price",e.target.value)} />
+
+          <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+            <button style={styles.buttonPrimary} onClick={handleSubmit}>
+              {form.id ? "Save Changes" : "Submit"}
+            </button>
+            <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>
+              Cancel
+            </button>
+          </div>
+        </>
+      )}
+
     </div>
-  );
-}
+  </div>
+)}
