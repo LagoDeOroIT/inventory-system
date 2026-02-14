@@ -113,23 +113,26 @@ export default function App() {
 
   // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
-    setForm(prev => {
-      const updated = { ...prev, [key]: value };
-      if(key==="item_id") {
-        const selectedItem = items.find(i => i.id === Number(value) || i.item_name === value);
-        if(selectedItem) {
-          updated.brand = selectedItem.brand;
-          updated.price = selectedItem.unit_price;
-          updated.item_id = selectedItem.id;
-          updated.item_name = selectedItem.item_name;
-        } else {
-          updated.brand = "";
-          updated.price = "";
-        }
+  setForm(prev => {
+    const updated = { ...prev, [key]: value };
+
+    // When user selects item name
+    if (key === "item_name") {
+      const selectedItem = items.find(i => i.item_name === value);
+      if (selectedItem) {
+        updated.item_id = selectedItem.id;
+        updated.brand = selectedItem.brand;
+        updated.price = selectedItem.unit_price;
+      } else {
+        updated.item_id = "";
+        updated.brand = "";
+        updated.price = "";
       }
-      return updated;
-    });
-  };
+    }
+
+    return updated;
+  });
+};
 
   // ================= SUBMIT =================
   const handleSubmit = async () => {
@@ -289,7 +292,24 @@ export default function App() {
                     <td style={styles.thtd}>{t.type}</td>
                     <td style={styles.thtd}>{t.quantity}</td>
                     <td style={styles.thtd}>
-                      <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => { setForm({ id:t.id, date:t.date, item_id:t.item_id, brand:t.brand, type:t.type, quantity:t.quantity }); setModalType("transaction"); setShowModal(true); }}>Edit</button>
+<button
+  style={{ ...styles.buttonSecondary, marginRight: 8 }}
+  onClick={() => {
+    setForm({
+      id: t.id,
+      date: t.date,
+      item_id: t.item_id,
+      item_name: t.items?.item_name || "",
+      brand: t.brand,
+      type: t.type,
+      quantity: t.quantity
+    });
+    setModalType("transaction");
+    setShowModal(true);
+  }}
+>
+  Edit
+</button>
                       <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"deleteTx", data:t })}>Delete</button>
                     </td>
                   </tr>
@@ -402,29 +422,79 @@ export default function App() {
 
               {/* ADD TRANSACTION MODAL */}
               {modalType==="transaction" && (
-                <>
-                  <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
-                  <input style={styles.input} type="date" value={form.date} onChange={e=>handleFormChange("date",e.target.value)} />
-                  <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_id} onChange={e=>handleFormChange("item_id",e.target.value)} />
-                  <datalist id="items-list">{items.filter(i=>i.location===selectedStockRoom).map(i=><option key={i.id} value={i.id}>{i.item_name}</option>)}</datalist>
+  <>
+    <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
 
-                  {/* Brand is auto-filled */}
-                  <input style={styles.input} placeholder="Brand" value={form.brand} readOnly />
+    {/* Date */}
+    <input
+      style={styles.input}
+      type="date"
+      value={form.date}
+      onChange={e => handleFormChange("date", e.target.value)}
+    />
 
-                  <div style={styles.toggleGroup}>
-                    <button style={styles.toggleButton(form.type==="IN")} onClick={()=>handleFormChange("type","IN")}>IN</button>
-                    <button style={styles.toggleButton(form.type==="OUT")} onClick={()=>handleFormChange("type","OUT")}>OUT</button>
-                  </div>
-                  <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e=>handleFormChange("quantity",e.target.value)} />
-                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
-                    <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+    {/* Item Name Input */}
+    <input
+      style={styles.input}
+      list="items-list"
+      placeholder="Select Item"
+      value={form.item_name}
+      onChange={e => handleFormChange("item_name", e.target.value)}
+    />
+
+    {/* Datalist of Items */}
+    <datalist id="items-list">
+      {items
+        .filter(i => i.location === selectedStockRoom)
+        .map(i => (
+          <option key={i.id} value={i.item_name} />
+        ))}
+    </datalist>
+
+    {/* Auto-filled Brand */}
+    <input
+      style={styles.input}
+      placeholder="Brand"
+      value={form.brand}
+      readOnly
+    />
+
+    {/* IN / OUT Toggle */}
+    <div style={styles.toggleGroup}>
+      <button
+        style={styles.toggleButton(form.type === "IN")}
+        onClick={() => handleFormChange("type", "IN")}
+      >
+        IN
+      </button>
+      <button
+        style={styles.toggleButton(form.type === "OUT")}
+        onClick={() => handleFormChange("type", "OUT")}
+      >
+        OUT
+      </button>
+    </div>
+
+    {/* Quantity */}
+    <input
+      style={styles.input}
+      type="number"
+      placeholder="Quantity"
+      value={form.quantity}
+      onChange={e => handleFormChange("quantity", e.target.value)}
+    />
+
+    {/* Buttons */}
+    <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+      <button style={styles.buttonPrimary} onClick={handleSubmit}>
+        {form.id ? "Save Changes" : "Submit"}
+      </button>
+      <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>
+        Cancel
+      </button>
+    </div>
+  </>
+)}
 
         {/* ================= CONFIRM MODAL ================= */}
         {confirmAction && (
