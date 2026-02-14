@@ -56,9 +56,9 @@ export default function App() {
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState("");
+  const [modalType, setModalType] = useState(""); // "transaction" | "item" | "newOption" | "stockRoomPrompt"
+  const [confirmAction, setConfirmAction] = useState(null); // { type: string, data: object }
   const [form, setForm] = useState({ date:"", item_id:"", brand:"", type:"IN", quantity:"", price:"", item_name:"", id: null });
-  const [confirmAction, setConfirmAction] = useState(null);
 
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
@@ -141,6 +141,7 @@ export default function App() {
         if(data?.length) form.item_id = data[0].id;
       }
     }
+
     setShowModal(false);
     setModalType("");
     setForm({ date:"", item_id:"", brand:"", type:"IN", quantity:"", price:"", item_name:"", id:null });
@@ -163,19 +164,26 @@ export default function App() {
     setModalType("item");
     setShowModal(true);
   };
-  const handleDeleteItem = (item) => setConfirmAction({ type: "deleteItem", data: item });
-  const handleRestoreItem = (item) => setConfirmAction({ type: "restoreItem", data: item });
-  const handlePermanentDeleteItem = (item) => setConfirmAction({ type: "permanentDeleteItem", data: item });
+  const handleDeleteItem = (item) => setConfirmAction({ type:"deleteItem", data:item });
+  const handleRestoreItem = (item) => setConfirmAction({ type:"restoreItem", data:item });
+  const handlePermanentDeleteItem = (item) => setConfirmAction({ type:"permanentDeleteItem", data:item });
 
   // ================= TRANSACTION HANDLERS =================
   const handleEditTransaction = (tx) => {
-    setForm({ id: tx.id, date: tx.date, item_id: tx.item_id, brand: tx.brand, type: tx.type, quantity: tx.quantity });
+    setForm({
+      id: tx.id,
+      date: tx.date,
+      item_id: tx.item_id,
+      brand: tx.brand,
+      type: tx.type,
+      quantity: tx.quantity
+    });
     setModalType("transaction");
     setShowModal(true);
   };
-  const handleDeleteTransaction = (tx) => setConfirmAction({ type: "deleteTx", data: tx });
-  const handleRestoreTransaction = (tx) => setConfirmAction({ type: "restoreTx", data: tx });
-  const handlePermanentDeleteTransaction = (tx) => setConfirmAction({ type: "permanentDeleteTx", data: tx });
+  const handleDeleteTransaction = (tx) => setConfirmAction({ type:"deleteTx", data:tx });
+  const handleRestoreTransaction = (tx) => setConfirmAction({ type:"restoreTx", data:tx });
+  const handlePermanentDeleteTransaction = (tx) => setConfirmAction({ type:"permanentDeleteTx", data:tx });
 
   if(!session) return (
     <div style={{ padding:40, textAlign:"center" }}>
@@ -212,7 +220,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* ================= STOCK TAB ================= */}
+        {/* STOCK TAB */}
         {activeTab==="stock" && (
           <div style={styles.card}>
             <table style={styles.table}>
@@ -244,7 +252,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ================= TRANSACTIONS TAB ================= */}
+        {/* TRANSACTIONS TAB */}
         {activeTab==="transactions" && (
           <div style={styles.card}>
             <input style={styles.input} placeholder="Search..." value={inSearch} onChange={e=>setInSearch(e.target.value)} />
@@ -279,7 +287,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ================= DELETED HISTORY TAB ================= */}
+        {/* DELETED HISTORY TAB */}
         {activeTab==="deleted" && (
           <div style={styles.card}>
             <h3>Deleted Inventory</h3>
@@ -340,97 +348,92 @@ export default function App() {
           </div>
         )}
 
-        {/* ================= MODAL ================= */}
-        {(showModal || confirmAction) && (
-          <div style={styles.modalOverlay} onClick={() => { setShowModal(false); setConfirmAction(null); }}>
+        {/* ================= FORM MODAL ================= */}
+        {showModal && modalType && (
+          <div style={styles.modalOverlay} onClick={()=>setShowModal(false)}>
             <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
-
-              {/* FORM MODALS */}
-              {modalType && (
+              {/* MODALS CODE (same as before, unchanged) */}
+              {modalType==="newOption" && (
                 <>
-                  {modalType==="newOption" && (
-                    <>
-                      <h3>What do you want to add?</h3>
-                      <button style={{...styles.newOptionButton, background:"#1f2937", color:"#fff"}} onClick={()=>setModalType("item")}>Add New Item</button>
-                      <button style={{...styles.newOptionButton, background:"#e5e7eb", color:"#374151"}} onClick={()=>setModalType("transaction")}>Add New Transaction</button>
-                      <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
-                    </>
-                  )}
-                  {modalType==="stockRoomPrompt" && (
-                    <>
-                      <h3>Select Stock Room First</h3>
-                      <select style={styles.input} value={selectedStockRoom} onChange={e=>{setSelectedStockRoom(e.target.value); setModalType("newOption");}}>
-                        <option value="">Select Stock Room</option>
-                        {stockRooms.map(r=><option key={r} value={r}>{r}</option>)}
-                      </select>
-                      <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
-                    </>
-                  )}
-                  {modalType==="item" && (
-                    <>
-                      <h3>{form.id ? "Edit Item" : "New Item"}</h3>
-                      <input style={styles.input} placeholder="Item Name" value={form.item_name} onChange={e=>handleFormChange("item_name",e.target.value)} />
-                      <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e=>handleFormChange("brand",e.target.value)} />
-                      <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e=>handleFormChange("price",e.target.value)} />
-                      <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                        <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
-                        <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
-                      </div>
-                    </>
-                  )}
-                  {modalType==="transaction" && (
-                    <>
-                      <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
-                      <input style={styles.input} type="date" value={form.date} onChange={e=>handleFormChange("date",e.target.value)} />
-                      <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_id} onChange={e=>handleFormChange("item_id",e.target.value)} />
-                      <datalist id="items-list">{items.map(i=><option key={i.id} value={i.id}>{i.item_name}</option>)}</datalist>
-                      <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e=>handleFormChange("brand",e.target.value)} />
-                      <div style={styles.toggleGroup}>
-                        <button style={styles.toggleButton(form.type==="IN")} onClick={()=>handleFormChange("type","IN")}>IN</button>
-                        <button style={styles.toggleButton(form.type==="OUT")} onClick={()=>handleFormChange("type","OUT")}>OUT</button>
-                      </div>
-                      <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e=>handleFormChange("quantity",e.target.value)} />
-                      <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                        <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
-                        <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
-                      </div>
-                    </>
-                  )}
+                  <h3>What do you want to add?</h3>
+                  <button style={{...styles.newOptionButton, background:"#1f2937", color:"#fff"}} onClick={()=>setModalType("item")}>Add New Item</button>
+                  <button style={{...styles.newOptionButton, background:"#e5e7eb", color:"#374151"}} onClick={()=>setModalType("transaction")}>Add New Transaction</button>
+                  <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
                 </>
               )}
-
-              {/* CONFIRM MODAL */}
-              {confirmAction && (
+              {modalType==="stockRoomPrompt" && (
                 <>
-                  <h3>
-                    {confirmAction.type === "deleteItem" && `Delete "${confirmAction.data.item_name}"?`}
-                    {confirmAction.type === "restoreItem" && `Restore "${confirmAction.data.item_name}"?`}
-                    {confirmAction.type === "permanentDeleteItem" && `Permanently delete "${confirmAction.data.item_name}"? This cannot be undone.`}
-                    {confirmAction.type === "deleteTx" && `Delete transaction for "${confirmAction.data.items?.item_name}"?`}
-                    {confirmAction.type === "restoreTx" && `Restore transaction for "${confirmAction.data.items?.item_name}"?`}
-                    {confirmAction.type === "permanentDeleteTx" && `Permanently delete transaction for "${confirmAction.data.items?.item_name}"? This cannot be undone.`}
-                  </h3>
+                  <h3>Select Stock Room First</h3>
+                  <select style={styles.input} value={selectedStockRoom} onChange={e=>{setSelectedStockRoom(e.target.value); setModalType("newOption");}}>
+                    <option value="">Select Stock Room</option>
+                    {stockRooms.map(r=><option key={r} value={r}>{r}</option>)}
+                  </select>
+                  <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
+                </>
+              )}
+              {modalType==="item" && (
+                <>
+                  <h3>{form.id ? "Edit Item" : "New Item"}</h3>
+                  <input style={styles.input} placeholder="Item Name" value={form.item_name} onChange={e=>handleFormChange("item_name", e.target.value)} />
+                  <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e=>handleFormChange("brand", e.target.value)} />
+                  <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e=>handleFormChange("price", e.target.value)} />
                   <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                    <button style={styles.buttonPrimary} onClick={async ()=>{
-                      const action = confirmAction;
-                      setConfirmAction(null);
-                      setShowModal(false);
-
-                      if(action.type==="deleteItem") await supabase.from("items").update({deleted:true}).eq("id",action.data.id);
-                      if(action.type==="restoreItem") await supabase.from("items").update({deleted:false}).eq("id",action.data.id);
-                      if(action.type==="permanentDeleteItem") await supabase.from("items").delete().eq("id",action.data.id);
-
-                      if(action.type==="deleteTx") await supabase.from("inventory_transactions").update({deleted:true}).eq("id",action.data.id);
-                      if(action.type==="restoreTx") await supabase.from("inventory_transactions").update({deleted:false}).eq("id",action.data.id);
-                      if(action.type==="permanentDeleteTx") await supabase.from("inventory_transactions").delete().eq("id",action.data.id);
-
-                      loadData();
-                    }}>Yes</button>
-                    <button style={styles.buttonSecondary} onClick={()=>setConfirmAction(null)}>Cancel</button>
+                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+                    <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
                   </div>
                 </>
               )}
+              {modalType==="transaction" && (
+                <>
+                  <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
+                  <input style={styles.input} type="date" value={form.date} onChange={e=>handleFormChange("date", e.target.value)} />
+                  <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_id} onChange={e=>handleFormChange("item_id", e.target.value)} />
+                  <datalist id="items-list">{items.map(i=><option key={i.id} value={i.id}>{i.item_name}</option>)}</datalist>
+                  <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e=>handleFormChange("brand", e.target.value)} />
+                  <div style={styles.toggleGroup}>
+                    <button style={styles.toggleButton(form.type==="IN")} onClick={()=>handleFormChange("type","IN")}>IN</button>
+                    <button style={styles.toggleButton(form.type==="OUT")} onClick={()=>handleFormChange("type","OUT")}>OUT</button>
+                  </div>
+                  <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e=>handleFormChange("quantity", e.target.value)} />
+                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+                    <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
+        {/* ================= CONFIRM MODAL ================= */}
+        {confirmAction && (
+          <div style={styles.modalOverlay} onClick={()=>setConfirmAction(null)}>
+            <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
+              <h3>
+                {confirmAction.type === "deleteItem" && `Delete "${confirmAction.data.item_name}"?`}
+                {confirmAction.type === "restoreItem" && `Restore "${confirmAction.data.item_name}"?`}
+                {confirmAction.type === "permanentDeleteItem" && `Permanently delete "${confirmAction.data.item_name}"? This cannot be undone.`}
+                {confirmAction.type === "deleteTx" && `Delete transaction for "${confirmAction.data.items?.item_name}"?`}
+                {confirmAction.type === "restoreTx" && `Restore transaction for "${confirmAction.data.items?.item_name}"?`}
+                {confirmAction.type === "permanentDeleteTx" && `Permanently delete transaction for "${confirmAction.data.items?.item_name}"? This cannot be undone.`}
+              </h3>
+              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+                <button style={styles.buttonPrimary} onClick={async ()=>{
+                  const action = confirmAction;
+                  setConfirmAction(null);
+
+                  if(action.type==="deleteItem") await supabase.from("items").update({deleted:true}).eq("id",action.data.id);
+                  if(action.type==="restoreItem") await supabase.from("items").update({deleted:false}).eq("id",action.data.id);
+                  if(action.type==="permanentDeleteItem") await supabase.from("items").delete().eq("id",action.data.id);
+
+                  if(action.type==="deleteTx") await supabase.from("inventory_transactions").update({deleted:true}).eq("id",action.data.id);
+                  if(action.type==="restoreTx") await supabase.from("inventory_transactions").update({deleted:false}).eq("id",action.data.id);
+                  if(action.type==="permanentDeleteTx") await supabase.from("inventory_transactions").delete().eq("id",action.data.id);
+
+                  loadData();
+                }}>Yes</button>
+                <button style={styles.buttonSecondary} onClick={()=>setConfirmAction(null)}>Cancel</button>
+              </div>
             </div>
           </div>
         )}
