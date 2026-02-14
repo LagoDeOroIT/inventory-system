@@ -216,13 +216,6 @@ export default function App() {
           </div>
         </div>
 
-                {/* HEADER */}
-        <div style={styles.header}>
-          <div style={styles.title}>
-            {activeTab === "stock" ? "Stock Inventory" : activeTab === "transactions" ? "Transactions" : activeTab === "deleted" ? "Deleted History" : "Monthly Report"}
-          </div>
-        </div>
-
         {/* ================= STOCK TAB ================= */}
         {activeTab==="stock" && (
           <div style={styles.card}>
