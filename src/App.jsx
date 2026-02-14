@@ -87,7 +87,8 @@ export default function App() {
   // ================= FILTERED DATA =================
   const filteredTransactions = transactions
     .filter(t => !t.deleted)
-    .filter(t => !selectedStockRoom || t.location === selectedStockRoom);
+    .filter(t => !selectedStockRoom || t.location === selectedStockRoom)
+    .filter(t => !inSearch || (t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())));
 
   const stockInventory = items
     .filter(i => !i.deleted)
@@ -116,13 +117,15 @@ export default function App() {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
       if(key==="item_id") {
-        const selectedItem = items.find(i => i.id == value);
+        const selectedItem = items.find(i => i.id === value);
         if(selectedItem) {
           updated.brand = selectedItem.brand;
           updated.price = selectedItem.unit_price;
+          updated.item_name_display = selectedItem.item_name; // added for modal display
         } else {
           updated.brand = "";
           updated.price = "";
+          updated.item_name_display = "";
         }
       }
       return updated;
@@ -278,8 +281,8 @@ export default function App() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length===0 && emptyRowComponent(6,"No transactions")}
-                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t => (
+                {filteredTransactions.length === 0 && emptyRowComponent(6,"No transactions")}
+                {filteredTransactions.map(t => (
                   <tr key={t.id}>
                     <td style={styles.thtd}>{t.date}</td>
                     <td style={styles.thtd}>{t.items?.item_name}</td>
@@ -287,7 +290,25 @@ export default function App() {
                     <td style={styles.thtd}>{t.type}</td>
                     <td style={styles.thtd}>{t.quantity}</td>
                     <td style={styles.thtd}>
-                      <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => { setForm({ id:t.id, date:t.date, item_id:t.item_id, brand:t.brand, type:t.type, quantity:t.quantity }); setModalType("transaction"); setShowModal(true); }}>Edit</button>
+                      <button
+                        style={{ ...styles.buttonSecondary, marginRight: 8 }}
+                        onClick={() => {
+                          const item = items.find(i => i.id === t.item_id);
+                          setForm({
+                            id: t.id,
+                            date: t.date,
+                            item_id: t.item_id,
+                            item_name_display: item?.item_name || "",
+                            brand: t.brand,
+                            type: t.type,
+                            quantity: t.quantity
+                          });
+                          setModalType("transaction");
+                          setShowModal(true);
+                        }}
+                      >
+                        Edit
+                      </button>
                       <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"deleteTx", data:t })}>Delete</button>
                     </td>
                   </tr>
@@ -357,7 +378,6 @@ export default function App() {
             </table>
           </div>
         )}
-
         {/* ================= MODAL ================= */}
         {showModal && (
           <div style={styles.modalOverlay} onClick={()=>setShowModal(false)}>
