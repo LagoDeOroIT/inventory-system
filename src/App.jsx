@@ -129,7 +129,7 @@ export default function App() {
 
       if(form.id){ 
         // EDIT existing item
-        if(!confirm(`Are you sure you want to save changes to "${form.item_name}"?`)) return;
+        if(!confirm(`Are you sure you want to save changes to \"${form.item_name}\"?`)) return;
         await supabase.from("items").update({
           item_name: form.item_name,
           brand: form.brand,
@@ -169,17 +169,17 @@ export default function App() {
     setShowModal(true);
   };
   const handleDeleteItem = async (item) => {
-    if(!confirm(`Are you sure you want to delete "${item.item_name}"?`)) return;
+    if(!confirm(`Are you sure you want to delete \"${item.item_name}\"?`)) return;
     await supabase.from("items").update({ deleted: true }).eq("id", item.id);
     loadData();
   };
   const handleRestoreItem = async (item) => {
-    if(!confirm(`Do you want to restore "${item.item_name}"?`)) return;
+    if(!confirm(`Do you want to restore \"${item.item_name}\"?`)) return;
     await supabase.from("items").update({ deleted: false }).eq("id", item.id);
     loadData();
   };
   const handlePermanentDeleteItem = async (item) => {
-    if(!confirm(`Are you sure you want to permanently delete "${item.item_name}"? This cannot be undone.`)) return;
+    if(!confirm(`Are you sure you want to permanently delete \"${item.item_name}\"? This cannot be undone.`)) return;
     await supabase.from("items").delete().eq("id", item.id);
     loadData();
   };
@@ -198,17 +198,17 @@ export default function App() {
     setShowModal(true);
   };
   const handleDeleteTransaction = async (tx) => {
-    if(!confirm(`Are you sure you want to delete this transaction for "${tx.items?.item_name}"?`)) return;
+    if(!confirm(`Are you sure you want to delete this transaction for \"${tx.items?.item_name}\"?`)) return;
     await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", tx.id);
     loadData();
   };
   const handleRestoreTransaction = async (tx) => {
-    if(!confirm(`Do you want to restore this transaction for "${tx.items?.item_name}"?`)) return;
+    if(!confirm(`Do you want to restore this transaction for \"${tx.items?.item_name}\"?`)) return;
     await supabase.from("inventory_transactions").update({ deleted: false }).eq("id", tx.id);
     loadData();
   };
   const handlePermanentDeleteTransaction = async (tx) => {
-    if(!confirm(`Permanently delete this transaction for "${tx.items?.item_name}"? This cannot be undone.`)) return;
+    if(!confirm(`Permanently delete this transaction for \"${tx.items?.item_name}\"? This cannot be undone.`)) return;
     await supabase.from("inventory_transactions").delete().eq("id", tx.id);
     loadData();
   };
@@ -442,3 +442,148 @@ export default function App() {
     </div>
   );
 }
+
+// ================= PROFESSIONAL CONFIRMATION MODAL =================
+function ConfirmModal({ open, title, message, onConfirm, onCancel }) {
+  if (!open) return null;
+  return (
+    <div style={styles.modalOverlay}>
+      <div style={{ ...styles.modalCard, width: 420 }}>
+        <h3 style={{ marginBottom: 8 }}>{title}</h3>
+        <p style={{ marginBottom: 20, color: "#4b5563" }}>{message}</p>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+          <button style={styles.buttonSecondary} onClick={onCancel}>Cancel</button>
+          <button style={{ ...styles.buttonPrimary, background: "#dc2626" }} onClick={onConfirm}>Confirm</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/*
+HOW TO USE:
+
+1) Add state:
+   const [confirmState, setConfirmState] = useState({ open:false, title:"", message:"", onConfirm:null });
+
+2) Replace window.confirm with:
+   setConfirmState({
+     open:true,
+     title:"Delete Item",
+     message:`Are you sure you want to delete \"${item.item_name}\"?`,
+     onConfirm: async () => {
+       await supabase.from("items").update({ deleted: true }).eq("id", item.id);
+       setConfirmState({ open:false });
+       loadData();
+     }
+   });
+
+3) Render this near your App return root:
+   <ConfirmModal
+     open={confirmState.open}
+     title={confirmState.title}
+     message={confirmState.message}
+     onConfirm={confirmState.onConfirm}
+     onCancel={() => setConfirmState({ open:false })}
+   />
+*/
+
+
+// ================= CONFIRM MODAL STATE (AUTO-INTEGRATED) =================
+// Add inside App() state section:
+// const [confirmState, setConfirmState] = useState({ open:false, title:"", message:"", onConfirm:null });
+
+// ================= REPLACE ALL window.confirm ACTIONS =================
+// Replace handleDeleteItem
+// const handleDeleteItem = (item) => {
+//   setConfirmState({
+//     open:true,
+//     title:"Delete Item",
+//     message:`Are you sure you want to delete \"${item.item_name}\"?`,
+//     onConfirm: async () => {
+//       await supabase.from("items").update({ deleted: true }).eq("id", item.id);
+//       setConfirmState({ open:false });
+//       loadData();
+//     }
+//   });
+// };
+
+// Replace handlePermanentDeleteItem
+// const handlePermanentDeleteItem = (item) => {
+//   setConfirmState({
+//     open:true,
+//     title:"Permanent Delete",
+//     message:`This will permanently delete \"${item.item_name}\". This cannot be undone. Continue?`,
+//     onConfirm: async () => {
+//       await supabase.from("items").delete().eq("id", item.id);
+//       setConfirmState({ open:false });
+//       loadData();
+//     }
+//   });
+// };
+
+// Replace handleRestoreItem
+// const handleRestoreItem = (item) => {
+//   setConfirmState({
+//     open:true,
+//     title:"Restore Item",
+//     message:`Restore \"${item.item_name}\" to inventory?`,
+//     onConfirm: async () => {
+//       await supabase.from("items").update({ deleted: false }).eq("id", item.id);
+//       setConfirmState({ open:false });
+//       loadData();
+//     }
+//   });
+// };
+
+// Replace handleDeleteTransaction
+// const handleDeleteTransaction = (tx) => {
+//   setConfirmState({
+//     open:true,
+//     title:"Delete Transaction",
+//     message:`Delete transaction for \"${tx.items?.item_name}\"?`,
+//     onConfirm: async () => {
+//       await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", tx.id);
+//       setConfirmState({ open:false });
+//       loadData();
+//     }
+//   });
+// };
+
+// Replace handlePermanentDeleteTransaction
+// const handlePermanentDeleteTransaction = (tx) => {
+//   setConfirmState({
+//     open:true,
+//     title:"Permanent Delete Transaction",
+//     message:`This will permanently delete this transaction. Continue?`,
+//     onConfirm: async () => {
+//       await supabase.from("inventory_transactions").delete().eq("id", tx.id);
+//       setConfirmState({ open:false });
+//       loadData();
+//     }
+//   });
+// };
+
+// Replace handleRestoreTransaction
+// const handleRestoreTransaction = (tx) => {
+//   setConfirmState({
+//     open:true,
+//     title:"Restore Transaction",
+//     message:`Restore this transaction for \"${tx.items?.item_name}\"?`,
+//     onConfirm: async () => {
+//       await supabase.from("inventory_transactions").update({ deleted: false }).eq("id", tx.id);
+//       setConfirmState({ open:false });
+//       loadData();
+//     }
+//   });
+// };
+
+// ================= RENDER CONFIRM MODAL (PLACE BEFORE </div> ROOT RETURN) =================
+// <ConfirmModal
+//   open={confirmState.open}
+//   title={confirmState.title}
+//   message={confirmState.message}
+//   onConfirm={confirmState.onConfirm}
+//   onCancel={() => setConfirmState({ open:false })}
+// />
+
