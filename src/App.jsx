@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
-const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
+const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4b";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ================= STYLES =================
@@ -15,8 +15,6 @@ const styles = {
   sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
   tabButton: (active) => ({ padding: 10, borderRadius: 6, background: active ? "#1f2937" : "transparent", border: "none", color: "#fff", cursor: "pointer", textAlign: "left" }),
   main: { flex: 1, padding: 24 },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
-  title: { fontSize: 28, fontWeight: 700, color: "#111827" },
   buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
   buttonSecondary: { background: "#e5e7eb", color: "#374151", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
   card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
@@ -48,7 +46,6 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
-  // ================= STATE =================
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -57,23 +54,22 @@ export default function App() {
   const [inSearch, setInSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState(""); 
+  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
   const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id: null });
   const [confirmAction, setConfirmAction] = useState(null);
-  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState(""); // tracks modal origin
+  const [showBrandMismatchConfirm, setShowBrandMismatchConfirm] = useState(false);
 
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
     "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
   ];
 
-  // ================= AUTH =================
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
 
-  // ================= LOAD DATA =================
   async function loadData() {
     const { data: itemsData } = await supabase.from("items").select("*");
     const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
@@ -89,12 +85,10 @@ export default function App() {
 
   useEffect(() => { if(session) loadData(); }, [session]);
 
-  // ================= FILTERED DATA =================
   const filteredTransactions = transactions
     .filter(t => !t.deleted)
     .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
-  // ================= STOCK INVENTORY CALCULATION =================
   const stockInventory = items
     .filter(i => !i.deleted)
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
@@ -107,18 +101,14 @@ export default function App() {
       return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
     });
 
-  // ================= DELETED ITEMS =================
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
   const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
-  // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
-
       if (key === "item_name") {
         const selectedItem = items.find(i => i.item_name === value && !i.deleted);
-
         if (selectedItem) {
           updated.item_id = selectedItem.id;
           updated.brand = selectedItem.brand;
@@ -129,51 +119,36 @@ export default function App() {
           updated.price = "";
         }
       }
-
       return updated;
     });
   };
 
-  // ================= SUBMIT =================
   const handleSubmit = async () => {
     if(modalType==="transaction"){
       if(!form.item_id || !form.quantity || !form.date) return alert("Fill required fields");
 
-      // Brand mismatch check
       const existingItem = items.find(i => i.item_name === form.item_name && !i.deleted);
       if(existingItem && existingItem.brand !== form.brand){
-        // Open item creation modal
-        setForm(prev => ({ ...prev, item_name: form.item_name, brand: form.brand, price: "" }));
-        setModalTypeBeforeItem("transaction");
-        setModalType("item");
-        setShowModal(true);
+        setShowBrandMismatchConfirm(true);
         return;
       }
 
-      // Continue normal transaction submit
+      const txData = {
+        date: form.date,
+        item_id: form.item_id,
+        brand: form.brand,
+        type: form.type,
+        quantity: Number(form.quantity),
+        location: selectedStockRoom,
+        unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
+      };
+
       if(form.id){
-        await supabase.from("inventory_transactions").update({
-          date: form.date,
-          item_id: form.item_id,
-          brand: form.brand,
-          type: form.type,
-          quantity: Number(form.quantity),
-          location: selectedStockRoom,
-          unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
-        }).eq("id", form.id);
+        await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
       } else {
-        await supabase.from("inventory_transactions").insert([{
-          date: form.date,
-          item_id: form.item_id,
-          brand: form.brand,
-          type: form.type,
-          quantity: Number(form.quantity),
-          location: selectedStockRoom,
-          unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
-        }]);
+        await supabase.from("inventory_transactions").insert([txData]);
       }
 
-      // Reset transaction form
       setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
       loadData();
     }
@@ -213,7 +188,13 @@ export default function App() {
     }
   };
 
-  // ================= NEW BUTTON =================
+  const handleBrandMismatchYes = () => {
+    setShowBrandMismatchConfirm(false);
+    setModalTypeBeforeItem("transaction");
+    setModalType("item");
+    setShowModal(true);
+  };
+
   const handleNewClick = () => {
     if(!selectedStockRoom){
       setModalType("stockRoomPrompt");
@@ -507,7 +488,22 @@ export default function App() {
             </div>
           </div>
         )}
-      </div>
+ 
+
+
+ {/* ================= BRAND MISMATCH CONFIRM MODAL ================= */}
+      {showBrandMismatchConfirm && (
+        <div style={styles.modalOverlay} onClick={() => setShowBrandMismatchConfirm(false)}>
+          <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
+            <h3>Brand Mismatch</h3>
+            <p>The item name exists with a different brand. Do you want to create a new item with this brand?</p>
+            <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+              <button style={styles.buttonPrimary} onClick={handleBrandMismatchYes}>Yes</button>
+              <button style={styles.buttonSecondary} onClick={() => setShowBrandMismatchConfirm(false)}>No</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
