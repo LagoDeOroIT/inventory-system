@@ -87,15 +87,14 @@ export default function App() {
   // ================= FILTERED DATA =================
   const filteredTransactions = transactions
     .filter(t => !t.deleted)
-    .filter(t => !selectedStockRoom || t.location === selectedStockRoom)
-    .filter(t => !inSearch || (t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())));
+    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
   const stockInventory = items
     .filter(i => !i.deleted)
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
     .map(i => {
       const related = transactions.filter(
-        t => t.item_id === i.id && !t.deleted && (!selectedStockRoom || t.location === selectedStockRoom)
+        t => t.item_id === i.id && !t.deleted && (!selectedStockRoom || t.items?.location === selectedStockRoom)
       );
       const stock = related.reduce(
         (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
@@ -110,22 +109,22 @@ export default function App() {
 
   const deletedTransactions = transactions
     .filter(t => t.deleted)
-    .filter(t => !selectedStockRoom || t.location === selectedStockRoom);
+    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
   // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
       if(key==="item_id") {
-        const selectedItem = items.find(i => i.id === value);
+        const selectedItem = items.find(i => i.id === Number(value) || i.item_name === value);
         if(selectedItem) {
           updated.brand = selectedItem.brand;
           updated.price = selectedItem.unit_price;
-          updated.item_name_display = selectedItem.item_name; // added for modal display
+          updated.item_id = selectedItem.id;
+          updated.item_name = selectedItem.item_name;
         } else {
           updated.brand = "";
           updated.price = "";
-          updated.item_name_display = "";
         }
       }
       return updated;
@@ -175,7 +174,7 @@ export default function App() {
           unit_price: Number(form.price),
           location: selectedStockRoom
         }]);
-        if(data?.length) form.item_id = data[0].id;
+        if(data?.length) setForm(prev => ({ ...prev, item_id: data[0].id }));
       }
     }
 
@@ -281,8 +280,8 @@ export default function App() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTransactions.length === 0 && emptyRowComponent(6,"No transactions")}
-                {filteredTransactions.map(t => (
+                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length===0 && emptyRowComponent(6,"No transactions")}
+                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t => (
                   <tr key={t.id}>
                     <td style={styles.thtd}>{t.date}</td>
                     <td style={styles.thtd}>{t.items?.item_name}</td>
@@ -290,25 +289,7 @@ export default function App() {
                     <td style={styles.thtd}>{t.type}</td>
                     <td style={styles.thtd}>{t.quantity}</td>
                     <td style={styles.thtd}>
-                      <button
-                        style={{ ...styles.buttonSecondary, marginRight: 8 }}
-                        onClick={() => {
-                          const item = items.find(i => i.id === t.item_id);
-                          setForm({
-                            id: t.id,
-                            date: t.date,
-                            item_id: t.item_id,
-                            item_name_display: item?.item_name || "",
-                            brand: t.brand,
-                            type: t.type,
-                            quantity: t.quantity
-                          });
-                          setModalType("transaction");
-                          setShowModal(true);
-                        }}
-                      >
-                        Edit
-                      </button>
+                      <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => { setForm({ id:t.id, date:t.date, item_id:t.item_id, brand:t.brand, type:t.type, quantity:t.quantity }); setModalType("transaction"); setShowModal(true); }}>Edit</button>
                       <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"deleteTx", data:t })}>Delete</button>
                     </td>
                   </tr>
@@ -378,6 +359,7 @@ export default function App() {
             </table>
           </div>
         )}
+
         {/* ================= MODAL ================= */}
         {showModal && (
           <div style={styles.modalOverlay} onClick={()=>setShowModal(false)}>
@@ -423,25 +405,17 @@ export default function App() {
                 <>
                   <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
                   <input style={styles.input} type="date" value={form.date} onChange={e=>handleFormChange("date",e.target.value)} />
-
-                  {/* Only show items in selected stock room */}
                   <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_id} onChange={e=>handleFormChange("item_id",e.target.value)} />
-                  <datalist id="items-list">
-                    {items
-                      .filter(i => i.location === selectedStockRoom && !i.deleted)
-                      .map(i => <option key={i.id} value={i.id}>{i.item_name}</option>)}
-                  </datalist>
+                  <datalist id="items-list">{items.filter(i=>i.location===selectedStockRoom).map(i=><option key={i.id} value={i.id}>{i.item_name}</option>)}</datalist>
 
-                  {/* Brand auto-filled */}
+                  {/* Brand is auto-filled */}
                   <input style={styles.input} placeholder="Brand" value={form.brand} readOnly />
 
                   <div style={styles.toggleGroup}>
                     <button style={styles.toggleButton(form.type==="IN")} onClick={()=>handleFormChange("type","IN")}>IN</button>
                     <button style={styles.toggleButton(form.type==="OUT")} onClick={()=>handleFormChange("type","OUT")}>OUT</button>
                   </div>
-
                   <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e=>handleFormChange("quantity",e.target.value)} />
-
                   <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
                     <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
                     <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
