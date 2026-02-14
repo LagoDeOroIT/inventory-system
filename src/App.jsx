@@ -47,8 +47,24 @@ const emptyRow = (colSpan, text) => (
   </tr>
 );
 
+// ================= CONFIRM MODAL =================
+function ConfirmModal({ show, title, message, confirmLabel="Confirm", confirmColor="#f87171", onConfirm, onCancel }) {
+  if (!show) return null;
+  return (
+    <div style={styles.modalOverlay} onClick={onCancel}>
+      <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
+        <h3>{title}</h3>
+        <p style={{ marginBottom: 24 }}>{message}</p>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+          <button style={{ ...styles.buttonSecondary }} onClick={onCancel}>Cancel</button>
+          <button style={{ ...styles.buttonPrimary, background: confirmColor }} onClick={onConfirm}>{confirmLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
-  // ================= STATE =================
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -58,6 +74,8 @@ export default function App() {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState(""); // "transaction" | "item" | "newOption" | "stockRoomPrompt"
   const [form, setForm] = useState({ date:"", item_id:"", brand:"", type:"IN", quantity:"", price:"", item_name:"", id: null });
+
+  const [confirmData, setConfirmData] = useState({ show:false, title:"", message:"", confirmLabel:"", confirmColor:"#f87171", onConfirm:()=>{} });
 
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
@@ -80,7 +98,6 @@ export default function App() {
     setItems(itemsData || []);
     setTransactions(tx || []);
   }
-
   useEffect(() => { if(session) loadData(); }, [session]);
 
   const filteredTransactions = transactions.filter(t => !selectedStockRoom || t.location === selectedStockRoom);
@@ -100,10 +117,7 @@ export default function App() {
   const handleSubmit = async () => {
     if(modalType==="transaction"){
       if(!form.item_id || !form.quantity || !form.date) return alert("Fill required fields");
-
       if(form.id){
-        // EDIT existing transaction
-        if(!confirm(`Are you sure you want to save changes for this transaction?`)) return;
         await supabase.from("inventory_transactions").update({
           date: form.date,
           item_id: form.item_id,
@@ -113,7 +127,6 @@ export default function App() {
           unit_price: items.find(i=>i.id===form.item_id)?.unit_price || 0
         }).eq("id", form.id);
       } else {
-        // ADD new transaction
         await supabase.from("inventory_transactions").insert([{
           date: form.date,
           item_id: form.item_id,
@@ -126,17 +139,13 @@ export default function App() {
       }
     } else if(modalType==="item"){
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
-
       if(form.id){ 
-        // EDIT existing item
-        if(!confirm(`Are you sure you want to save changes to \"${form.item_name}\"?`)) return;
         await supabase.from("items").update({
           item_name: form.item_name,
           brand: form.brand,
           unit_price: Number(form.price)
         }).eq("id", form.id);
       } else { 
-        // ADD new item
         const { data } = await supabase.from("items").insert([{
           item_name: form.item_name,
           brand: form.brand,
@@ -162,74 +171,22 @@ export default function App() {
     }
   };
 
-  // ================= ITEM HANDLERS =================
-  const handleEditItem = (item) => {
-  showConfirm({
-    title: "Edit Item",
-    message: `Edit \"${item.item_name}\"?`,
-    variant: "info",
-    onConfirm: () => {
-      setForm({ id: item.id, item_name: item.item_name, brand: item.brand, price: item.unit_price });
-      setModalType("item");
-      setShowModal(true);
-      closeConfirm();
-    }
-  });
-};
-  };
-  const handleDeleteItem = async (item) => {
-    if(!confirm(`Are you sure you want to delete \"${item.item_name}\"?`)) return;
-    await supabase.from("items").update({ deleted: true }).eq("id", item.id);
-    loadData();
-  };
-  const handleRestoreItem = async (item) => {
-    if(!confirm(`Do you want to restore \"${item.item_name}\"?`)) return;
-    await supabase.from("items").update({ deleted: false }).eq("id", item.id);
-    loadData();
-  };
-  const handlePermanentDeleteItem = async (item) => {
-    if(!confirm(`Are you sure you want to permanently delete \"${item.item_name}\"? This cannot be undone.`)) return;
-    await supabase.from("items").delete().eq("id", item.id);
-    loadData();
+  // ================= DYNAMIC CONFIRM HANDLERS =================
+  const confirmAction = ({ title, message, confirmLabel, confirmColor, onConfirm }) => {
+    setConfirmData({ show:true, title, message, confirmLabel, confirmColor, onConfirm });
   };
 
-  // ================= TRANSACTION HANDLERS =================
-  const handleEditTransaction = (tx) => {
-  showConfirm({
-    title: "Edit Transaction",
-    message: `Edit transaction for \"${tx.items?.item_name}\"?`,
-    variant: "info",
-    onConfirm: () => {
-      setForm({
-        id: tx.id,
-        date: tx.date,
-        item_id: tx.item_id,
-        brand: tx.brand,
-        type: tx.type,
-        quantity: tx.quantity
-      });
-      setModalType("transaction");
-      setShowModal(true);
-      closeConfirm();
-    }
-  });
-};
-  };
-  const handleDeleteTransaction = async (tx) => {
-    if(!confirm(`Are you sure you want to delete this transaction for \"${tx.items?.item_name}\"?`)) return;
-    await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", tx.id);
-    loadData();
-  };
-  const handleRestoreTransaction = async (tx) => {
-    if(!confirm(`Do you want to restore this transaction for \"${tx.items?.item_name}\"?`)) return;
-    await supabase.from("inventory_transactions").update({ deleted: false }).eq("id", tx.id);
-    loadData();
-  };
-  const handlePermanentDeleteTransaction = async (tx) => {
-    if(!confirm(`Permanently delete this transaction for \"${tx.items?.item_name}\"? This cannot be undone.`)) return;
-    await supabase.from("inventory_transactions").delete().eq("id", tx.id);
-    loadData();
-  };
+  // ITEM HANDLERS
+  const handleEditItem = (item) => { setForm({ id: item.id, item_name: item.item_name, brand: item.brand, price: item.unit_price }); setModalType("item"); setShowModal(true); };
+  const handleDeleteItem = (item) => confirmAction({ title:"Delete Item", message:`Are you sure you want to delete "${item.item_name}"?`, confirmLabel:"Delete", confirmColor:"#f87171", onConfirm: async()=>{ await supabase.from("items").update({ deleted:true }).eq("id", item.id); setConfirmData({...confirmData, show:false}); loadData(); }});
+  const handleRestoreItem = (item) => confirmAction({ title:"Restore Item", message:`Do you want to restore "${item.item_name}"?`, confirmLabel:"Restore", confirmColor:"#34d399", onConfirm: async()=>{ await supabase.from("items").update({ deleted:false }).eq("id", item.id); setConfirmData({...confirmData, show:false}); loadData(); }});
+  const handlePermanentDeleteItem = (item) => confirmAction({ title:"Permanent Delete", message:`Are you sure you want to permanently delete "${item.item_name}"? This cannot be undone.`, confirmLabel:"Delete Permanently", confirmColor:"#b91c1c", onConfirm: async()=>{ await supabase.from("items").delete().eq("id", item.id); setConfirmData({...confirmData, show:false}); loadData(); }});
+
+  // TRANSACTION HANDLERS
+  const handleEditTransaction = (tx) => { setForm({ id: tx.id, date: tx.date, item_id: tx.item_id, brand: tx.brand, type: tx.type, quantity: tx.quantity }); setModalType("transaction"); setShowModal(true); };
+  const handleDeleteTransaction = (tx) => confirmAction({ title:"Delete Transaction", message:`Are you sure you want to delete this transaction for "${tx.items?.item_name}"?`, confirmLabel:"Delete", confirmColor:"#f87171", onConfirm: async()=>{ await supabase.from("inventory_transactions").update({ deleted:true }).eq("id", tx.id); setConfirmData({...confirmData, show:false}); loadData(); }});
+  const handleRestoreTransaction = (tx) => confirmAction({ title:"Restore Transaction", message:`Do you want to restore this transaction for "${tx.items?.item_name}"?`, confirmLabel:"Restore", confirmColor:"#34d399", onConfirm: async()=>{ await supabase.from("inventory_transactions").update({ deleted:false }).eq("id", tx.id); setConfirmData({...confirmData, show:false}); loadData(); }});
+  const handlePermanentDeleteTransaction = (tx) => confirmAction({ title:"Permanent Delete Transaction", message:`Permanently delete this transaction for "${tx.items?.item_name}"? This cannot be undone.`, confirmLabel:"Delete Permanently", confirmColor:"#b91c1c", onConfirm: async()=>{ await supabase.from("inventory_transactions").delete().eq("id", tx.id); setConfirmData({...confirmData, show:false}); loadData(); }});
 
   if(!session) return (
     <div style={{ padding:40, textAlign:"center" }}>
@@ -394,7 +351,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ================= MODAL ================= */}
+        {/* ================= MODALS ================= */}
         {showModal && (
           <div style={styles.modalOverlay} onClick={()=>setShowModal(false)}>
             <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
@@ -456,127 +413,19 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* CONFIRM MODAL */}
+        <ConfirmModal
+          show={confirmData.show}
+          title={confirmData.title}
+          message={confirmData.message}
+          confirmLabel={confirmData.confirmLabel}
+          confirmColor={confirmData.confirmColor}
+          onConfirm={confirmData.onConfirm}
+          onCancel={()=>setConfirmData({...confirmData, show:false})}
+        />
+
       </div>
     </div>
   );
 }
-
-// ================= PROFESSIONAL CONFIRMATION MODAL =================
-// ================= ENTERPRISE CONFIRM MODAL =================
-// Features: ESC/Enter keys, loading state, danger/info themes, animation
-function ConfirmModal({ open, title, message, onConfirm, onCancel, variant = "danger" }) {
-  const [loading, setLoading] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!open) return;
-
-    const handler = (e) => {
-      if (e.key === "Escape") onCancel();
-      if (e.key === "Enter") handleConfirm();
-    };
-
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [open]);
-
-  const handleConfirm = async () => {
-    if (!onConfirm) return;
-    try {
-      setLoading(true);
-      await onConfirm();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!open) return null;
-
-  const danger = variant === "danger";
-
-  return (
-    <div style={styles.modalOverlay}>
-      <div
-        style={{
-          ...styles.modalCard,
-          width: 420,
-          transform: "scale(1)",
-          animation: "fadeInScale 0.15s ease",
-        }}
-      >
-        <h3 style={{ marginBottom: 8, fontWeight: 600 }}>{title}</h3>
-        <p style={{ marginBottom: 20, color: "#4b5563" }}>{message}</p>
-
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
-          <button
-            style={styles.buttonSecondary}
-            onClick={onCancel}
-            disabled={loading}
-          >
-            Cancel
-          </button>
-
-          <button
-            style={{
-              ...styles.buttonPrimary,
-              background: danger ? "#dc2626" : "#2563eb",
-              opacity: loading ? 0.7 : 1,
-              cursor: loading ? "not-allowed" : "pointer",
-            }}
-            onClick={handleConfirm}
-            disabled={loading}
-          >
-            {loading ? "Processing..." : "Confirm"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-({ open, title, message, onConfirm, onCancel }) {
-  if (!open) return null;
-  return (
-    <div style={styles.modalOverlay}>
-      <div style={{ ...styles.modalCard, width: 420 }}>
-        <h3 style={{ marginBottom: 8 }}>{title}</h3>
-        <p style={{ marginBottom: 20, color: "#4b5563" }}>{message}</p>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
-          <button style={styles.buttonSecondary} onClick={onCancel}>Cancel</button>
-          <button style={{ ...styles.buttonPrimary, background: "#dc2626" }} onClick={onConfirm}>Confirm</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ================= CONFIRMATION MODAL (PRODUCTION INTEGRATED) =================
-// NOTE: This is LIVE code, not comments.
-
-// 1) Add inside App() state section:
-const [confirmState, setConfirmState] = useState({
-  open: false,
-  title: "",
-  message: "",
-  onConfirm: null,
-});
-
-// 2) Safe helper to close modal
-const closeConfirm = () => setConfirmState(s => ({ ...s, open: false }));
-
-// Helper to show confirm dialogs consistently
-const showConfirm = ({ title, message, onConfirm }) => {
-  setConfirmState({ open: true, title, message, onConfirm });
-};(s => ({ ...s, open: false }));
-
-// 3) Example delete handler (replace your old window.confirm version)
-const handleDeleteItem = (item) => {
-  setConfirmState({
-    open: true,
-    title: "Delete Item",
-    message: `Are you sure you want to delete \"${item.item_name}\"?`,
-    onConfirm: async () => {
-      await supabase.from("items").update({ deleted: true }).eq("id", item.id);
-      closeConfirm();
-      loadData();
-    },
-  });
-};
