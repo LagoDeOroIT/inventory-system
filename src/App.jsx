@@ -381,8 +381,8 @@ export default function App() {
               <thead>
                 <tr>
                   <th style={styles.thtd}>Date</th>
-                  <th style={styles.thtd}>Item</
-                                    <th style={styles.thtd}>Brand</th>
+                  <th style={styles.thtd}>Item</th>
+                  <th style={styles.thtd}>Brand</th>
                   <th style={styles.thtd}>Type</th>
                   <th style={styles.thtd}>Qty</th>
                   <th style={styles.thtd}>Actions</th>
