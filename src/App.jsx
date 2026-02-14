@@ -76,7 +76,7 @@ export default function App() {
   async function loadData() {
     const { data: itemsData } = await supabase.from("items").select("*");
     const { data: tx } = await supabase.from("inventory_transactions")
-      .select("*, items(item_name, brand, unit_price, location)")
+      .select("*")
       .order("date", { ascending: false });
     setItems(itemsData || []);
     setTransactions(tx || []);
@@ -87,7 +87,11 @@ export default function App() {
   // ================= FILTERED DATA =================
   const filteredTransactions = transactions
     .filter(t => !t.deleted)
-    .filter(t => !selectedStockRoom || t.location === selectedStockRoom);
+    .filter(t => !selectedStockRoom || t.location === selectedStockRoom)
+    .map(t => {
+      const item = items.find(i => i.id === t.item_id);
+      return { ...t, item };
+    });
 
   const stockInventory = items
     .filter(i => !i.deleted)
@@ -109,7 +113,11 @@ export default function App() {
 
   const deletedTransactions = transactions
     .filter(t => t.deleted)
-    .filter(t => !selectedStockRoom || t.location === selectedStockRoom);
+    .filter(t => !selectedStockRoom || t.location === selectedStockRoom)
+    .map(t => {
+      const item = items.find(i => i.id === t.item_id);
+      return { ...t, item };
+    });
 
   // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
@@ -222,7 +230,6 @@ export default function App() {
         <button style={styles.buttonPrimary} onClick={handleNewClick}>+ New</button>
       </div>
 
-
       {/* Main */}
       <div style={styles.main}>
         <div style={styles.header}>
@@ -279,12 +286,12 @@ export default function App() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length===0 && emptyRowComponent(6,"No transactions")}
-                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t => (
+                {filteredTransactions.filter(t=>t.item?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length===0 && emptyRowComponent(6,"No transactions")}
+                {filteredTransactions.filter(t=>t.item?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t => (
                   <tr key={t.id}>
                     <td style={styles.thtd}>{t.date}</td>
-                    <td style={styles.thtd}>{t.items?.item_name}</td>
-                    <td style={styles.thtd}>{t.items?.brand}</td>
+                    <td style={styles.thtd}>{t.item?.item_name}</td>
+                    <td style={styles.thtd}>{t.item?.brand}</td>
                     <td style={styles.thtd}>{t.type}</td>
                     <td style={styles.thtd}>{t.quantity}</td>
                     <td style={styles.thtd}>
@@ -344,8 +351,8 @@ export default function App() {
                 {deletedTransactions.map(t => (
                   <tr key={t.id}>
                     <td style={styles.thtd}>{t.date}</td>
-                    <td style={styles.thtd}>{t.items?.item_name}</td>
-                    <td style={styles.thtd}>{t.items?.brand}</td>
+                    <td style={styles.thtd}>{t.item?.item_name}</td>
+                    <td style={styles.thtd}>{t.item?.brand}</td>
                     <td style={styles.thtd}>{t.type}</td>
                     <td style={styles.thtd}>{t.quantity}</td>
                     <td style={styles.thtd}>
@@ -359,10 +366,11 @@ export default function App() {
           </div>
         )}
 
-        {/* ================= MODAL ================= */}
+        {/* ================= MODALS ================= */}
         {showModal && (
           <div style={styles.modalOverlay} onClick={()=>setShowModal(false)}>
             <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
+
               {/* NEW OPTION MODAL */}
               {modalType==="newOption" && (
                 <>
@@ -404,8 +412,20 @@ export default function App() {
                 <>
                   <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
                   <input style={styles.input} type="date" value={form.date} onChange={e=>handleFormChange("date",e.target.value)} />
-                  <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_id} onChange={e=>handleFormChange("item_id",e.target.value)} />
-                  <datalist id="items-list">{items.map(i=><option key={i.id} value={i.id}>{i.item_name}</option>)}</datalist>
+
+                  <input
+                    style={styles.input}
+                    list="items-list"
+                    placeholder="Select Item"
+                    value={form.item_id}
+                    onChange={e=>handleFormChange("item_id", e.target.value)}
+                  />
+                  <datalist id="items-list">
+                    {items
+                      .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
+                      .map(i => <option key={i.id} value={i.id}>{i.item_name}</option>)
+                    }
+                  </datalist>
 
                   {/* Brand is auto-filled */}
                   <input style={styles.input} placeholder="Brand" value={form.brand} readOnly />
