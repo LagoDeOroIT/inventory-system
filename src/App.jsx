@@ -497,32 +497,53 @@ export default function App() {
         )}
 
         {/* ================= CONFIRM MODAL ================= */}
-        {confirmAction && (
-          <div style={styles.modalOverlay} onClick={() => setConfirmAction(null)}>
-            <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
-              <h3>Confirm Action</h3>
-              <p>Are you sure you want to {confirmAction.type.includes("delete") ? "delete" : "restore"} this {confirmAction.type.includes("Tx") ? "transaction" : "item"}?</p>
-              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                <button style={styles.buttonPrimary} onClick={async () => {
-                  const { type, data } = confirmAction;
+{confirmAction && (
+  <div style={styles.modalOverlay} onClick={() => setConfirmAction(null)}>
+    <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
+      <h3>Confirm Action</h3>
+      <p>Are you sure you want to {confirmAction.type.includes("delete") ? "delete" : "restore"} this {confirmAction.type.includes("Tx") ? "transaction" : "item"}?</p>
+      <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+        <button style={styles.buttonPrimary} onClick={async () => {
+          const { type, data } = confirmAction;
 
-                  if(type==="deleteItem") await supabase.from("items").update({ deleted:true }).eq("id", data.id);
-                  else if(type==="permanentDeleteItem") await supabase.from("items").delete().eq("id", data.id);
-                  else if(type==="restoreItem") await supabase.from("items").update({ deleted:false }).eq("id", data.id);
-                  else if(type==="deleteTx") await supabase.from("inventory_transactions").update({ deleted:true }).eq("id", data.id);
-                  else if(type==="permanentDeleteTx") await supabase.from("inventory_transactions").delete().eq("id", data.id);
-                  else if(type==="restoreTx") await supabase.from("inventory_transactions").update({ deleted:false }).eq("id", data.id);
+          if(type==="deleteItem") {
+            // Soft-delete item
+            await supabase.from("items").update({ deleted:true }).eq("id", data.id);
+            // Soft-delete all related transactions
+            await supabase.from("inventory_transactions").update({ deleted:true }).eq("item_id", data.id);
+            // Update UI immediately
+            setItems(prev => prev.map(i => i.id === data.id ? { ...i, deleted: true } : i));
+            setTransactions(prev => prev.map(t => t.item_id === data.id ? { ...t, deleted: true } : t));
+          }
+          else if(type==="permanentDeleteItem") {
+            await supabase.from("items").delete().eq("id", data.id);
+            await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
+            setItems(prev => prev.filter(i => i.id !== data.id));
+            setTransactions(prev => prev.filter(t => t.item_id !== data.id));
+          }
+          else if(type==="restoreItem") {
+            await supabase.from("items").update({ deleted:false }).eq("id", data.id);
+            await supabase.from("inventory_transactions").update({ deleted:false }).eq("item_id", data.id);
+            setItems(prev => prev.map(i => i.id === data.id ? { ...i, deleted: false } : i));
+            setTransactions(prev => prev.map(t => t.item_id === data.id ? { ...t, deleted: false } : t));
+          }
+          else if(type==="deleteTx") {
+            await supabase.from("inventory_transactions").update({ deleted:true }).eq("id", data.id);
+            setTransactions(prev => prev.map(t => t.id === data.id ? { ...t, deleted: true } : t));
+          }
+          else if(type==="permanentDeleteTx") {
+            await supabase.from("inventory_transactions").delete().eq("id", data.id);
+            setTransactions(prev => prev.filter(t => t.id !== data.id));
+          }
+          else if(type==="restoreTx") {
+            await supabase.from("inventory_transactions").update({ deleted:false }).eq("id", data.id);
+            setTransactions(prev => prev.map(t => t.id === data.id ? { ...t, deleted: false } : t));
+          }
 
-                  setConfirmAction(null);
-                  loadData();
-                }}>Yes</button>
-                <button style={styles.buttonSecondary} onClick={() => setConfirmAction(null)}>Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
-
+          setConfirmAction(null);
+        }}>Yes</button>
+        <button style={styles.buttonSecondary} onClick={() => setConfirmAction(null)}>Cancel</button>
       </div>
     </div>
-  );
-}
+  </div>
+)}
