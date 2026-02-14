@@ -491,17 +491,21 @@ export default function App() {
  
 
 
- {/* ================= BRAND MISMATCH CONFIRM MODAL ================= */}
-      {showBrandMismatchConfirm && (
-        <div style={styles.modalOverlay} onClick={() => setShowBrandMismatchConfirm(false)}>
-          <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
-            <h3>Brand Mismatch</h3>
-            <p>The item name exists with a different brand. Do you want to create a new item with this brand?</p>
-            <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-              <button style={styles.buttonPrimary} onClick={handleBrandMismatchYes}>Yes</button>
-              <button style={styles.buttonSecondary} onClick={() => setShowBrandMismatchConfirm(false)}>No</button>
+  {/* ================= BRAND MISMATCH CONFIRM MODAL ================= */}
+        {showBrandMismatchConfirm && (
+          <div style={styles.modalOverlay} onClick={() => setShowBrandMismatchConfirm(false)}>
+            <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
+              <h3>Brand Mismatch</h3>
+              <p>The item name exists with a different brand. Do you want to create a new item with this brand?</p>
+              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+                <button style={styles.buttonPrimary} onClick={handleBrandMismatchYes}>Yes</button>
+                <button style={styles.buttonSecondary} onClick={() => setShowBrandMismatchConfirm(false)}>No</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+    </div>
+  );
+}
 
