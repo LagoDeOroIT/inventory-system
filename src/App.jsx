@@ -491,31 +491,82 @@ export default function App() {
         )}
 
         {/* ================= CONFIRM MODAL ================= */}
-        {confirmAction && (
-          <div style={styles.modalOverlay} onClick={() => setConfirmAction(null)}>
-            <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
-              <h3>Confirm Action</h3>
-              <p>Are you sure you want to {confirmAction.type.includes("delete") ? "delete" : "restore"} this {confirmAction.type.includes("Tx") ? "transaction" : "item"}?</p>
-              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                <button style={styles.buttonPrimary} onClick={async () => {
-                  const { type, data } = confirmAction;
-                  if(type==="deleteItem") await supabase.from("items").update({ deleted:true }).eq("id", data.id);
-                  else if(type==="permanentDeleteItem") await supabase.from("items").delete().eq("id", data.id);
-                  else if(type==="restoreItem") await supabase.from("items").update({ deleted:false }).eq("id", data.id);
-                  else if(type==="deleteTx") await supabase.from("inventory_transactions").update({ deleted:true }).eq("id", data.id);
-                  else if(type==="permanentDeleteTx") await supabase.from("inventory_transactions").delete().eq("id", data.id);
-                  else if(type==="restoreTx") await supabase.from("inventory_transactions").update({ deleted:false }).eq("id", data.id);
+{confirmAction && (
+  <div style={styles.modalOverlay} onClick={() => setConfirmAction(null)}>
+    <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
+      <h3>Confirm Action</h3>
+      <p>
+        Are you sure you want to{" "}
+        {confirmAction.type.includes("delete") ? "delete" : "restore"} this{" "}
+        {confirmAction.type.includes("Tx") ? "transaction" : "item"}?
+      </p>
 
-                  setConfirmAction(null);
-                  loadData();
-                }}>Yes</button>
-                <button style={styles.buttonSecondary} onClick={() => setConfirmAction(null)}>Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+        <button
+          style={styles.buttonPrimary}
+          onClick={async () => {
+            const { type, data } = confirmAction;
 
+            try {
+              if (type === "deleteItem") {
+                // Soft delete item
+                await supabase
+                  .from("items")
+                  .update({ deleted: true })
+                  .eq("id", data.id);
+              } else if (type === "permanentDeleteItem") {
+                // Hard delete item
+                await supabase
+                  .from("items")
+                  .delete()
+                  .eq("id", data.id);
+              } else if (type === "restoreItem") {
+                // Restore item
+                await supabase
+                  .from("items")
+                  .update({ deleted: false })
+                  .eq("id", data.id);
+              } else if (type === "deleteTx") {
+                // Soft delete transaction
+                await supabase
+                  .from("inventory_transactions")
+                  .update({ deleted: true })
+                  .eq("id", data.id);
+              } else if (type === "permanentDeleteTx") {
+                // Hard delete transaction
+                await supabase
+                  .from("inventory_transactions")
+                  .delete()
+                  .eq("id", data.id);
+              } else if (type === "restoreTx") {
+                // Restore transaction
+                await supabase
+                  .from("inventory_transactions")
+                  .update({ deleted: false })
+                  .eq("id", data.id);
+              }
+
+              // Reload all data after any action
+              await loadData();
+
+              // Close modal
+              setConfirmAction(null);
+            } catch (error) {
+              console.error("Error performing action:", error.message);
+              alert("Something went wrong. Check console for details.");
+            }
+          }}
+        >
+          Yes
+        </button>
+
+        <button
+          style={styles.buttonSecondary}
+          onClick={() => setConfirmAction(null)}
+        >
+          Cancel
+        </button>
       </div>
     </div>
-  );
-}
+  </div>
+)}
