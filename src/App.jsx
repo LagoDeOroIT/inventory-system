@@ -421,11 +421,10 @@ export default function App() {
               )}
 
               {/* ADD TRANSACTION MODAL */}
-              {modalType==="transaction" && (
+              {modalType === "transaction" && (
   <>
     <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
 
-    {/* Date */}
     <input
       style={styles.input}
       type="date"
@@ -433,7 +432,6 @@ export default function App() {
       onChange={e => handleFormChange("date", e.target.value)}
     />
 
-    {/* Item Name Input */}
     <input
       style={styles.input}
       list="items-list"
@@ -441,8 +439,6 @@ export default function App() {
       value={form.item_name}
       onChange={e => handleFormChange("item_name", e.target.value)}
     />
-
-    {/* Datalist of Items */}
     <datalist id="items-list">
       {items
         .filter(i => i.location === selectedStockRoom)
@@ -451,7 +447,6 @@ export default function App() {
         ))}
     </datalist>
 
-    {/* Auto-filled Brand */}
     <input
       style={styles.input}
       placeholder="Brand"
@@ -459,7 +454,6 @@ export default function App() {
       readOnly
     />
 
-    {/* IN / OUT Toggle */}
     <div style={styles.toggleGroup}>
       <button
         style={styles.toggleButton(form.type === "IN")}
@@ -475,7 +469,6 @@ export default function App() {
       </button>
     </div>
 
-    {/* Quantity */}
     <input
       style={styles.input}
       type="number"
@@ -484,7 +477,6 @@ export default function App() {
       onChange={e => handleFormChange("quantity", e.target.value)}
     />
 
-    {/* Buttons */}
     <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
       <button style={styles.buttonPrimary} onClick={handleSubmit}>
         {form.id ? "Save Changes" : "Submit"}
