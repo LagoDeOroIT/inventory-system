@@ -460,10 +460,12 @@ export default function App() {
             <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
               <button style={styles.buttonPrimary} onClick={handleBrandMismatchYes}>Yes</button>
               <button style={styles.buttonSecondary} onClick={()=>setShowBrandMismatchConfirm(false)}>Cancel</button>
+             </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+      </div>
     </div>
   );
 }
