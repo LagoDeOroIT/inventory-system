@@ -17,8 +17,8 @@ const styles = {
   main: { flex: 1, padding: 24 },
   header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
   title: { fontSize: 28, fontWeight: 700, color: "#111827" },
-  buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 600 },
-  buttonSecondary: { background: "#e5e7eb", color: "#374151", padding: "10px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 600 },
+  buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 600, transition:"all 0.2s ease" },
+  buttonSecondary: { background: "#e5e7eb", color: "#374151", padding: "10px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 600, transition:"all 0.2s ease" },
   card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
   table: { width: "100%", borderCollapse: "collapse", marginTop: 16 },
   thtd: { border: "1px solid #e5e7eb", padding: 8, textAlign: "left" },
@@ -37,7 +37,7 @@ const styles = {
     cursor: "pointer",
     fontWeight: 600,
   }),
-  newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
+  newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16, transition:"all 0.2s ease" },
 };
 
 // ================= EMPTY ROW =================
@@ -50,9 +50,7 @@ const emptyRow = (colSpan, text) => (
 // ================= CONFIRM MODAL =================
 function ConfirmModal({ show, title, message, confirmLabel = "Confirm", confirmColor = "#f87171", onConfirm, onCancel }) {
   if (!show) return null;
-
   const buttonStyle = { padding: "10px 18px", borderRadius: 8, fontWeight: 600, cursor: "pointer", border: "none", transition: "all 0.2s ease", minWidth: 110, transform: "translateY(0px)", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" };
-
   return (
     <div
       style={{
@@ -106,20 +104,18 @@ export default function App() {
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(""); // "transaction" | "item" | "newOption" | "stockRoomPrompt"
+  const [modalType, setModalType] = useState(""); 
   const [form, setForm] = useState({ date:"", item_id:"", brand:"", type:"IN", quantity:"", price:"", item_name:"", id:null });
   const [confirmData, setConfirmData] = useState({ show: false, title: "", message: "", confirmLabel:"Confirm", confirmColor:"#f87171", onConfirm:()=>{} });
 
   const stockRooms = ["L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7","Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"];
 
-  // ================= AUTH =================
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
 
-  // ================= LOAD DATA =================
   async function loadData() {
     const { data: itemsData } = await supabase.from("items").select("*");
     const { data: tx } = await supabase.from("inventory_transactions")
@@ -129,15 +125,12 @@ export default function App() {
     setTransactions(tx || []);
   }
   useEffect(() => { if(session) loadData(); }, [session]);
-
   const handleFormChange = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
 
-  // ================= UTILITY: CONFIRM ACTION =================
   const confirmAction = ({ title, message, confirmLabel="Confirm", confirmColor="#f87171", onConfirm }) => {
     setConfirmData({ show: true, title, message, confirmLabel, confirmColor, onConfirm: () => { onConfirm(); setConfirmData({...confirmData, show:false}); }});
   };
 
-  // ================= BUTTON HANDLERS =================
   const handleDeleteItem = (item) => confirmAction({
     title: "Delete Item",
     message: `Are you sure you want to delete "${item.item_name}"?`,
@@ -152,7 +145,6 @@ export default function App() {
     onConfirm: async () => { await supabase.from("items").update({deleted:false}).eq("id", item.id); loadData(); }
   });
 
-  // ================= RENDER LOGIN IF NO SESSION =================
   if(!session) return (
     <div style={{ padding:40, textAlign:"center" }}>
       <h2>Inventory Login</h2>
@@ -179,7 +171,32 @@ export default function App() {
 
       <div style={styles.main}>
         <div style={styles.header}><div style={styles.title}>{activeTab==="stock"?"Stock Inventory":"Transactions"}</div></div>
-        {/* Your table rendering code here (same as before) */}
+        <div style={styles.card}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.thtd}>Item</th>
+                <th style={styles.thtd}>Brand</th>
+                <th style={styles.thtd}>Qty</th>
+                <th style={styles.thtd}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.length===0 && emptyRow(4,"No data")}
+              {items.map(i=>(
+                <tr key={i.id} style={{ transition:"all 0.2s ease" }} onMouseEnter={e=>e.currentTarget.style.background="#f9fafb"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                  <td style={styles.thtd}>{i.item_name}</td>
+                  <td style={styles.thtd}>{i.brand}</td>
+                  <td style={styles.thtd}>{i.unit_price}</td>
+                  <td style={styles.thtd}>
+                    <button style={{ ...styles.buttonSecondary, marginRight:8 }} onClick={()=>handleRestoreItem(i)}>Restore</button>
+                    <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={()=>handleDeleteItem(i)}>Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* CONFIRM MODAL */}
