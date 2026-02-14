@@ -115,39 +115,16 @@ export default function App() {
   const handleFormChange = (key, value) => {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
-
-      // When selecting an item, auto-fill item_id, brand, price based on selected stock room
-      if (key === "item_name") {
-        const selectedItem = items.find(
-          i => i.item_name === value && i.location === selectedStockRoom && !i.deleted
-        );
-        if (selectedItem) {
-          updated.item_id = selectedItem.id;
+      if(key==="item_id") {
+        const selectedItem = items.find(i => i.id == value);
+        if(selectedItem) {
           updated.brand = selectedItem.brand;
           updated.price = selectedItem.unit_price;
         } else {
-          updated.item_id = "";
           updated.brand = "";
           updated.price = "";
         }
       }
-
-      // When selecting item_id directly (legacy)
-      if (key === "item_id") {
-        const selectedItem = items.find(
-          i => i.id === value && i.location === selectedStockRoom && !i.deleted
-        );
-        if (selectedItem) {
-          updated.item_name = selectedItem.item_name;
-          updated.brand = selectedItem.brand;
-          updated.price = selectedItem.unit_price;
-        } else {
-          updated.item_name = "";
-          updated.brand = "";
-          updated.price = "";
-        }
-      }
-
       return updated;
     });
   };
@@ -310,7 +287,7 @@ export default function App() {
                     <td style={styles.thtd}>{t.type}</td>
                     <td style={styles.thtd}>{t.quantity}</td>
                     <td style={styles.thtd}>
-                      <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => { setForm({ id:t.id, date:t.date, item_id:t.item_id, item_name:t.items?.item_name, brand:t.brand, type:t.type, quantity:t.quantity }); setModalType("transaction"); setShowModal(true); }}>Edit</button>
+                      <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => { setForm({ id:t.id, date:t.date, item_id:t.item_id, brand:t.brand, type:t.type, quantity:t.quantity }); setModalType("transaction"); setShowModal(true); }}>Edit</button>
                       <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"deleteTx", data:t })}>Delete</button>
                     </td>
                   </tr>
@@ -381,7 +358,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ================= MODALS ================= */}
+        {/* ================= MODAL ================= */}
         {showModal && (
           <div style={styles.modalOverlay} onClick={()=>setShowModal(false)}>
             <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
@@ -427,13 +404,15 @@ export default function App() {
                   <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
                   <input style={styles.input} type="date" value={form.date} onChange={e=>handleFormChange("date",e.target.value)} />
 
-                  <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_name} onChange={e=>handleFormChange("item_name", e.target.value)} />
+                  {/* Only show items in selected stock room */}
+                  <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_id} onChange={e=>handleFormChange("item_id",e.target.value)} />
                   <datalist id="items-list">
                     {items
-                      .filter(i => !i.deleted && i.location === selectedStockRoom)
-                      .map(i => <option key={i.id} value={i.item_name}>{i.item_name}</option>)}
+                      .filter(i => i.location === selectedStockRoom && !i.deleted)
+                      .map(i => <option key={i.id} value={i.id}>{i.item_name}</option>)}
                   </datalist>
 
+                  {/* Brand auto-filled */}
                   <input style={styles.input} placeholder="Brand" value={form.brand} readOnly />
 
                   <div style={styles.toggleGroup}>
