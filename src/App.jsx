@@ -56,7 +56,7 @@ export default function App() {
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(""); // "transaction" | "item" | "newOption" | "stockRoomPrompt"
+  const [modalType, setModalType] = useState(""); 
   const [form, setForm] = useState({ date:"", item_id:"", brand:"", type:"IN", quantity:"", price:"", item_name:"", id: null });
   const [confirmAction, setConfirmAction] = useState(null);
 
@@ -96,7 +96,10 @@ export default function App() {
       const related = transactions.filter(
         t => t.item_id === i.id && !t.deleted && (!selectedStockRoom || t.location === selectedStockRoom)
       );
-      const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)), 0);
+      const stock = related.reduce(
+        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
+        0
+      );
       return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
     });
 
@@ -160,14 +163,14 @@ export default function App() {
           item_name: form.item_name,
           brand: form.brand,
           unit_price: Number(form.price),
-          location: selectedStockRoom // <-- assign stock room on edit
+          location: selectedStockRoom
         }).eq("id", form.id);
       } else {
         const { data } = await supabase.from("items").insert([{
           item_name: form.item_name,
           brand: form.brand,
           unit_price: Number(form.price),
-          location: selectedStockRoom // <-- assign stock room on new item
+          location: selectedStockRoom
         }]);
         if(data?.length) form.item_id = data[0].id;
       }
@@ -197,7 +200,6 @@ export default function App() {
     </div>
   );
 
-  // ================= EMPTY ROW =================
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
 
   return (
@@ -219,6 +221,7 @@ export default function App() {
         </div>
         <button style={styles.buttonPrimary} onClick={handleNewClick}>+ New</button>
       </div>
+
 
       {/* Main */}
       <div style={styles.main}>
