@@ -346,7 +346,7 @@ export default function App() {
 
       {/* STOCK ROOM PROMPT */}
 {modalType === "stockRoomPrompt" && (
-  <>
+  <div>
     <h3>Select Stock Room</h3>
     <select
       style={styles.input}
@@ -355,7 +355,9 @@ export default function App() {
     >
       <option value="">-- Select Stock Room --</option>
       {stockRooms.map((r) => (
-        <option key={r} value={r}>{r}</option>
+        <option key={r} value={r}>
+          {r}
+        </option>
       ))}
     </select>
     <button
@@ -368,7 +370,7 @@ export default function App() {
     >
       Continue
     </button>
-  </>
+  </div>
 )}
 
 
