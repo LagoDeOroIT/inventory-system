@@ -38,13 +38,6 @@ const styles = {
   newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
 };
 
-// ================= EMPTY ROW =================
-const emptyRow = (colSpan, text) => (
-  <tr>
-    <td colSpan={colSpan} style={styles.emptyRow}>{text}</td>
-  </tr>
-);
-
 export default function App() {
   // ================= STATE =================
   const [session, setSession] = useState(null);
@@ -54,16 +47,16 @@ export default function App() {
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(""); 
-  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id: null });
+  const [modalType, setModalType] = useState("");
+  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
   const [confirmAction, setConfirmAction] = useState(null);
-  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState(""); 
+  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
   const [showBrandMismatchConfirm, setShowBrandMismatchConfirm] = useState(false);
 
-  const stockRooms = [
-    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
-    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
-  ];
+  const stockRooms = ["L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
+                      "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"];
+
+  const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
 
   // ================= AUTH =================
   useEffect(() => {
@@ -76,13 +69,14 @@ export default function App() {
   async function loadData() {
     const { data: itemsData } = await supabase.from("items").select("*");
     const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
-    setItems(itemsWithDeleted);
 
     const { data: tx } = await supabase.from("inventory_transactions").select("*").order("date", { ascending: false });
     const transactionsWithItems = (tx || []).map(t => {
       const item = itemsWithDeleted.find(i => i.id === t.item_id);
       return { ...t, items: item || null, deleted: t.deleted ?? false };
     });
+
+    setItems(itemsWithDeleted);
     setTransactions(transactionsWithItems);
   }
 
@@ -93,30 +87,27 @@ export default function App() {
     .filter(t => !t.deleted)
     .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
-  // ================= STOCK INVENTORY CALCULATION =================
+  // ================= STOCK INVENTORY =================
   const stockInventory = items
     .filter(i => !i.deleted)
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
     .map(i => {
       const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
-      const stock = related.reduce(
-        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
-        0
-      );
-      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
+      const stock = related.reduce((sum, t) => sum + (t.type==="IN"?Number(t.quantity):-Number(t.quantity)), 0);
+      return { id:i.id, item_name:i.item_name, brand:i.brand, unit_price:i.unit_price, stock, location:i.location };
     });
 
-  // ================= DELETED ITEMS =================
-  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
-  const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+  // ================= DELETED =================
+  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location===selectedStockRoom);
+  const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location===selectedStockRoom);
 
   // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
-      if (key === "item_name") {
-        const selectedItem = items.find(i => i.item_name === value && !i.deleted);
-        if (selectedItem) {
+      if(key==="item_name") {
+        const selectedItem = items.find(i => i.item_name===value && !i.deleted);
+        if(selectedItem) {
           updated.item_id = selectedItem.id;
           updated.brand = selectedItem.brand;
           updated.price = selectedItem.unit_price;
@@ -132,60 +123,31 @@ export default function App() {
 
   // ================= SUBMIT =================
   const handleSubmit = async () => {
-    if(modalType==="transaction"){
+    if(modalType==="transaction") {
       if(!form.item_id || !form.quantity || !form.date) return alert("Fill required fields");
-
-      const existingItem = items.find(i => i.item_name === form.item_name && !i.deleted);
-      if(existingItem && existingItem.brand !== form.brand){
+      const existingItem = items.find(i=>i.item_name===form.item_name && !i.deleted);
+      if(existingItem && existingItem.brand!==form.brand){
         setShowBrandMismatchConfirm(true);
         return;
       }
-
-      const txData = {
-        date: form.date,
-        item_id: form.item_id,
-        brand: form.brand,
-        type: form.type,
-        quantity: Number(form.quantity),
-        location: selectedStockRoom,
-        unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
-      };
-
-      if(form.id){
-        await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
-      } else {
-        await supabase.from("inventory_transactions").insert([txData]);
-      }
-
+      const txData = { date:form.date, item_id:form.item_id, brand:form.brand, type:form.type, quantity:Number(form.quantity), location:selectedStockRoom, unit_price:Number(form.price||items.find(i=>i.id===form.item_id)?.unit_price||0) };
+      if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
+      else await supabase.from("inventory_transactions").insert([txData]);
       setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
       loadData();
       setShowModal(false);
-    }
-    else if(modalType==="item"){
+    } else if(modalType==="item") {
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
-
-      if(form.id){
-        await supabase.from("items").update({
-          item_name: form.item_name,
-          brand: form.brand,
-          unit_price: Number(form.price),
-          location: selectedStockRoom
-        }).eq("id", form.id);
-      } else {
-        const { data } = await supabase.from("items").insert([{
-          item_name: form.item_name,
-          brand: form.brand,
-          unit_price: Number(form.price),
-          location: selectedStockRoom
-        }]);
-        if(data?.length && modalTypeBeforeItem==="transaction"){
-          setForm(prev => ({ ...prev, item_id: data[0].id }));
+      if(form.id) await supabase.from("items").update({ item_name:form.item_name, brand:form.brand, unit_price:Number(form.price), location:selectedStockRoom }).eq("id", form.id);
+      else {
+        const { data } = await supabase.from("items").insert([{ item_name:form.item_name, brand:form.brand, unit_price:Number(form.price), location:selectedStockRoom }]);
+        if(data?.length && modalTypeBeforeItem==="transaction") {
+          setForm(prev=>({ ...prev, item_id:data[0].id }));
           setModalType("transaction");
           setShowModal(true);
           return;
         }
       }
-
       setShowModal(false);
       setModalType("");
       setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
@@ -201,13 +163,8 @@ export default function App() {
   };
 
   const handleNewClick = () => {
-    if(!selectedStockRoom){
-      setModalType("stockRoomPrompt");
-      setShowModal(true);
-    } else {
-      setModalType("newOption");
-      setShowModal(true);
-    }
+    if(!selectedStockRoom){ setModalType("stockRoomPrompt"); setShowModal(true); }
+    else { setModalType("newOption"); setShowModal(true); }
   };
 
   if(!session) return (
@@ -217,11 +174,10 @@ export default function App() {
     </div>
   );
 
-  const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
-
+  // ================= MAIN RETURN =================
   return (
     <div style={styles.container}>
-      {/* Sidebar */}
+      {/* ================= SIDEBAR ================= */}
       <div style={styles.sidebar}>
         <div>
           <div style={styles.sidebarHeader}>Lago De Oro</div>
@@ -233,13 +189,12 @@ export default function App() {
             <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
             <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
             <button style={styles.tabButton(activeTab==="deleted")} onClick={()=>setActiveTab("deleted")}>🗑️ Deleted History</button>
-            <button style={styles.tabButton(activeTab==="report")} onClick={()=>setActiveTab("report")}>📊 Monthly Report</button>
           </div>
         </div>
         <button style={styles.buttonPrimary} onClick={handleNewClick}>+ New</button>
       </div>
 
-      {/* Main */}
+      {/* ================= MAIN CONTENT ================= */}
       <div style={styles.main}>
         {/* ================= STOCK TAB ================= */}
         {activeTab==="stock" && (
@@ -496,21 +451,19 @@ export default function App() {
  
 
 
-  {/* ================= BRAND MISMATCH CONFIRM MODAL ================= */}
-        {showBrandMismatchConfirm && (
-          <div style={styles.modalOverlay} onClick={() => setShowBrandMismatchConfirm(false)}>
-            <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
-              <h3>Brand Mismatch</h3>
-              <p>The item name exists with a different brand. Do you want to create a new item with this brand?</p>
-              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                <button style={styles.buttonPrimary} onClick={handleBrandMismatchYes}>Yes</button>
-                <button style={styles.buttonSecondary} onClick={() => setShowBrandMismatchConfirm(false)}>No</button>
-              </div>
+    {/* ================= BRAND MISMATCH CONFIRM ================= */}
+      {showBrandMismatchConfirm && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalCard}>
+            <h3>Brand Mismatch</h3>
+            <p>The selected item has a different brand. Do you want to create a new item?</p>
+            <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+              <button style={styles.buttonPrimary} onClick={handleBrandMismatchYes}>Yes</button>
+              <button style={styles.buttonSecondary} onClick={()=>setShowBrandMismatchConfirm(false)}>Cancel</button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
-
