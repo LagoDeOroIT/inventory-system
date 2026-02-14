@@ -48,7 +48,6 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
-  // ================= STATE =================
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -92,8 +91,12 @@ export default function App() {
   const stockInventory = items
     .filter(i => !i.deleted)
     .map(i => {
-      const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
-      const stock = related.reduce((sum, t) => sum + (t.type==="IN"? Number(t.quantity):-Number(t.quantity)),0);
+      const related = transactions.filter(t => 
+        t.item_id === i.id &&
+        !t.deleted &&
+        (!selectedStockRoom || t.location === selectedStockRoom)
+      );
+      const stock = related.reduce((sum, t) => sum + (t.type==="IN" ? Number(t.quantity) : -Number(t.quantity)), 0);
       return { id:i.id, item_name:i.item_name, brand:i.brand, unit_price:i.unit_price, stock };
     });
 
@@ -186,8 +189,8 @@ export default function App() {
     </div>
   );
 
-  // ================= EMPTY ROW =================
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
+
 
   return (
     <div style={styles.container}>
