@@ -47,25 +47,8 @@ const emptyRow = (colSpan, text) => (
   </tr>
 );
 
-// ================= CONFIRM MODAL COMPONENT =================
-function ConfirmModal({ show, title, message, confirmColor="#f87171", onConfirm, onCancel }) {
-  if (!show) return null;
-  return (
-    <div style={styles.modalOverlay} onClick={onCancel}>
-      <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
-        <h3>{title}</h3>
-        <p>{message}</p>
-        <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-          <button style={{...styles.buttonPrimary, background:confirmColor}} onClick={()=>{onConfirm(); onCancel();}}>Yes</button>
-          <button style={styles.buttonSecondary} onClick={onCancel}>Cancel</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ================= APP =================
 export default function App() {
+  // ================= STATE =================
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -73,9 +56,8 @@ export default function App() {
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState("");
+  const [modalType, setModalType] = useState(""); // "transaction" | "item" | "newOption" | "stockRoomPrompt"
   const [form, setForm] = useState({ date:"", item_id:"", brand:"", type:"IN", quantity:"", price:"", item_name:"", id: null });
-  const [confirmData, setConfirmData] = useState({ show:false });
 
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
@@ -98,14 +80,17 @@ export default function App() {
     setItems(itemsData || []);
     setTransactions(tx || []);
   }
-  useEffect(()=>{ if(session) loadData(); }, [session]);
+
+  useEffect(() => { if(session) loadData(); }, [session]);
 
   const filteredTransactions = transactions.filter(t => !selectedStockRoom || t.location === selectedStockRoom);
+
   const stockInventory = items.filter(i => !i.deleted).map(i => {
     const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
     const stock = related.reduce((sum, t) => sum + (t.type==="IN"? Number(t.quantity):-Number(t.quantity)),0);
     return { id:i.id, item_name:i.item_name, brand:i.brand, unit_price:i.unit_price, stock };
   });
+
   const deletedItems = items.filter(i => i.deleted);
   const deletedTransactions = transactions.filter(t => t.deleted);
 
@@ -115,7 +100,10 @@ export default function App() {
   const handleSubmit = async () => {
     if(modalType==="transaction"){
       if(!form.item_id || !form.quantity || !form.date) return alert("Fill required fields");
+
       if(form.id){
+        // EDIT existing transaction
+        if(!confirm(`Are you sure you want to save changes for this transaction?`)) return;
         await supabase.from("inventory_transactions").update({
           date: form.date,
           item_id: form.item_id,
@@ -125,6 +113,7 @@ export default function App() {
           unit_price: items.find(i=>i.id===form.item_id)?.unit_price || 0
         }).eq("id", form.id);
       } else {
+        // ADD new transaction
         await supabase.from("inventory_transactions").insert([{
           date: form.date,
           item_id: form.item_id,
@@ -137,13 +126,17 @@ export default function App() {
       }
     } else if(modalType==="item"){
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
+
       if(form.id){ 
+        // EDIT existing item
+        if(!confirm(`Are you sure you want to save changes to "${form.item_name}"?`)) return;
         await supabase.from("items").update({
           item_name: form.item_name,
           brand: form.brand,
           unit_price: Number(form.price)
         }).eq("id", form.id);
       } else { 
+        // ADD new item
         const { data } = await supabase.from("items").insert([{
           item_name: form.item_name,
           brand: form.brand,
@@ -159,7 +152,6 @@ export default function App() {
     loadData();
   };
 
-  // ================= NEW BUTTON =================
   const handleNewClick = () => {
     if(!selectedStockRoom){
       setModalType("stockRoomPrompt");
@@ -170,7 +162,29 @@ export default function App() {
     }
   };
 
-  // ================= EDIT / DELETE HANDLERS =================
+  // ================= ITEM HANDLERS =================
+  const handleEditItem = (item) => {
+    setForm({ id: item.id, item_name: item.item_name, brand: item.brand, price: item.unit_price });
+    setModalType("item");
+    setShowModal(true);
+  };
+  const handleDeleteItem = async (item) => {
+    if(!confirm(`Are you sure you want to delete "${item.item_name}"?`)) return;
+    await supabase.from("items").update({ deleted: true }).eq("id", item.id);
+    loadData();
+  };
+  const handleRestoreItem = async (item) => {
+    if(!confirm(`Do you want to restore "${item.item_name}"?`)) return;
+    await supabase.from("items").update({ deleted: false }).eq("id", item.id);
+    loadData();
+  };
+  const handlePermanentDeleteItem = async (item) => {
+    if(!confirm(`Are you sure you want to permanently delete "${item.item_name}"? This cannot be undone.`)) return;
+    await supabase.from("items").delete().eq("id", item.id);
+    loadData();
+  };
+
+  // ================= TRANSACTION HANDLERS =================
   const handleEditTransaction = (tx) => {
     setForm({
       id: tx.id,
@@ -183,20 +197,22 @@ export default function App() {
     setModalType("transaction");
     setShowModal(true);
   };
-
-  const handleEditItem = (i)=>{ setForm({ id:i.id, item_name:i.item_name, brand:i.brand, price:i.unit_price }); setModalType("item"); setShowModal(true); };
-
-  const handleConfirmAction = (title,message,onConfirm,color="#f87171")=>{
-    setConfirmData({show:true,title,message,onConfirm,confirmColor:color});
+  const handleDeleteTransaction = async (tx) => {
+    if(!confirm(`Are you sure you want to delete this transaction for "${tx.items?.item_name}"?`)) return;
+    await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", tx.id);
+    loadData();
+  };
+  const handleRestoreTransaction = async (tx) => {
+    if(!confirm(`Do you want to restore this transaction for "${tx.items?.item_name}"?`)) return;
+    await supabase.from("inventory_transactions").update({ deleted: false }).eq("id", tx.id);
+    loadData();
+  };
+  const handlePermanentDeleteTransaction = async (tx) => {
+    if(!confirm(`Permanently delete this transaction for "${tx.items?.item_name}"? This cannot be undone.`)) return;
+    await supabase.from("inventory_transactions").delete().eq("id", tx.id);
+    loadData();
   };
 
-  const handleDeleteItem = (i)=>handleConfirmAction("Delete Item",`Delete "${i.item_name}"?`, async()=>{await supabase.from("items").update({deleted:true}).eq("id",i.id); loadData();});
-  const handleRestoreItem = (i)=>handleConfirmAction("Restore Item",`Restore "${i.item_name}"?`, async()=>{await supabase.from("items").update({deleted:false}).eq("id",i.id); loadData();},"#34d399");
-  const handlePermanentDeleteItem = (i)=>handleConfirmAction("Delete Permanently",`Permanently delete "${i.item_name}"?`, async()=>{await supabase.from("items").delete().eq("id",i.id); loadData();},"#f87171");
-  const handleDeleteTransaction = (tx)=>handleConfirmAction("Delete Transaction",`Delete transaction for "${tx.items?.item_name}"?`, async()=>{await supabase.from("inventory_transactions").update({deleted:true}).eq("id",tx.id); loadData();});
-  const handleRestoreTransaction = (tx)=>handleConfirmAction("Restore Transaction",`Restore transaction for "${tx.items?.item_name}"?`, async()=>{await supabase.from("inventory_transactions").update({deleted:false}).eq("id",tx.id); loadData();},"#34d399");
-
-  // ================= LOGIN =================
   if(!session) return (
     <div style={{ padding:40, textAlign:"center" }}>
       <h2>Inventory Login</h2>
@@ -226,17 +242,13 @@ export default function App() {
 
       {/* Main */}
       <div style={styles.main}>
-        {/* Header */}
         <div style={styles.header}>
           <div style={styles.title}>
-            {activeTab === "stock" ? "Stock Inventory" :
-             activeTab === "transactions" ? "Transactions" :
-             activeTab === "deleted" ? "Deleted History" : "Monthly Report"}
+            {activeTab === "stock" ? "Stock Inventory" : activeTab === "transactions" ? "Transactions" : activeTab === "deleted" ? "Deleted History" : "Monthly Report"}
           </div>
         </div>
 
-        {/* ================= TABS CONTENT ================= */}
-        {/* STOCK TAB */}
+        {/* ================= STOCK TAB ================= */}
         {activeTab==="stock" && (
           <div style={styles.card}>
             <table style={styles.table}>
@@ -268,7 +280,7 @@ export default function App() {
           </div>
         )}
 
-        {/* TRANSACTIONS TAB */}
+        {/* ================= TRANSACTIONS TAB ================= */}
         {activeTab==="transactions" && (
           <div style={styles.card}>
             <input style={styles.input} placeholder="Search..." value={inSearch} onChange={e=>setInSearch(e.target.value)} />
@@ -285,23 +297,25 @@ export default function App() {
               </thead>
               <tbody>
                 {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length===0 && emptyRow(6,"No transactions")}
-                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t=>(<tr key={t.id}>
-                  <td style={styles.thtd}>{t.date}</td>
-                  <td style={styles.thtd}>{t.items?.item_name}</td>
-                  <td style={styles.thtd}>{t.items?.brand}</td>
-                  <td style={styles.thtd}>{t.type}</td>
-                  <td style={styles.thtd}>{t.quantity}</td>
-                  <td style={styles.thtd}>
-                    <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => handleEditTransaction(t)}>Edit</button>
-                    <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => handleDeleteTransaction(t)}>Delete</button>
-                  </td>
-                </tr>))}
+                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t=>(
+                  <tr key={t.id}>
+                    <td style={styles.thtd}>{t.date}</td>
+                    <td style={styles.thtd}>{t.items?.item_name}</td>
+                    <td style={styles.thtd}>{t.items?.brand}</td>
+                    <td style={styles.thtd}>{t.type}</td>
+                    <td style={styles.thtd}>{t.quantity}</td>
+                    <td style={styles.thtd}>
+                      <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => handleEditTransaction(t)}>Edit</button>
+                      <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => handleDeleteTransaction(t)}>Delete</button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         )}
 
-        {/* DELETED TAB */}
+        {/* ================= DELETED HISTORY TAB ================= */}
         {activeTab==="deleted" && (
           <div style={styles.card}>
             <h3>Deleted Inventory</h3>
@@ -316,71 +330,111 @@ export default function App() {
               </thead>
               <tbody>
                 {deletedItems.length===0 && emptyRow(4,"No deleted items")}
-                {deletedItems.map(i=>(<tr key={i.id}>
-                  <td style={styles.thtd}>{i.item_name}</td>
-                  <td style={styles.thtd}>{i.brand}</td>
-                  <td style={styles.thtd}>₱{i.unit_price}</td>
-                  <td style={styles.thtd}>
-                    <button style={{ ...styles.buttonSecondary, marginRight: 8, background:"#34d399", color:"#fff" }} onClick={()=>handleRestoreItem(i)}>Restore</button>
-                    <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={()=>handlePermanentDeleteItem(i)}>Delete Permanently</button>
-                  </td>
-                </tr>))}
+                {deletedItems.map(i=>(
+                  <tr key={i.id}>
+                    <td style={styles.thtd}>{i.item_name}</td>
+                    <td style={styles.thtd}>{i.brand}</td>
+                    <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
+                    <td style={styles.thtd}>
+                      <button style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff", marginRight: 8 }} onClick={() => handleRestoreItem(i)}>Restore</button>
+                      <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => handlePermanentDeleteItem(i)}>Delete Permanently</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <h3 style={{ marginTop:24 }}>Deleted Transactions</h3>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.thtd}>Date</th>
+                  <th style={styles.thtd}>Item</th>
+                  <th style={styles.thtd}>Brand</th>
+                  <th style={styles.thtd}>Type</th>
+                  <th style={styles.thtd}>Qty</th>
+                  <th style={styles.thtd}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deletedTransactions.length===0 && emptyRow(6,"No deleted transactions")}
+                {deletedTransactions.map(t=>(
+                  <tr key={t.id}>
+                    <td style={styles.thtd}>{t.date}</td>
+                    <td style={styles.thtd}>{t.items?.item_name}</td>
+                    <td style={styles.thtd}>{t.items?.brand}</td>
+                    <td style={styles.thtd}>{t.type}</td>
+                    <td style={styles.thtd}>{t.quantity}</td>
+                    <td style={styles.thtd}>
+                      <button style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff", marginRight: 8 }} onClick={() => handleRestoreTransaction(t)}>Restore</button>
+                      <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => handlePermanentDeleteTransaction(t)}>Delete Permanently</button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         )}
 
-        {/* CONFIRM MODAL */}
-        <ConfirmModal {...confirmData} onCancel={()=>setConfirmData({show:false})} />
-
-        {/* MODALS */}
-        {showModal && modalType==="stockRoomPrompt" && (
+        {/* ================= MODAL ================= */}
+        {showModal && (
           <div style={styles.modalOverlay} onClick={()=>setShowModal(false)}>
             <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
-              <h3>Select Stock Room First</h3>
-              <p>Please select a stock room before creating a new item or transaction.</p>
-              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                <button style={styles.buttonPrimary} onClick={()=>setShowModal(false)}>OK</button>
-              </div>
-            </div>
-          </div>
-        )}
+              {/* NEW OPTION MODAL */}
+              {modalType==="newOption" && (
+                <>
+                  <h3>What do you want to add?</h3>
+                  <button style={{...styles.newOptionButton, background:"#1f2937", color:"#fff"}} onClick={()=>{setModalType("item")}}>Add New Item</button>
+                  <button style={{...styles.newOptionButton, background:"#e5e7eb", color:"#374151"}} onClick={()=>{setModalType("transaction")}}>Add New Transaction</button>
+                  <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
+                </>
+              )}
 
-        {showModal && modalType==="newOption" && (
-          <div style={styles.modalOverlay} onClick={()=>setShowModal(false)}>
-            <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
-              <h3>Create New</h3>
-              <button style={{...styles.newOptionButton, background:"#1f2937", color:"#fff"}} onClick={()=>{setModalType("item"); setShowModal(true)}}>New Item</button>
-              <button style={{...styles.newOptionButton, background:"#2563eb", color:"#fff"}} onClick={()=>{setModalType("transaction"); setShowModal(true)}}>New Transaction</button>
-            </div>
-          </div>
-        )}
+              {/* STOCK ROOM PROMPT */}
+              {modalType==="stockRoomPrompt" && (
+                <>
+                  <h3>Select Stock Room First</h3>
+                  <select style={styles.input} value={selectedStockRoom} onChange={e=>{setSelectedStockRoom(e.target.value); setModalType("newOption");}}>
+                    <option value="">Select Stock Room</option>
+                    {stockRooms.map(r=><option key={r} value={r}>{r}</option>)}
+                  </select>
+                  <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
+                </>
+              )}
 
-        {showModal && (modalType==="item" || modalType==="transaction") && (
-          <div style={styles.modalOverlay} onClick={()=>setShowModal(false)}>
-            <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
-              <h3>{modalType==="item"?"New Item":"Edit Transaction"}</h3>
-              {modalType==="item" && <>
-                <input style={styles.input} placeholder="Item Name" value={form.item_name} onChange={e=>handleFormChange("item_name", e.target.value)} />
-                <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e=>handleFormChange("brand", e.target.value)} />
-                <input style={styles.input} placeholder="Unit Price" type="number" value={form.price} onChange={e=>handleFormChange("price", e.target.value)} />
-              </>}
-              {modalType==="transaction" && <>
-                <input style={styles.input} type="date" value={form.date} onChange={e=>handleFormChange("date", e.target.value)} />
-                <select style={styles.input} value={form.item_id} onChange={e=>handleFormChange("item_id", e.target.value)}>
-                  <option value="">Select Item</option>
-                  {items.filter(i=>!i.deleted).map(i=><option key={i.id} value={i.id}>{i.item_name}</option>)}
-                </select>
-                <div style={styles.toggleGroup}>
-                  <button style={styles.toggleButton(form.type==="IN")} onClick={()=>handleFormChange("type","IN")}>IN</button>
-                  <button style={styles.toggleButton(form.type==="OUT")} onClick={()=>handleFormChange("type","OUT")}>OUT</button>
-                </div>
-                <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e=>handleFormChange("quantity", e.target.value)} />
-              </>}
-              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                <button style={styles.buttonPrimary} onClick={handleSubmit}>Save Changes</button>
-                <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
-              </div>
+              {/* ADD ITEM MODAL */}
+              {modalType==="item" && (
+                <>
+                  <h3>{form.id ? "Edit Item" : "New Item"}</h3>
+                  <input style={styles.input} placeholder="Item Name" value={form.item_name} onChange={e=>handleFormChange("item_name",e.target.value)} />
+                  <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e=>handleFormChange("brand",e.target.value)} />
+                  <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e=>handleFormChange("price",e.target.value)} />
+                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+                    <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
+                  </div>
+                </>
+              )}
+
+              {/* ADD TRANSACTION MODAL */}
+              {modalType==="transaction" && (
+                <>
+                  <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
+                  <input style={styles.input} type="date" value={form.date} onChange={e=>handleFormChange("date",e.target.value)} />
+                  <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_id} onChange={e=>handleFormChange("item_id",e.target.value)} />
+                  <datalist id="items-list">{items.map(i=><option key={i.id} value={i.id}>{i.item_name}</option>)}</datalist>
+                  <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e=>handleFormChange("brand",e.target.value)} />
+                  <div style={styles.toggleGroup}>
+                    <button style={styles.toggleButton(form.type==="IN")} onClick={()=>handleFormChange("type","IN")}>IN</button>
+                    <button style={styles.toggleButton(form.type==="OUT")} onClick={()=>handleFormChange("type","OUT")}>OUT</button>
+                  </div>
+                  <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e=>handleFormChange("quantity",e.target.value)} />
+                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+                    <button style={styles.buttonSecondary} onClick={()=>setShowModal(false)}>Cancel</button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
