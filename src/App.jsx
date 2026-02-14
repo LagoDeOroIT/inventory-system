@@ -164,9 +164,18 @@ export default function App() {
 
   // ================= ITEM HANDLERS =================
   const handleEditItem = (item) => {
-    setForm({ id: item.id, item_name: item.item_name, brand: item.brand, price: item.unit_price });
-    setModalType("item");
-    setShowModal(true);
+  showConfirm({
+    title: "Edit Item",
+    message: `Edit \"${item.item_name}\"?`,
+    variant: "info",
+    onConfirm: () => {
+      setForm({ id: item.id, item_name: item.item_name, brand: item.brand, price: item.unit_price });
+      setModalType("item");
+      setShowModal(true);
+      closeConfirm();
+    }
+  });
+};
   };
   const handleDeleteItem = async (item) => {
     if(!confirm(`Are you sure you want to delete \"${item.item_name}\"?`)) return;
@@ -186,16 +195,25 @@ export default function App() {
 
   // ================= TRANSACTION HANDLERS =================
   const handleEditTransaction = (tx) => {
-    setForm({
-      id: tx.id,
-      date: tx.date,
-      item_id: tx.item_id,
-      brand: tx.brand,
-      type: tx.type,
-      quantity: tx.quantity
-    });
-    setModalType("transaction");
-    setShowModal(true);
+  showConfirm({
+    title: "Edit Transaction",
+    message: `Edit transaction for \"${tx.items?.item_name}\"?`,
+    variant: "info",
+    onConfirm: () => {
+      setForm({
+        id: tx.id,
+        date: tx.date,
+        item_id: tx.item_id,
+        brand: tx.brand,
+        type: tx.type,
+        quantity: tx.quantity
+      });
+      setModalType("transaction");
+      setShowModal(true);
+      closeConfirm();
+    }
+  });
+};
   };
   const handleDeleteTransaction = async (tx) => {
     if(!confirm(`Are you sure you want to delete this transaction for \"${tx.items?.item_name}\"?`)) return;
