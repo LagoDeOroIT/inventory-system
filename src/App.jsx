@@ -46,6 +46,7 @@ const emptyRow = (colSpan, text) => (
 );
 
 export default function App() {
+  // ================= STATE =================
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -54,9 +55,9 @@ export default function App() {
   const [inSearch, setInSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState(""); 
-  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
   const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id: null });
   const [confirmAction, setConfirmAction] = useState(null);
+  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState(""); 
   const [showBrandMismatchConfirm, setShowBrandMismatchConfirm] = useState(false);
 
   const stockRooms = [
@@ -64,31 +65,35 @@ export default function App() {
     "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
   ];
 
+  // ================= AUTH =================
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
 
+  // ================= LOAD DATA =================
   async function loadData() {
     const { data: itemsData } = await supabase.from("items").select("*");
     const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
-
-    const { data: tx } = await supabase.from("inventory_transactions")
-      .select("*, items(item_name, brand, unit_price, location)")
-      .order("date", { ascending: false });
-    const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
-
     setItems(itemsWithDeleted);
-    setTransactions(transactionsWithDeleted);
+
+    const { data: tx } = await supabase.from("inventory_transactions").select("*").order("date", { ascending: false });
+    const transactionsWithItems = (tx || []).map(t => {
+      const item = itemsWithDeleted.find(i => i.id === t.item_id);
+      return { ...t, items: item || null, deleted: t.deleted ?? false };
+    });
+    setTransactions(transactionsWithItems);
   }
 
   useEffect(() => { if(session) loadData(); }, [session]);
 
+  // ================= FILTERED DATA =================
   const filteredTransactions = transactions
     .filter(t => !t.deleted)
     .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
+  // ================= STOCK INVENTORY CALCULATION =================
   const stockInventory = items
     .filter(i => !i.deleted)
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
@@ -101,9 +106,11 @@ export default function App() {
       return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
     });
 
+  // ================= DELETED ITEMS =================
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
   const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
+  // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
@@ -123,6 +130,7 @@ export default function App() {
     });
   };
 
+  // ================= SUBMIT =================
   const handleSubmit = async () => {
     if(modalType==="transaction"){
       if(!form.item_id || !form.quantity || !form.date) return alert("Fill required fields");
@@ -151,6 +159,7 @@ export default function App() {
 
       setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
       loadData();
+      setShowModal(false);
     }
     else if(modalType==="item"){
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
@@ -169,15 +178,11 @@ export default function App() {
           unit_price: Number(form.price),
           location: selectedStockRoom
         }]);
-
-        if(data?.length){
-          const newItemId = data[0].id;
-          if(modalTypeBeforeItem === "transaction"){
-            setForm(prev => ({ ...prev, item_id: newItemId }));
-            setModalType("transaction");
-            setShowModal(true);
-            return;
-          }
+        if(data?.length && modalTypeBeforeItem==="transaction"){
+          setForm(prev => ({ ...prev, item_id: data[0].id }));
+          setModalType("transaction");
+          setShowModal(true);
+          return;
         }
       }
 
