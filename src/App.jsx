@@ -74,12 +74,18 @@ export default function App() {
 
   // ================= LOAD DATA =================
   async function loadData() {
+    // Fetch items including deleted
     const { data: itemsData } = await supabase.from("items").select("*");
+    const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
+
+    // Fetch transactions including deleted
     const { data: tx } = await supabase.from("inventory_transactions")
       .select("*, items(item_name, brand, unit_price, location)")
       .order("date", { ascending: false });
-    setItems(itemsData || []);
-    setTransactions(tx || []);
+    const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
+
+    setItems(itemsWithDeleted);
+    setTransactions(transactionsWithDeleted);
   }
 
   useEffect(() => { if(session) loadData(); }, [session]);
@@ -499,6 +505,7 @@ export default function App() {
               <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
                 <button style={styles.buttonPrimary} onClick={async () => {
                   const { type, data } = confirmAction;
+
                   if(type==="deleteItem") await supabase.from("items").update({ deleted:true }).eq("id", data.id);
                   else if(type==="permanentDeleteItem") await supabase.from("items").delete().eq("id", data.id);
                   else if(type==="restoreItem") await supabase.from("items").update({ deleted:false }).eq("id", data.id);
