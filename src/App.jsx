@@ -344,17 +344,34 @@ export default function App() {
         )}
       </div>
 
-      {/* ================= MODALS ================= */}
-      {showModal && (
-        <div style={styles.modalOverlay} onClick={()=>setShowModal(false)}>
-          <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
-            {/* STOCK ROOM PROMPT */}
-            {modalType==="stockRoomPrompt" && (
-              <>
-                <h3>Select Stock Room</h3>
-                {stockRooms.map(r=><button key={r} style={styles.newOptionButton} onClick={()=>{setSelectedStockRoom(r); setShowModal(false);}}>{r}</button>)}
-              </>
-            )}
+      {/* STOCK ROOM PROMPT MODAL */}
+{modalType === "stockRoomPrompt" && (
+  <>
+    <h3>Select Stock Room</h3>
+    <select
+      style={styles.input}
+      value={selectedStockRoom}
+      onChange={(e) => {
+        setSelectedStockRoom(e.target.value);
+        setModalType("newOption"); // go to the "What do you want to add?" modal
+      }}
+    >
+      <option value="">Select Stock Room</option>
+      {stockRooms.map((r) => (
+        <option key={r} value={r}>
+          {r}
+        </option>
+      ))}
+    </select>
+    <button
+      style={styles.buttonSecondary}
+      onClick={() => setShowModal(false)}
+    >
+      Cancel
+    </button>
+  </>
+)}
+
 
             {/* NEW OPTION MODAL */}
             {modalType==="newOption" && (
