@@ -76,7 +76,7 @@ export default function App() {
   async function loadData() {
     const { data: itemsData } = await supabase.from("items").select("*");
     const { data: tx } = await supabase.from("inventory_transactions")
-      .select("*, items(item_name, brand, unit_price)")
+      .select("*, items(item_name, brand, unit_price, location)")
       .order("date", { ascending: false });
     setItems(itemsData || []);
     setTransactions(tx || []);
@@ -91,14 +91,22 @@ export default function App() {
 
   const stockInventory = items
     .filter(i => !i.deleted)
+    .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
     .map(i => {
-      const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
-      const stock = related.reduce((sum, t) => sum + (t.type==="IN"? Number(t.quantity):-Number(t.quantity)),0);
-      return { id:i.id, item_name:i.item_name, brand:i.brand, unit_price:i.unit_price, stock };
+      const related = transactions.filter(
+        t => t.item_id === i.id && !t.deleted && (!selectedStockRoom || t.location === selectedStockRoom)
+      );
+      const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)), 0);
+      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
     });
 
-  const deletedItems = items.filter(i => i.deleted);
-  const deletedTransactions = transactions.filter(t => t.deleted);
+  const deletedItems = items
+    .filter(i => i.deleted)
+    .filter(i => !selectedStockRoom || i.location === selectedStockRoom);
+
+  const deletedTransactions = transactions
+    .filter(t => t.deleted)
+    .filter(t => !selectedStockRoom || t.location === selectedStockRoom);
 
   // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
@@ -130,6 +138,7 @@ export default function App() {
           brand: form.brand,
           type: form.type,
           quantity: Number(form.quantity),
+          location: selectedStockRoom,
           unit_price: items.find(i=>i.id===form.item_id)?.unit_price || 0
         }).eq("id", form.id);
       } else {
@@ -150,18 +159,20 @@ export default function App() {
         await supabase.from("items").update({
           item_name: form.item_name,
           brand: form.brand,
-          unit_price: Number(form.price)
+          unit_price: Number(form.price),
+          location: selectedStockRoom // <-- assign stock room on edit
         }).eq("id", form.id);
       } else {
         const { data } = await supabase.from("items").insert([{
           item_name: form.item_name,
           brand: form.brand,
           unit_price: Number(form.price),
-          location: selectedStockRoom
+          location: selectedStockRoom // <-- assign stock room on new item
         }]);
         if(data?.length) form.item_id = data[0].id;
       }
     }
+
     setShowModal(false);
     setModalType("");
     setForm({ date:"", item_id:"", brand:"", type:"IN", quantity:"", price:"", item_name:"", id:null });
