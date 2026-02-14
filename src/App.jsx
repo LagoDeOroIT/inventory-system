@@ -444,7 +444,77 @@ export default function App() {
 }
 
 // ================= PROFESSIONAL CONFIRMATION MODAL =================
-function ConfirmModal({ open, title, message, onConfirm, onCancel }) {
+// ================= ENTERPRISE CONFIRM MODAL =================
+// Features: ESC/Enter keys, loading state, danger/info themes, animation
+function ConfirmModal({ open, title, message, onConfirm, onCancel, variant = "danger" }) {
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!open) return;
+
+    const handler = (e) => {
+      if (e.key === "Escape") onCancel();
+      if (e.key === "Enter") handleConfirm();
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [open]);
+
+  const handleConfirm = async () => {
+    if (!onConfirm) return;
+    try {
+      setLoading(true);
+      await onConfirm();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!open) return null;
+
+  const danger = variant === "danger";
+
+  return (
+    <div style={styles.modalOverlay}>
+      <div
+        style={{
+          ...styles.modalCard,
+          width: 420,
+          transform: "scale(1)",
+          animation: "fadeInScale 0.15s ease",
+        }}
+      >
+        <h3 style={{ marginBottom: 8, fontWeight: 600 }}>{title}</h3>
+        <p style={{ marginBottom: 20, color: "#4b5563" }}>{message}</p>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+          <button
+            style={styles.buttonSecondary}
+            onClick={onCancel}
+            disabled={loading}
+          >
+            Cancel
+          </button>
+
+          <button
+            style={{
+              ...styles.buttonPrimary,
+              background: danger ? "#dc2626" : "#2563eb",
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? "not-allowed" : "pointer",
+            }}
+            onClick={handleConfirm}
+            disabled={loading}
+          >
+            {loading ? "Processing..." : "Confirm"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+({ open, title, message, onConfirm, onCancel }) {
   if (!open) return null;
   return (
     <div style={styles.modalOverlay}>
@@ -460,130 +530,35 @@ function ConfirmModal({ open, title, message, onConfirm, onCancel }) {
   );
 }
 
-/*
-HOW TO USE:
+// ================= CONFIRMATION MODAL (PRODUCTION INTEGRATED) =================
+// NOTE: This is LIVE code, not comments.
 
-1) Add state:
-   const [confirmState, setConfirmState] = useState({ open:false, title:"", message:"", onConfirm:null });
+// 1) Add inside App() state section:
+const [confirmState, setConfirmState] = useState({
+  open: false,
+  title: "",
+  message: "",
+  onConfirm: null,
+});
 
-2) Replace window.confirm with:
-   setConfirmState({
-     open:true,
-     title:"Delete Item",
-     message:`Are you sure you want to delete \"${item.item_name}\"?`,
-     onConfirm: async () => {
-       await supabase.from("items").update({ deleted: true }).eq("id", item.id);
-       setConfirmState({ open:false });
-       loadData();
-     }
-   });
+// 2) Safe helper to close modal
+const closeConfirm = () => setConfirmState(s => ({ ...s, open: false }));
 
-3) Render this near your App return root:
-   <ConfirmModal
-     open={confirmState.open}
-     title={confirmState.title}
-     message={confirmState.message}
-     onConfirm={confirmState.onConfirm}
-     onCancel={() => setConfirmState({ open:false })}
-   />
-*/
+// Helper to show confirm dialogs consistently
+const showConfirm = ({ title, message, onConfirm }) => {
+  setConfirmState({ open: true, title, message, onConfirm });
+};(s => ({ ...s, open: false }));
 
-
-// ================= CONFIRM MODAL STATE (AUTO-INTEGRATED) =================
-// Add inside App() state section:
-// const [confirmState, setConfirmState] = useState({ open:false, title:"", message:"", onConfirm:null });
-
-// ================= REPLACE ALL window.confirm ACTIONS =================
-// Replace handleDeleteItem
-// const handleDeleteItem = (item) => {
-//   setConfirmState({
-//     open:true,
-//     title:"Delete Item",
-//     message:`Are you sure you want to delete \"${item.item_name}\"?`,
-//     onConfirm: async () => {
-//       await supabase.from("items").update({ deleted: true }).eq("id", item.id);
-//       setConfirmState({ open:false });
-//       loadData();
-//     }
-//   });
-// };
-
-// Replace handlePermanentDeleteItem
-// const handlePermanentDeleteItem = (item) => {
-//   setConfirmState({
-//     open:true,
-//     title:"Permanent Delete",
-//     message:`This will permanently delete \"${item.item_name}\". This cannot be undone. Continue?`,
-//     onConfirm: async () => {
-//       await supabase.from("items").delete().eq("id", item.id);
-//       setConfirmState({ open:false });
-//       loadData();
-//     }
-//   });
-// };
-
-// Replace handleRestoreItem
-// const handleRestoreItem = (item) => {
-//   setConfirmState({
-//     open:true,
-//     title:"Restore Item",
-//     message:`Restore \"${item.item_name}\" to inventory?`,
-//     onConfirm: async () => {
-//       await supabase.from("items").update({ deleted: false }).eq("id", item.id);
-//       setConfirmState({ open:false });
-//       loadData();
-//     }
-//   });
-// };
-
-// Replace handleDeleteTransaction
-// const handleDeleteTransaction = (tx) => {
-//   setConfirmState({
-//     open:true,
-//     title:"Delete Transaction",
-//     message:`Delete transaction for \"${tx.items?.item_name}\"?`,
-//     onConfirm: async () => {
-//       await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", tx.id);
-//       setConfirmState({ open:false });
-//       loadData();
-//     }
-//   });
-// };
-
-// Replace handlePermanentDeleteTransaction
-// const handlePermanentDeleteTransaction = (tx) => {
-//   setConfirmState({
-//     open:true,
-//     title:"Permanent Delete Transaction",
-//     message:`This will permanently delete this transaction. Continue?`,
-//     onConfirm: async () => {
-//       await supabase.from("inventory_transactions").delete().eq("id", tx.id);
-//       setConfirmState({ open:false });
-//       loadData();
-//     }
-//   });
-// };
-
-// Replace handleRestoreTransaction
-// const handleRestoreTransaction = (tx) => {
-//   setConfirmState({
-//     open:true,
-//     title:"Restore Transaction",
-//     message:`Restore this transaction for \"${tx.items?.item_name}\"?`,
-//     onConfirm: async () => {
-//       await supabase.from("inventory_transactions").update({ deleted: false }).eq("id", tx.id);
-//       setConfirmState({ open:false });
-//       loadData();
-//     }
-//   });
-// };
-
-// ================= RENDER CONFIRM MODAL (PLACE BEFORE </div> ROOT RETURN) =================
-// <ConfirmModal
-//   open={confirmState.open}
-//   title={confirmState.title}
-//   message={confirmState.message}
-//   onConfirm={confirmState.onConfirm}
-//   onCancel={() => setConfirmState({ open:false })}
-// />
-
+// 3) Example delete handler (replace your old window.confirm version)
+const handleDeleteItem = (item) => {
+  setConfirmState({
+    open: true,
+    title: "Delete Item",
+    message: `Are you sure you want to delete \"${item.item_name}\"?`,
+    onConfirm: async () => {
+      await supabase.from("items").update({ deleted: true }).eq("id", item.id);
+      closeConfirm();
+      loadData();
+    },
+  });
+};
