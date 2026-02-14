@@ -95,27 +95,30 @@ export default function App() {
     .filter(t => !t.deleted)
     .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
-  const stockInventory = items
-    .filter(i => !i.deleted)
-    .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
-    .map(i => {
-      const related = transactions.filter(
-        t => t.item_id === i.id && !t.deleted && (!selectedStockRoom || t.items?.location === selectedStockRoom)
-      );
-      const stock = related.reduce(
-        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
-        0
-      );
-      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
-    });
+  
+ // ================= STOCK INVENTORY CALCULATION =================
+const stockInventory = items
+  .filter(i => !i.deleted) // only active items
+  .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
+  .map(i => {
+    const related = transactions.filter(
+      t => t.item_id === i.id && !t.deleted // only active transactions
+    );
+    const stock = related.reduce(
+      (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
+      0
+    );
+    return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
+  });
 
-  const deletedItems = items
-    .filter(i => i.deleted)
-    .filter(i => !selectedStockRoom || i.location === selectedStockRoom);
+// ================= DELETED ITEMS =================
+const deletedItems = items
+  .filter(i => i.deleted)
+  .filter(i => !selectedStockRoom || i.location === selectedStockRoom);
 
-  const deletedTransactions = transactions
-    .filter(t => t.deleted)
-    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+const deletedTransactions = transactions
+  .filter(t => t.deleted)
+  .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
   // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
@@ -496,7 +499,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ================= CONFIRM MODAL ================= */}
+        // ================= CONFIRM MODAL =================
 {confirmAction && (
   <div style={styles.modalOverlay} onClick={() => setConfirmAction(null)}>
     <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
@@ -511,9 +514,9 @@ export default function App() {
             await supabase.from("items").update({ deleted:true }).eq("id", data.id);
             // Soft-delete all related transactions
             await supabase.from("inventory_transactions").update({ deleted:true }).eq("item_id", data.id);
-            // Update UI immediately
-            setItems(prev => prev.map(i => i.id === data.id ? { ...i, deleted: true } : i));
-            setTransactions(prev => prev.map(t => t.item_id === data.id ? { ...t, deleted: true } : t));
+            // Update local state immediately
+            setItems(prev => prev.map(i => i.id === data.id ? { ...i, deleted:true } : i));
+            setTransactions(prev => prev.map(t => t.item_id === data.id ? { ...t, deleted:true } : t));
           }
           else if(type==="permanentDeleteItem") {
             await supabase.from("items").delete().eq("id", data.id);
@@ -524,12 +527,12 @@ export default function App() {
           else if(type==="restoreItem") {
             await supabase.from("items").update({ deleted:false }).eq("id", data.id);
             await supabase.from("inventory_transactions").update({ deleted:false }).eq("item_id", data.id);
-            setItems(prev => prev.map(i => i.id === data.id ? { ...i, deleted: false } : i));
-            setTransactions(prev => prev.map(t => t.item_id === data.id ? { ...t, deleted: false } : t));
+            setItems(prev => prev.map(i => i.id === data.id ? { ...i, deleted:false } : i));
+            setTransactions(prev => prev.map(t => t.item_id === data.id ? { ...t, deleted:false } : t));
           }
           else if(type==="deleteTx") {
             await supabase.from("inventory_transactions").update({ deleted:true }).eq("id", data.id);
-            setTransactions(prev => prev.map(t => t.id === data.id ? { ...t, deleted: true } : t));
+            setTransactions(prev => prev.map(t => t.id === data.id ? { ...t, deleted:true } : t));
           }
           else if(type==="permanentDeleteTx") {
             await supabase.from("inventory_transactions").delete().eq("id", data.id);
@@ -537,13 +540,13 @@ export default function App() {
           }
           else if(type==="restoreTx") {
             await supabase.from("inventory_transactions").update({ deleted:false }).eq("id", data.id);
-            setTransactions(prev => prev.map(t => t.id === data.id ? { ...t, deleted: false } : t));
+            setTransactions(prev => prev.map(t => t.id === data.id ? { ...t, deleted:false } : t));
           }
 
           setConfirmAction(null);
         }}>Yes</button>
         <button style={styles.buttonSecondary} onClick={() => setConfirmAction(null)}>Cancel</button>
-              </div>
+             </div>
             </div>
           </div>
         )}
