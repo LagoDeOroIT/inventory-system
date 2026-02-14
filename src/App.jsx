@@ -344,35 +344,17 @@ export default function App() {
         )}
       </div>
 
-      {/* STOCK ROOM PROMPT */}
-{modalType === "stockRoomPrompt" && (
-  <div>
-    <h3>Select Stock Room</h3>
-    <select
-      style={styles.input}
-      value={selectedStockRoom}
-      onChange={(e) => setSelectedStockRoom(e.target.value)}
-    >
-      <option value="">-- Select Stock Room --</option>
-      {stockRooms.map((r) => (
-        <option key={r} value={r}>
-          {r}
-        </option>
-      ))}
-    </select>
-    <button
-      style={{ ...styles.buttonPrimary, marginTop: 12 }}
-      onClick={() => {
-        if (!selectedStockRoom) return alert("Please select a stock room");
-        setShowModal(false);
-        setModalType("newOption");
-      }}
-    >
-      Continue
-    </button>
-  </div>
-)}
-
+      {/* ================= MODALS ================= */}
+      {showModal && (
+        <div style={styles.modalOverlay} onClick={()=>setShowModal(false)}>
+          <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
+            {/* STOCK ROOM PROMPT */}
+            {modalType==="stockRoomPrompt" && (
+              <>
+                <h3>Select Stock Room</h3>
+                {stockRooms.map(r=><button key={r} style={styles.newOptionButton} onClick={()=>{setSelectedStockRoom(r); setShowModal(false);}}>{r}</button>)}
+              </>
+            )}
 
             {/* NEW OPTION MODAL */}
             {modalType==="newOption" && (
