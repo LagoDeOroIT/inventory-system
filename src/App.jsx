@@ -499,7 +499,6 @@ const deletedTransactions = transactions
           </div>
         )}
 
-        // ================= CONFIRM MODAL =================
 {confirmAction && (
   <div style={styles.modalOverlay} onClick={() => setConfirmAction(null)}>
     <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
