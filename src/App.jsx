@@ -49,7 +49,7 @@ const emptyRow = (colSpan, text) => (
 
 export default function App() {
   // ================= STATE =================
-  const [session, setSession] = useState(undefined); // undefined means still loading
+  const [session, setSession] = useState(undefined); // undefined = loading
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
@@ -71,14 +71,14 @@ export default function App() {
 
   // ================= AUTH =================
   useEffect(() => {
-    // Get current session
+    // get current session
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session ?? null);
     });
 
-    // Listen to session changes
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session ?? null);
+    // listen to session changes
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s?.session ?? null);
     });
 
     return () => listener.subscription.unsubscribe();
@@ -111,27 +111,7 @@ export default function App() {
 
   useEffect(() => { if(session) loadData(); }, [session]);
 
-  // ================= FILTERED DATA =================
-  const filteredTransactions = transactions
-    .filter(t => !t.deleted)
-    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
-
-  // ================= STOCK INVENTORY CALCULATION =================
-  const stockInventory = items
-    .filter(i => !i.deleted)
-    .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
-    .map(i => {
-      const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
-      const stock = related.reduce(
-        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
-        0
-      );
-      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
-    });
-
-  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
-  const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
-
+  // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
@@ -150,7 +130,6 @@ export default function App() {
       return updated;
     });
   };
-
   // ================= SUBMIT =================
   const handleSubmit = async () => {
     if(modalType==="transaction"){
@@ -226,7 +205,7 @@ export default function App() {
     }
   };
 
-  const handleNewClick = () => {
+ const handleNewClick = () => {
     if(!selectedStockRoom){
       setModalType("stockRoomPrompt");
       setShowModal(true);
@@ -236,7 +215,7 @@ export default function App() {
     }
   };
 
-  // ================= LOGIN/SIGNUP =================
+  // ================= LOGIN/SIGNUP UI =================
   if (session === undefined) {
     return <div style={{ padding:40, textAlign:"center" }}>Loading...</div>;
   }
@@ -245,11 +224,28 @@ export default function App() {
     return (
       <div style={{ padding:40, textAlign:"center" }}>
         <h2>Inventory Login</h2>
-        <input style={styles.input} type="email" placeholder="Email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} />
-        <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e=>setAuthPassword(e.target.value)} />
-        <button style={styles.buttonPrimary} onClick={handleAuth}>{isSignup ? "Sign Up" : "Login"}</button>
+        <input
+          style={styles.input}
+          type="email"
+          placeholder="Email"
+          value={authEmail}
+          onChange={e => setAuthEmail(e.target.value)}
+        />
+        <input
+          style={styles.input}
+          type="password"
+          placeholder="Password"
+          value={authPassword}
+          onChange={e => setAuthPassword(e.target.value)}
+        />
+        <button style={styles.buttonPrimary} onClick={handleAuth}>
+          {isSignup ? "Sign Up" : "Login"}
+        </button>
         <p style={{ marginTop:12 }}>
-          <span style={{ cursor:"pointer", color:"#1f2937", textDecoration:"underline" }} onClick={()=>setIsSignup(!isSignup)}>
+          <span
+            style={{ cursor:"pointer", color:"#1f2937", textDecoration:"underline" }}
+            onClick={()=>setIsSignup(!isSignup)}
+          >
             {isSignup ? "Already have an account? Login" : "Don't have an account? Sign Up"}
           </span>
         </p>
@@ -257,7 +253,9 @@ export default function App() {
     );
   }
 
+  // ================= DASHBOARD UI =================
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
+
 
   return (
     <div style={styles.container}>
