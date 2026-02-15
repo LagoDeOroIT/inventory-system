@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
-const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
-const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ================= STYLES =================
@@ -50,8 +50,8 @@ export default function App() {
   const [authError, setAuthError] = useState("");
 
   // ================= INVENTORY STATE =================
-  const [items, setItems] = useState([]);
-  const [transactions, setTransactions] = useState([]);
+  const [items, setItems] = useState(null);
+  const [transactions, setTransactions] = useState(null);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
@@ -118,7 +118,28 @@ export default function App() {
     </div>
   );
 
-  // ================= UI AFTER LOGIN =================
+  // ================= LOADING SCREEN =================
+  if (session && (!items || !transactions)) return (
+    <div style={{ padding:40, textAlign:"center" }}>Loading Inventory...</div>
+  );
+
+  // ================= HELPER FUNCTIONS =================
+  const emptyRow = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
+
+  const stockInventory = (items || [])
+    .filter(i => !i.deleted)
+    .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
+    .map(i => {
+      const related = (transactions || []).filter(t => t.item_id === i.id && !t.deleted);
+      const stock = related.reduce((sum,t)=> sum + (t.type==="IN"?Number(t.quantity):-Number(t.quantity)), 0);
+      return { id: i.id, item_name:i.item_name, brand:i.brand, unit_price:Number(i.unit_price)||0, stock, location:i.location };
+    });
+
+  const filteredTransactions = (transactions || [])
+    .filter(t=>!t.deleted)
+    .filter(t=>!selectedStockRoom || t.items?.location === selectedStockRoom);
+
+  // ================= MAIN UI =================
   return (
     <div style={styles.container}>
       {/* Sidebar */}
@@ -139,9 +160,7 @@ export default function App() {
 
         <div>
           <button style={styles.buttonPrimary} onClick={()=>setShowModal(true)}>+ New</button>
-          <button style={{ ...styles.buttonSecondary, marginTop:10 }} onClick={()=>supabase.auth.signOut()}>
-            Logout
-          </button>
+          <button style={{ ...styles.buttonSecondary, marginTop:10 }} onClick={()=>supabase.auth.signOut()}>Logout</button>
         </div>
       </div>
 
