@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
+const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ================= STYLES =================
@@ -40,106 +40,199 @@ const styles = {
   newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
 };
 
+// ================= EMPTY ROW =================
+const emptyRow = (colSpan, text) => (
+  <tr>
+    <td colSpan={colSpan} style={styles.emptyRow}>{text}</td>
+  </tr>
+);
+
 export default function App() {
-
-  // ================= AUTH STATE =================
+  // ================= STATE =================
   const [session, setSession] = useState(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isRegister, setIsRegister] = useState(false);
-  const [authError, setAuthError] = useState("");
-
-  // ================= INVENTORY STATE =================
-  const [items, setItems] = useState(null);
-  const [transactions, setTransactions] = useState(null);
+  const [items, setItems] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState("");
-  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
+  const [modalType, setModalType] = useState(""); 
+  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id: null });
   const [confirmAction, setConfirmAction] = useState(null);
-  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
+  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState(""); // tracks modal origin
 
-  const stockRooms = ["L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7","Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"];
+  const stockRooms = [
+    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
+    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
+  ];
 
-  // ================= AUTH SESSION =================
+  // ================= AUTH =================
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
 
-  // ================= LOGIN FUNCTIONS =================
-  const handleLogin = async () => {
-    setAuthError("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setAuthError(error.message);
-  };
-
-  const handleRegister = async () => {
-    setAuthError("");
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) setAuthError(error.message);
-    else alert("Account created. You can login now.");
-  };
-
   // ================= LOAD DATA =================
   async function loadData() {
     const { data: itemsData } = await supabase.from("items").select("*");
-    const { data: tx } = await supabase.from("inventory_transactions").select("*, items(item_name, brand, unit_price, location)").order("date", { ascending:false });
-    setItems(itemsData || []);
-    setTransactions(tx || []);
+    const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
+
+    const { data: tx } = await supabase.from("inventory_transactions")
+      .select("*, items(item_name, brand, unit_price, location)")
+      .order("date", { ascending: false });
+    const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
+
+    setItems(itemsWithDeleted);
+    setTransactions(transactionsWithDeleted);
   }
 
   useEffect(() => { if(session) loadData(); }, [session]);
 
-  // ================= LOGIN SCREEN =================
-  if (!session) return (
-    <div style={{ padding:40, maxWidth:400, margin:"auto" }}>
-      <h2>Inventory Login</h2>
+  // ================= FILTERED DATA =================
+  const filteredTransactions = transactions
+    .filter(t => !t.deleted)
+    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
-      <input style={styles.input} placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
-      <input style={styles.input} type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} />
-
-      {authError && <p style={{ color:"red" }}>{authError}</p>}
-
-      {!isRegister ? (
-        <>
-          <button style={styles.buttonPrimary} onClick={handleLogin}>Login</button>
-          <p>No account? <span style={{ color:"blue", cursor:"pointer" }} onClick={()=>setIsRegister(true)}>Register</span></p>
-        </>
-      ) : (
-        <>
-          <button style={styles.buttonPrimary} onClick={handleRegister}>Create Account</button>
-          <p>Already have account? <span style={{ color:"blue", cursor:"pointer" }} onClick={()=>setIsRegister(false)}>Login</span></p>
-        </>
-      )}
-    </div>
-  );
-
-  // ================= LOADING SCREEN =================
-  if (session && (!items || !transactions)) return (
-    <div style={{ padding:40, textAlign:"center" }}>Loading Inventory...</div>
-  );
-
-  // ================= HELPER FUNCTIONS =================
-  const emptyRow = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
-
-  const stockInventory = (items || [])
+  // ================= STOCK INVENTORY CALCULATION =================
+  const stockInventory = items
     .filter(i => !i.deleted)
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
     .map(i => {
-      const related = (transactions || []).filter(t => t.item_id === i.id && !t.deleted);
-      const stock = related.reduce((sum,t)=> sum + (t.type==="IN"?Number(t.quantity):-Number(t.quantity)), 0);
-      return { id: i.id, item_name:i.item_name, brand:i.brand, unit_price:Number(i.unit_price)||0, stock, location:i.location };
+      const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
+      const stock = related.reduce(
+        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
+        0
+      );
+      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
     });
 
-  const filteredTransactions = (transactions || [])
-    .filter(t=>!t.deleted)
-    .filter(t=>!selectedStockRoom || t.items?.location === selectedStockRoom);
+  // ================= DELETED ITEMS =================
+  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
+  const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
-  // ================= MAIN UI =================
+  // ================= FORM HANDLER =================
+  const handleFormChange = (key, value) => {
+    setForm(prev => {
+      const updated = { ...prev, [key]: value };
+
+      if (key === "item_name") {
+        const selectedItem = items.find(i => i.item_name === value && !i.deleted);
+
+        if (selectedItem) {
+          updated.item_id = selectedItem.id;
+          updated.brand = selectedItem.brand;
+          updated.price = selectedItem.unit_price;
+        } else {
+          updated.item_id = "";
+          updated.brand = "";
+          updated.price = "";
+        }
+      }
+
+      return updated;
+    });
+  };
+
+  // ================= SUBMIT =================
+  const handleSubmit = async () => {
+    if(modalType==="transaction"){
+      if(!form.item_id || !form.quantity || !form.date) return alert("Fill required fields");
+
+      // Brand mismatch check
+      const existingItem = items.find(i => i.item_name === form.item_name && !i.deleted);
+      if(existingItem && existingItem.brand !== form.brand){
+        // Open item creation modal
+        setForm(prev => ({ ...prev, item_name: form.item_name, brand: form.brand, price: "" }));
+        setModalTypeBeforeItem("transaction");
+        setModalType("item");
+        setShowModal(true);
+        return;
+      }
+
+      // Continue normal transaction submit
+      if(form.id){
+        await supabase.from("inventory_transactions").update({
+          date: form.date,
+          item_id: form.item_id,
+          brand: form.brand,
+          type: form.type,
+          quantity: Number(form.quantity),
+          location: selectedStockRoom,
+          unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
+        }).eq("id", form.id);
+      } else {
+        await supabase.from("inventory_transactions").insert([{
+          date: form.date,
+          item_id: form.item_id,
+          brand: form.brand,
+          type: form.type,
+          quantity: Number(form.quantity),
+          location: selectedStockRoom,
+          unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
+        }]);
+      }
+
+      // Reset transaction form
+      setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
+      loadData();
+    }
+    else if(modalType==="item"){
+      if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
+
+      if(form.id){
+        await supabase.from("items").update({
+          item_name: form.item_name,
+          brand: form.brand,
+          unit_price: Number(form.price),
+          location: selectedStockRoom
+        }).eq("id", form.id);
+      } else {
+        const { data } = await supabase.from("items").insert([{
+          item_name: form.item_name,
+          brand: form.brand,
+          unit_price: Number(form.price),
+          location: selectedStockRoom
+        }]);
+
+        if(data?.length){
+          const newItemId = data[0].id;
+          if(modalTypeBeforeItem === "transaction"){
+            setForm(prev => ({ ...prev, item_id: newItemId }));
+            setModalType("transaction");
+            setShowModal(true);
+            return;
+          }
+        }
+      }
+
+      setShowModal(false);
+      setModalType("");
+      setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
+      loadData();
+    }
+  };
+
+  // ================= NEW BUTTON =================
+  const handleNewClick = () => {
+    if(!selectedStockRoom){
+      setModalType("stockRoomPrompt");
+      setShowModal(true);
+    } else {
+      setModalType("newOption");
+      setShowModal(true);
+    }
+  };
+
+  if(!session) return (
+    <div style={{ padding:40, textAlign:"center" }}>
+      <h2>Inventory Login</h2>
+      <button style={styles.buttonPrimary} onClick={()=>supabase.auth.signInWithOAuth({provider:"google"})}>Login with Google</button>
+    </div>
+  );
+
+  const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
+
   return (
     <div style={styles.container}>
       {/* Sidebar */}
@@ -150,18 +243,14 @@ export default function App() {
             <option value="">Select Stock Room</option>
             {stockRooms.map(r=><option key={r} value={r}>{r}</option>)}
           </select>
-
           <div style={styles.sidebarTabs}>
-            <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock</button>
+            <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
             <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
-            <button style={styles.tabButton(activeTab==="deleted")} onClick={()=>setActiveTab("deleted")}>🗑 Deleted</button>
+            <button style={styles.tabButton(activeTab==="deleted")} onClick={()=>setActiveTab("deleted")}>🗑️ Deleted History</button>
+            <button style={styles.tabButton(activeTab==="report")} onClick={()=>setActiveTab("report")}>📊 Monthly Report</button>
           </div>
         </div>
-
-        <div>
-          <button style={styles.buttonPrimary} onClick={()=>setShowModal(true)}>+ New</button>
-          <button style={{ ...styles.buttonSecondary, marginTop:10 }} onClick={()=>supabase.auth.signOut()}>Logout</button>
-        </div>
+        <button style={styles.buttonPrimary} onClick={handleNewClick}>+ New</button>
       </div>
 
       {/* Main */}
