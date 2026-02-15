@@ -59,7 +59,10 @@ export default function App() {
   const [modalType, setModalType] = useState(""); 
   const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id: null });
   const [confirmAction, setConfirmAction] = useState(null);
-  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState(""); // tracks modal origin
+  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState(""); 
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [isSignup, setIsSignup] = useState(false);
 
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
@@ -72,6 +75,17 @@ export default function App() {
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
+
+  const handleAuth = async () => {
+    if (!authEmail || !authPassword) return alert("Enter email and password");
+    let result;
+    if (isSignup) {
+      result = await supabase.auth.signUp({ email: authEmail, password: authPassword });
+    } else {
+      result = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+    }
+    if (result.error) return alert(result.error.message);
+  };
 
   // ================= LOAD DATA =================
   async function loadData() {
@@ -107,18 +121,14 @@ export default function App() {
       return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
     });
 
-  // ================= DELETED ITEMS =================
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
   const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
-  // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
-
       if (key === "item_name") {
         const selectedItem = items.find(i => i.item_name === value && !i.deleted);
-
         if (selectedItem) {
           updated.item_id = selectedItem.id;
           updated.brand = selectedItem.brand;
@@ -129,7 +139,6 @@ export default function App() {
           updated.price = "";
         }
       }
-
       return updated;
     });
   };
@@ -139,10 +148,8 @@ export default function App() {
     if(modalType==="transaction"){
       if(!form.item_id || !form.quantity || !form.date) return alert("Fill required fields");
 
-      // Brand mismatch check
       const existingItem = items.find(i => i.item_name === form.item_name && !i.deleted);
       if(existingItem && existingItem.brand !== form.brand){
-        // Open item creation modal
         setForm(prev => ({ ...prev, item_name: form.item_name, brand: form.brand, price: "" }));
         setModalTypeBeforeItem("transaction");
         setModalType("item");
@@ -150,7 +157,6 @@ export default function App() {
         return;
       }
 
-      // Continue normal transaction submit
       if(form.id){
         await supabase.from("inventory_transactions").update({
           date: form.date,
@@ -173,7 +179,6 @@ export default function App() {
         }]);
       }
 
-      // Reset transaction form
       setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
       loadData();
     }
@@ -213,7 +218,6 @@ export default function App() {
     }
   };
 
-  // ================= NEW BUTTON =================
   const handleNewClick = () => {
     if(!selectedStockRoom){
       setModalType("stockRoomPrompt");
@@ -224,14 +228,23 @@ export default function App() {
     }
   };
 
+  // ================= LOGIN/SIGNUP =================
   if(!session) return (
     <div style={{ padding:40, textAlign:"center" }}>
       <h2>Inventory Login</h2>
-      <button style={styles.buttonPrimary} onClick={()=>supabase.auth.signInWithOAuth({provider:"google"})}>Login with Google</button>
+      <input style={styles.input} type="email" placeholder="Email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} />
+      <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e=>setAuthPassword(e.target.value)} />
+      <button style={styles.buttonPrimary} onClick={handleAuth}>{isSignup ? "Sign Up" : "Login"}</button>
+      <p style={{ marginTop:12 }}>
+        <span style={{ cursor:"pointer", color:"#1f2937", textDecoration:"underline" }} onClick={()=>setIsSignup(!isSignup)}>
+          {isSignup ? "Already have an account? Login" : "Don't have an account? Sign Up"}
+        </span>
+      </p>
     </div>
   );
 
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
+
 
   return (
     <div style={styles.container}>
