@@ -49,7 +49,7 @@ const emptyRow = (colSpan, text) => (
 
 export default function App() {
   // ================= STATE =================
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState(undefined); // undefined means still loading
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
@@ -71,9 +71,17 @@ export default function App() {
 
   // ================= AUTH =================
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
+    // Get current session
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session ?? null);
+    });
+
+    // Listen to session changes
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session ?? null);
+    });
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   const handleAuth = async () => {
@@ -229,22 +237,27 @@ export default function App() {
   };
 
   // ================= LOGIN/SIGNUP =================
-  if(!session) return (
-    <div style={{ padding:40, textAlign:"center" }}>
-      <h2>Inventory Login</h2>
-      <input style={styles.input} type="email" placeholder="Email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} />
-      <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e=>setAuthPassword(e.target.value)} />
-      <button style={styles.buttonPrimary} onClick={handleAuth}>{isSignup ? "Sign Up" : "Login"}</button>
-      <p style={{ marginTop:12 }}>
-        <span style={{ cursor:"pointer", color:"#1f2937", textDecoration:"underline" }} onClick={()=>setIsSignup(!isSignup)}>
-          {isSignup ? "Already have an account? Login" : "Don't have an account? Sign Up"}
-        </span>
-      </p>
-    </div>
-  );
+  if (session === undefined) {
+    return <div style={{ padding:40, textAlign:"center" }}>Loading...</div>;
+  }
+
+  if (!session) {
+    return (
+      <div style={{ padding:40, textAlign:"center" }}>
+        <h2>Inventory Login</h2>
+        <input style={styles.input} type="email" placeholder="Email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} />
+        <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e=>setAuthPassword(e.target.value)} />
+        <button style={styles.buttonPrimary} onClick={handleAuth}>{isSignup ? "Sign Up" : "Login"}</button>
+        <p style={{ marginTop:12 }}>
+          <span style={{ cursor:"pointer", color:"#1f2937", textDecoration:"underline" }} onClick={()=>setIsSignup(!isSignup)}>
+            {isSignup ? "Already have an account? Login" : "Don't have an account? Sign Up"}
+          </span>
+        </p>
+      </div>
+    );
+  }
 
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
-
 
   return (
     <div style={styles.container}>
