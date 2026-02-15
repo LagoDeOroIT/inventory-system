@@ -15,8 +15,6 @@ const styles = {
   sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
   tabButton: (active) => ({ padding: 10, borderRadius: 6, background: active ? "#1f2937" : "transparent", border: "none", color: "#fff", cursor: "pointer", textAlign: "left" }),
   main: { flex: 1, padding: 24 },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
-  title: { fontSize: 28, fontWeight: 700, color: "#111827" },
   buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
   buttonSecondary: { background: "#e5e7eb", color: "#374151", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
   card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
@@ -71,12 +69,10 @@ export default function App() {
 
   // ================= AUTH =================
   useEffect(() => {
-    // get current session
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session ?? null);
     });
 
-    // listen to session changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s?.session ?? null);
     });
@@ -111,7 +107,6 @@ export default function App() {
 
   useEffect(() => { if(session) loadData(); }, [session]);
 
-  // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
@@ -215,37 +210,20 @@ export default function App() {
     }
   };
 
+  const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
+
   // ================= LOGIN/SIGNUP UI =================
-  if (session === undefined) {
-    return <div style={{ padding:40, textAlign:"center" }}>Loading...</div>;
-  }
+  if (session === undefined) return <div style={{ padding:40, textAlign:"center" }}>Loading...</div>;
 
   if (!session) {
     return (
       <div style={{ padding:40, textAlign:"center" }}>
         <h2>Inventory Login</h2>
-        <input
-          style={styles.input}
-          type="email"
-          placeholder="Email"
-          value={authEmail}
-          onChange={e => setAuthEmail(e.target.value)}
-        />
-        <input
-          style={styles.input}
-          type="password"
-          placeholder="Password"
-          value={authPassword}
-          onChange={e => setAuthPassword(e.target.value)}
-        />
-        <button style={styles.buttonPrimary} onClick={handleAuth}>
-          {isSignup ? "Sign Up" : "Login"}
-        </button>
+        <input style={styles.input} type="email" placeholder="Email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
+        <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} />
+        <button style={styles.buttonPrimary} onClick={handleAuth}>{isSignup ? "Sign Up" : "Login"}</button>
         <p style={{ marginTop:12 }}>
-          <span
-            style={{ cursor:"pointer", color:"#1f2937", textDecoration:"underline" }}
-            onClick={()=>setIsSignup(!isSignup)}
-          >
+          <span style={{ cursor:"pointer", color:"#1f2937", textDecoration:"underline" }} onClick={()=>setIsSignup(!isSignup)}>
             {isSignup ? "Already have an account? Login" : "Don't have an account? Sign Up"}
           </span>
         </p>
@@ -254,12 +232,9 @@ export default function App() {
   }
 
   // ================= DASHBOARD UI =================
-  const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
-
-
   return (
     <div style={styles.container}>
-      {/* Sidebar */}
+      {/* ================= SIDEBAR ================= */}
       <div style={styles.sidebar}>
         <div>
           <div style={styles.sidebarHeader}>Lago De Oro</div>
