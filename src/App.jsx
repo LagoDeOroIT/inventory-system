@@ -15,176 +15,180 @@ const styles = {
   sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
   tabButton: (active) => ({ padding: 12, borderRadius: 8, background: active ? "#334155" : "transparent", border: "none", color: "#f1f5f9", cursor: "pointer", textAlign: "left", fontWeight:500, transition:"background 0.3s" }),
   main: { flex: 1, padding: 32 },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 },
-  title: { fontSize: 30, fontWeight: 700, color: "#111827" },
   buttonPrimary: { background: "#4f46e5", color: "#fff", padding: "12px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight:600, transition:"background 0.3s" },
   buttonSecondary: { background: "#e5e7eb", color: "#374151", padding: "12px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight:500, transition:"background 0.3s" },
   card: { background: "#fff", padding: 24, borderRadius: 16, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", marginBottom:24 },
-  table: { width: "100%", borderCollapse: "collapse", marginTop: 16, fontSize:14 },
-  thtd: { border: "1px solid #e5e7eb", padding: 12, textAlign: "left" },
-  emptyRow: { textAlign: "center", padding: 16, color: "#6b7280" },
+  input: { width: "100%", padding: 12, marginBottom: 16, borderRadius: 8, border: "1px solid #d1d5db", fontSize:14 },
   modalOverlay: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.45)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 },
   modalCard: { background: "#fff", padding: 32, borderRadius: 16, width: 440, boxShadow: "0 8px 24px rgba(0,0,0,0.15)" },
-  input: { width: "100%", padding: 12, marginBottom: 16, borderRadius: 8, border: "1px solid #d1d5db", fontSize:14 },
-  toggleGroup: { display: "flex", gap: 12, marginBottom: 16 },
-  toggleButton: (active) => ({
-    flex: 1,
-    padding: "10px 0",
-    borderRadius: 8,
-    border: active ? "none" : "1px solid #d1d5db",
-    background: active ? "#4f46e5" : "#fff",
-    color: active ? "#fff" : "#374151",
-    cursor: "pointer",
-    fontWeight: 600,
-    transition:"background 0.3s, color 0.3s"
-  }),
-  newOptionButton: { padding: "14px 0", marginBottom: 12, borderRadius: 12, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
+  emptyRow: { textAlign: "center", padding: 16, color:"#6b7280" },
+  toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
+  toggleButton: (active) => ({ flex:1, padding:"8px 0", borderRadius:6, border:active?"none":"1px solid #d1d5db", background:active?"#1f2937":"#fff", color:active?"#fff":"#374151", cursor:"pointer", fontWeight:600 }),
+  newOptionButton: { padding:"12px 0", marginBottom:12, borderRadius:8, border:"none", width:"100%", cursor:"pointer", fontWeight:600, fontSize:16 },
 };
 
-// ================= EMPTY ROW =================
-const emptyRow = (colSpan, text) => (
-  <tr>
-    <td colSpan={colSpan} style={styles.emptyRow}>{text}</td>
-  </tr>
-);
+const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
 
 export default function App() {
+  // ================= AUTH STATE =================
   const [session, setSession] = useState(null);
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+
+  // ================= APP DATA =================
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(""); 
+  const [modalType, setModalType] = useState("");
+  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
   const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id: null });
   const [confirmAction, setConfirmAction] = useState(null);
-  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState(""); 
 
-  // ================= AUTH FORM =================
-  const [authEmail, setAuthEmail] = useState("");
-  const [authPassword, setAuthPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
-
-  const stockRooms = [
-    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
-    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
-  ];
+  const stockRooms = ["L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7","Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"];
 
   // ================= AUTH =================
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    const { data } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
 
   const handleAuth = async () => {
-    if (!authEmail || !authPassword) return alert("Fill email and password");
-    let result;
-    if (isSignUp) {
-      result = await supabase.auth.signUp({ email: authEmail, password: authPassword });
-      if (result.error) return alert(result.error.message);
-      alert("Sign up successful! Please check your email to confirm.");
+    if(!authEmail || !authPassword) return alert("Fill email and password");
+    if(isSignUp){
+      const { error } = await supabase.auth.signUp({ email: authEmail, password: authPassword });
+      if(error) return alert(error.message);
+      alert("Sign up successful! Check your email to confirm.");
     } else {
-      result = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
-      if (result.error) return alert(result.error.message);
+      const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+      if(error) return alert(error.message);
     }
   };
 
-  // ================= LOAD DATA =================
-  async function loadData() {
+  // ================= DATA LOADING =================
+  const loadData = async () => {
     const { data: itemsData } = await supabase.from("items").select("*");
-    const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
-
-    const { data: tx } = await supabase.from("inventory_transactions")
-      .select("*, items(item_name, brand, unit_price, location)")
-      .order("date", { ascending: false });
-    const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
-
-    setItems(itemsWithDeleted);
-    setTransactions(transactionsWithDeleted);
-  }
+    const { data: txData } = await supabase.from("inventory_transactions").select("*, items(item_name, brand, unit_price, location)").order("date", { ascending: false });
+    setItems((itemsData || []).map(i => ({ ...i, deleted:i.deleted ?? false })));
+    setTransactions((txData || []).map(t => ({ ...t, deleted:t.deleted ?? false })));
+  };
 
   useEffect(() => { if(session) loadData(); }, [session]);
 
-  // ================= AUTH SCREEN =================
-  if(!session) return (
-    <div style={{
-      display:"flex", justifyContent:"center", alignItems:"center",
-      height:"100vh",
-      background: "linear-gradient(135deg, #4f46e5, #3b82f6)"
-    }}>
-      <div style={{
-        width: 400,
-        background: "#fff",
-        borderRadius: 16,
-        boxShadow: "0 12px 32px rgba(0,0,0,0.2)",
-        padding: 36,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        fontFamily: "Inter, Arial, sans-serif"
-      }}>
-        <h2 style={{ marginBottom: 24, fontSize: 28, color:"#1f2937" }}>
-          {isSignUp ? "Sign Up" : "Inventory Login"}
-        </h2>
+  // ================= FORM HANDLER =================
+  const handleFormChange = (key, value) => {
+    setForm(prev => {
+      const updated = { ...prev, [key]: value };
+      if(key==="item_name"){
+        const selectedItem = items.find(i=>i.item_name===value && !i.deleted);
+        if(selectedItem){
+          updated.item_id = selectedItem.id;
+          updated.brand = selectedItem.brand;
+          updated.price = selectedItem.unit_price;
+        } else {
+          updated.item_id = "";
+          updated.brand = "";
+          updated.price = "";
+        }
+      }
+      return updated;
+    });
+  };
 
+  // ================= SUBMIT =================
+  const handleSubmit = async () => {
+    if(modalType==="transaction"){
+      if(!form.item_id || !form.quantity || !form.date) return alert("Fill required fields");
+
+      const existingItem = items.find(i => i.item_name === form.item_name && !i.deleted);
+      if(existingItem && existingItem.brand !== form.brand){
+        setForm(prev => ({ ...prev, item_name: form.item_name, brand: form.brand, price:"" }));
+        setModalTypeBeforeItem("transaction");
+        setModalType("item");
+        setShowModal(true);
+        return;
+      }
+
+      if(form.id){
+        await supabase.from("inventory_transactions").update({
+          date: form.date,
+          item_id: form.item_id,
+          brand: form.brand,
+          type: form.type,
+          quantity: Number(form.quantity),
+          location: selectedStockRoom,
+          unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
+        }).eq("id", form.id);
+      } else {
+        await supabase.from("inventory_transactions").insert([{
+          date: form.date,
+          item_id: form.item_id,
+          brand: form.brand,
+          type: form.type,
+          quantity: Number(form.quantity),
+          location: selectedStockRoom,
+          unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
+        }]);
+      }
+
+      setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
+      loadData();
+      setShowModal(false);
+      setModalType("");
+    }
+    else if(modalType==="item"){
+      if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
+
+      if(form.id){
+        await supabase.from("items").update({
+          item_name: form.item_name,
+          brand: form.brand,
+          unit_price: Number(form.price),
+          location: selectedStockRoom
+        }).eq("id", form.id);
+      } else {
+        const { data } = await supabase.from("items").insert([{
+          item_name: form.item_name,
+          brand: form.brand,
+          unit_price: Number(form.price),
+          location: selectedStockRoom
+        }]);
+        if(data?.length && modalTypeBeforeItem==="transaction"){
+          setForm(prev => ({ ...prev, item_id: data[0].id }));
+          setModalType("transaction");
+          return;
+        }
+      }
+
+      setShowModal(false);
+      setModalType("");
+      setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
+      loadData();
+    }
+  };
+
+  // ================= LOGIN SCREEN =================
+  if(!session) return (
+    <div style={{ display:"flex", justifyContent:"center", alignItems:"center", height:"100vh", background:"linear-gradient(135deg,#4f46e5,#3b82f6)" }}>
+      <div style={{ width:400, background:"#fff", borderRadius:16, boxShadow:"0 12px 32px rgba(0,0,0,0.2)", padding:36, display:"flex", flexDirection:"column", alignItems:"center" }}>
+        <h2 style={{ marginBottom:24, fontSize:28, color:"#1f2937" }}>{isSignUp ? "Sign Up" : "Inventory Login"}</h2>
         <input style={styles.input} type="email" placeholder="Email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
         <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} />
-
-        <button 
-          style={{...styles.buttonPrimary, width:"100%", marginBottom:12}}
-          onClick={handleAuth}
-          onMouseOver={e => e.currentTarget.style.background="#4338ca"}
-          onMouseOut={e => e.currentTarget.style.background="#4f46e5"}
-        >
+        <button style={{...styles.buttonPrimary, width:"100%", marginBottom:12}} onClick={handleAuth}>
           {isSignUp ? "Sign Up" : "Login"}
         </button>
-
-        <button 
-          style={{ background:"transparent", border:"none", color:"#4f46e5", cursor:"pointer", fontSize:14 }}
-          onClick={() => setIsSignUp(!isSignUp)}
-        >
+        <button style={{ background:"transparent", border:"none", color:"#4f46e5", cursor:"pointer", fontSize:14 }} onClick={() => setIsSignUp(!isSignUp)}>
           {isSignUp ? "Already have an account? Login" : "Don't have an account? Sign Up"}
         </button>
       </div>
     </div>
   );
 
-  // ================= MAIN APP =================
-  return (
-    <div style={styles.container}>
-      {/* ================= SIDEBAR ================= */}
-      <div style={styles.sidebar}>
-        <div>
-          <div style={styles.sidebarHeader}>Lago De Oro</div>
-          <select style={styles.sidebarSelect} value={selectedStockRoom} onChange={e=>setSelectedStockRoom(e.target.value)}>
-            <option value="">Select Stock Room</option>
-            {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
-          <div style={styles.sidebarTabs}>
-            <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
-            <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
-            <button style={styles.tabButton(activeTab==="deleted")} onClick={()=>setActiveTab("deleted")}>🗑️ Deleted History</button>
-            <button style={styles.tabButton(activeTab==="report")} onClick={()=>setActiveTab("report")}>📊 Monthly Report</button>
-          </div>
-        </div>
-
-        <div style={{ display:"flex", flexDirection:"column", gap: 10, marginTop:16 }}>
-          {session?.user?.email && (
-            <div style={{ color:"#f1f5f9", marginBottom:8, fontSize:14, fontWeight:500 }}>
-              Logged in as:<br />{session.user.email}
-            </div>
-          )}
-          <button style={styles.buttonPrimary} onClick={() => setShowModal(true)}>+ New</button>
-          <button style={{...styles.buttonSecondary, background:"#ef4444", color:"#fff"}} 
-                  onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>
-            Logout
-          </button>
-        </div>
-      </div>
-
-      {/* ================= MAIN AREA ================= */}
+  // ================= MAIN APP UI =================
   return (
     <div style={styles.container}>
       {/* ================= SIDEBAR ================= */}
