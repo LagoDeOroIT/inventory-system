@@ -119,24 +119,36 @@ export default function App() {
   const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
   // ================= FORM HANDLER =================
-  const handleFormChange = (key, value) => {
-    setForm(prev => {
-      const updated = { ...prev, [key]: value };
-      if (key === "item_name") {
-        const selectedItem = items.find(i => i.item_name === value && !i.deleted);
-        if (selectedItem) {
-          updated.item_id = selectedItem.id;
-          updated.brand = selectedItem.brand;
-          updated.price = selectedItem.unit_price;
-        } else {
-          updated.item_id = "";
-          updated.brand = "";
-          updated.price = "";
-        }
+ // In App component, update handleFormChange:
+const handleFormChange = (key, value) => {
+  setForm(prev => {
+    const updated = { ...prev, [key]: value };
+
+    if (key === "item_name") {
+      const selectedItem = items.find(i => i.item_name === value && !i.deleted);
+      if (selectedItem) {
+        updated.item_id = selectedItem.id;
+        updated.brand = selectedItem.brand;
+        updated.price = selectedItem.unit_price;
+
+        // 🔹 Get all brands for this item name
+        updated.brandOptions = items
+          .filter(i => i.item_name === value && !i.deleted)
+          .map(i => i.brand)
+          .filter((b, idx, arr) => arr.indexOf(b) === idx); // unique brands
+      } else {
+        updated.item_id = "";
+        updated.brand = "";
+        updated.price = "";
+        updated.brandOptions = [];
       }
-      return updated;
-    });
-  };
+    }
+
+    return updated;
+  });
+};
+
+
 
   const openNewItemModal = () => {
     setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
@@ -469,66 +481,99 @@ export default function App() {
       )}
 
       {/* ADD TRANSACTION MODAL */}
-      {modalType === "transaction" && (
-        <>
-          <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
+      {/* ADD TRANSACTION MODAL */}
+{modalType === "transaction" && (
+  <>
+    <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
 
-          <input
-            style={styles.input}
-            type="date"
-            value={form.date}
-            onChange={e => handleFormChange("date", e.target.value)}
-          />
+    {/* Date */}
+    <input
+      style={styles.input}
+      type="date"
+      value={form.date}
+      onChange={e => handleFormChange("date", e.target.value)}
+    />
 
-          <input
-            style={styles.input}
-            list="items-list"
-            placeholder="Select Item"
-            value={form.item_name}
-            onChange={e => handleFormChange("item_name", e.target.value)}
-          />
-          <datalist id="items-list">
-            {items.filter(i => i.location === selectedStockRoom).map(i => (
-              <option key={i.id} value={i.item_name}>{i.item_name}</option>
-            ))}
-          </datalist>
+    {/* Item Name */}
+    <input
+      style={styles.input}
+      list="items-list"
+      placeholder="Select Item"
+      value={form.item_name}
+      onChange={e => handleFormChange("item_name", e.target.value)}
+    />
+    <datalist id="items-list">
+      {items
+        .filter(i => i.location === selectedStockRoom)
+        .map(i => (
+          <option key={i.id} value={i.item_name}>{i.item_name}</option>
+        ))}
+    </datalist>
 
-          <input
-            style={styles.input}
-            placeholder="Brand"
-            value={form.brand}
-            onChange={e => handleFormChange("brand", e.target.value)}
-          />
+    {/* Brand Selector Logic */}
+    {form.brandOptions && form.brandOptions.length > 0 ? (
+      <select
+        style={styles.input}
+        value={form.brand}
+        onChange={e => handleFormChange("brand", e.target.value)}
+      >
+        {form.brandOptions.map(b => (
+          <option key={b} value={b}>{b}</option>
+        ))}
+      </select>
+    ) : (
+      <input
+        style={styles.input}
+        placeholder="Brand"
+        value={form.brand}
+        onChange={e => handleFormChange("brand", e.target.value)}
+      />
+    )}
 
-          <div style={styles.toggleGroup}>
-            <button style={styles.toggleButton(form.type==="IN")} onClick={() => handleFormChange("type","IN")}>IN</button>
-            <button style={styles.toggleButton(form.type==="OUT")} onClick={() => handleFormChange("type","OUT")}>OUT</button>
-          </div>
-
-          <input
-            style={styles.input}
-            type="number"
-            placeholder="Quantity"
-            value={form.quantity}
-            onChange={e => handleFormChange("quantity", e.target.value)}
-          />
-
-          <input
-            style={styles.input}
-            type="number"
-            placeholder="Price per unit"
-            value={form.price}
-            onChange={e => handleFormChange("price", e.target.value)}
-          />
-
-          <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-            <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
-            <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-          </div>
-        </>
-      )}
+    {/* Type Toggle */}
+    <div style={styles.toggleGroup}>
+      <button
+        style={styles.toggleButton(form.type === "IN")}
+        onClick={() => handleFormChange("type", "IN")}
+      >
+        IN
+      </button>
+      <button
+        style={styles.toggleButton(form.type === "OUT")}
+        onClick={() => handleFormChange("type", "OUT")}
+      >
+        OUT
+      </button>
     </div>
-  </div>
+
+    {/* Quantity */}
+    <input
+      style={styles.input}
+      type="number"
+      placeholder="Quantity"
+      value={form.quantity}
+      onChange={e => handleFormChange("quantity", e.target.value)}
+    />
+
+    {/* Price per unit */}
+    <input
+      style={styles.input}
+      type="number"
+      placeholder="Price per unit"
+      value={form.price}
+      onChange={e => handleFormChange("price", e.target.value)}
+    />
+
+    {/* Modal Actions */}
+    <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+      <button style={styles.buttonPrimary} onClick={handleSubmit}>
+        {form.id ? "Save Changes" : "Submit"}
+      </button>
+      <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>
+        Cancel
+      </button>
+    </div>
+  </>
 )}
         {/* ================= CONFIRM MODAL ================= */}
         {confirmAction && (
