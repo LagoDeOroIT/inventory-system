@@ -47,13 +47,6 @@ const emptyRow = (colSpan, text) => (
   </tr>
 );
 
-// ✅ THIS WAS MISSING — RESTORED
-const emptyRowComponent = (colSpan, text) => (
-  <tr>
-    <td colSpan={colSpan} style={styles.emptyRow}>{text}</td>
-  </tr>
-);
-
 export default function App() {
   // ================= STATE =================
   const [session, setSession] = useState(null);
@@ -71,6 +64,7 @@ export default function App() {
   // ================= AUTH FORM =================
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
 
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
@@ -87,21 +81,166 @@ export default function App() {
   const handleAuth = async () => {
     if (!authEmail || !authPassword) return alert("Fill email and password");
 
-    const result = await supabase.auth.signInWithPassword({ 
-      email: authEmail, 
-      password: authPassword 
+    let result;
+    if (isSignUp) {
+      result = await supabase.auth.signUp({ email: authEmail, password: authPassword });
+      if (result.error) return alert(result.error.message);
+      alert("Sign up successful! Please check your email to confirm.");
+    } else {
+      result = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+      if (result.error) return alert(result.error.message);
+    }
+  };
+
+  // ================= LOAD DATA =================
+  async function loadData() {
+    const { data: itemsData } = await supabase.from("items").select("*");
+    const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
+
+    const { data: tx } = await supabase.from("inventory_transactions")
+      .select("*, items(item_name, brand, unit_price, location)")
+      .order("date", { ascending: false });
+    const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
+
+    setItems(itemsWithDeleted);
+    setTransactions(transactionsWithDeleted);
+  }
+
+  useEffect(() => { if(session) loadData(); }, [session]);
+
+  // ================= FILTERED DATA =================
+  const filteredTransactions = transactions
+    .filter(t => !t.deleted)
+    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+
+  // ================= STOCK INVENTORY CALCULATION =================
+  const stockInventory = items
+    .filter(i => !i.deleted)
+    .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
+    .map(i => {
+      const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
+      const stock = related.reduce(
+        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
+        0
+      );
+      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
     });
 
-    if (result.error) return alert(result.error.message);
+  // ================= DELETED ITEMS =================
+  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
+  const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+
+  // ================= FORM HANDLER =================
+  const handleFormChange = (key, value) => {
+    setForm(prev => {
+      const updated = { ...prev, [key]: value };
+      if (key === "item_name") {
+        const selectedItem = items.find(i => i.item_name === value && !i.deleted);
+        if (selectedItem) {
+          updated.item_id = selectedItem.id;
+          updated.brand = selectedItem.brand;
+          updated.price = selectedItem.unit_price;
+        } else {
+          updated.item_id = "";
+          updated.brand = "";
+          updated.price = "";
+        }
+      }
+      return updated;
+    });
   };
+
+  // ================= SUBMIT =================
+  const handleSubmit = async () => {
+    if(modalType==="transaction"){
+      if(!form.item_id || !form.quantity || !form.date) return alert("Fill required fields");
+      const existingItem = items.find(i => i.item_name === form.item_name && !i.deleted);
+      if(existingItem && existingItem.brand !== form.brand){
+        setForm(prev => ({ ...prev, item_name: form.item_name, brand: form.brand, price: "" }));
+        setModalTypeBeforeItem("transaction");
+        setModalType("item");
+        setShowModal(true);
+        return;
+      }
+      if(form.id){
+        await supabase.from("inventory_transactions").update({
+          date: form.date, item_id: form.item_id, brand: form.brand, type: form.type,
+          quantity: Number(form.quantity), location: selectedStockRoom,
+          unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
+        }).eq("id", form.id);
+      } else {
+        await supabase.from("inventory_transactions").insert([{
+          date: form.date, item_id: form.item_id, brand: form.brand, type: form.type,
+          quantity: Number(form.quantity), location: selectedStockRoom,
+          unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
+        }]);
+      }
+      setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
+      loadData();
+    }
+    else if(modalType==="item"){
+      if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
+      if(form.id){
+        await supabase.from("items").update({
+          item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom
+        }).eq("id", form.id);
+      } else {
+        const { data } = await supabase.from("items").insert([{ item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom }]);
+        if(data?.length){
+          const newItemId = data[0].id;
+          if(modalTypeBeforeItem === "transaction"){
+            setForm(prev => ({ ...prev, item_id: newItemId }));
+            setModalType("transaction");
+            setShowModal(true);
+            return;
+          }
+        }
+      }
+      setShowModal(false);
+      setModalType("");
+      setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
+      loadData();
+    }
+  };
+
+  // ================= NEW BUTTON =================
+  const handleNewClick = () => {
+    if(!selectedStockRoom){
+      setModalType("stockRoomPrompt");
+      setShowModal(true);
+    } else {
+      setModalType("newOption");
+      setShowModal(true);
+    }
+  };
+
+  // ================= EMPTY ROW COMPONENT =================
+  const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
 
   // ================= AUTH SCREEN =================
   if(!session) return (
     <div style={{ padding:40, textAlign:"center" }}>
-      <h2>Inventory Login</h2>
-      <input style={styles.input} placeholder="Email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
-      <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} />
-      <button style={{ ...styles.buttonPrimary, marginBottom:12 }} onClick={handleAuth}>Login</button>
+      {!session?.user ? (
+        <>
+          <h2>{isSignUp ? "Sign Up for Inventory" : "Inventory Login"}</h2>
+          <input style={styles.input} placeholder="Email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
+          <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} />
+          <button style={{ ...styles.buttonPrimary, marginBottom:12 }} onClick={handleAuth}>{isSignUp ? "Sign Up" : "Login"}</button>
+          <div>
+            <button style={styles.buttonSecondary} onClick={() => setIsSignUp(!isSignUp)}>
+              {isSignUp ? "Already have an account? Login" : "Don't have an account? Sign Up"}
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <h2>Welcome back, {session.user.email}!</h2>
+          <button style={{ ...styles.buttonPrimary, marginTop:12 }} onClick={async () => {
+            await supabase.auth.signOut();
+            setSession(null);
+          }}>Logout</button>
+        </>
+      )}
     </div>
   );
 
