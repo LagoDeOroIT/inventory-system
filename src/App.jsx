@@ -130,26 +130,40 @@ export default function App() {
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
   const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
-  // ================= FORM HANDLER =================
-  const handleFormChange = (key, value) => {
-    setForm(prev => {
-      const updated = { ...prev, [key]: value };
-      if (key === "item_name") {
-        const selectedItem = items.find(i => i.item_name === value && !i.deleted);
-        if (selectedItem) {
-          updated.item_id = selectedItem.id;
-          updated.brand = selectedItem.brand;
-          updated.price = selectedItem.unit_price;
-        } else {
-          updated.item_id = "";
-          updated.brand = "";
-          updated.price = "";
-        }
-      }
-      return updated;
-    });
-  };
+ // ================= FORM HANDLER =================
+const handleFormChange = (key, value) => {
+  setForm(prev => {
+    const updated = { ...prev, [key]: value };
 
+    // Auto-fill brand and price only if an existing item is selected
+    if (key === "item_name") {
+      const selectedItem = items.find(i => i.item_name === value && !i.deleted);
+      if (selectedItem) {
+        updated.item_id = selectedItem.id;
+        updated.brand = selectedItem.brand;
+        updated.price = selectedItem.unit_price;
+      } else {
+        updated.item_id = "";
+        updated.brand = "";
+        updated.price = "";
+      }
+    }
+
+    return updated;
+  });
+};
+
+// ================= OPEN MODAL HELPERS =================
+const openNewItemModal = () => {
+  setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id: null });
+  setModalType("item");
+  setShowModal(true);
+};
+
+const openNewTransactionModal = () => {
+  setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id: null });
+  setModalType("transaction");
+  setShowModal(true);
   // ================= SUBMIT =================
   const handleSubmit = async () => {
     if(modalType==="transaction"){
@@ -203,16 +217,16 @@ export default function App() {
     }
   };
 
-  // ================= NEW BUTTON =================
-  const handleNewClick = () => {
-    if(!selectedStockRoom){
-      setModalType("stockRoomPrompt");
-      setShowModal(true);
-    } else {
-      setModalType("newOption");
-      setShowModal(true);
-    }
-  };
+ // ================= NEW BUTTON =================
+const handleNewClick = () => {
+  if (!selectedStockRoom) {
+    setModalType("stockRoomPrompt");
+    setShowModal(true);
+  } else {
+    setModalType("newOption");
+    setShowModal(true);
+  }
+};
 
   // ================= EMPTY ROW COMPONENT =================
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
@@ -418,74 +432,139 @@ export default function App() {
           </div>
         )}
 
-        {/* ================= MODALS ================= */}
-        {showModal && (
-          <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
-            <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
-              {/* NEW OPTION MODAL */}
-              {modalType === "newOption" && (
-                <>
-                  <h3>What do you want to add?</h3>
-                  <button style={{ ...styles.newOptionButton, background:"#1f2937", color:"#fff" }} onClick={() => setModalType("item")}>Add New Item</button>
-                  <button style={{ ...styles.newOptionButton, background:"#e5e7eb", color:"#374151" }} onClick={() => setModalType("transaction")}>Add New Transaction</button>
-                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-                </>
-              )}
+        // ================= MODALS =================
+{showModal && (
+  <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
+    <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
 
-              {/* STOCK ROOM PROMPT */}
-              {modalType === "stockRoomPrompt" && (
-                <>
-                  <h3>Select Stock Room First</h3>
-                  <select style={styles.input} value={selectedStockRoom} onChange={e => { setSelectedStockRoom(e.target.value); setModalType("newOption"); }}>
-                    <option value="">Select Stock Room</option>
-                    {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-                </>
-              )}
+      {/* NEW OPTION MODAL */}
+      {modalType === "newOption" && (
+        <>
+          <h3>What do you want to add?</h3>
+          <button
+            style={{ ...styles.newOptionButton, background:"#1f2937", color:"#fff" }}
+            onClick={openNewItemModal}
+          >
+            Add New Item
+          </button>
+          <button
+            style={{ ...styles.newOptionButton, background:"#e5e7eb", color:"#374151" }}
+            onClick={openNewTransactionModal}
+          >
+            Add New Transaction
+          </button>
+          <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+        </>
+      )}
 
-              {/* ADD ITEM MODAL */}
-              {modalType === "item" && (
-                <>
-                  <h3>{form.id ? "Edit Item" : "New Item"}</h3>
-                  <input style={styles.input} placeholder="Item Name" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
-                  <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e => handleFormChange("brand", e.target.value)} />
-                  <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
-                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
-                    <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-                  </div>
-                </>
-              )}
+      {/* STOCK ROOM PROMPT */}
+      {modalType === "stockRoomPrompt" && (
+        <>
+          <h3>Select Stock Room First</h3>
+          <select
+            style={styles.input}
+            value={selectedStockRoom}
+            onChange={e => { setSelectedStockRoom(e.target.value); setModalType("newOption"); }}
+          >
+            <option value="">Select Stock Room</option>
+            {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+          <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+        </>
+      )}
 
-              {/* ADD TRANSACTION MODAL */}
-              {modalType === "transaction" && (
-                <>
-                  <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
-                  <input style={styles.input} type="date" value={form.date} onChange={e => handleFormChange("date", e.target.value)} />
-                  <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
-                  <datalist id="items-list">
-                    {items.filter(i => i.location === selectedStockRoom).map(i => (
-                      <option key={i.id} value={i.item_name}>{i.item_name}</option>
-                    ))}
-                  </datalist>
-                  <input style={styles.input} placeholder="Brand" value={form.brand} onChange={e => handleFormChange("brand", e.target.value)} />
-                  <div style={styles.toggleGroup}>
-                    <button style={styles.toggleButton(form.type==="IN")} onClick={() => handleFormChange("type","IN")}>IN</button>
-                    <button style={styles.toggleButton(form.type==="OUT")} onClick={() => handleFormChange("type","OUT")}>OUT</button>
-                  </div>
-                  <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e => handleFormChange("quantity", e.target.value)} />
-                  <input style={styles.input} type="number" placeholder="Price per unit" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
-                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
-                    <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-                  </div>
-                </>
-              )}
-            </div>
+      {/* ADD ITEM MODAL */}
+      {modalType === "item" && (
+        <>
+          <h3>{form.id ? "Edit Item" : "New Item"}</h3>
+          <input
+            style={styles.input}
+            placeholder="Item Name"
+            value={form.item_name}
+            onChange={e => handleFormChange("item_name", e.target.value)}
+          />
+          <input
+            style={styles.input}
+            placeholder="Brand"
+            value={form.brand}
+            onChange={e => handleFormChange("brand", e.target.value)}
+          />
+          <input
+            style={styles.input}
+            type="number"
+            placeholder="Price"
+            value={form.price}
+            onChange={e => handleFormChange("price", e.target.value)}
+          />
+          <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+            <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+            <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
           </div>
-        )}
+        </>
+      )}
 
+      {/* ADD TRANSACTION MODAL */}
+      {modalType === "transaction" && (
+        <>
+          <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
+
+          <input
+            style={styles.input}
+            type="date"
+            value={form.date}
+            onChange={e => handleFormChange("date", e.target.value)}
+          />
+
+          <input
+            style={styles.input}
+            list="items-list"
+            placeholder="Select Item"
+            value={form.item_name}
+            onChange={e => handleFormChange("item_name", e.target.value)}
+          />
+          <datalist id="items-list">
+            {items.filter(i => i.location === selectedStockRoom).map(i => (
+              <option key={i.id} value={i.item_name}>{i.item_name}</option>
+            ))}
+          </datalist>
+
+          <input
+            style={styles.input}
+            placeholder="Brand"
+            value={form.brand}
+            onChange={e => handleFormChange("brand", e.target.value)}
+          />
+
+          <div style={styles.toggleGroup}>
+            <button style={styles.toggleButton(form.type==="IN")} onClick={() => handleFormChange("type","IN")}>IN</button>
+            <button style={styles.toggleButton(form.type==="OUT")} onClick={() => handleFormChange("type","OUT")}>OUT</button>
+          </div>
+
+          <input
+            style={styles.input}
+            type="number"
+            placeholder="Quantity"
+            value={form.quantity}
+            onChange={e => handleFormChange("quantity", e.target.value)}
+          />
+
+          <input
+            style={styles.input}
+            type="number"
+            placeholder="Price per unit"
+            value={form.price}
+            onChange={e => handleFormChange("price", e.target.value)}
+          />
+
+          <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+            <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+            <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+)}
         {/* ================= CONFIRM MODAL ================= */}
         {confirmAction && (
           <div style={styles.modalOverlay} onClick={() => setConfirmAction(null)}>
