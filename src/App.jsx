@@ -396,8 +396,8 @@ export default function App() {
             </table>
           </div>
         )}
+      {/* MODAL */}
 
-        // ================= MODALS =================
 {showModal && (
   <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
     <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
