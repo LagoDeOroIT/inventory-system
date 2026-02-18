@@ -64,7 +64,6 @@ export default function App() {
   // ================= AUTH FORM =================
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
 
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
@@ -81,15 +80,12 @@ export default function App() {
   const handleAuth = async () => {
     if (!authEmail || !authPassword) return alert("Fill email and password");
 
-    let result;
-    if (isSignUp) {
-      result = await supabase.auth.signUp({ email: authEmail, password: authPassword });
-      if (result.error) return alert(result.error.message);
-      alert("Sign up successful! Please check your email to confirm.");
-    } else {
-      result = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
-      if (result.error) return alert(result.error.message);
-    }
+    const result = await supabase.auth.signInWithPassword({ 
+      email: authEmail, 
+      password: authPassword 
+    });
+
+    if (result.error) return alert(result.error.message);
   };
 
   // ================= LOAD DATA =================
@@ -214,33 +210,13 @@ export default function App() {
     }
   };
 
-  // ================= EMPTY ROW COMPONENT =================
-  const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
-
   // ================= AUTH SCREEN =================
   if(!session) return (
     <div style={{ padding:40, textAlign:"center" }}>
-      {!session?.user ? (
-        <>
-          <h2>{isSignUp ? "Sign Up for Inventory" : "Inventory Login"}</h2>
-          <input style={styles.input} placeholder="Email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
-          <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} />
-          <button style={{ ...styles.buttonPrimary, marginBottom:12 }} onClick={handleAuth}>{isSignUp ? "Sign Up" : "Login"}</button>
-          <div>
-            <button style={styles.buttonSecondary} onClick={() => setIsSignUp(!isSignUp)}>
-              {isSignUp ? "Already have an account? Login" : "Don't have an account? Sign Up"}
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <h2>Welcome back, {session.user.email}!</h2>
-          <button style={{ ...styles.buttonPrimary, marginTop:12 }} onClick={async () => {
-            await supabase.auth.signOut();
-            setSession(null);
-          }}>Logout</button>
-        </>
-      )}
+      <h2>Inventory Login</h2>
+      <input style={styles.input} placeholder="Email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
+      <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} />
+      <button style={{ ...styles.buttonPrimary, marginBottom:12 }} onClick={handleAuth}>Login</button>
     </div>
   );
 
