@@ -165,57 +165,82 @@ const openNewTransactionModal = () => {
   setModalType("transaction");
   setShowModal(true);
   // ================= SUBMIT =================
-  const handleSubmit = async () => {
-    if(modalType==="transaction"){
-      if(!form.item_id || !form.quantity || !form.date) return alert("Fill required fields");
-      const existingItem = items.find(i => i.item_name === form.item_name && !i.deleted);
-      if(existingItem && existingItem.brand !== form.brand){
-        setForm(prev => ({ ...prev, item_name: form.item_name, brand: form.brand, price: "" }));
-        setModalTypeBeforeItem("transaction");
-        setModalType("item");
+const handleSubmit = async () => {
+  if (modalType === "transaction") {
+    // Validate required fields
+    if (!form.item_name || !form.quantity || !form.date) {
+      return alert("Fill required fields");
+    }
+
+    // Check if selected item exists
+    const existingItem = items.find(i => i.item_name === form.item_name && !i.deleted);
+    if (!existingItem) {
+      // If item does not exist, open Add Item modal first
+      setModalTypeBeforeItem("transaction");
+      setModalType("item");
+      setShowModal(true);
+      return;
+    }
+
+    // Update or insert transaction
+    const transactionData = {
+      date: form.date,
+      item_id: existingItem.id,
+      brand: form.brand || existingItem.brand,
+      type: form.type,
+      quantity: Number(form.quantity),
+      location: selectedStockRoom,
+      unit_price: Number(form.price || existingItem.unit_price || 0)
+    };
+
+    if (form.id) {
+      // Edit existing transaction
+      await supabase.from("inventory_transactions").update(transactionData).eq("id", form.id);
+    } else {
+      // Add new transaction
+      await supabase.from("inventory_transactions").insert([transactionData]);
+    }
+
+    setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id: null });
+    setShowModal(false);
+    setModalType("");
+    loadData();
+
+  } else if (modalType === "item") {
+    // Validate required fields
+    if (!form.item_name || !form.brand || !form.price) {
+      return alert("Fill required fields");
+    }
+
+    const itemData = {
+      item_name: form.item_name,
+      brand: form.brand,
+      unit_price: Number(form.price),
+      location: selectedStockRoom
+    };
+
+    if (form.id) {
+      // Edit existing item
+      await supabase.from("items").update(itemData).eq("id", form.id);
+    } else {
+      // Add new item
+      const { data } = await supabase.from("items").insert([itemData]);
+      if (data?.length && modalTypeBeforeItem === "transaction") {
+        // If user was adding transaction, link newly created item
+        setForm(prev => ({ ...prev, item_id: data[0].id }));
+        setModalType("transaction");
         setShowModal(true);
+        setModalTypeBeforeItem("");
         return;
       }
-      if(form.id){
-        await supabase.from("inventory_transactions").update({
-          date: form.date, item_id: form.item_id, brand: form.brand, type: form.type,
-          quantity: Number(form.quantity), location: selectedStockRoom,
-          unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
-        }).eq("id", form.id);
-      } else {
-        await supabase.from("inventory_transactions").insert([{
-          date: form.date, item_id: form.item_id, brand: form.brand, type: form.type,
-          quantity: Number(form.quantity), location: selectedStockRoom,
-          unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
-        }]);
-      }
-      setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
-      loadData();
     }
-    else if(modalType==="item"){
-      if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
-      if(form.id){
-        await supabase.from("items").update({
-          item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom
-        }).eq("id", form.id);
-      } else {
-        const { data } = await supabase.from("items").insert([{ item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom }]);
-        if(data?.length){
-          const newItemId = data[0].id;
-          if(modalTypeBeforeItem === "transaction"){
-            setForm(prev => ({ ...prev, item_id: newItemId }));
-            setModalType("transaction");
-            setShowModal(true);
-            return;
-          }
-        }
-      }
-      setShowModal(false);
-      setModalType("");
-      setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
-      loadData();
-    }
-  };
+
+    setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id: null });
+    setShowModal(false);
+    setModalType("");
+    loadData();
+  }
+};
 
  // ================= NEW BUTTON =================
 const handleNewClick = () => {
