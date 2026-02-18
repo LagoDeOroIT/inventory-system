@@ -56,10 +56,10 @@ export default function App() {
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(""); 
-  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id: null });
+  const [modalType, setModalType] = useState("");
+  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
   const [confirmAction, setConfirmAction] = useState(null);
-  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState(""); 
+  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
 
   // ================= AUTH FORM =================
   const [authEmail, setAuthEmail] = useState("");
@@ -108,35 +108,13 @@ export default function App() {
 
   useEffect(() => { if(session) loadData(); }, [session]);
 
-  // ================= FILTERED DATA =================
-  const filteredTransactions = transactions
-    .filter(t => !t.deleted)
-    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
-
-  // ================= STOCK INVENTORY CALCULATION =================
-  const stockInventory = items
-    .filter(i => !i.deleted)
-    .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
-    .map(i => {
-      const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
-      const stock = related.reduce(
-        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
-        0
-      );
-      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
-    });
-
-  // ================= DELETED ITEMS =================
-  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
-  const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
-
   // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
-      if(key === "item_name") {
-        const selectedItem = items.find(i => i.item_name === value && i.location === selectedStockRoom && !i.deleted);
-        if (selectedItem) {
+      if(key==="item_name") {
+        const selectedItem = items.find(i => i.item_name === value && !i.deleted);
+        if(selectedItem) {
           updated.item_id = selectedItem.id;
           updated.brand = selectedItem.brand;
           updated.price = selectedItem.unit_price;
@@ -152,51 +130,52 @@ export default function App() {
 
   // ================= SUBMIT =================
   const handleSubmit = async () => {
-    if(modalType==="transaction"){
+    if(modalType==="transaction") {
       if(!form.item_id || !form.quantity || !form.date) return alert("Fill required fields");
       const existingItem = items.find(i => i.item_name === form.item_name && !i.deleted);
-
-      // ===== BRAND MISMATCH CONFIRMATION =====
       if(existingItem && existingItem.brand !== form.brand){
-        setConfirmAction({
-          type: "brandMismatch",
-          data: { item_name: form.item_name, brand: form.brand }
-        });
+        setConfirmAction({ type:"brandMismatch", data: { item_name: form.item_name, brand: form.brand } });
         return;
       }
-
       if(form.id){
         await supabase.from("inventory_transactions").update({
-          date: form.date, item_id: form.item_id, brand: form.brand, type: form.type,
-          quantity: Number(form.quantity), location: selectedStockRoom,
+          date: form.date,
+          item_id: form.item_id,
+          brand: form.brand,
+          type: form.type,
+          quantity: Number(form.quantity),
+          location: selectedStockRoom,
           unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
         }).eq("id", form.id);
       } else {
         await supabase.from("inventory_transactions").insert([{
-          date: form.date, item_id: form.item_id, brand: form.brand, type: form.type,
-          quantity: Number(form.quantity), location: selectedStockRoom,
+          date: form.date,
+          item_id: form.item_id,
+          brand: form.brand,
+          type: form.type,
+          quantity: Number(form.quantity),
+          location: selectedStockRoom,
           unit_price: Number(form.price || items.find(i=>i.id===form.item_id)?.unit_price || 0)
         }]);
       }
       setForm({ date:"", item_id:"", item_name:"", brand:"", type:"IN", quantity:"", price:"", id:null });
       loadData();
-    }
-    else if(modalType==="item"){
+    } else if(modalType==="item") {
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
       if(form.id){
         await supabase.from("items").update({
-          item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom
+          item_name: form.item_name,
+          brand: form.brand,
+          unit_price: Number(form.price),
+          location: selectedStockRoom
         }).eq("id", form.id);
       } else {
         const { data } = await supabase.from("items").insert([{ item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom }]);
-        if(data?.length){
-          const newItemId = data[0].id;
-          if(modalTypeBeforeItem === "transaction"){
-            setForm(prev => ({ ...prev, item_id: newItemId }));
-            setModalType("transaction");
-            setShowModal(true);
-            return;
-          }
+        if(data?.length && modalTypeBeforeItem==="transaction") {
+          setForm(prev => ({ ...prev, item_id: data[0].id }));
+          setModalType("transaction");
+          setShowModal(true);
+          return;
         }
       }
       setShowModal(false);
@@ -238,10 +217,7 @@ export default function App() {
       ) : (
         <>
           <h2>Welcome back, {session.user.email}!</h2>
-          <button style={{ ...styles.buttonPrimary, marginTop:12 }} onClick={async () => {
-            await supabase.auth.signOut();
-            setSession(null);
-          }}>Logout</button>
+          <button style={{ ...styles.buttonPrimary, marginTop:12 }} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
         </>
       )}
     </div>
@@ -262,21 +238,14 @@ export default function App() {
             <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
             <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
             <button style={styles.tabButton(activeTab==="deleted")} onClick={()=>setActiveTab("deleted")}>🗑️ Deleted History</button>
-            <button style={styles.tabButton(activeTab==="report")} onClick={()=>setActiveTab("report")}>📊 Monthly Report</button>
           </div>
         </div>
-
         <div style={{ display:"flex", flexDirection:"column", gap: 8, marginTop:16 }}>
           {session?.user?.email && (
-            <div style={{ color:"#fff", marginBottom:8, fontSize:14, fontWeight:500 }}>
-              Logged in as:<br />{session.user.email}
-            </div>
+            <div style={{ color:"#fff", marginBottom:8, fontSize:14, fontWeight:500 }}>Logged in as:<br />{session.user.email}</div>
           )}
           <button style={styles.buttonPrimary} onClick={handleNewClick}>+ New</button>
-          <button style={{...styles.buttonSecondary, background:"#ef4444", color:"#fff"}} 
-                  onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>
-            Logout
-          </button>
+          <button style={{...styles.buttonSecondary, background:"#ef4444", color:"#fff"}} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
         </div>
       </div>
 
