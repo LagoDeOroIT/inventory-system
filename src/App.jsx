@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -57,6 +57,31 @@ export default function App() {
   const [authPassword, setAuthPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
 
+  // ====== FIX FOR currentCategory SCROLL ======
+  const [currentCategory, setCurrentCategory] = useState("");
+  const tableContainerRef = useRef(null);
+
+  const handleScroll = () => {
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    const rows = Array.from(container.querySelectorAll("tbody tr"));
+    const scrollTop = container.scrollTop;
+    let visibleCategory = "";
+
+    for (const row of rows) {
+      const offsetTop = row.offsetTop;
+      if (offsetTop - scrollTop <= 0) {
+        visibleCategory = row.dataset.category || "";
+      } else {
+        break;
+      }
+    }
+
+    setCurrentCategory(visibleCategory);
+  };
+
+  // ================= STOCK ROOMS =================
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
     "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
@@ -112,108 +137,11 @@ export default function App() {
         (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
         0
       );
-      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
+      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location, category: i.category || "Uncategorized" };
     });
 
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
   const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
-
-  // ================= FORM HANDLER =================
-  const handleFormChange = (key, value) => {
-    setForm(prev => {
-      const updated = { ...prev, [key]: value };
-      if (key === "item_name") {
-        const relatedItems = items.filter(i => i.item_name === value && !i.deleted && i.location === selectedStockRoom);
-        if (relatedItems.length > 0) {
-          updated.item_id = relatedItems[0].id;
-          updated.brand = relatedItems[0].brand;
-          updated.price = relatedItems[0].unit_price;
-          updated.brandOptions = [...new Set(relatedItems.map(i => i.brand))];
-        } else {
-          updated.item_id = "";
-          updated.brand = "";
-          updated.price = "";
-          updated.brandOptions = [];
-        }
-      }
-      return updated;
-    });
-  };
-
-  const openNewItemModal = () => {
-    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
-    setModalType("item");
-    setShowModal(true);
-  };
-
-  const openNewTransactionModal = () => {
-    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
-    setModalType("transaction");
-    setShowModal(true);
-  };
-
-  const handleNewClick = () => {
-    if(!selectedStockRoom) {
-      setModalType("stockRoomPrompt");
-      setShowModal(true);
-    } else {
-      setModalType("newOption");
-      setShowModal(true);
-    }
-  };
-
-  // ================= SUBMIT =================
-  const handleSubmit = async () => {
-    if(modalType === "transaction") {
-      if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
-      const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
-      if(!existingItem) {
-        setModalTypeBeforeItem("transaction");
-        setModalType("item");
-        setShowModal(true);
-        return;
-      }
-      const txData = {
-        date: form.date,
-        item_id: existingItem.id,
-        brand: form.brand || existingItem.brand,
-        type: form.type,
-        quantity: Number(form.quantity),
-        location: selectedStockRoom,
-        unit_price: Number(form.price || existingItem.unit_price || 0)
-      };
-      if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
-      else await supabase.from("inventory_transactions").insert([txData]);
-
-      // 🔹 auto-refresh immediately
-      loadData();
-
-      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
-      setShowModal(false);
-      setModalType("");
-    } else if(modalType === "item") {
-      if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
-      const itemData = { item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom };
-      if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
-      else {
-        const { data } = await supabase.from("items").insert([itemData]);
-        if(data?.length && modalTypeBeforeItem === "transaction") {
-          setForm(prev => ({ ...prev, item_id: data[0].id }));
-          setModalType("transaction");
-          setShowModal(true);
-          setModalTypeBeforeItem("");
-          return;
-        }
-      }
-
-      // 🔹 auto-refresh immediately
-      loadData();
-
-      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
-      setShowModal(false);
-      setModalType("");
-    }
-  };
 
   // ================= EMPTY ROW =================
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
@@ -245,6 +173,7 @@ export default function App() {
   // ================= MAIN APP =================
   return (
     <div style={styles.container}>
+
       {/* SIDEBAR */}
       <div style={styles.sidebar}>
         <div>
@@ -267,13 +196,13 @@ export default function App() {
         </div>
       </div>
 
-      {/* MAIN AREA */}
+     {/* MAIN AREA */}
       <div style={styles.main}>
         {activeTab==="stock" && (
           <div style={styles.card}>
             <div style={styles.stickyTitle}>📦 Stock Inventory</div>
             <div style={styles.stickyCategory}>Category: {currentCategory || (stockInventory[0]?.category || "Uncategorized")}</div>
-            <div style={styles.tableContainer} ref={tableContainerRef} onScroll={handleScroll}>
+            <div style={{ overflowY: "auto", maxHeight: "400px" }} ref={tableContainerRef} onScroll={handleScroll}>
               <table style={styles.table}>
                 <thead>
                   <tr style={styles.stickyHeader}>
@@ -288,7 +217,7 @@ export default function App() {
                 <tbody>
                   {stockInventory.length === 0 ? emptyRowComponent(6,"No stock data") :
                     stockInventory.map(i => (
-                      <tr key={i.id} data-category={i.category}>
+                      <tr key={i.id} data-category={i.category || "Uncategorized"}>
                         <td style={styles.thtd}>{i.item_name}</td>
                         <td style={styles.thtd}>{i.brand}</td>
                         <td style={styles.thtd}>{i.quantity || 0}</td>
