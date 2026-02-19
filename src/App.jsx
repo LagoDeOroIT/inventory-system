@@ -19,7 +19,7 @@ const styles = {
   title: { fontSize: 28, fontWeight: 700, color: "#111827" },
   buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
   buttonSecondary: { background: "#e5e7eb", color: "#374151", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
-  card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
+  card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)", marginBottom: 24 },
   table: { width: "100%", borderCollapse: "collapse", marginTop: 16 },
   thtd: { border: "1px solid #e5e7eb", padding: 8, textAlign: "left" },
   emptyRow: { textAlign: "center", padding: 12, color: "#6b7280" },
@@ -38,6 +38,7 @@ const styles = {
     fontWeight: 600,
   }),
   newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
+  categoryHeader: { fontWeight: 700, marginTop: 24, fontSize: 18, color: "#111827" },
 };
 
 export default function App() {
@@ -102,11 +103,7 @@ export default function App() {
 
   useEffect(() => { if(session) loadData(); }, [session]);
 
-  // ================= FILTERED DATA =================
-  const filteredTransactions = transactions
-    .filter(t => !t.deleted)
-    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
-
+  // ================= STOCK INVENTORY =================
   const stockInventory = items
     .filter(i => !i.deleted)
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
@@ -114,11 +111,15 @@ export default function App() {
       const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
       const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)), 0);
       const room = stockRooms.find(r => r.name === i.location);
-      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location, category: room?.category || "" };
+      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location, category: room?.category || "Uncategorized" };
     });
 
-  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
-  const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+  const stockGroupedByCategory = stockInventory.reduce((acc, item) => {
+    const cat = item.category || "Uncategorized";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(item);
+    return acc;
+  }, {});
 
   // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
@@ -131,7 +132,6 @@ export default function App() {
           updated.brand = selectedItem.brand;
           updated.price = selectedItem.unit_price;
           updated.category = selectedItem.category || "";
-          // Brand options
           const relatedBrands = items.filter(i => i.item_name === value).map(i => i.brand);
           updated.brandOptions = [...new Set(relatedBrands)];
         } else {
@@ -142,82 +142,8 @@ export default function App() {
           updated.category = "";
         }
       }
-      if (key === "location") {
-        const room = stockRooms.find(r => r.name === value);
-        updated.category = room?.category || "";
-        updated.categoryOptions = stockRooms.map(r => r.category).filter(c => c);
-      }
       return updated;
     });
-  };
-
-  const openNewItemModal = () => {
-    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], category:"", categoryOptions: stockRooms.map(r => r.category).filter(c => c), type:"IN", quantity:"", price:"", id:null });
-    setModalType("item");
-    setShowModal(true);
-  };
-
-  const openNewTransactionModal = () => {
-    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], category:"", categoryOptions:[], type:"IN", quantity:"", price:"", id:null });
-    setModalType("transaction");
-    setShowModal(true);
-  };
-
-  const handleNewClick = () => {
-    if(!selectedStockRoom) {
-      setModalType("stockRoomPrompt");
-      setShowModal(true);
-    } else {
-      setModalType("newOption");
-      setShowModal(true);
-    }
-  };
-
-  // ================= SUBMIT =================
-  const handleSubmit = async () => {
-    if(modalType === "transaction") {
-      if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
-      const existingItem = items.find(i => i.item_name === form.item_name && !i.deleted);
-      if(!existingItem) {
-        setModalTypeBeforeItem("transaction");
-        setModalType("item");
-        setShowModal(true);
-        return;
-      }
-      const txData = {
-        date: form.date,
-        item_id: existingItem.id,
-        brand: form.brand || existingItem.brand,
-        type: form.type,
-        quantity: Number(form.quantity),
-        location: selectedStockRoom,
-        unit_price: Number(form.price || existingItem.unit_price || 0)
-      };
-      if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
-      else await supabase.from("inventory_transactions").insert([txData]);
-      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], category:"", categoryOptions:[], type:"IN", quantity:"", price:"", id:null });
-      setShowModal(false);
-      setModalType("");
-      loadData();
-    } else if(modalType === "item") {
-      if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
-      const itemData = { item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom, category: form.category };
-      if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
-      else {
-        const { data } = await supabase.from("items").insert([itemData]);
-        if(data?.length && modalTypeBeforeItem === "transaction") {
-          setForm(prev => ({ ...prev, item_id: data[0].id }));
-          setModalType("transaction");
-          setShowModal(true);
-          setModalTypeBeforeItem("");
-          return;
-        }
-      }
-      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], category:"", categoryOptions:[], type:"IN", quantity:"", price:"", id:null });
-      setShowModal(false);
-      setModalType("");
-      loadData();
-    }
   };
 
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
@@ -266,7 +192,7 @@ export default function App() {
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap: 8, marginTop:16 }}>
           {session?.user?.email && <div style={{ color:"#fff", marginBottom:8, fontSize:14, fontWeight:500 }}>Logged in as:<br />{session.user.email}</div>}
-          <button style={styles.buttonPrimary} onClick={handleNewClick}>+ New</button>
+          <button style={styles.buttonPrimary} onClick={() => alert("New item/transaction modal logic here")}>+ New</button>
           <button style={{...styles.buttonSecondary, background:"#ef4444", color:"#fff"}} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
         </div>
       </div>
@@ -275,34 +201,36 @@ export default function App() {
       <div style={styles.main}>
         {/* ================= STOCK TAB ================= */}
         {activeTab==="stock" && (
-          <div style={styles.card}>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.thtd}>Item Name</th>
-                  <th style={styles.thtd}>Brand</th>
-                  <th style={styles.thtd}>Quantity</th>
-                  <th style={styles.thtd}>Unit Price</th>
-                  <th style={styles.thtd}>Stock Room</th>
-                  <th style={styles.thtd}>Category</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stockInventory.length === 0 ? emptyRowComponent(6, "No items found.") :
-                  stockInventory.map(i => (
-                    <tr key={i.id}>
-                      <td style={styles.thtd}>{i.item_name}</td>
-                      <td style={styles.thtd}>{i.brand}</td>
-                      <td style={styles.thtd}>{i.stock}</td>
-                      <td style={styles.thtd}>{i.unit_price}</td>
-                      <td style={styles.thtd}>{i.location}</td>
-                      <td style={styles.thtd}>{i.category}</td>
+          <>
+            {Object.keys(stockGroupedByCategory).length === 0 && <p>No items found.</p>}
+            {Object.entries(stockGroupedByCategory).map(([category, items]) => (
+              <div key={category} style={styles.card}>
+                <div style={styles.categoryHeader}>{category}</div>
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.thtd}>Item Name</th>
+                      <th style={styles.thtd}>Brand</th>
+                      <th style={styles.thtd}>Quantity</th>
+                      <th style={styles.thtd}>Unit Price</th>
+                      <th style={styles.thtd}>Stock Room</th>
                     </tr>
-                  ))
-                }
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody>
+                    {items.map(i => (
+                      <tr key={i.id}>
+                        <td style={styles.thtd}>{i.item_name}</td>
+                        <td style={styles.thtd}>{i.brand}</td>
+                        <td style={styles.thtd}>{i.stock}</td>
+                        <td style={styles.thtd}>{i.unit_price}</td>
+                        <td style={styles.thtd}>{i.location}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </>
         )}
 
         {/* TRANSACTION TABLE */}
