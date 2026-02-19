@@ -40,8 +40,8 @@ const styles = {
   newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
 };
 
+// ================= APP COMPONENT =================
 export default function App() {
-  // ================= STATE =================
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -122,16 +122,20 @@ export default function App() {
   const handleFormChange = (key, value) => {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
-
-      // 🔹 Update brand options dynamically per stock room for both item and transaction modals
       if (key === "item_name") {
-        const relatedBrands = items
-          .filter(i => i.item_name === value && i.location === selectedStockRoom)
-          .map(i => i.brand);
-        updated.brandOptions = [...new Set(relatedBrands)];
-        updated.brand = "";
+        const relatedItems = items.filter(i => i.item_name === value && !i.deleted && i.location === selectedStockRoom);
+        if (relatedItems.length > 0) {
+          updated.item_id = relatedItems[0].id;
+          updated.brand = relatedItems[0].brand;
+          updated.price = relatedItems[0].unit_price;
+          updated.brandOptions = [...new Set(relatedItems.map(i => i.brand))];
+        } else {
+          updated.item_id = "";
+          updated.brand = "";
+          updated.price = "";
+          updated.brandOptions = [];
+        }
       }
-
       return updated;
     });
   };
@@ -161,30 +165,25 @@ export default function App() {
   // ================= SUBMIT =================
   const handleSubmit = async () => {
     if(modalType === "transaction") {
-      if(!form.item_name || !form.brand || !form.quantity || !form.date) return alert("Fill required fields");
-
-      let existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted);
-
+      if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
+      const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
       if(!existingItem) {
         setModalTypeBeforeItem("transaction");
         setModalType("item");
         setShowModal(true);
         return;
       }
-
       const txData = {
         date: form.date,
         item_id: existingItem.id,
-        brand: form.brand,
+        brand: form.brand || existingItem.brand,
         type: form.type,
         quantity: Number(form.quantity),
         location: selectedStockRoom,
         unit_price: Number(form.price || existingItem.unit_price || 0)
       };
-
       if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
       else await supabase.from("inventory_transactions").insert([txData]);
-
       setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
       setShowModal(false);
       setModalType("");
@@ -192,7 +191,6 @@ export default function App() {
     } else if(modalType === "item") {
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
       const itemData = { item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom };
-
       if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
       else {
         const { data } = await supabase.from("items").insert([itemData]);
@@ -204,7 +202,6 @@ export default function App() {
           return;
         }
       }
-
       setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
       setShowModal(false);
       setModalType("");
@@ -241,7 +238,7 @@ export default function App() {
   // ================= MAIN APP =================
   return (
     <div style={styles.container}>
-      {/* ================= SIDEBAR ================= */}
+      {/* SIDEBAR */}
       <div style={styles.sidebar}>
         <div>
           <div style={styles.sidebarHeader}>Lago De Oro</div>
@@ -263,45 +260,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* ================= MAIN CONTENT ================= */}
-      <div style={styles.main}>
-        {/* ================= STOCK TAB ================= */}
-        {activeTab==="stock" && (
-          <div style={styles.card}>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.thtd}>Available Stocks</th>
-                  <th style={styles.thtd}>Item Name</th>
-                  <th style={styles.thtd}>Brand</th>
-                  <th style={styles.thtd}>Price</th>
-                  <th style={styles.thtd}>Total Value</th>
-                  <th style={styles.thtd}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stockInventory.length === 0 ? emptyRowComponent(6, "No stock data") :
-                  stockInventory.map(i => (
-                    <tr key={i.id}>
-                      <td style={styles.thtd}>{i.stock}</td>
-                      <td style={styles.thtd}>{i.item_name}</td>
-                      <td style={styles.thtd}>{i.brand}</td>
-                      <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
-                      <td style={styles.thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
-                      <td style={styles.thtd}>
-                        <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => { setForm({ id: i.id, item_name: i.item_name, brand: i.brand, price: i.unit_price, brandOptions:[i.brand] }); setModalType("item"); setShowModal(true); }}>Edit</button>
-                        <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"deleteItem", data:i })}>Delete</button>
-                      </td>
-                    </tr>
-                  ))
-                }
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* ================= TRANSACTIONS TAB ================= */}
-        {/* MAIN AREA */}
+      {/* MAIN AREA */}
       <div style={styles.main}>
         {/* TRANSACTION TABLE */}
         {activeTab==="transactions" && (
