@@ -40,8 +40,8 @@ const styles = {
   newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
 };
 
-// ================= APP COMPONENT =================
 export default function App() {
+  // ================= STATE =================
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -51,16 +51,20 @@ export default function App() {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
-  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id: null });
+  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], category:"", categoryOptions:[], type:"IN", quantity:"", price:"", id: null });
   const [confirmAction, setConfirmAction] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
 
-  const stockRooms = [
-    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
-    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
-  ];
+  // ================= STOCK ROOMS =================
+  const [stockRooms, setStockRooms] = useState([
+    { name:"L1", category:"" }, { name:"L2 Room 1", category:"" }, { name:"L2 Room 2", category:"" }, 
+    { name:"L2 Room 3", category:"" }, { name:"L2 Room 4", category:"" }, { name:"L3", category:"" }, 
+    { name:"L5", category:"" }, { name:"L6", category:"" }, { name:"L7", category:"" },
+    { name:"Maintenance Bodega 1", category:"" }, { name:"Maintenance Bodega 2", category:"" },
+    { name:"Maintenance Bodega 3", category:"" }, { name:"SKI Stock Room", category:"" }, { name:"Quarry Stock Room", category:"" }
+  ]);
 
   // ================= AUTH =================
   useEffect(() => {
@@ -88,7 +92,7 @@ export default function App() {
     const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
 
     const { data: tx } = await supabase.from("inventory_transactions")
-      .select("*, items(item_name, brand, unit_price, location)")
+      .select("*, items(item_name, brand, unit_price, location, category)")
       .order("date", { ascending: false });
     const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
 
@@ -98,7 +102,7 @@ export default function App() {
 
   useEffect(() => { if(session) loadData(); }, [session]);
 
-  // ================= FILTERS =================
+  // ================= FILTERED DATA =================
   const filteredTransactions = transactions
     .filter(t => !t.deleted)
     .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
@@ -108,11 +112,9 @@ export default function App() {
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
     .map(i => {
       const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
-      const stock = related.reduce(
-        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
-        0
-      );
-      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
+      const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)), 0);
+      const room = stockRooms.find(r => r.name === i.location);
+      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location, category: room?.category || "" };
     });
 
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
@@ -123,31 +125,40 @@ export default function App() {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
       if (key === "item_name") {
-        const relatedItems = items.filter(i => i.item_name === value && !i.deleted && i.location === selectedStockRoom);
-        if (relatedItems.length > 0) {
-          updated.item_id = relatedItems[0].id;
-          updated.brand = relatedItems[0].brand;
-          updated.price = relatedItems[0].unit_price;
-          updated.brandOptions = [...new Set(relatedItems.map(i => i.brand))];
+        const selectedItem = items.find(i => i.item_name === value && !i.deleted);
+        if (selectedItem) {
+          updated.item_id = selectedItem.id;
+          updated.brand = selectedItem.brand;
+          updated.price = selectedItem.unit_price;
+          updated.category = selectedItem.category || "";
+          // Brand options
+          const relatedBrands = items.filter(i => i.item_name === value).map(i => i.brand);
+          updated.brandOptions = [...new Set(relatedBrands)];
         } else {
           updated.item_id = "";
           updated.brand = "";
           updated.price = "";
           updated.brandOptions = [];
+          updated.category = "";
         }
+      }
+      if (key === "location") {
+        const room = stockRooms.find(r => r.name === value);
+        updated.category = room?.category || "";
+        updated.categoryOptions = stockRooms.map(r => r.category).filter(c => c);
       }
       return updated;
     });
   };
 
   const openNewItemModal = () => {
-    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], category:"", categoryOptions: stockRooms.map(r => r.category).filter(c => c), type:"IN", quantity:"", price:"", id:null });
     setModalType("item");
     setShowModal(true);
   };
 
   const openNewTransactionModal = () => {
-    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], category:"", categoryOptions:[], type:"IN", quantity:"", price:"", id:null });
     setModalType("transaction");
     setShowModal(true);
   };
@@ -166,7 +177,7 @@ export default function App() {
   const handleSubmit = async () => {
     if(modalType === "transaction") {
       if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
-      const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
+      const existingItem = items.find(i => i.item_name === form.item_name && !i.deleted);
       if(!existingItem) {
         setModalTypeBeforeItem("transaction");
         setModalType("item");
@@ -184,13 +195,13 @@ export default function App() {
       };
       if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
       else await supabase.from("inventory_transactions").insert([txData]);
-      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], category:"", categoryOptions:[], type:"IN", quantity:"", price:"", id:null });
       setShowModal(false);
       setModalType("");
       loadData();
     } else if(modalType === "item") {
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
-      const itemData = { item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom };
+      const itemData = { item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom, category: form.category };
       if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
       else {
         const { data } = await supabase.from("items").insert([itemData]);
@@ -202,7 +213,7 @@ export default function App() {
           return;
         }
       }
-      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], category:"", categoryOptions:[], type:"IN", quantity:"", price:"", id:null });
       setShowModal(false);
       setModalType("");
       loadData();
@@ -244,7 +255,7 @@ export default function App() {
           <div style={styles.sidebarHeader}>Lago De Oro</div>
           <select style={styles.sidebarSelect} value={selectedStockRoom} onChange={e=>setSelectedStockRoom(e.target.value)}>
             <option value="">Select Stock Room</option>
-            {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
+            {stockRooms.map(r => <option key={r.name} value={r.name}>{r.name}</option>)}
           </select>
           <div style={styles.sidebarTabs}>
             <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
@@ -268,47 +279,24 @@ export default function App() {
             <table style={styles.table}>
               <thead>
                 <tr>
-                  <th style={styles.thtd}>Available Stocks</th>
                   <th style={styles.thtd}>Item Name</th>
                   <th style={styles.thtd}>Brand</th>
-                  <th style={styles.thtd}>Price</th>
-                  <th style={styles.thtd}>Total Value</th>
-                  <th style={styles.thtd}>Actions</th>
+                  <th style={styles.thtd}>Quantity</th>
+                  <th style={styles.thtd}>Unit Price</th>
+                  <th style={styles.thtd}>Stock Room</th>
+                  <th style={styles.thtd}>Category</th>
                 </tr>
               </thead>
               <tbody>
-                {stockInventory.length === 0 ? emptyRowComponent(6, "No stock data") :
+                {stockInventory.length === 0 ? emptyRowComponent(6, "No items found.") :
                   stockInventory.map(i => (
                     <tr key={i.id}>
-                      <td style={styles.thtd}>{i.stock}</td>
                       <td style={styles.thtd}>{i.item_name}</td>
                       <td style={styles.thtd}>{i.brand}</td>
-                      <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
-                      <td style={styles.thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
-                      <td style={styles.thtd}>
-                        <button
-                          style={{ ...styles.buttonSecondary, marginRight: 8 }}
-                          onClick={() => {
-                            setForm({
-                              id: i.id,
-                              item_name: i.item_name,
-                              brand: i.brand,
-                              price: i.unit_price,
-                              brandOptions: [i.brand],
-                            });
-                            setModalType("item");
-                            setShowModal(true);
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
-                          onClick={() => setConfirmAction({ type:"deleteItem", data:i })}
-                        >
-                          Delete
-                        </button>
-                      </td>
+                      <td style={styles.thtd}>{i.stock}</td>
+                      <td style={styles.thtd}>{i.unit_price}</td>
+                      <td style={styles.thtd}>{i.location}</td>
+                      <td style={styles.thtd}>{i.category}</td>
                     </tr>
                   ))
                 }
