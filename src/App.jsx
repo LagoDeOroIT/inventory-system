@@ -510,11 +510,11 @@ export default function App() {
             <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
               <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
               <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+             </div>
             </div>
-          </>
+          </div>
         )}
-
       </div>
     </div>
-  )}
-</div>
+  );
+}
