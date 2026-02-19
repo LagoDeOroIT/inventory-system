@@ -1,328 +1,552 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
-// ================= SUPABASE =================
+// ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
-const supabaseKey = "YOUR_PUBLIC_KEY";
+const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
 const supabase = createClient(supabaseUrl, supabaseKey);
-
-// ================= LOCATIONS =================
-const LOCATIONS = ["Warehouse A", "Warehouse B", "Maintenance", "Office Stock"];
 
 // ================= STYLES =================
 const styles = {
-  container:{display:"flex",minHeight:"100vh",fontFamily:"Inter",background:"#f3f4f6"},
-  sidebar:{width:220,background:"#111827",color:"#fff",padding:16},
-  main:{flex:1,padding:20},
-  button:{padding:10,border:"none",borderRadius:6,cursor:"pointer",marginBottom:8,width:"100%"},
-  primary:{background:"#2563eb",color:"#fff"},
-  danger:{background:"#ef4444",color:"#fff"},
-  input:{width:"100%",padding:8,marginBottom:8,borderRadius:6,border:"1px solid #ccc"},
-  table:{width:"100%",borderCollapse:"collapse"},
-  td:{border:"1px solid #ddd",padding:6},
-  modal:{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",display:"flex",justifyContent:"center",alignItems:"center"},
-  modalCard:{background:"#fff",padding:20,borderRadius:8,width:480}
+  container: { display: "flex", fontFamily: "Inter, Arial, sans-serif", minHeight: "100vh", background: "#f3f4f6" },
+  sidebar: { width: 220, background: "#111827", color: "#fff", padding: 20, display: "flex", flexDirection: "column", justifyContent: "space-between" },
+  sidebarHeader: { fontSize: 20, fontWeight: 700, marginBottom: 24 },
+  sidebarSelect: { marginBottom: 24, padding: 8, borderRadius: 6, border: "none", width: "100%" },
+  sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
+  tabButton: (active) => ({ padding: 10, borderRadius: 6, background: active ? "#1f2937" : "transparent", border: "none", color: "#fff", cursor: "pointer", textAlign: "left" }),
+  main: { flex: 1, padding: 24 },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
+  title: { fontSize: 28, fontWeight: 700, color: "#111827" },
+  buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
+  buttonSecondary: { background: "#e5e7eb", color: "#374151", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
+  card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
+  table: { width: "100%", borderCollapse: "collapse", marginTop: 16 },
+  thtd: { border: "1px solid #e5e7eb", padding: 8, textAlign: "left" },
+  emptyRow: { textAlign: "center", padding: 12, color: "#6b7280" },
+  modalOverlay: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 },
+  modalCard: { background: "#fff", padding: 24, borderRadius: 8, width: 400, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" },
+  input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
+  toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
+  toggleButton: (active) => ({
+    flex: 1,
+    padding: "8px 0",
+    borderRadius: 6,
+    border: active ? "none" : "1px solid #d1d5db",
+    background: active ? "#1f2937" : "#fff",
+    color: active ? "#fff" : "#374151",
+    cursor: "pointer",
+    fontWeight: 600,
+  }),
+  newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
 };
 
 export default function App() {
-  const [session,setSession]=useState(null);
-  const [items,setItems]=useState([]);
-  const [transactions,setTransactions]=useState([]);
-  const [tab,setTab]=useState("dashboard");
-  const [location,setLocation]=useState("");
-  const [showModal,setShowModal]=useState(false);
-  const [modalType,setModalType]=useState("");
-  const [editTx,setEditTx]=useState(null);
+  // ================= STATE =================
+  const [session, setSession] = useState(null);
+  const [items, setItems] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [activeTab, setActiveTab] = useState("stock");
+  const [selectedStockRoom, setSelectedStockRoom] = useState("");
+  const [inSearch, setInSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState("");
+  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
+  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id: null });
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
 
-  const [form,setForm]=useState({
-    date:"",
-    item_name:"",
-    brand:"",
-    brandOptions:[],
-    typingNewBrand:false,
-    type:"IN",
-    quantity:"",
-    price:"",
-    location:"",
-    id:null
-  });
+  const stockRooms = [
+    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
+    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
+  ];
 
   // ================= AUTH =================
-  useEffect(()=>{
-    supabase.auth.getSession().then(({data})=>setSession(data.session));
-    const {data:listener}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));
-    return ()=>listener.subscription.unsubscribe();
-  },[]);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  const handleAuth = async () => {
+    if (!authEmail || !authPassword) return alert("Fill email and password");
+    let result;
+    if (isSignUp) {
+      result = await supabase.auth.signUp({ email: authEmail, password: authPassword });
+      if (result.error) return alert(result.error.message);
+      alert("Sign up successful! Please check your email to confirm.");
+    } else {
+      result = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+      if (result.error) return alert(result.error.message);
+    }
+  };
 
   // ================= LOAD DATA =================
-  const loadData=async()=>{
-    const {data:itemsData}=await supabase.from("items").select("*");
-    const {data:tx}=await supabase.from("inventory_transactions").select("*, items(*)");
-    setItems(itemsData||[]);
-    setTransactions(tx||[]);
+  const loadData = async () => {
+    const { data: itemsData } = await supabase.from("items").select("*");
+    const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
+
+    const { data: tx } = await supabase.from("inventory_transactions")
+      .select("*, items(item_name, brand, unit_price, location)")
+      .order("date", { ascending: false });
+    const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
+
+    setItems(itemsWithDeleted);
+    setTransactions(transactionsWithDeleted);
   };
-  useEffect(()=>{if(session) loadData();},[session]);
 
-  // ================= FORM CHANGE =================
-  const handleFormChange=(key,value)=>{
-    setForm(prev=>{
-      let updated={...prev,[key]:value};
+  useEffect(() => { if(session) loadData(); }, [session]);
 
-      if(key==="item_name"){
-        const related=items.filter(i=>i.item_name===value && !i.deleted);
-        updated.brandOptions=[...new Set(related.map(i=>i.brand))];
-        updated.brand="";
-        updated.price="";
-        updated.typingNewBrand=false;
+  // ================= FILTERS =================
+  const filteredTransactions = transactions
+    .filter(t => !t.deleted)
+    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+
+  const stockInventory = items
+    .filter(i => !i.deleted)
+    .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
+    .map(i => {
+      const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
+      const stock = related.reduce(
+        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
+        0
+      );
+      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
+    });
+
+  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
+  const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+
+  // ================= FORM HANDLER =================
+  const handleFormChange = (key, value) => {
+    setForm(prev => {
+      const updated = { ...prev, [key]: value };
+      if (key === "item_name") {
+        const relatedBrands = items.filter(i => i.item_name === value).map(i => i.brand);
+        updated.brandOptions = [...new Set(relatedBrands)];
+        // Reset brand if item_name changes
+        updated.brand = "";
       }
-
-      if(key==="brand"){
-        const match=items.find(i=>i.item_name===prev.item_name && i.brand===value);
-        if(match) updated.price=match.unit_price;
-      }
-
       return updated;
     });
   };
 
-  // ================= SUBMIT ITEM =================
-  const saveItem=async()=>{
-    if(!form.item_name||!form.brand||!form.price||!form.location) return alert("Fill all");
-
-    const exists=items.find(i=>i.item_name===form.item_name && i.brand===form.brand && i.location===form.location && !i.deleted);
-    if(exists) return alert("Item already exists in this location");
-
-    await supabase.from("items").insert({
-      item_name:form.item_name,
-      brand:form.brand,
-      unit_price:Number(form.price),
-      location:form.location
-    });
-
-    alert("Item added");
-    setShowModal(false);
-    loadData();
+  const openNewItemModal = () => {
+    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+    setModalType("item");
+    setShowModal(true);
   };
 
-  // ================= SUBMIT TRANSACTION =================
-  const saveTransaction=async()=>{
-    if(!form.item_name||!form.brand||!form.quantity||!form.location) return alert("Fill required");
+  const openNewTransactionModal = () => {
+    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+    setModalType("transaction");
+    setShowModal(true);
+  };
 
-    const item=items.find(i=>i.item_name===form.item_name && i.brand===form.brand && i.location===form.location);
-    if(!item) return alert("Item not found in location");
-
-    const data={
-      date:form.date,
-      item_id:item.id,
-      type:form.type,
-      quantity:Number(form.quantity),
-      unit_price:Number(form.price),
-      location:form.location,
-      deleted:false
-    };
-
-    if(editTx){
-      await supabase.from("inventory_transactions").update(data).eq("id",editTx.id);
-      setEditTx(null);
+  const handleNewClick = () => {
+    if(!selectedStockRoom) {
+      setModalType("stockRoomPrompt");
+      setShowModal(true);
     } else {
-      await supabase.from("inventory_transactions").insert(data);
+      setModalType("newOption");
+      setShowModal(true);
     }
-
-    alert("Saved");
-    setShowModal(false);
-    loadData();
   };
 
-  // ================= STOCK ENGINE =================
-  const stockEngine=()=>{
-    const stock={};
-    transactions.filter(t=>!t.deleted).forEach(t=>{
-      const item=items.find(i=>i.id===t.item_id);
-      if(!item) return;
-      const key=item.item_name+" | "+item.brand+" | "+t.location;
-      if(!stock[key]) stock[key]=0;
-      stock[key]+=t.type==="IN"?t.quantity:-t.quantity;
-    });
-    return stock;
+  // ================= SUBMIT =================
+  const handleSubmit = async () => {
+    if(modalType === "transaction") {
+      if(!form.item_name || !form.brand || !form.quantity || !form.date) return alert("Fill required fields");
+
+      // Find item based on both name + brand
+      let existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted);
+
+      if(!existingItem) {
+        // If no such item exists, open modal to add item first
+        setModalTypeBeforeItem("transaction");
+        setModalType("item");
+        setShowModal(true);
+        return;
+      }
+
+      const txData = {
+        date: form.date,
+        item_id: existingItem.id,
+        brand: form.brand,
+        type: form.type,
+        quantity: Number(form.quantity),
+        location: selectedStockRoom,
+        unit_price: Number(form.price || existingItem.unit_price || 0)
+      };
+
+      if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
+      else await supabase.from("inventory_transactions").insert([txData]);
+
+      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+      setShowModal(false);
+      setModalType("");
+      loadData();
+    } else if(modalType === "item") {
+      if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
+      const itemData = { item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom };
+
+      if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
+      else {
+        const { data } = await supabase.from("items").insert([itemData]);
+        if(data?.length && modalTypeBeforeItem === "transaction") {
+          setForm(prev => ({ ...prev, item_id: data[0].id }));
+          setModalType("transaction");
+          setShowModal(true);
+          setModalTypeBeforeItem("");
+          return;
+        }
+      }
+
+      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+      setShowModal(false);
+      setModalType("");
+      loadData();
+    }
   };
 
-  // ================= MONTHLY REPORT =================
-  const monthlyReport=()=>{
-    const r={};
-    transactions.filter(t=>!t.deleted).forEach(t=>{
-      const m=t.date?.slice(0,7);
-      if(!r[m]) r[m]={in:0,out:0};
-      if(t.type==="IN") r[m].in+=t.quantity;
-      else r[m].out+=t.quantity;
-    });
-    return Object.entries(r).map(([m,d])=>({month:m,IN:d.in,OUT:d.out,NET:d.in-d.out}));
-  };
+  const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
 
-  // ================= DASHBOARD CHART =================
-  const chartData=monthlyReport();
+  // ================= AUTH SCREEN =================
+  if(!session) return (
+    <div style={{ padding:40, textAlign:"center" }}>
+      {!session?.user ? (
+        <>
+          <h2>{isSignUp ? "Sign Up for Inventory" : "Inventory Login"}</h2>
+          <input style={styles.input} placeholder="Email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} />
+          <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e=>setAuthPassword(e.target.value)} />
+          <button style={{ ...styles.buttonPrimary, marginBottom:12 }} onClick={handleAuth}>{isSignUp ? "Sign Up" : "Login"}</button>
+          <div>
+            <button style={styles.buttonSecondary} onClick={() => setIsSignUp(!isSignUp)}>
+              {isSignUp ? "Already have an account? Login" : "Don't have an account? Sign Up"}
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <h2>Welcome back, {session.user.email}!</h2>
+          <button style={{ ...styles.buttonPrimary, marginTop:12 }} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
+        </>
+      )}
+    </div>
+  );
 
-  if(!session) return <div style={{padding:40}}>Login required</div>;
-
+  // ================= MAIN APP =================
   return (
     <div style={styles.container}>
       {/* SIDEBAR */}
       <div style={styles.sidebar}>
-        <h3>Inventory ERP</h3>
-        <select style={styles.input} value={location} onChange={e=>setLocation(e.target.value)}>
-          <option value="">All Locations</option>
-          {LOCATIONS.map(l=><option key={l}>{l}</option>)}
-        </select>
-
-        <button style={styles.button} onClick={()=>setTab("dashboard")}>📊 Dashboard</button>
-        <button style={styles.button} onClick={()=>setTab("stock")}>📦 Stock</button>
-        <button style={styles.button} onClick={()=>setTab("transactions")}>📄 Transactions</button>
-        <button style={styles.button} onClick={()=>setTab("deleted")}>🗑️ Deleted History</button>
-
-        <hr/>
-        <button style={{...styles.button,...styles.primary}} onClick={()=>{setModalType("item");setShowModal(true);}}>+ Add Item</button>
-        <button style={{...styles.button,...styles.primary}} onClick={()=>{setModalType("transaction");setShowModal(true);}}>+ Add Transaction</button>
-      </div>
-
-      {/* MAIN */}
-      <div style={styles.main}>
-
-        {/* DASHBOARD */}
-        {tab==="dashboard" && (
-          <>
-            <h2>Monthly Stock Movement</h2>
-            <LineChart width={700} height={300} data={chartData}>
-              <CartesianGrid stroke="#ccc"/>
-              <XAxis dataKey="month"/>
-              <YAxis/>
-              <Tooltip/>
-              <Line type="monotone" dataKey="IN" stroke="#22c55e"/>
-              <Line type="monotone" dataKey="OUT" stroke="#ef4444"/>
-              <Line type="monotone" dataKey="NET" stroke="#2563eb"/>
-            </LineChart>
-          </>
-        )}
-
-        {/* STOCK TAB */}
-        {tab==="stock" && (
-          <>
-            <h2>Per Location Stock</h2>
-            <table style={styles.table}>
-              <tbody>
-                {Object.entries(stockEngine()).map(([k,v])=>{
-                  if(location && !k.includes(location)) return null;
-                  return <tr key={k}><td style={styles.td}>{k}</td><td style={styles.td}>{v}</td></tr>;
-                })}
-              </tbody>
-            </table>
-          </>
-        )}
-
-        {/* TRANSACTIONS TAB */}
-        {tab==="transactions" && (
-          <>
-            <h2>Transactions</h2>
-            <table style={styles.table}>
-              <tbody>
-                {transactions.filter(t=>!t.deleted).map(t=>(
-                  <tr key={t.id}>
-                    <td style={styles.td}>{t.date}</td>
-                    <td style={styles.td}>{t.items?.item_name}</td>
-                    <td style={styles.td}>{t.items?.brand}</td>
-                    <td style={styles.td}>{t.location}</td>
-                    <td style={styles.td}>{t.type}</td>
-                    <td style={styles.td}>{t.quantity}</td>
-                    <td style={styles.td}>
-                      <button onClick={()=>{
-                        setEditTx(t);
-                        setForm({...t, item_name:t.items.item_name, brand:t.items.brand});
-                        setModalType("transaction");
-                        setShowModal(true);
-                      }}>Edit</button>
-                      <button onClick={async()=>{
-                        await supabase.from("inventory_transactions").update({deleted:true}).eq("id",t.id);
-                        loadData();
-                      }}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        )}
-
-        {/* DELETED HISTORY */}
-        {tab==="deleted" && (
-          <>
-            <h2>Deleted Transactions</h2>
-            <table style={styles.table}>
-              <tbody>
-                {transactions.filter(t=>t.deleted).map(t=>(
-                  <tr key={t.id}>
-                    <td style={styles.td}>{t.items?.item_name}</td>
-                    <td style={styles.td}>{t.quantity}</td>
-                    <td style={styles.td}>
-                      <button onClick={async()=>{
-                        await supabase.from("inventory_transactions").update({deleted:false}).eq("id",t.id);
-                        loadData();
-                      }}>Restore</button>
-                      <button onClick={async()=>{
-                        await supabase.from("inventory_transactions").delete().eq("id",t.id);
-                        loadData();
-                      }}>Permanent Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        )}
-      </div>
-
-      {/* MODAL */}
-      {showModal && (
-        <div style={styles.modal} onClick={()=>setShowModal(false)}>
-          <div style={styles.modalCard} onClick={e=>e.stopPropagation()}>
-
-            {/* ADD ITEM */}
-            {modalType==="item" && (
-              <>
-                <h3>Add Item</h3>
-                <input style={styles.input} placeholder="Item Name" onChange={e=>handleFormChange("item_name",e.target.value)} />
-                <input style={styles.input} placeholder="Brand" onChange={e=>handleFormChange("brand",e.target.value)} />
-                <input style={styles.input} type="number" placeholder="Price" onChange={e=>handleFormChange("price",e.target.value)} />
-                <select style={styles.input} onChange={e=>handleFormChange("location",e.target.value)}>
-                  <option>Select Location</option>
-                  {LOCATIONS.map(l=><option key={l}>{l}</option>)}
-                </select>
-                <button style={styles.primary} onClick={saveItem}>Save</button>
-              </>
-            )}
-
-            {/* ADD / EDIT TRANSACTION */}
-            {modalType==="transaction" && (
-              <>
-                <h3>{editTx ? "Edit Transaction" : "New Transaction"}</h3>
-                <input style={styles.input} type="date" onChange={e=>handleFormChange("date",e.target.value)} />
-                <input style={styles.input} placeholder="Item Name" onChange={e=>handleFormChange("item_name",e.target.value)} />
-                <input style={styles.input} placeholder="Brand" onChange={e=>handleFormChange("brand",e.target.value)} />
-                <select style={styles.input} onChange={e=>handleFormChange("type",e.target.value)}>
-                  <option>IN</option>
-                  <option>OUT</option>
-                </select>
-                <input style={styles.input} type="number" placeholder="Qty" onChange={e=>handleFormChange("quantity",e.target.value)} />
-                <input style={styles.input} type="number" placeholder="Price" onChange={e=>handleFormChange("price",e.target.value)} />
-                <select style={styles.input} onChange={e=>handleFormChange("location",e.target.value)}>
-                  <option>Select Location</option>
-                  {LOCATIONS.map(l=><option key={l}>{l}</option>)}
-                </select>
-                <button style={styles.primary} onClick={saveTransaction}>Save</button>
-              </>
-            )}
-
+        <div>
+          <div style={styles.sidebarHeader}>Lago De Oro</div>
+          <select style={styles.sidebarSelect} value={selectedStockRoom} onChange={e=>setSelectedStockRoom(e.target.value)}>
+            <option value="">Select Stock Room</option>
+            {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+          <div style={styles.sidebarTabs}>
+            <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
+            <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
+            <button style={styles.tabButton(activeTab==="deleted")} onClick={()=>setActiveTab("deleted")}>🗑️ Deleted History</button>
+            <button style={styles.tabButton(activeTab==="report")} onClick={()=>setActiveTab("report")}>📊 Monthly Report</button>
           </div>
         </div>
-      )}
+        <div style={{ display:"flex", flexDirection:"column", gap: 8, marginTop:16 }}>
+          {session?.user?.email && <div style={{ color:"#fff", marginBottom:8, fontSize:14, fontWeight:500 }}>Logged in as:<br />{session.user.email}</div>}
+          <button style={styles.buttonPrimary} onClick={handleNewClick}>+ New</button>
+          <button style={{...styles.buttonSecondary, background:"#ef4444", color:"#fff"}} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
+        </div>
+      </div>
+
+      {/* MAIN AREA */}
+      <div style={styles.main}>
+        {/* ================= STOCK TAB ================= */}
+        {activeTab==="stock" && (
+          <div style={styles.card}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.thtd}>Available Stocks</th>
+                  <th style={styles.thtd}>Item Name</th>
+                  <th style={styles.thtd}>Brand</th>
+                  <th style={styles.thtd}>Price</th>
+                  <th style={styles.thtd}>Total Value</th>
+                  <th style={styles.thtd}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stockInventory.length === 0 ? emptyRowComponent(6, "No stock data") :
+                  stockInventory.map(i => (
+                    <tr key={i.id}>
+                      <td style={styles.thtd}>{i.stock}</td>
+                      <td style={styles.thtd}>{i.item_name}</td>
+                      <td style={styles.thtd}>{i.brand}</td>
+                      <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
+                      <td style={styles.thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
+                      <td style={styles.thtd}>
+                        <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => { setForm({ id: i.id, item_name: i.item_name, brand: i.brand, price: i.unit_price, brandOptions:[i.brand] }); setModalType("item"); setShowModal(true); }}>Edit</button>
+                        <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"deleteItem", data:i })}>Delete</button>
+                      </td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ================= TRANSACTIONS TAB ================= */}
+        {activeTab==="transactions" && (
+          <div style={styles.card}>
+            <input style={styles.input} placeholder="Search..." value={inSearch} onChange={e=>setInSearch(e.target.value)} />
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.thtd}>Date</th>
+                  <th style={styles.thtd}>Item</th>
+                  <th style={styles.thtd}>Brand</th>
+                  <th style={styles.thtd}>Type</th>
+                  <th style={styles.thtd}>Qty</th>
+                  <th style={styles.thtd}>Total Price</th>
+                  <th style={styles.thtd}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length===0
+                  ? emptyRowComponent(7,"No transactions")
+                  : filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t => (
+                  <tr key={t.id}>
+                    <td style={styles.thtd}>{t.date}</td>
+                    <td style={styles.thtd}>{t.items?.item_name}</td>
+                    <td style={styles.thtd}>{t.items?.brand}</td>
+                    <td style={styles.thtd}>{t.type}</td>
+                    <td style={styles.thtd}>{t.quantity}</td>
+                    <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
+                    <td style={styles.thtd}>
+                      <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => { 
+                        const relatedBrands = items.filter(i => i.item_name === t.items?.item_name).map(i => i.brand);
+                        setForm({ id: t.id, date: t.date, item_id: t.item_id, item_name: t.items?.item_name || "", brand: t.brand, brandOptions:[...new Set(relatedBrands)], type: t.type, quantity: t.quantity, price: t.unit_price || t.items?.unit_price || 0 }); 
+                        setModalType("transaction"); 
+                        setShowModal(true); 
+                      }}>Edit</button>
+                      <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"deleteTx", data:t })}>Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ================= DELETED HISTORY TAB ================= */}
+        {activeTab==="deleted" && (
+          <div style={styles.card}>
+            <h3>Deleted Inventory</h3>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.thtd}>Item Name</th>
+                  <th style={styles.thtd}>Brand</th>
+                  <th style={styles.thtd}>Price</th>
+                  <th style={styles.thtd}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deletedItems.length===0 ? emptyRowComponent(4,"No deleted items") :
+                  deletedItems.map(i => (
+                  <tr key={i.id}>
+                    <td style={styles.thtd}>{i.item_name}</td>
+                    <td style={styles.thtd}>{i.brand}</td>
+                    <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
+                    <td style={styles.thtd}>
+                      <button style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff", marginRight: 8 }} onClick={()=>setConfirmAction({ type:"restoreItem", data:i })}>Restore</button>
+                      <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={()=>setConfirmAction({ type:"permanentDeleteItem", data:i })}>Delete Permanently</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <h3 style={{ marginTop:24 }}>Deleted Transactions</h3>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.thtd}>Date</th>
+                  <th style={styles.thtd}>Item</th>
+                  <th style={styles.thtd}>Brand</th>
+                  <th style={styles.thtd}>Type</th>
+                  <th style={styles.thtd}>Qty</th>
+                  <th style={styles.thtd}>Total Price</th>
+                  <th style={styles.thtd}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deletedTransactions.length === 0
+                  ? emptyRowComponent(7, "No deleted transactions")
+                  : deletedTransactions.map(t => (
+                    <tr key={t.id}>
+                      <td style={styles.thtd}>{t.date}</td>
+                      <td style={styles.thtd}>{t.items?.item_name}</td>
+                      <td style={styles.thtd}>{t.items?.brand}</td>
+                      <td style={styles.thtd}>{t.type}</td>
+                      <td style={styles.thtd}>{t.quantity}</td>
+                      <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
+                      <td style={styles.thtd}>
+                        <button style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff", marginRight: 8 }} onClick={() => setConfirmAction({ type:"restoreTx", data:t })}>Restore</button>
+                        <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"permanentDeleteTx", data:t })}>Delete Permanently</button>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ================= MODAL ================= */}
+        {showModal && (
+          <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
+            <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
+
+              {/* NEW OPTION MODAL */}
+              {modalType === "newOption" && (
+                <>
+                  <h3>What do you want to add?</h3>
+                  <button style={{ ...styles.newOptionButton, background:"#1f2937", color:"#fff" }} onClick={openNewItemModal}>Add New Item</button>
+                  <button style={{ ...styles.newOptionButton, background:"#e5e7eb", color:"#374151" }} onClick={openNewTransactionModal}>Add New Transaction</button>
+                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+                </>
+              )}
+
+              {/* STOCK ROOM PROMPT */}
+              {modalType === "stockRoomPrompt" && (
+                <>
+                  <h3>Select Stock Room First</h3>
+                  <select style={styles.input} value={selectedStockRoom} onChange={e => { setSelectedStockRoom(e.target.value); setModalType("newOption"); }}>
+                    <option value="">Select Stock Room</option>
+                    {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+                </>
+              )}
+
+              {/* BRAND INPUT MODAL EXAMPLE */}
+        {showModal && modalType === "item" && (
+          <>
+            <h3>{form.id ? "Edit Item" : "New Item"}</h3>
+            <input style={styles.input} placeholder="Item Name" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
+
+            {/* 🔹 BRAND INPUT WITH DATALIST */}
+            <input
+              style={styles.input}
+              placeholder="Brand"
+              value={form.brand}
+              onChange={e => handleFormChange("brand", e.target.value)}
+              list="brand-list"
+            />
+            <datalist id="brand-list">
+              {form.brandOptions.map(b => <option key={b} value={b} />)}
+            </datalist>
+
+            <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
+            <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+              <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+              <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+            </div>
+          </>
+        )}
+
+        {/* TRANSACTION MODAL BRAND INPUT */}
+        {showModal && modalType === "transaction" && (
+          <>
+            <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
+
+            <input style={styles.input} type="date" value={form.date} onChange={e => handleFormChange("date", e.target.value)} />
+            <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
+            <datalist id="items-list">
+              {items.filter(i => i.location === selectedStockRoom).map(i => <option key={i.id} value={i.item_name}>{i.item_name}</option>)}
+            </datalist>
+
+            <input
+              style={styles.input}
+              placeholder="Brand"
+              value={form.brand}
+              onChange={e => handleFormChange("brand", e.target.value)}
+              list="brand-list-tx"
+            />
+            <datalist id="brand-list-tx">
+              {form.brandOptions.map(b => <option key={b} value={b} />)}
+            </datalist>
+
+            <div style={styles.toggleGroup}>
+              <button style={styles.toggleButton(form.type==="IN")} onClick={() => handleFormChange("type","IN")}>IN</button>
+              <button style={styles.toggleButton(form.type==="OUT")} onClick={() => handleFormChange("type","OUT")}>OUT</button>
+            </div>
+
+            <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e => handleFormChange("quantity", e.target.value)} />
+            <input style={styles.input} type="number" placeholder="Price per unit" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
+
+            <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+              <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+              <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+        {/* ================= CONFIRM MODAL ================= */}
+        {confirmAction && (
+          <div style={styles.modalOverlay} onClick={() => setConfirmAction(null)}>
+            <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
+              <h3>Confirm Action</h3>
+              <p>Are you sure you want to {confirmAction.type.includes("delete") ? "delete" : "restore"} this {confirmAction.type.includes("Tx") ? "transaction" : "item"}?</p>
+              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+                <button style={styles.buttonPrimary} onClick={async () => {
+                  const { type, data } = confirmAction;
+                  if(type==="deleteItem") {
+                    await supabase.from("items").update({ deleted:true }).eq("id", data.id);
+                    await supabase.from("inventory_transactions").update({ deleted:true }).eq("item_id", data.id);
+                    setItems(prev => prev.map(i => i.id === data.id ? { ...i, deleted:true } : i));
+                    setTransactions(prev => prev.map(t => t.item_id === data.id ? { ...t, deleted:true } : t));
+                  }
+                  else if(type==="permanentDeleteItem") {
+                    await supabase.from("items").delete().eq("id", data.id);
+                    await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
+                    setItems(prev => prev.filter(i => i.id !== data.id));
+                    setTransactions(prev => prev.filter(t => t.item_id !== data.id));
+                  }
+                  else if(type==="restoreItem") {
+                    await supabase.from("items").update({ deleted:false }).eq("id", data.id);
+                    await supabase.from("inventory_transactions").update({ deleted:false }).eq("item_id", data.id);
+                    setItems(prev => prev.map(i => i.id === data.id ? { ...i, deleted:false } : i));
+                    setTransactions(prev => prev.map(t => t.item_id === data.id ? { ...t, deleted:false } : t));
+                  }
+                  else if(type==="deleteTx") {
+                    await supabase.from("inventory_transactions").update({ deleted:true }).eq("id", data.id);
+                    setTransactions(prev => prev.map(t => t.id === data.id ? { ...t, deleted:true } : t));
+                  }
+                  else if(type==="permanentDeleteTx") {
+                    await supabase.from("inventory_transactions").delete().eq("id", data.id);
+                    setTransactions(prev => prev.filter(t => t.id !== data.id));
+                  }
+                  else if(type==="restoreTx") {
+                    await supabase.from("inventory_transactions").update({ deleted:false }).eq("id", data.id);
+                    setTransactions(prev => prev.map(t => t.id === data.id ? { ...t, deleted:false } : t));
+                  }
+
+                  setConfirmAction(null);
+                }}>Yes</button>
+                <button style={styles.buttonSecondary} onClick={() => setConfirmAction(null)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
