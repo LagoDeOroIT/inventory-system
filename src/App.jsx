@@ -19,7 +19,7 @@ const styles = {
   title: { fontSize: 28, fontWeight: 700, color: "#111827" },
   buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
   buttonSecondary: { background: "#e5e7eb", color: "#374151", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
-  card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
+  card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)", marginBottom: 24 },
   table: { width: "100%", borderCollapse: "collapse", marginTop: 16 },
   thtd: { border: "1px solid #e5e7eb", padding: 8, textAlign: "left" },
   emptyRow: { textAlign: "center", padding: 12, color: "#6b7280" },
@@ -45,13 +45,15 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
-  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id: null });
+  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", category:"", brandOptions:[], type:"IN", quantity:"", price:"", id: null });
   const [confirmAction, setConfirmAction] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
@@ -85,24 +87,31 @@ export default function App() {
   // ================= LOAD DATA =================
   const loadData = async () => {
     const { data: itemsData } = await supabase.from("items").select("*");
-    const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
+    const itemsWithDeleted = (itemsData || []).map(i => ({
+      ...i,
+      deleted: i.deleted ?? false,
+      category: i.category || "Uncategorized",
+    }));
 
     const { data: tx } = await supabase.from("inventory_transactions")
-      .select("*, items(item_name, brand, unit_price, location)")
+      .select("*, items(item_name, brand, unit_price, location, category)")
       .order("date", { ascending: false });
-    const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
+    const transactionsWithDeleted = (tx || []).map(t => ({
+      ...t,
+      deleted: t.deleted ?? false,
+      itemCategory: t.items?.category || "Uncategorized"
+    }));
 
     setItems(itemsWithDeleted);
     setTransactions(transactionsWithDeleted);
+
+    const uniqueCategories = [...new Set(itemsWithDeleted.map(i => i.category || "Uncategorized"))];
+    setCategories(uniqueCategories);
   };
 
   useEffect(() => { if(session) loadData(); }, [session]);
 
-  // ================= FILTERS =================
-  const filteredTransactions = transactions
-    .filter(t => !t.deleted)
-    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
-
+  // ================= STOCK INVENTORY =================
   const stockInventory = items
     .filter(i => !i.deleted)
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
@@ -112,7 +121,7 @@ export default function App() {
         (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
         0
       );
-      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
+      return { ...i, stock };
     });
 
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
@@ -128,11 +137,13 @@ export default function App() {
           updated.item_id = relatedItems[0].id;
           updated.brand = relatedItems[0].brand;
           updated.price = relatedItems[0].unit_price;
+          updated.category = relatedItems[0].category || "";
           updated.brandOptions = [...new Set(relatedItems.map(i => i.brand))];
         } else {
           updated.item_id = "";
           updated.brand = "";
           updated.price = "";
+          updated.category = "";
           updated.brandOptions = [];
         }
       }
@@ -140,75 +151,7 @@ export default function App() {
     });
   };
 
-  const openNewItemModal = () => {
-    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
-    setModalType("item");
-    setShowModal(true);
-  };
-
-  const openNewTransactionModal = () => {
-    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
-    setModalType("transaction");
-    setShowModal(true);
-  };
-
-  const handleNewClick = () => {
-    if(!selectedStockRoom) {
-      setModalType("stockRoomPrompt");
-      setShowModal(true);
-    } else {
-      setModalType("newOption");
-      setShowModal(true);
-    }
-  };
-
-  // ================= SUBMIT =================
-  const handleSubmit = async () => {
-    if(modalType === "transaction") {
-      if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
-      const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
-      if(!existingItem) {
-        setModalTypeBeforeItem("transaction");
-        setModalType("item");
-        setShowModal(true);
-        return;
-      }
-      const txData = {
-        date: form.date,
-        item_id: existingItem.id,
-        brand: form.brand || existingItem.brand,
-        type: form.type,
-        quantity: Number(form.quantity),
-        location: selectedStockRoom,
-        unit_price: Number(form.price || existingItem.unit_price || 0)
-      };
-      if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
-      else await supabase.from("inventory_transactions").insert([txData]);
-      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
-      setShowModal(false);
-      setModalType("");
-      loadData();
-    } else if(modalType === "item") {
-      if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
-      const itemData = { item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom };
-      if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
-      else {
-        const { data } = await supabase.from("items").insert([itemData]);
-        if(data?.length && modalTypeBeforeItem === "transaction") {
-          setForm(prev => ({ ...prev, item_id: data[0].id }));
-          setModalType("transaction");
-          setShowModal(true);
-          setModalTypeBeforeItem("");
-          return;
-        }
-      }
-      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
-      setShowModal(false);
-      setModalType("");
-      loadData();
-    }
-  };
-
+  // ================= EMPTY ROW =================
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
 
   // ================= AUTH SCREEN =================
@@ -235,7 +178,7 @@ export default function App() {
     </div>
   );
 
-  // ================= MAIN APP =================
+  // ================= MAIN AREA =================
   return (
     <div style={styles.container}>
       {/* SIDEBAR */}
@@ -246,6 +189,10 @@ export default function App() {
             <option value="">Select Stock Room</option>
             {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
+          <select style={styles.sidebarSelect} value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}>
+            <option value="">All Categories</option>
+            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
           <div style={styles.sidebarTabs}>
             <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
             <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
@@ -255,341 +202,319 @@ export default function App() {
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap: 8, marginTop:16 }}>
           {session?.user?.email && <div style={{ color:"#fff", marginBottom:8, fontSize:14, fontWeight:500 }}>Logged in as:<br />{session.user.email}</div>}
-          <button style={styles.buttonPrimary} onClick={handleNewClick}>+ New</button>
+          <button style={styles.buttonPrimary} onClick={() => { setModalType("newOption"); setShowModal(true); }}>+ New</button>
           <button style={{...styles.buttonSecondary, background:"#ef4444", color:"#fff"}} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
         </div>
       </div>
 
-      {/* MAIN AREA */}
+  {/* MAIN AREA */}
       <div style={styles.main}>
-        {/* ================= STOCK TAB ================= */}
-        {activeTab==="stock" && (
-          <div style={styles.card}>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.thtd}>Available Stocks</th>
-                  <th style={styles.thtd}>Item Name</th>
-                  <th style={styles.thtd}>Brand</th>
-                  <th style={styles.thtd}>Price</th>
-                  <th style={styles.thtd}>Total Value</th>
-                  <th style={styles.thtd}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stockInventory.length === 0 ? emptyRowComponent(6, "No stock data") :
-                  stockInventory.map(i => (
-                    <tr key={i.id}>
-                      <td style={styles.thtd}>{i.stock}</td>
-                      <td style={styles.thtd}>{i.item_name}</td>
-                      <td style={styles.thtd}>{i.brand}</td>
-                      <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
-                      <td style={styles.thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
-                      <td style={styles.thtd}>
-                        <button
-                          style={{ ...styles.buttonSecondary, marginRight: 8 }}
-                          onClick={() => {
-                            setForm({
-                              id: i.id,
-                              item_name: i.item_name,
-                              brand: i.brand,
-                              price: i.unit_price,
-                              brandOptions: [i.brand],
-                            });
-                            setModalType("item");
-                            setShowModal(true);
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
-                          onClick={() => setConfirmAction({ type:"deleteItem", data:i })}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                }
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* TRANSACTION TABLE */}
-        {activeTab==="transactions" && (
-          <div style={styles.card}>
-            <input style={styles.input} placeholder="Search..." value={inSearch} onChange={e=>setInSearch(e.target.value)} />
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.thtd}>Date</th>
-                  <th style={styles.thtd}>Item</th>
-                  <th style={styles.thtd}>Brand</th>
-                  <th style={styles.thtd}>Type</th>
-                  <th style={styles.thtd}>Qty</th>
-                  <th style={styles.thtd}>Total Price</th>
-                  <th style={styles.thtd}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length===0
-                  ? emptyRowComponent(7,"No transactions")
-                  : filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t => (
-                  <tr key={t.id}>
-                    <td style={styles.thtd}>{t.date}</td>
-                    <td style={styles.thtd}>{t.items?.item_name}</td>
-                    <td style={styles.thtd}>{t.items?.brand}</td>
-                    <td style={styles.thtd}>{t.type}</td>
-                    <td style={styles.thtd}>{t.quantity}</td>
-                    <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
-                    <td style={styles.thtd}>
-                      <button
-                        style={{ ...styles.buttonSecondary, marginRight: 8 }}
-                        onClick={() => { 
-                          const relatedBrands = items
-                            .filter(i => i.item_name === t.items?.item_name && i.location === selectedStockRoom)
-                            .map(i => i.brand);
-
-                          setForm({
-                            id: t.id,
-                            date: t.date,
-                            item_id: t.item_id,
-                            item_name: t.items?.item_name || "",
-                            brand: t.brand,
-                            brandOptions: [...new Set(relatedBrands)],
-                            type: t.type,
-                            quantity: t.quantity,
-                            price: t.unit_price || t.items?.unit_price || 0
-                          }); 
-                          setModalType("transaction"); 
-                          setShowModal(true); 
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"deleteTx", data:t })}>Delete</button>
-                    </td>
+  {/* ================= STOCK TAB ================= */}
+  {activeTab==="stock" && (
+    <div>
+      {categories
+        .filter(c => !selectedCategory || c === selectedCategory)
+        .map(category => {
+          const itemsInCategory = stockInventory.filter(i => (i.category || "Uncategorized") === category);
+          if(itemsInCategory.length === 0) return null;
+          return (
+            <div key={category} style={styles.card}>
+              <h3 style={{ marginBottom:12 }}>{category}</h3>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.thtd}>Available Stocks</th>
+                    <th style={styles.thtd}>Item Name</th>
+                    <th style={styles.thtd}>Brand</th>
+                    <th style={styles.thtd}>Category</th>
+                    <th style={styles.thtd}>Price</th>
+                    <th style={styles.thtd}>Total Value</th>
+                    <th style={styles.thtd}>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* ================= DELETED HISTORY TAB ================= */}
-        {activeTab==="deleted" && (
-          <div style={styles.card}>
-            <h3>Deleted Inventory</h3>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.thtd}>Item Name</th>
-                  <th style={styles.thtd}>Brand</th>
-                  <th style={styles.thtd}>Price</th>
-                  <th style={styles.thtd}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deletedItems.length===0 ? emptyRowComponent(4,"No deleted items") :
-                  deletedItems.map(i => (
-                  <tr key={i.id}>
-                    <td style={styles.thtd}>{i.item_name}</td>
-                    <td style={styles.thtd}>{i.brand}</td>
-                    <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
-                    <td style={styles.thtd}>
-                      <button style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff", marginRight: 8 }} onClick={()=>setConfirmAction({ type:"restoreItem", data:i })}>Restore</button>
-                      <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={()=>setConfirmAction({ type:"permanentDeleteItem", data:i })}>Delete Permanently</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <h3 style={{ marginTop:24 }}>Deleted Transactions</h3>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.thtd}>Date</th>
-                  <th style={styles.thtd}>Item</th>
-                  <th style={styles.thtd}>Brand</th>
-                  <th style={styles.thtd}>Type</th>
-                  <th style={styles.thtd}>Qty</th>
-                  <th style={styles.thtd}>Total Price</th>
-                  <th style={styles.thtd}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deletedTransactions.length === 0
-                  ? emptyRowComponent(7, "No deleted transactions")
-                  : deletedTransactions.map(t => (
-                    <tr key={t.id}>
-                      <td style={styles.thtd}>{t.date}</td>
-                      <td style={styles.thtd}>{t.items?.item_name}</td>
-                      <td style={styles.thtd}>{t.items?.brand}</td>
-                      <td style={styles.thtd}>{t.type}</td>
-                      <td style={styles.thtd}>{t.quantity}</td>
-                      <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
-                      <td style={styles.thtd}>
-                        <button style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff", marginRight: 8 }} onClick={() => setConfirmAction({ type:"restoreTx", data:t })}>Restore</button>
-                        <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"permanentDeleteTx", data:t })}>Delete Permanently</button>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-               {/* ================= MODAL ================= */}
-        {showModal && (
-          <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
-            <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
-              
-              {/* NEW OPTION MODAL */}
-              {modalType === "newOption" && (
-                <>
-                  <h3>What do you want to add?</h3>
-                  <button style={{ ...styles.newOptionButton, background:"#1f2937", color:"#fff" }} onClick={openNewItemModal}>Add New Item</button>
-                  <button style={{ ...styles.newOptionButton, background:"#e5e7eb", color:"#374151" }} onClick={openNewTransactionModal}>Add New Transaction</button>
-                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-                </>
-              )}
-
-              {/* STOCK ROOM PROMPT */}
-              {modalType === "stockRoomPrompt" && (
-                <>
-                  <h3>Select Stock Room First</h3>
-                  <select style={styles.input} value={selectedStockRoom} onChange={e => { setSelectedStockRoom(e.target.value); setModalType("newOption"); }}>
-                    <option value="">Select Stock Room</option>
-                    {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-                </>
-              )}
-
-              {/* ADD ITEM MODAL */}
-              {modalType === "item" && (
-                <>
-                  <h3>{form.id ? "Edit Item" : "New Item"}</h3>
-                  <input style={styles.input} placeholder="Item Name" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
-
-                  {/* 🔹 BRAND SELECTOR (Stock-Room Aware) */}
-                  <input
-                    style={styles.input}
-                    list="brand-list-item"
-                    placeholder="Brand"
-                    value={form.brand}
-                    onChange={e => handleFormChange("brand", e.target.value)}
-                  />
-                  <datalist id="brand-list-item">
-                    {items
-                      .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom)
-                      .map(i => <option key={i.id} value={i.brand}>{i.brand}</option>)
-                    }
-                  </datalist>
-
-                  <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
-                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
-                    <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-                  </div>
-                </>
-              )}
-
-              {/* ADD TRANSACTION MODAL */}
-              {modalType === "transaction" && (
-                <>
-                  <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
-
-                  <input style={styles.input} type="date" value={form.date} onChange={e => handleFormChange("date", e.target.value)} />
-
-                  <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
-                  <datalist id="items-list">
-                    {items.filter(i => i.location === selectedStockRoom).map(i => <option key={i.id} value={i.item_name}>{i.item_name}</option>)}
-                  </datalist>
-
-                  {/* 🔹 BRAND SELECTOR (Stock-Room Aware) */}
-                  <input
-                    style={styles.input}
-                    list="brand-list-tx"
-                    placeholder="Brand"
-                    value={form.brand}
-                    onChange={e => handleFormChange("brand", e.target.value)}
-                  />
-                  <datalist id="brand-list-tx">
-                    {items
-                      .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom)
-                      .map(i => <option key={i.id} value={i.brand}>{i.brand}</option>)
-                    }
-                  </datalist>
-
-                  <div style={styles.toggleGroup}>
-                    <button style={styles.toggleButton(form.type==="IN")} onClick={() => handleFormChange("type","IN")}>IN</button>
-                    <button style={styles.toggleButton(form.type==="OUT")} onClick={() => handleFormChange("type","OUT")}>OUT</button>
-                  </div>
-
-                  <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e => handleFormChange("quantity", e.target.value)} />
-                  <input style={styles.input} type="number" placeholder="Price per unit" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
-
-                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
-                    <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-                  </div>
-                </>
-              )}
-
+                </thead>
+                <tbody>
+                  {itemsInCategory.length === 0 ? emptyRowComponent(7, "No stock data") :
+                    itemsInCategory.map(i => (
+                      <tr key={i.id}>
+                        <td style={styles.thtd}>{i.stock}</td>
+                        <td style={styles.thtd}>{i.item_name}</td>
+                        <td style={styles.thtd}>{i.brand}</td>
+                        <td style={styles.thtd}>{i.category || "Uncategorized"}</td>
+                        <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
+                        <td style={styles.thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
+                        <td style={styles.thtd}>
+                          <button
+                            style={{ ...styles.buttonSecondary, marginRight: 8 }}
+                            onClick={() => {
+                              setForm({
+                                id: i.id,
+                                item_name: i.item_name,
+                                brand: i.brand,
+                                category: i.category,
+                                price: i.unit_price,
+                                brandOptions: [i.brand]
+                              });
+                              setModalType("item");
+                              setShowModal(true);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
+                            onClick={() => setConfirmAction({ type:"deleteItem", data:i })}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
             </div>
-          </div>
-        )}
+          );
+        })
+      }
+    </div>
+  )}
 
-       {/* ================= CONFIRM MODAL ================= */}
-        {confirmAction && (
-          <div style={styles.modalOverlay} onClick={() => setConfirmAction(null)}>
-            <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
-              <h3>Confirm Action</h3>
-              <p>Are you sure you want to {confirmAction.type.includes("delete") ? "delete" : "restore"} this {confirmAction.type.includes("Tx") ? "transaction" : "item"}?</p>
-              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                <button style={styles.buttonPrimary} onClick={async () => {
-                  const { type, data } = confirmAction;
+  {/* ================= TRANSACTION TAB ================= */}
+  {activeTab==="transactions" && (
+    <div style={styles.card}>
+      <input style={styles.input} placeholder="Search..." value={inSearch} onChange={e=>setInSearch(e.target.value)} />
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.thtd}>Date</th>
+            <th style={styles.thtd}>Item</th>
+            <th style={styles.thtd}>Brand</th>
+            <th style={styles.thtd}>Category</th>
+            <th style={styles.thtd}>Type</th>
+            <th style={styles.thtd}>Qty</th>
+            <th style={styles.thtd}>Total Price</th>
+            <th style={styles.thtd}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length===0
+            ? emptyRowComponent(8,"No transactions")
+            : filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t => (
+            <tr key={t.id}>
+              <td style={styles.thtd}>{t.date}</td>
+              <td style={styles.thtd}>{t.items?.item_name}</td>
+              <td style={styles.thtd}>{t.items?.brand}</td>
+              <td style={styles.thtd}>{t.items?.category || "Uncategorized"}</td>
+              <td style={styles.thtd}>{t.type}</td>
+              <td style={styles.thtd}>{t.quantity}</td>
+              <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
+              <td style={styles.thtd}>
+                <button
+                  style={{ ...styles.buttonSecondary, marginRight: 8 }}
+                  onClick={() => { 
+                    const relatedBrands = items
+                      .filter(i => i.item_name === t.items?.item_name && i.location === selectedStockRoom)
+                      .map(i => i.brand);
+                    const itemCategory = items.find(i => i.item_name===t.items?.item_name)?.category || "";
+                    setForm({
+                      id: t.id,
+                      date: t.date,
+                      item_id: t.item_id,
+                      item_name: t.items?.item_name || "",
+                      brand: t.brand,
+                      category: itemCategory,
+                      brandOptions: [...new Set(relatedBrands)],
+                      type: t.type,
+                      quantity: t.quantity,
+                      price: t.unit_price || t.items?.unit_price || 0
+                    }); 
+                    setModalType("transaction"); 
+                    setShowModal(true); 
+                  }}
+                >
+                  Edit
+                </button>
+                <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"deleteTx", data:t })}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
 
-                  if(type==="deleteItem") {
-                    await supabase.from("items").update({ deleted:true }).eq("id", data.id);
-                    await supabase.from("inventory_transactions").update({ deleted:true }).eq("item_id", data.id);
-                    loadData();
-                  }
-                  else if(type==="permanentDeleteItem") {
-                    await supabase.from("items").delete().eq("id", data.id);
-                    await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
-                    loadData();
-                  }
-                  else if(type==="restoreItem") {
-                    await supabase.from("items").update({ deleted:false }).eq("id", data.id);
-                    await supabase.from("inventory_transactions").update({ deleted:false }).eq("item_id", data.id);
-                    loadData();
-                  }
-                  else if(type==="deleteTx") {
-                    await supabase.from("inventory_transactions").update({ deleted:true }).eq("id", data.id);
-                    loadData();
-                  }
-                  else if(type==="permanentDeleteTx") {
-                    await supabase.from("inventory_transactions").delete().eq("id", data.id);
-                    loadData();
-                  }
-                  else if(type==="restoreTx") {
-                    await supabase.from("inventory_transactions").update({ deleted:false }).eq("id", data.id);
-                    loadData(); // ✅ refresh stock immediately
-                  }
+  {/* ================= DELETED HISTORY TAB ================= */}
+  {activeTab==="deleted" && (
+    <div>
+      {/* Deleted Items */}
+      <div style={styles.card}>
+        <h3>Deleted Inventory</h3>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.thtd}>Item Name</th>
+              <th style={styles.thtd}>Brand</th>
+              <th style={styles.thtd}>Category</th>
+              <th style={styles.thtd}>Price</th>
+              <th style={styles.thtd}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {deletedItems.length===0 
+              ? emptyRowComponent(5,"No deleted items") 
+              : deletedItems.map(i => (
+                <tr key={i.id}>
+                  <td style={styles.thtd}>{i.item_name}</td>
+                  <td style={styles.thtd}>{i.brand}</td>
+                  <td style={styles.thtd}>{i.category || "Uncategorized"}</td>
+                  <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
+                  <td style={styles.thtd}>
+                    <button
+                      style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff", marginRight: 8 }}
+                      onClick={()=>setConfirmAction({ type:"restoreItem", data:i })}
+                    >
+                      Restore
+                    </button>
+                    <button
+                      style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
+                      onClick={()=>setConfirmAction({ type:"permanentDeleteItem", data:i })}
+                    >
+                      Delete Permanently
+                    </button>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
 
-                  setConfirmAction(null);
-                }}>Yes</button>
-                <button style={styles.buttonSecondary} onClick={() => setConfirmAction(null)}>Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
+      {/* Deleted Transactions */}
+      <div style={{...styles.card, marginTop:24}}>
+        <h3>Deleted Transactions</h3>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.thtd}>Date</th>
+              <th style={styles.thtd}>Item</th>
+              <th style={styles.thtd}>Brand</th>
+              <th style={styles.thtd}>Category</th>
+              <th style={styles.thtd}>Type</th>
+              <th style={styles.thtd}>Qty</th>
+              <th style={styles.thtd}>Total Price</th>
+              <th style={styles.thtd}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {deletedTransactions.length === 0
+              ? emptyRowComponent(8, "No deleted transactions")
+              : deletedTransactions.map(t => (
+                <tr key={t.id}>
+                  <td style={styles.thtd}>{t.date}</td>
+                  <td style={styles.thtd}>{t.items?.item_name}</td>
+                  <td style={styles.thtd}>{t.items?.brand}</td>
+                  <td style={styles.thtd}>{t.items?.category || "Uncategorized"}</td>
+                  <td style={styles.thtd}>{t.type}</td>
+                  <td style={styles.thtd}>{t.quantity}</td>
+                  <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
+                  <td style={styles.thtd}>
+                    <button
+                      style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff", marginRight: 8 }}
+                      onClick={() => setConfirmAction({ type:"restoreTx", data:t })}
+                    >
+                      Restore
+                    </button>
+                    <button
+                      style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
+                      onClick={() => setConfirmAction({ type:"permanentDeleteTx", data:t })}
+                    >
+                      Delete Permanently
+                    </button>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
       </div>
     </div>
-  );
-}
+  )}
+
+  {/* ================= ITEM / TRANSACTION MODALS ================= */}
+  {showModal && (
+    <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
+      <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
+        
+        {/* ADD / EDIT ITEM MODAL */}
+        {modalType === "item" && (
+          <>
+            <h3>{form.id ? "Edit Item" : "New Item"}</h3>
+            <input style={styles.input} placeholder="Item Name" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
+
+            <input
+              style={styles.input}
+              list="brand-list-item"
+              placeholder="Brand"
+              value={form.brand}
+              onChange={e => handleFormChange("brand", e.target.value)}
+            />
+            <datalist id="brand-list-item">
+              {items.filter(i => i.item_name === form.item_name && i.location === selectedStockRoom)
+                .map(i => <option key={i.id} value={i.brand}>{i.brand}</option>)}
+            </datalist>
+
+            <input style={styles.input} placeholder="Category" value={form.category} onChange={e => handleFormChange("category", e.target.value)} />
+
+            <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
+
+            <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+              <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+              <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+            </div>
+          </>
+        )}
+
+        {/* ADD / EDIT TRANSACTION MODAL */}
+        {modalType === "transaction" && (
+          <>
+            <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
+            <input style={styles.input} type="date" value={form.date} onChange={e => handleFormChange("date", e.target.value)} />
+
+            <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
+            <datalist id="items-list">
+              {items.filter(i => i.location === selectedStockRoom).map(i => <option key={i.id} value={i.item_name}>{i.item_name}</option>)}
+            </datalist>
+
+            <input
+              style={styles.input}
+              list="brand-list-tx"
+              placeholder="Brand"
+              value={form.brand}
+              onChange={e => handleFormChange("brand", e.target.value)}
+            />
+            <datalist id="brand-list-tx">
+              {items.filter(i => i.item_name === form.item_name && i.location === selectedStockRoom)
+                .map(i => <option key={i.id} value={i.brand}>{i.brand}</option>)}
+            </datalist>
+
+            <input style={styles.input} placeholder="Category" value={form.category} onChange={e => handleFormChange("category", e.target.value)} />
+
+            <div style={styles.toggleGroup}>
+              <button style={styles.toggleButton(form.type==="IN")} onClick={() => handleFormChange("type","IN")}>IN</button>
+              <button style={styles.toggleButton(form.type==="OUT")} onClick={() => handleFormChange("type","OUT")}>OUT</button>
+            </div>
+
+            <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e => handleFormChange("quantity", e.target.value)} />
+            <input style={styles.input} type="number" placeholder="Price per unit" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
+
+            <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+              <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+              <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+            </div>
+          </>
+        )}
+
+      </div>
+    </div>
+  )}
+</div>
