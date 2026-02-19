@@ -262,6 +262,61 @@ export default function App() {
 
       {/* MAIN AREA */}
       <div style={styles.main}>
+        {/* ================= STOCK TAB ================= */}
+{activeTab==="stock" && (
+  <div style={styles.card}>
+    <table style={styles.table}>
+      <thead>
+        <tr>
+          <th style={styles.thtd}>Available Stocks</th>
+          <th style={styles.thtd}>Item Name</th>
+          <th style={styles.thtd}>Brand</th>
+          <th style={styles.thtd}>Price</th>
+          <th style={styles.thtd}>Total Value</th>
+          <th style={styles.thtd}>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {stockInventory.length === 0 ? emptyRowComponent(6, "No stock data") :
+          stockInventory.map(i => (
+            <tr key={i.id}>
+              <td style={styles.thtd}>{i.stock}</td>
+              <td style={styles.thtd}>{i.item_name}</td>
+              <td style={styles.thtd}>{i.brand}</td>
+              <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
+              <td style={styles.thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
+              <td style={styles.thtd}>
+                <button
+                  style={{ ...styles.buttonSecondary, marginRight: 8 }}
+                  onClick={() => {
+                    setForm({
+                      id: i.id,
+                      item_name: i.item_name,
+                      brand: i.brand,
+                      price: i.unit_price,
+                      brandOptions: [i.brand],
+                    });
+                    setModalType("item");
+                    setShowModal(true);
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
+                  onClick={() => setConfirmAction({ type:"deleteItem", data:i })}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+)}
+
         {/* TRANSACTION TABLE */}
         {activeTab==="transactions" && (
           <div style={styles.card}>
