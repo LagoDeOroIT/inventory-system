@@ -263,59 +263,59 @@ export default function App() {
       {/* MAIN AREA */}
       <div style={styles.main}>
         {/* ================= STOCK TAB ================= */}
-{activeTab==="stock" && (
-  <div style={styles.card}>
-    <table style={styles.table}>
-      <thead>
-        <tr>
-          <th style={styles.thtd}>Available Stocks</th>
-          <th style={styles.thtd}>Item Name</th>
-          <th style={styles.thtd}>Brand</th>
-          <th style={styles.thtd}>Price</th>
-          <th style={styles.thtd}>Total Value</th>
-          <th style={styles.thtd}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {stockInventory.length === 0 ? emptyRowComponent(6, "No stock data") :
-          stockInventory.map(i => (
-            <tr key={i.id}>
-              <td style={styles.thtd}>{i.stock}</td>
-              <td style={styles.thtd}>{i.item_name}</td>
-              <td style={styles.thtd}>{i.brand}</td>
-              <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
-              <td style={styles.thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
-              <td style={styles.thtd}>
-                <button
-                  style={{ ...styles.buttonSecondary, marginRight: 8 }}
-                  onClick={() => {
-                    setForm({
-                      id: i.id,
-                      item_name: i.item_name,
-                      brand: i.brand,
-                      price: i.unit_price,
-                      brandOptions: [i.brand],
-                    });
-                    setModalType("item");
-                    setShowModal(true);
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
-                  onClick={() => setConfirmAction({ type:"deleteItem", data:i })}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
-  </div>
-)}
+        {activeTab==="stock" && (
+          <div style={styles.card}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.thtd}>Available Stocks</th>
+                  <th style={styles.thtd}>Item Name</th>
+                  <th style={styles.thtd}>Brand</th>
+                  <th style={styles.thtd}>Price</th>
+                  <th style={styles.thtd}>Total Value</th>
+                  <th style={styles.thtd}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stockInventory.length === 0 ? emptyRowComponent(6, "No stock data") :
+                  stockInventory.map(i => (
+                    <tr key={i.id}>
+                      <td style={styles.thtd}>{i.stock}</td>
+                      <td style={styles.thtd}>{i.item_name}</td>
+                      <td style={styles.thtd}>{i.brand}</td>
+                      <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
+                      <td style={styles.thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
+                      <td style={styles.thtd}>
+                        <button
+                          style={{ ...styles.buttonSecondary, marginRight: 8 }}
+                          onClick={() => {
+                            setForm({
+                              id: i.id,
+                              item_name: i.item_name,
+                              brand: i.brand,
+                              price: i.unit_price,
+                              brandOptions: [i.brand],
+                            });
+                            setModalType("item");
+                            setShowModal(true);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
+                          onClick={() => setConfirmAction({ type:"deleteItem", data:i })}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* TRANSACTION TABLE */}
         {activeTab==="transactions" && (
@@ -544,7 +544,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ================= CONFIRM MODAL ================= */}
+       {/* ================= CONFIRM MODAL ================= */}
         {confirmAction && (
           <div style={styles.modalOverlay} onClick={() => setConfirmAction(null)}>
             <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
@@ -553,41 +553,39 @@ export default function App() {
               <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
                 <button style={styles.buttonPrimary} onClick={async () => {
                   const { type, data } = confirmAction;
+
                   if(type==="deleteItem") {
                     await supabase.from("items").update({ deleted:true }).eq("id", data.id);
                     await supabase.from("inventory_transactions").update({ deleted:true }).eq("item_id", data.id);
-                    setItems(prev => prev.map(i => i.id === data.id ? { ...i, deleted:true } : i));
-                    setTransactions(prev => prev.map(t => t.item_id === data.id ? { ...t, deleted:true } : t));
+                    loadData();
                   }
                   else if(type==="permanentDeleteItem") {
                     await supabase.from("items").delete().eq("id", data.id);
                     await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
-                    setItems(prev => prev.filter(i => i.id !== data.id));
-                    setTransactions(prev => prev.filter(t => t.item_id !== data.id));
+                    loadData();
                   }
                   else if(type==="restoreItem") {
                     await supabase.from("items").update({ deleted:false }).eq("id", data.id);
                     await supabase.from("inventory_transactions").update({ deleted:false }).eq("item_id", data.id);
-                    setItems(prev => prev.map(i => i.id === data.id ? { ...i, deleted:false } : i));
-                    setTransactions(prev => prev.map(t => t.item_id === data.id ? { ...t, deleted:false } : t));
+                    loadData();
                   }
                   else if(type==="deleteTx") {
                     await supabase.from("inventory_transactions").update({ deleted:true }).eq("id", data.id);
-                    setTransactions(prev => prev.map(t => t.id === data.id ? { ...t, deleted:true } : t));
+                    loadData();
                   }
                   else if(type==="permanentDeleteTx") {
                     await supabase.from("inventory_transactions").delete().eq("id", data.id);
-                    setTransactions(prev => prev.filter(t => t.id !== data.id));
+                    loadData();
                   }
                   else if(type==="restoreTx") {
                     await supabase.from("inventory_transactions").update({ deleted:false }).eq("id", data.id);
-                    setTransactions(prev => prev.map(t => t.id === data.id ? { ...t, deleted:false } : t));
+                    loadData(); // ✅ refresh stock immediately
                   }
 
                   setConfirmAction(null);
                 }}>Yes</button>
                 <button style={styles.buttonSecondary} onClick={() => setConfirmAction(null)}>Cancel</button>
-            </div>
+              </div>
             </div>
           </div>
         )}
