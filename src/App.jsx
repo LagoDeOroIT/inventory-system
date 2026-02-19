@@ -122,14 +122,16 @@ export default function App() {
   const handleFormChange = (key, value) => {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
+
+      // 🔹 Update brand options dynamically per stock room for both item and transaction modals
       if (key === "item_name") {
-        // Update brandOptions filtered by stock room
         const relatedBrands = items
           .filter(i => i.item_name === value && i.location === selectedStockRoom)
           .map(i => i.brand);
         updated.brandOptions = [...new Set(relatedBrands)];
         updated.brand = "";
       }
+
       return updated;
     });
   };
@@ -239,7 +241,7 @@ export default function App() {
   // ================= MAIN APP =================
   return (
     <div style={styles.container}>
-      {/* SIDEBAR */}
+      {/* ================= SIDEBAR ================= */}
       <div style={styles.sidebar}>
         <div>
           <div style={styles.sidebarHeader}>Lago De Oro</div>
@@ -261,7 +263,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* MAIN AREA */}
+      {/* ================= MAIN CONTENT ================= */}
       <div style={styles.main}>
         {/* ================= STOCK TAB ================= */}
         {activeTab==="stock" && (
@@ -426,11 +428,11 @@ export default function App() {
           </div>
         )}
 
-        {/* ================= MODAL ================= */}
+               {/* ================= MODAL ================= */}
         {showModal && (
           <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
             <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
-
+              
               {/* NEW OPTION MODAL */}
               {modalType === "newOption" && (
                 <>
@@ -453,53 +455,80 @@ export default function App() {
                 </>
               )}
 
-              {/* BRAND INPUT MODAL EXAMPLE */}
-        {showModal && modalType === "item" && (
-          <>
-            <h3>{form.id ? "Edit Item" : "New Item"}</h3>
-            <input style={styles.input} placeholder="Item Name" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
+              {/* ADD ITEM MODAL */}
+              {modalType === "item" && (
+                <>
+                  <h3>{form.id ? "Edit Item" : "New Item"}</h3>
+                  <input style={styles.input} placeholder="Item Name" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
 
-            {/* 🔹 BRAND INPUT WITH DATALIST */}
-            <input
-              style={styles.input}
-              placeholder="Brand"
-              value={form.brand}
-              onChange={e => handleFormChange("brand", e.target.value)}
-              list="brand-list"
-            />
-            <datalist id="brand-list">
-              {form.brandOptions.map(b => <option key={b} value={b} />)}
-            </datalist>
+                  {/* 🔹 BRAND SELECTOR (Stock-Room Aware) */}
+                  <input
+                    style={styles.input}
+                    list="brand-list-item"
+                    placeholder="Brand"
+                    value={form.brand}
+                    onChange={e => handleFormChange("brand", e.target.value)}
+                  />
+                  <datalist id="brand-list-item">
+                    {items
+                      .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom)
+                      .map(i => <option key={i.id} value={i.brand}>{i.brand}</option>)
+                    }
+                  </datalist>
 
-            <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
-            <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-              <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
-              <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+                  <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
+                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+                    <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+                  </div>
+                </>
+              )}
+
+              {/* ADD TRANSACTION MODAL */}
+              {modalType === "transaction" && (
+                <>
+                  <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
+
+                  <input style={styles.input} type="date" value={form.date} onChange={e => handleFormChange("date", e.target.value)} />
+
+                  <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
+                  <datalist id="items-list">
+                    {items.filter(i => i.location === selectedStockRoom).map(i => <option key={i.id} value={i.item_name}>{i.item_name}</option>)}
+                  </datalist>
+
+                  {/* 🔹 BRAND SELECTOR (Stock-Room Aware) */}
+                  <input
+                    style={styles.input}
+                    list="brand-list-tx"
+                    placeholder="Brand"
+                    value={form.brand}
+                    onChange={e => handleFormChange("brand", e.target.value)}
+                  />
+                  <datalist id="brand-list-tx">
+                    {items
+                      .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom)
+                      .map(i => <option key={i.id} value={i.brand}>{i.brand}</option>)
+                    }
+                  </datalist>
+
+                  <div style={styles.toggleGroup}>
+                    <button style={styles.toggleButton(form.type==="IN")} onClick={() => handleFormChange("type","IN")}>IN</button>
+                    <button style={styles.toggleButton(form.type==="OUT")} onClick={() => handleFormChange("type","OUT")}>OUT</button>
+                  </div>
+
+                  <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e => handleFormChange("quantity", e.target.value)} />
+                  <input style={styles.input} type="number" placeholder="Price per unit" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
+
+                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+                    <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+                  </div>
+                </>
+              )}
+
             </div>
-          </>
+          </div>
         )}
-
-        {/* TRANSACTION MODAL BRAND INPUT */}
-       {/* TRANSACTION MODAL BRAND INPUT */}
-        {showModal && modalType === "transaction" && (
-          <input
-            style={styles.input}
-            list="brand-list-tx"
-            placeholder="Brand"
-            value={form.brand}
-            onChange={e => handleFormChange("brand", e.target.value)}
-          />
-        )}
-        <datalist id="brand-list-tx">
-          {items
-            .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom)
-            .map(i => <option key={i.id} value={i.brand}>{i.brand}</option>)
-          }
-        </datalist>
-      </div>
-    </div>
-  );
-}
 
         {/* ================= CONFIRM MODAL ================= */}
         {confirmAction && (
