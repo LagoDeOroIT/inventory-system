@@ -125,7 +125,6 @@ export default function App() {
       if (key === "item_name") {
         const relatedBrands = items.filter(i => i.item_name === value).map(i => i.brand);
         updated.brandOptions = [...new Set(relatedBrands)];
-        // Reset brand if item_name changes
         updated.brand = "";
       }
       return updated;
@@ -159,11 +158,9 @@ export default function App() {
     if(modalType === "transaction") {
       if(!form.item_name || !form.brand || !form.quantity || !form.date) return alert("Fill required fields");
 
-      // Find item based on both name + brand
       let existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted);
 
       if(!existingItem) {
-        // If no such item exists, open modal to add item first
         setModalTypeBeforeItem("transaction");
         setModalType("item");
         setShowModal(true);
@@ -299,6 +296,9 @@ export default function App() {
         )}
 
         {/* ================= TRANSACTIONS TAB ================= */}
+        {/* MAIN AREA */}
+      <div style={styles.main}>
+        {/* TRANSACTION TABLE */}
         {activeTab==="transactions" && (
           <div style={styles.card}>
             <input style={styles.input} placeholder="Search..." value={inSearch} onChange={e=>setInSearch(e.target.value)} />
@@ -326,12 +326,30 @@ export default function App() {
                     <td style={styles.thtd}>{t.quantity}</td>
                     <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
                     <td style={styles.thtd}>
-                      <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => { 
-                        const relatedBrands = items.filter(i => i.item_name === t.items?.item_name).map(i => i.brand);
-                        setForm({ id: t.id, date: t.date, item_id: t.item_id, item_name: t.items?.item_name || "", brand: t.brand, brandOptions:[...new Set(relatedBrands)], type: t.type, quantity: t.quantity, price: t.unit_price || t.items?.unit_price || 0 }); 
-                        setModalType("transaction"); 
-                        setShowModal(true); 
-                      }}>Edit</button>
+                      <button
+                        style={{ ...styles.buttonSecondary, marginRight: 8 }}
+                        onClick={() => { 
+                          const relatedBrands = items
+                            .filter(i => i.item_name === t.items?.item_name && i.location === selectedStockRoom)
+                            .map(i => i.brand);
+
+                          setForm({
+                            id: t.id,
+                            date: t.date,
+                            item_id: t.item_id,
+                            item_name: t.items?.item_name || "",
+                            brand: t.brand,
+                            brandOptions: [...new Set(relatedBrands)],
+                            type: t.type,
+                            quantity: t.quantity,
+                            price: t.unit_price || t.items?.unit_price || 0
+                          }); 
+                          setModalType("transaction"); 
+                          setShowModal(true); 
+                        }}
+                      >
+                        Edit
+                      </button>
                       <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"deleteTx", data:t })}>Delete</button>
                     </td>
                   </tr>
