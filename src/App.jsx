@@ -123,7 +123,10 @@ export default function App() {
     setForm(prev => {
       const updated = { ...prev, [key]: value };
       if (key === "item_name") {
-        const relatedBrands = items.filter(i => i.item_name === value).map(i => i.brand);
+        // Update brandOptions filtered by stock room
+        const relatedBrands = items
+          .filter(i => i.item_name === value && i.location === selectedStockRoom)
+          .map(i => i.brand);
         updated.brandOptions = [...new Set(relatedBrands)];
         updated.brand = "";
       }
@@ -477,41 +480,22 @@ export default function App() {
         )}
 
         {/* TRANSACTION MODAL BRAND INPUT */}
+       {/* TRANSACTION MODAL BRAND INPUT */}
         {showModal && modalType === "transaction" && (
-          <>
-            <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
-
-            <input style={styles.input} type="date" value={form.date} onChange={e => handleFormChange("date", e.target.value)} />
-            <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
-            <datalist id="items-list">
-              {items.filter(i => i.location === selectedStockRoom).map(i => <option key={i.id} value={i.item_name}>{i.item_name}</option>)}
-            </datalist>
-
-            <input
-              style={styles.input}
-              placeholder="Brand"
-              value={form.brand}
-              onChange={e => handleFormChange("brand", e.target.value)}
-              list="brand-list-tx"
-            />
-            <datalist id="brand-list-tx">
-              {form.brandOptions.map(b => <option key={b} value={b} />)}
-            </datalist>
-
-            <div style={styles.toggleGroup}>
-              <button style={styles.toggleButton(form.type==="IN")} onClick={() => handleFormChange("type","IN")}>IN</button>
-              <button style={styles.toggleButton(form.type==="OUT")} onClick={() => handleFormChange("type","OUT")}>OUT</button>
-            </div>
-
-            <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e => handleFormChange("quantity", e.target.value)} />
-            <input style={styles.input} type="number" placeholder="Price per unit" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
-
-            <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-              <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
-              <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-            </div>
-          </>
+          <input
+            style={styles.input}
+            list="brand-list-tx"
+            placeholder="Brand"
+            value={form.brand}
+            onChange={e => handleFormChange("brand", e.target.value)}
+          />
         )}
+        <datalist id="brand-list-tx">
+          {items
+            .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom)
+            .map(i => <option key={i.id} value={i.brand}>{i.brand}</option>)
+          }
+        </datalist>
       </div>
     </div>
   );
@@ -560,7 +544,7 @@ export default function App() {
                   setConfirmAction(null);
                 }}>Yes</button>
                 <button style={styles.buttonSecondary} onClick={() => setConfirmAction(null)}>Cancel</button>
-              </div>
+             </div>
             </div>
           </div>
         )}
