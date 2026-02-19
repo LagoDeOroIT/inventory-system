@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -19,8 +19,8 @@ const styles = {
   title: { fontSize: 28, fontWeight: 700, color: "#111827" },
   buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
   buttonSecondary: { background: "#e5e7eb", color: "#374151", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
-  card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)", marginBottom: 24 },
-  table: { width: "100%", borderCollapse: "collapse", marginTop: 16 },
+  card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
+  table: { width: "100%", borderCollapse: "collapse" },
   thtd: { border: "1px solid #e5e7eb", padding: 8, textAlign: "left" },
   emptyRow: { textAlign: "center", padding: 12, color: "#6b7280" },
   modalOverlay: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 },
@@ -38,7 +38,10 @@ const styles = {
     fontWeight: 600,
   }),
   newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
-  categoryHeader: { fontWeight: 700, marginTop: 24, fontSize: 18, color: "#111827" },
+  tableContainer: { maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 8, marginTop: 12 },
+  stickyTitle: { position: "sticky", top: 0, background: "#fff", zIndex: 3, padding: 12, fontWeight: 700, fontSize: 20 },
+  stickyCategory: { position: "sticky", top: 40, background: "#f3f4f6", zIndex: 2, fontWeight: 700, padding: 8 },
+  stickyHeader: { position: "sticky", top: 72, background: "#f9fafb", zIndex: 1 },
 };
 
 export default function App() {
@@ -52,20 +55,19 @@ export default function App() {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
-  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], category:"", categoryOptions:[], type:"IN", quantity:"", price:"", id: null });
+  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id: null, category:"" });
   const [confirmAction, setConfirmAction] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState("");
 
-  // ================= STOCK ROOMS =================
-  const [stockRooms, setStockRooms] = useState([
-    { name:"L1", category:"" }, { name:"L2 Room 1", category:"" }, { name:"L2 Room 2", category:"" }, 
-    { name:"L2 Room 3", category:"" }, { name:"L2 Room 4", category:"" }, { name:"L3", category:"" }, 
-    { name:"L5", category:"" }, { name:"L6", category:"" }, { name:"L7", category:"" },
-    { name:"Maintenance Bodega 1", category:"" }, { name:"Maintenance Bodega 2", category:"" },
-    { name:"Maintenance Bodega 3", category:"" }, { name:"SKI Stock Room", category:"" }, { name:"Quarry Stock Room", category:"" }
-  ]);
+  const tableContainerRef = useRef(null);
+
+  const stockRooms = [
+    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
+    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
+  ];
 
   // ================= AUTH =================
   useEffect(() => {
@@ -91,9 +93,8 @@ export default function App() {
   const loadData = async () => {
     const { data: itemsData } = await supabase.from("items").select("*");
     const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
-
     const { data: tx } = await supabase.from("inventory_transactions")
-      .select("*, items(item_name, brand, unit_price, location, category)")
+      .select("*, items(item_name, brand, unit_price, location)")
       .order("date", { ascending: false });
     const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
 
@@ -109,43 +110,32 @@ export default function App() {
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
     .map(i => {
       const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
-      const stock = related.reduce((sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)), 0);
-      const room = stockRooms.find(r => r.name === i.location);
-      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location, category: room?.category || "Uncategorized" };
-    });
+      const stock = related.reduce(
+        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
+        0
+      );
+      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location, category: i.category || "Uncategorized" };
+    })
+    .sort((a,b) => a.category.localeCompare(b.category));
 
-  const stockGroupedByCategory = stockInventory.reduce((acc, item) => {
-    const cat = item.category || "Uncategorized";
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(item);
-    return acc;
-  }, {});
+  // ================= SCROLL HANDLER =================
+  const handleScroll = () => {
+    const container = tableContainerRef.current;
+    if (!container) return;
+    const rows = Array.from(container.querySelectorAll("tbody tr"));
+    const scrollTop = container.scrollTop;
 
-  // ================= FORM HANDLER =================
-  const handleFormChange = (key, value) => {
-    setForm(prev => {
-      const updated = { ...prev, [key]: value };
-      if (key === "item_name") {
-        const selectedItem = items.find(i => i.item_name === value && !i.deleted);
-        if (selectedItem) {
-          updated.item_id = selectedItem.id;
-          updated.brand = selectedItem.brand;
-          updated.price = selectedItem.unit_price;
-          updated.category = selectedItem.category || "";
-          const relatedBrands = items.filter(i => i.item_name === value).map(i => i.brand);
-          updated.brandOptions = [...new Set(relatedBrands)];
-        } else {
-          updated.item_id = "";
-          updated.brand = "";
-          updated.price = "";
-          updated.brandOptions = [];
-          updated.category = "";
-        }
+    for (let row of rows) {
+      const rect = row.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      if (rect.top - containerRect.top >= 0) {
+        setCurrentCategory(row.dataset.category);
+        break;
       }
-      return updated;
-    });
+    }
   };
 
+  // ================= EMPTY ROW =================
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
 
   // ================= AUTH SCREEN =================
@@ -181,7 +171,7 @@ export default function App() {
           <div style={styles.sidebarHeader}>Lago De Oro</div>
           <select style={styles.sidebarSelect} value={selectedStockRoom} onChange={e=>setSelectedStockRoom(e.target.value)}>
             <option value="">Select Stock Room</option>
-            {stockRooms.map(r => <option key={r.name} value={r.name}>{r.name}</option>)}
+            {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
           <div style={styles.sidebarTabs}>
             <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
@@ -192,45 +182,49 @@ export default function App() {
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap: 8, marginTop:16 }}>
           {session?.user?.email && <div style={{ color:"#fff", marginBottom:8, fontSize:14, fontWeight:500 }}>Logged in as:<br />{session.user.email}</div>}
-          <button style={styles.buttonPrimary} onClick={() => alert("New item/transaction modal logic here")}>+ New</button>
+          <button style={styles.buttonPrimary} onClick={() => alert("New Item/Transaction modal logic")}>+ New</button>
           <button style={{...styles.buttonSecondary, background:"#ef4444", color:"#fff"}} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
         </div>
       </div>
 
       {/* MAIN AREA */}
       <div style={styles.main}>
-        {/* ================= STOCK TAB ================= */}
         {activeTab==="stock" && (
-          <>
-            {Object.keys(stockGroupedByCategory).length === 0 && <p>No items found.</p>}
-            {Object.entries(stockGroupedByCategory).map(([category, items]) => (
-              <div key={category} style={styles.card}>
-                <div style={styles.categoryHeader}>{category}</div>
-                <table style={styles.table}>
-                  <thead>
-                    <tr>
-                      <th style={styles.thtd}>Item Name</th>
-                      <th style={styles.thtd}>Brand</th>
-                      <th style={styles.thtd}>Quantity</th>
-                      <th style={styles.thtd}>Unit Price</th>
-                      <th style={styles.thtd}>Stock Room</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.map(i => (
-                      <tr key={i.id}>
+          <div style={styles.card}>
+            <div style={styles.stickyTitle}>📦 Stock Inventory</div>
+            <div style={styles.stickyCategory}>Category: {currentCategory || (stockInventory[0]?.category || "Uncategorized")}</div>
+            <div style={styles.tableContainer} ref={tableContainerRef} onScroll={handleScroll}>
+              <table style={styles.table}>
+                <thead>
+                  <tr style={styles.stickyHeader}>
+                    <th>Item Name</th>
+                    <th>Brand</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stockInventory.length === 0 ? emptyRowComponent(6,"No stock data") :
+                    stockInventory.map(i => (
+                      <tr key={i.id} data-category={i.category}>
                         <td style={styles.thtd}>{i.item_name}</td>
                         <td style={styles.thtd}>{i.brand}</td>
+                        <td style={styles.thtd}>{i.quantity || 0}</td>
+                        <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
                         <td style={styles.thtd}>{i.stock}</td>
-                        <td style={styles.thtd}>{i.unit_price}</td>
-                        <td style={styles.thtd}>{i.location}</td>
+                        <td style={styles.thtd}>
+                          <button style={{ ...styles.buttonSecondary, marginRight: 8 }} onClick={() => alert("Edit logic")}>Edit</button>
+                          <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => alert("Delete logic")}>Delete</button>
+                        </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ))}
-          </>
+                    ))
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
 
         {/* TRANSACTION TABLE */}
