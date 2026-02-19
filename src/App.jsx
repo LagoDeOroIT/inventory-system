@@ -573,7 +573,7 @@ export default function App() {
                   setConfirmAction(null);
                 }}>Yes</button>
                 <button style={styles.buttonSecondary} onClick={() => setConfirmAction(null)}>Cancel</button>
-             </div>
+            </div>
             </div>
           </div>
         )}
