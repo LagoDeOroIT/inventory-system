@@ -511,10 +511,10 @@ export default function App() {
               <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
               <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
              </div>
-            </div>
-          </div>
+          </>
         )}
+
       </div>
     </div>
-  );
-}
+  )}
+</div>
