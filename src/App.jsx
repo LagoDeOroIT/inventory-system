@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
@@ -20,7 +20,7 @@ const styles = {
   buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
   buttonSecondary: { background: "#e5e7eb", color: "#374151", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
   card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
-  table: { width: "100%", borderCollapse: "collapse" },
+  table: { width: "100%", borderCollapse: "collapse", marginTop: 16 },
   thtd: { border: "1px solid #e5e7eb", padding: 8, textAlign: "left" },
   emptyRow: { textAlign: "center", padding: 12, color: "#6b7280" },
   modalOverlay: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 },
@@ -38,14 +38,10 @@ const styles = {
     fontWeight: 600,
   }),
   newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
-  tableContainer: { maxHeight: 400, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 8, marginTop: 12 },
-  stickyTitle: { position: "sticky", top: 0, background: "#fff", zIndex: 3, padding: 12, fontWeight: 700, fontSize: 20 },
-  stickyCategory: { position: "sticky", top: 40, background: "#f3f4f6", zIndex: 2, fontWeight: 700, padding: 8 },
-  stickyHeader: { position: "sticky", top: 72, background: "#f9fafb", zIndex: 1 },
 };
 
+// ================= APP COMPONENT =================
 export default function App() {
-  // ================= STATE =================
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -55,14 +51,11 @@ export default function App() {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
-  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id: null, category:"" });
+  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id: null });
   const [confirmAction, setConfirmAction] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
-  const [currentCategory, setCurrentCategory] = useState("");
-
-  const tableContainerRef = useRef(null);
 
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
@@ -93,6 +86,7 @@ export default function App() {
   const loadData = async () => {
     const { data: itemsData } = await supabase.from("items").select("*");
     const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
+
     const { data: tx } = await supabase.from("inventory_transactions")
       .select("*, items(item_name, brand, unit_price, location)")
       .order("date", { ascending: false });
@@ -104,7 +98,11 @@ export default function App() {
 
   useEffect(() => { if(session) loadData(); }, [session]);
 
-  // ================= STOCK INVENTORY =================
+  // ================= FILTERS =================
+  const filteredTransactions = transactions
+    .filter(t => !t.deleted)
+    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+
   const stockInventory = items
     .filter(i => !i.deleted)
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
@@ -114,24 +112,106 @@ export default function App() {
         (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
         0
       );
-      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location, category: i.category || "Uncategorized" };
-    })
-    .sort((a,b) => a.category.localeCompare(b.category));
+      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
+    });
 
-  // ================= SCROLL HANDLER =================
-  const handleScroll = () => {
-    const container = tableContainerRef.current;
-    if (!container) return;
-    const rows = Array.from(container.querySelectorAll("tbody tr"));
-    const scrollTop = container.scrollTop;
+  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
+  const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
-    for (let row of rows) {
-      const rect = row.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-      if (rect.top - containerRect.top >= 0) {
-        setCurrentCategory(row.dataset.category);
-        break;
+  // ================= FORM HANDLER =================
+  const handleFormChange = (key, value) => {
+    setForm(prev => {
+      const updated = { ...prev, [key]: value };
+      if (key === "item_name") {
+        const relatedItems = items.filter(i => i.item_name === value && !i.deleted && i.location === selectedStockRoom);
+        if (relatedItems.length > 0) {
+          updated.item_id = relatedItems[0].id;
+          updated.brand = relatedItems[0].brand;
+          updated.price = relatedItems[0].unit_price;
+          updated.brandOptions = [...new Set(relatedItems.map(i => i.brand))];
+        } else {
+          updated.item_id = "";
+          updated.brand = "";
+          updated.price = "";
+          updated.brandOptions = [];
+        }
       }
+      return updated;
+    });
+  };
+
+  const openNewItemModal = () => {
+    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+    setModalType("item");
+    setShowModal(true);
+  };
+
+  const openNewTransactionModal = () => {
+    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+    setModalType("transaction");
+    setShowModal(true);
+  };
+
+  const handleNewClick = () => {
+    if(!selectedStockRoom) {
+      setModalType("stockRoomPrompt");
+      setShowModal(true);
+    } else {
+      setModalType("newOption");
+      setShowModal(true);
+    }
+  };
+
+  // ================= SUBMIT =================
+  const handleSubmit = async () => {
+    if(modalType === "transaction") {
+      if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
+      const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
+      if(!existingItem) {
+        setModalTypeBeforeItem("transaction");
+        setModalType("item");
+        setShowModal(true);
+        return;
+      }
+      const txData = {
+        date: form.date,
+        item_id: existingItem.id,
+        brand: form.brand || existingItem.brand,
+        type: form.type,
+        quantity: Number(form.quantity),
+        location: selectedStockRoom,
+        unit_price: Number(form.price || existingItem.unit_price || 0)
+      };
+      if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
+      else await supabase.from("inventory_transactions").insert([txData]);
+
+      // 🔹 auto-refresh immediately
+      loadData();
+
+      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+      setShowModal(false);
+      setModalType("");
+    } else if(modalType === "item") {
+      if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
+      const itemData = { item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom };
+      if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
+      else {
+        const { data } = await supabase.from("items").insert([itemData]);
+        if(data?.length && modalTypeBeforeItem === "transaction") {
+          setForm(prev => ({ ...prev, item_id: data[0].id }));
+          setModalType("transaction");
+          setShowModal(true);
+          setModalTypeBeforeItem("");
+          return;
+        }
+      }
+
+      // 🔹 auto-refresh immediately
+      loadData();
+
+      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+      setShowModal(false);
+      setModalType("");
     }
   };
 
