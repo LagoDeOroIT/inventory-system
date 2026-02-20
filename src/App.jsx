@@ -482,7 +482,6 @@ export default function App() {
   )}
 
 {/* ================= MODALS ================= */}
-{/* New Item / Transaction / Stock Room Selector */}
 {showModal && (
   <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
     <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
@@ -505,7 +504,6 @@ export default function App() {
               style={styles.buttonPrimary}
               disabled={!form.location}
               onClick={() => {
-                // proceed to choose what to add
                 setModalType("newOption");
               }}
             >
@@ -692,7 +690,12 @@ export default function App() {
           setConfirmAction(null);
         }}>Yes</button>
         <button style={styles.buttonSecondary} onClick={() => setConfirmAction(null)}>Cancel</button>
-        </div>
+      </div>
     </div>
   </div>
 )}
+
+</div> {/* closes main */}
+</div> {/* closes container */}
+);    {/* closes return */}
+}     {/* closes App component */}
