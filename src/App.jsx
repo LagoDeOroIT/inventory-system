@@ -595,5 +595,8 @@ export default function App() {
         </div>
       </div>
     </div>
-  )}
-</div>
+    )}
+</div>   {/* closes main */}
+</div>   {/* closes container */}
+);
+}
