@@ -120,25 +120,31 @@ export default function App() {
 
   // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
-    setForm(prev => {
-      const updated = { ...prev, [key]: value };
-      if (key === "item_name") {
-        const relatedItems = items.filter(i => i.item_name === value && !i.deleted && i.location === selectedStockRoom);
-        if (relatedItems.length > 0) {
-          updated.item_id = relatedItems[0].id;
-          updated.brand = relatedItems[0].brand;
-          updated.price = relatedItems[0].unit_price;
-          updated.brandOptions = [...new Set(relatedItems.map(i => i.brand))];
-        } else {
-          updated.item_id = "";
-          updated.brand = "";
-          updated.price = "";
-          updated.brandOptions = [];
-        }
-      }
-      return updated;
-    });
-  };
+  setForm(prev => {
+    const updated = { ...prev, [key]: value };
+
+    if (key === "item_name") {
+      // Reset brand when changing item
+      updated.brand = "";
+
+      // Optional: if only one brand exists, pre-select it
+      const relatedBrands = items
+        .filter(i => i.item_name === value && i.location === selectedStockRoom && !i.deleted)
+        .map(i => i.brand);
+      if (relatedBrands.length === 1) updated.brand = relatedBrands[0];
+    }
+
+    if (key === "brand") {
+      // Optional: auto-fill price based on selected item + brand
+      const selectedItem = items.find(
+        i => i.item_name === prev.item_name && i.brand === value && i.location === selectedStockRoom
+      );
+      if (selectedItem) updated.price = selectedItem.unit_price;
+    }
+
+    return updated;
+  });
+};
 
   const openNewItemModal = () => {
     setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
@@ -484,12 +490,7 @@ export default function App() {
                     value={form.brand}
                     onChange={e => handleFormChange("brand", e.target.value)}
                   />
-                  <datalist id="brand-list-item">
-                    {items
-                      .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom)
-                      .map(i => <option key={i.id} value={i.brand}>{i.brand}</option>)
-                    }
-                  </datalist>
+                 
 
                   <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
                   <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
@@ -506,25 +507,39 @@ export default function App() {
 
                   <input style={styles.input} type="date" value={form.date} onChange={e => handleFormChange("date", e.target.value)} />
 
-                  <input style={styles.input} list="items-list" placeholder="Select Item" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
-                  <datalist id="items-list">
-                    {items.filter(i => i.location === selectedStockRoom).map(i => <option key={i.id} value={i.item_name}>{i.item_name}</option>)}
-                  </datalist>
+                  <select
+  style={styles.input}
+  value={form.item_name}
+  onChange={e => handleFormChange("item_name", e.target.value)}
+>
+  <option value="">Select Item</option>
+  {[
+    ...new Set(
+      items
+        .filter(i => i.location === selectedStockRoom && !i.deleted)
+        .map(i => i.item_name)
+    )
+  ].map(itemName => (
+    <option key={itemName} value={itemName}>{itemName}</option>
+  ))}
+</select>
 
                   {/* 🔹 BRAND SELECTOR (Stock-Room Aware) */}
-                  <input
-                    style={styles.input}
-                    list="brand-list-tx"
-                    placeholder="Brand"
-                    value={form.brand}
-                    onChange={e => handleFormChange("brand", e.target.value)}
-                  />
-                  <datalist id="brand-list-tx">
-                    {items
-                      .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom)
-                      .map(i => <option key={i.id} value={i.brand}>{i.brand}</option>)
-                    }
-                  </datalist>
+                  <select
+  style={styles.input}
+  value={form.brand}
+  onChange={e => handleFormChange("brand", e.target.value)}
+  disabled={!form.item_name} // disabled until an item is selected
+>
+  <option value="">Select Brand</option>
+  {items
+    .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom && !i.deleted)
+    .map(i => i.brand)
+    .filter((brand, index, self) => self.indexOf(brand) === index) // unique brands
+    .map(brand => (
+      <option key={brand} value={brand}>{brand}</option>
+    ))}
+</select>
 
                   <div style={styles.toggleGroup}>
                     <button style={styles.toggleButton(form.type==="IN")} onClick={() => handleFormChange("type","IN")}>IN</button>
