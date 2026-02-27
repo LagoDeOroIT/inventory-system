@@ -167,12 +167,13 @@ export default function App() {
     if(modalType === "transaction") {
       if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
       const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
-      if(!existingItem) {
-        setModalTypeBeforeItem("transaction");
-        setModalType("item");
-        setShowModal(true);
-        return;
-      }
+     if(!existingItem) {
+  setConfirmAction({
+    type: "createItemConfirm",
+    data: { ...form }
+  });
+  return;
+}
       const txData = {
         date: form.date,
         item_id: existingItem.id,
@@ -549,8 +550,12 @@ export default function App() {
           <div style={styles.modalOverlay} onClick={() => setConfirmAction(null)}>
             <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
               <h3>Confirm Action</h3>
-              <p>Are you sure you want to {confirmAction.type.includes("delete") ? "delete" : "restore"} this {confirmAction.type.includes("Tx") ? "transaction" : "item"}?</p>
-              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+<p>
+  {confirmAction.type === "createItemConfirm"
+    ? "This item does not exist. Do you want to create a new item?"
+    : `Are you sure you want to ${confirmAction.type.includes("delete") ? "delete" : "restore"} this ${confirmAction.type.includes("Tx") ? "transaction" : "item"}?`
+  }
+</p>              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
                 <button style={styles.buttonPrimary} onClick={async () => {
                   const { type, data } = confirmAction;
 
@@ -580,6 +585,11 @@ export default function App() {
                   else if(type==="restoreTx") {
                     await supabase.from("inventory_transactions").update({ deleted:false }).eq("id", data.id);
                     loadData(); // ✅ refresh stock immediately
+                  }
+                  else if(type === "createItemConfirm") {
+                  setModalTypeBeforeItem("transaction");
+                  setModalType("item");
+                  setShowModal(true);
                   }
 
                   setConfirmAction(null);
