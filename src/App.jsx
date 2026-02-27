@@ -58,7 +58,7 @@ export default function App() {
   const [isSignUp, setIsSignUp] = useState(false);
 
   const stockRooms = [
-    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L5","L6","L7",
+    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
     "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
   ];
 
