@@ -66,47 +66,30 @@ export default function App() {
   // ================= AUTH =================
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => setSession(session));
     return () => data.subscription.unsubscribe();
   }, []);
 
-  const [allowedStockRooms, setAllowedStockRooms] = useState([]);
+  // Load user-allowed stock rooms
+  useEffect(() => {
+    if (!session) return;
+    const loadUserRooms = async () => {
+      const { data, error } = await supabase
+        .from("user_stock_rooms")
+        .select("stock_room")
+        .eq("user_id", session.user.id);
+      if (error) return alert(error.message);
+      setAllowedStockRooms(data.map(r => r.stock_room));
+      if (data.length > 0) setSelectedStockRoom(data[0]);
+    };
+    loadUserRooms();
+  }, [session]);
 
-    useEffect(() => {
-        if (!session) return;
-    
-        const loadUserRooms = async () => {
-          const { data, error } = await supabase
-            .from("user_stock_rooms")
-            .select("stock_room")
-            .eq("user_id", session.user.id);
-    
-          if (error) return alert(error.message);
-          setAllowedStockRooms(data.map(r => r.stock_room));
-          if (data.length > 0) setSelectedStockRoom(data[0]); // default to first
-        };
-    
-        loadUserRooms();
-      }, [session]);
-    
-      // ✅ Place isAdmin & roomsToShow here, after session & allowedStockRooms
-      const isAdmin = session?.user?.role === "admin";
-      const roomsToShow = isAdmin ? stockRooms : allowedStockRooms;
-    
-      return (
-        <div style={styles.container}>
-          <div style={styles.sidebar}>
-            {/* Use roomsToShow in the select */}
-            <select
-              style={styles.sidebarSelect}
-              value={selectedStockRoom}
-              onChange={e => setSelectedStockRoom(e.target.value)}
-            >
-              <option value="">Select Stock Room</option>
-              {roomsToShow.map(r => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
+  // ====== COMPUTED ======
+  const isAdmin = session?.user?.role === "admin";
+  const roomsToShow = isAdmin ? stockRooms : allowedStockRooms;
+
+  // ====== FUNCTIONS ======
   const handleAuth = async () => {
     if (!authEmail || !authPassword) return alert("Fill email and password");
     let result;
@@ -119,6 +102,70 @@ export default function App() {
       if (result.error) return alert(result.error.message);
     }
   };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+  };
+
+  // ====== RENDER ======
+  if (!session) {
+    return (
+      <div style={{ padding: 40, textAlign: "center" }}>
+        <h2>{isSignUp ? "Sign Up for Inventory" : "Inventory Login"}</h2>
+        <input
+          style={{ marginBottom: 12, padding: 8, width: 250 }}
+          placeholder="Email"
+          value={authEmail}
+          onChange={e => setAuthEmail(e.target.value)}
+        />
+        <input
+          style={{ marginBottom: 12, padding: 8, width: 250 }}
+          type="password"
+          placeholder="Password"
+          value={authPassword}
+          onChange={e => setAuthPassword(e.target.value)}
+        />
+        <button style={{ ...styles.buttonPrimary, marginBottom: 12 }} onClick={handleAuth}>
+          {isSignUp ? "Sign Up" : "Login"}
+        </button>
+        <div>
+          <button style={styles.buttonSecondary} onClick={() => setIsSignUp(!isSignUp)}>
+            {isSignUp ? "Already have an account? Login" : "Don't have an account? Sign Up"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.sidebar}>
+        <div>
+          <h3 style={{ marginBottom: 12 }}>Stock Rooms</h3>
+          <select
+            style={styles.sidebarSelect}
+            value={selectedStockRoom}
+            onChange={e => setSelectedStockRoom(e.target.value)}
+          >
+            <option value="">Select Stock Room</option>
+            {roomsToShow.map(r => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <p style={{ color: "#fff", marginBottom: 8 }}>Logged in as: {session.user.email}</p>
+          <button style={styles.buttonPrimary} onClick={handleLogout}>Logout</button>
+        </div>
+      </div>
+      <div style={{ flex: 1, padding: 24 }}>
+        <h2>Welcome to Inventory</h2>
+        <p>Selected Stock Room: {selectedStockRoom || "None"}</p>
+      </div>
+    </div>
+  );
+}
 
   // ================= LOAD DATA =================
   const loadData = async () => {
