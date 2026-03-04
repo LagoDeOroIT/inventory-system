@@ -117,7 +117,43 @@ export default function App() {
 
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
   const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+  // ================= MONTHLY REPORT STATE =================
+const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
+const [reportYear, setReportYear] = useState(new Date().getFullYear());
 
+// ================= MONTHLY REPORT LOGIC =================
+const monthlyTransactions = filteredTransactions.filter(t => {
+  if (!t.date) return false;
+  const txDate = new Date(t.date);
+  return (
+    txDate.getMonth() + 1 === Number(reportMonth) &&
+    txDate.getFullYear() === Number(reportYear)
+  );
+});
+
+const monthlySummary = monthlyTransactions.reduce((acc, t) => {
+  const total =
+    (Number(t.quantity) || 0) *
+    (Number(t.unit_price) || Number(t.items?.unit_price) || 0);
+
+  if (t.type === "IN") {
+    acc.totalInQty += Number(t.quantity) || 0;
+    acc.totalInValue += total;
+  } else {
+    acc.totalOutQty += Number(t.quantity) || 0;
+    acc.totalOutValue += total;
+  }
+
+  return acc;
+}, {
+  totalInQty: 0,
+  totalOutQty: 0,
+  totalInValue: 0,
+  totalOutValue: 0
+});
+
+const netValue =
+  monthlySummary.totalInValue - monthlySummary.totalOutValue;
   // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
   setForm(prev => {
