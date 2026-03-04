@@ -429,7 +429,7 @@ const netValue =
             alignItems: "flex-start"
           }}>
          
-            <div style={{ flex: 1, background:"#f9fafb", padding:20, borderRadius:10 }}>
+            <div style={{ flex: 1, background:"#f9fafb", padding:10, borderRadius:10 }}>
             <h2>Deleted Inventory</h2>
             <table style={styles.table}>
               <thead>
@@ -457,7 +457,7 @@ const netValue =
             </table>
               </div>
             
-            <div style={{ flex: 1, background:"#f9fafb", padding:20, borderRadius:10 }}>
+            <div style={{ flex: 1, background:"#f9fafb", padding:10, borderRadius:10 }}>
             <h2>Deleted Transactions</h2>
             <table style={styles.table}>
               <thead>
