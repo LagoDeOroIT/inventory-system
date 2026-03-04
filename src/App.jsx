@@ -449,6 +449,182 @@ export default function App() {
           </div>
         )}
 
+        {/* ================= PROFESSIONAL MONTHLY REPORT ================= */}
+{activeTab === "report" && (
+  <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+
+    {/* HEADER */}
+    <div style={{
+      background: "#111827",
+      color: "#fff",
+      padding: 20,
+      borderRadius: 10
+    }}>
+      <h2 style={{ margin: 0 }}>Lago De Oro Inventory Monthly Report</h2>
+      <p style={{ margin: "4px 0 0 0", opacity: 0.8 }}>
+        {new Date(0, reportMonth - 1).toLocaleString("default", { month: "long" })} {reportYear}
+        {selectedStockRoom && ` — ${selectedStockRoom}`}
+      </p>
+    </div>
+
+    {/* FILTERS */}
+    <div style={{ display: "flex", gap: 12 }}>
+      <select
+        style={styles.input}
+        value={reportMonth}
+        onChange={e => setReportMonth(Number(e.target.value))}
+      >
+        {[...Array(12)].map((_, i) => (
+          <option key={i+1} value={i+1}>
+            {new Date(0, i).toLocaleString("default", { month: "long" })}
+          </option>
+        ))}
+      </select>
+
+      <input
+        style={styles.input}
+        type="number"
+        value={reportYear}
+        onChange={e => setReportYear(Number(e.target.value))}
+      />
+    </div>
+
+    {/* KPI SUMMARY */}
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: 16
+    }}>
+      <div style={{ ...styles.card, borderLeft: "6px solid #10b981" }}>
+        <h4>Total IN</h4>
+        <p>{monthlySummary.totalInQty} units</p>
+        <strong>₱{monthlySummary.totalInValue.toFixed(2)}</strong>
+      </div>
+
+      <div style={{ ...styles.card, borderLeft: "6px solid #ef4444" }}>
+        <h4>Total OUT</h4>
+        <p>{monthlySummary.totalOutQty} units</p>
+        <strong>₱{monthlySummary.totalOutValue.toFixed(2)}</strong>
+      </div>
+
+      <div style={{
+        ...styles.card,
+        background: netValue >= 0 ? "#ecfdf5" : "#fef2f2",
+        borderLeft: `6px solid ${netValue >= 0 ? "#10b981" : "#ef4444"}`
+      }}>
+        <h4>Net Movement</h4>
+        <strong style={{ fontSize: 18 }}>
+          ₱{netValue.toFixed(2)}
+        </strong>
+      </div>
+    </div>
+
+    {/* PER ITEM SUMMARY */}
+    <div style={styles.card}>
+      <h3>Per Item Summary</h3>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.thtd}>Item</th>
+            <th style={styles.thtd}>Brand</th>
+            <th style={styles.thtd}>Total IN</th>
+            <th style={styles.thtd}>Total OUT</th>
+            <th style={styles.thtd}>Net Qty</th>
+            <th style={styles.thtd}>Net Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(() => {
+            const grouped = {};
+
+            monthlyTransactions.forEach(t => {
+              const key = `${t.items?.item_name}-${t.items?.brand}`;
+              if (!grouped[key]) {
+                grouped[key] = {
+                  item: t.items?.item_name,
+                  brand: t.items?.brand,
+                  inQty: 0,
+                  outQty: 0,
+                  inVal: 0,
+                  outVal: 0
+                };
+              }
+
+              const total = (t.quantity || 0) *
+                (t.unit_price || t.items?.unit_price || 0);
+
+              if (t.type === "IN") {
+                grouped[key].inQty += Number(t.quantity);
+                grouped[key].inVal += total;
+              } else {
+                grouped[key].outQty += Number(t.quantity);
+                grouped[key].outVal += total;
+              }
+            });
+
+            const rows = Object.values(grouped);
+
+            if (rows.length === 0)
+              return emptyRowComponent(6, "No data for this month");
+
+            return rows.map((r, index) => {
+              const netQty = r.inQty - r.outQty;
+              const netVal = r.inVal - r.outVal;
+
+              return (
+                <tr key={index}>
+                  <td style={styles.thtd}>{r.item}</td>
+                  <td style={styles.thtd}>{r.brand}</td>
+                  <td style={styles.thtd}>{r.inQty}</td>
+                  <td style={styles.thtd}>{r.outQty}</td>
+                  <td style={styles.thtd}>{netQty}</td>
+                  <td style={styles.thtd}>₱{netVal.toFixed(2)}</td>
+                </tr>
+              );
+            });
+          })()}
+        </tbody>
+      </table>
+    </div>
+
+    {/* DETAILED TRANSACTIONS */}
+    <div style={styles.card}>
+      <h3>Detailed Transactions</h3>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.thtd}>Date</th>
+            <th style={styles.thtd}>Item</th>
+            <th style={styles.thtd}>Brand</th>
+            <th style={styles.thtd}>Type</th>
+            <th style={styles.thtd}>Qty</th>
+            <th style={styles.thtd}>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {monthlyTransactions.length === 0
+            ? emptyRowComponent(6, "No transactions")
+            : monthlyTransactions.map(t => (
+                <tr key={t.id}>
+                  <td style={styles.thtd}>{t.date}</td>
+                  <td style={styles.thtd}>{t.items?.item_name}</td>
+                  <td style={styles.thtd}>{t.items?.brand}</td>
+                  <td style={styles.thtd}>{t.type}</td>
+                  <td style={styles.thtd}>{t.quantity}</td>
+                  <td style={styles.thtd}>
+                    ₱{((t.quantity || 0) *
+                      (t.unit_price || t.items?.unit_price || 0)
+                    ).toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+)}
+
                {/* ================= MODAL ================= */}
         {showModal && (
           <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
