@@ -423,216 +423,177 @@ const netValue =
 
         {/* ================= DELETED HISTORY TAB ================= */}
        {activeTab==="deleted" && (
-          <div style={{
-            display: "flex",
-            gap: 20,
-            alignItems: "flex-start"
-          }}>
-         
-            <div style={{
-                flex: 1,
-                background: "#ffffff",
-                padding: 20,
-                borderRadius: 12,
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-              }}>
-            <h2>Deleted Inventory</h2>
-           <table style={{
-                width: "100%",
-                borderCollapse: "separate",
-                borderSpacing: 0,
-                background: "#ffffff",
-                borderRadius: 8,
-                overflow: "hidden"
-              }}>
-              <thead>
-                <tr>
-                  <th style={styles.thtd}>Item Name</th>
-                  <th style={styles.thtd}>Brand</th>
-                  <th style={styles.thtd}>Price</th>
-                  <th style={styles.thtd}>Actions</th>
+  <div style={{
+    display: "flex",
+    gap: 20,
+    alignItems: "stretch", // ensures equal height
+  }}>
+
+    {/* ================= DELETED INVENTORY ================= */}
+    <div style={{
+      flex: 1,
+      background: "#fff",
+      padding: 20,
+      borderRadius: 12,
+      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+      display: "flex",
+      flexDirection: "column",
+      maxHeight: "600px",          // max height for scroll
+    }}>
+      <h2>Deleted Inventory</h2>
+      <div style={{ overflowY: "auto", flex: 1 }}>
+        <table style={{
+          width: "100%",
+          borderCollapse: "collapse",
+        }}>
+          <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
+            <tr>
+              {["Item Name", "Brand", "Price", "Actions"].map((th, idx) => (
+                <th key={idx} style={{
+                  padding: "12px 10px",
+                  textAlign: "left",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  borderBottom: "1px solid #e5e7eb"
+                }}>{th}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {deletedItems.length === 0
+              ? emptyRowComponent(4, "No deleted items")
+              : deletedItems.map(i => (
+                <tr key={i.id}>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{i.item_name}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{i.brand}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>₱{i.unit_price.toFixed(2)}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <button
+                        style={{
+                          background: "#10b981",
+                          border: "none",
+                          padding: "6px 14px",
+                          borderRadius: 6,
+                          color: "#fff",
+                          fontSize: 13,
+                          fontWeight: 500,
+                          cursor: "pointer"
+                        }}
+                        onClick={() => setConfirmAction({ type: "restoreItem", data: i })}
+                      >
+                        Restore
+                      </button>
+                      <button
+                        style={{
+                          background: "#ef4444",
+                          border: "none",
+                          padding: "6px 14px",
+                          borderRadius: 6,
+                          color: "#fff",
+                          fontSize: 13,
+                          fontWeight: 500,
+                          cursor: "pointer"
+                        }}
+                        onClick={() => setConfirmAction({ type: "permanentDeleteItem", data: i })}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {deletedItems.length===0 ? emptyRowComponent(4,"No deleted items") :
-                  deletedItems.map(i => (
-                  <tr key={i.id}>
-                    <td style={styles.thtd}>{i.item_name}</td>
-                    <td style={styles.thtd}>{i.brand}</td>
-                    <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
-                    <td style={styles.thtd}>
-                      <button style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff", marginRight: 8 }} onClick={()=>setConfirmAction({ type:"restoreItem", data:i })}>Restore</button>
-                      <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={()=>setConfirmAction({ type:"permanentDeleteItem", data:i })}>Delete Permanently</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-              </div>
-            
-            <div style={{
-              flex: 1,
-              background: "#ffffff",
-              padding: 20,
-              borderRadius: 12,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-            }}>
-            <h2>Deleted Transactions</h2>
-            <table style={{
-                width: "100%",
-                borderCollapse: "separate",
-                borderSpacing: 0,
-                background: "#ffffff",
-                borderRadius: 8,
-                overflow: "hidden"
-              }}>
-              <thead>
-                <tr>
-                  <th style={{
-                    padding: "12px 10px",
-                    background: "#f3f4f6",
-                    textAlign: "left",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    borderBottom: "1px solid #e5e7eb"
-                  }}>Date</th>
-                  <th style={{
-                    padding: "12px 10px",
-                    background: "#f3f4f6",
-                    textAlign: "left",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    borderBottom: "1px solid #e5e7eb"
-                  }}>Item</th>
-                  <th style={{
-                    padding: "12px 10px",
-                    background: "#f3f4f6",
-                    textAlign: "left",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    borderBottom: "1px solid #e5e7eb"
-                  }}>Brand</th>
-                  <th style={{
-                    padding: "12px 10px",
-                    background: "#f3f4f6",
-                    textAlign: "left",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    borderBottom: "1px solid #e5e7eb"
-                  }}>Type</th>
-                  <th style={{
-                    padding: "12px 10px",
-                    background: "#f3f4f6",
-                    textAlign: "left",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    borderBottom: "1px solid #e5e7eb"
-                  }}>Qty</th>
-                  <th style={{
-                    padding: "12px 10px",
-                    background: "#f3f4f6",
-                    textAlign: "left",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    borderBottom: "1px solid #e5e7eb"
-                  }}>Total Price</th>
-                  <th style={{
-                    padding: "12px 10px",
-                    background: "#f3f4f6",
-                    textAlign: "left",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    borderBottom: "1px solid #e5e7eb"
-                  }}>Actions</th>
+              ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {/* ================= DELETED TRANSACTIONS ================= */}
+    <div style={{
+      flex: 1,
+      background: "#fff",
+      padding: 20,
+      borderRadius: 12,
+      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+      display: "flex",
+      flexDirection: "column",
+      maxHeight: "600px",          // max height for scroll
+    }}>
+      <h2>Deleted Transactions</h2>
+      <div style={{ overflowY: "auto", flex: 1 }}>
+        <table style={{
+          width: "100%",
+          borderCollapse: "collapse",
+        }}>
+          <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
+            <tr>
+              {["Date", "Item", "Brand", "Type", "Qty", "Total Price", "Actions"].map((th, idx) => (
+                <th key={idx} style={{
+                  padding: "12px 10px",
+                  textAlign: "left",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  borderBottom: "1px solid #e5e7eb"
+                }}>{th}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {deletedTransactions.length === 0
+              ? emptyRowComponent(7, "No deleted transactions")
+              : deletedTransactions.map(t => (
+                <tr key={t.id}>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.date}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.items?.item_name}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.items?.brand}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.type}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.quantity}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>
+                    ₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}
+                  </td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <button
+                        style={{
+                          background: "#10b981",
+                          border: "none",
+                          padding: "6px 14px",
+                          borderRadius: 6,
+                          color: "#fff",
+                          fontSize: 13,
+                          fontWeight: 500,
+                          cursor: "pointer"
+                        }}
+                        onClick={() => setConfirmAction({ type: "restoreTx", data: t })}
+                      >
+                        Restore
+                      </button>
+                      <button
+                        style={{
+                          background: "#ef4444",
+                          border: "none",
+                          padding: "6px 14px",
+                          borderRadius: 6,
+                          color: "#fff",
+                          fontSize: 13,
+                          fontWeight: 500,
+                          cursor: "pointer"
+                        }}
+                        onClick={() => setConfirmAction({ type: "permanentDeleteTx", data: t })}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {deletedTransactions.length === 0
-                  ? emptyRowComponent(7, "No deleted transactions")
-                  : deletedTransactions.map(t => (
-                    <tr key={t.id}>
-                      <td style={{
-                        padding: "12px 10px",
-                        borderBottom: "1px solid #f1f5f9",
-                        fontSize: 14,
-                        verticalAlign: "middle"
-                      }}>{t.date}</td>
-                      <td style={{
-                        padding: "12px 10px",
-                        borderBottom: "1px solid #f1f5f9",
-                        fontSize: 14,
-                        verticalAlign: "middle"
-                      }}>{t.items?.item_name}</td>
-                      <td style={{
-                        padding: "12px 10px",
-                        borderBottom: "1px solid #f1f5f9",
-                        fontSize: 14,
-                        verticalAlign: "middle"
-                      }}>{t.items?.brand}</td>
-                      <td style={{
-                        padding: "12px 10px",
-                        borderBottom: "1px solid #f1f5f9",
-                        fontSize: 14,
-                        verticalAlign: "middle"
-                      }}>{t.type}</td>
-                      <td style={{
-                        padding: "12px 10px",
-                        borderBottom: "1px solid #f1f5f9",
-                        fontSize: 14,
-                        verticalAlign: "middle"
-                      }}>{t.quantity}</td>
-                      <td style={{
-                        padding: "12px 10px",
-                        borderBottom: "1px solid #f1f5f9",
-                        fontSize: 14,
-                        verticalAlign: "middle"
-                      }}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
-                      <td style={{
-                        padding: "12px 10px",
-                        borderBottom: "1px solid #f1f5f9"
-                      }}>
-                        <div style={{
-                          display: "flex",
-                          gap: 10
-                        }}>
-                          <button
-                            style={{
-                              background: "#10b981",
-                              border: "none",
-                              padding: "6px 14px",
-                              borderRadius: 6,
-                              color: "#fff",
-                              fontSize: 13,
-                              fontWeight: 500,
-                              cursor: "pointer"
-                            }}
-                          >
-                            Restore
-                          </button>
-                      
-                          <button
-                            style={{
-                              background: "#ef4444",
-                              border: "none",
-                              padding: "6px 14px",
-                              borderRadius: 6,
-                              color: "#fff",
-                              fontSize: 13,
-                              fontWeight: 500,
-                              cursor: "pointer"
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-            </div>
-          </div>
-        )}
+              ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+)}
 
         {/* ================= PROFESSIONAL MONTHLY REPORT ================= */}
 {activeTab === "report" && (
