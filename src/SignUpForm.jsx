@@ -1,82 +1,89 @@
 // SignUpForm.jsx
 import React, { useState } from "react";
-import { supabase } from "./supabaseClient"; 
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
+const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function SignUpForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [selectedRooms, setSelectedRooms] = useState([]);
-  const [message, setMessage] = useState("");
+  const [stockRooms, setStockRooms] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const stockRooms = ["L1", "L2 Room 1", "L2 Room 2", "Warehouse A"];
+  const allStockRooms = [
+    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
+    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
+  ];
 
-  const handleRoomChange = (e) => {
-    const options = Array.from(e.target.selectedOptions).map(
-      (option) => option.value
-    );
-    setSelectedRooms(options);
-  };
+  const handleSignUp = async () => {
+    if (!email || !password) return alert("Enter email & password");
+    if (stockRooms.length === 0) return alert("Select at least one stock room");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+      // Create user profile and store allowed stock rooms
+      if (data.user?.id) {
+        const { error: profileError } = await supabase
+          .from("user_stock_rooms")
+          .insert(stockRooms.map(room => ({ user_id: data.user.id, stock_room: room })));
 
-    if (authError) {
-      setMessage(`Auth Error: ${authError.message}`);
-      return;
+        if (profileError) throw profileError;
+      }
+
+      alert("Sign-up successful! Check your email to confirm.");
+      setEmail("");
+      setPassword("");
+      setStockRooms([]);
+    } catch (err) {
+      alert(err.message);
     }
-
-    const userId = authData.user.id;
-
-    const { error: profileError } = await supabase.from("profiles").insert([
-      {
-        id: userId,
-        email,
-        allowed_stock_rooms: selectedRooms,
-      },
-    ]);
-
-    if (profileError) {
-      setMessage(`Profile Error: ${profileError.message}`);
-      return;
-    }
-
-    setMessage("User created successfully!");
-    setEmail("");
-    setPassword("");
-    setSelectedRooms([]);
+    setLoading(false);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <div style={{ display:"flex", flexDirection:"column", gap:12, maxWidth:400 }}>
       <input
         type="email"
         placeholder="Email"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
+        onChange={e=>setEmail(e.target.value)}
+        style={{ padding:8, borderRadius:6, border:"1px solid #d1d5db" }}
       />
       <input
         type="password"
         placeholder="Password"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
+        onChange={e=>setPassword(e.target.value)}
+        style={{ padding:8, borderRadius:6, border:"1px solid #d1d5db" }}
       />
-      <select multiple value={selectedRooms} onChange={handleRoomChange}>
-        {stockRooms.map((room) => (
-          <option key={room} value={room}>
+      <label style={{ fontWeight:600 }}>Allowed Stock Rooms:</label>
+      <div style={{ maxHeight:120, overflowY:"auto", border:"1px solid #d1d5db", borderRadius:6, padding:8 }}>
+        {allStockRooms.map(room => (
+          <label key={room} style={{ display:"block", marginBottom:4 }}>
+            <input
+              type="checkbox"
+              checked={stockRooms.includes(room)}
+              onChange={e => {
+                if(e.target.checked) setStockRooms(prev => [...prev, room]);
+                else setStockRooms(prev => prev.filter(r => r!==room));
+              }}
+            />{" "}
             {room}
-          </option>
+          </label>
         ))}
-      </select>
-      <button type="submit">Create User</button>
-      {message && <p>{message}</p>}
-    </form>
+      </div>
+      <button
+        onClick={handleSignUp}
+        disabled={loading}
+        style={{ padding:10, borderRadius:6, border:"none", background:"#1f2937", color:"#fff", cursor:"pointer" }}
+      >
+        {loading ? "Signing Up..." : "Sign Up"}
+      </button>
+    </div>
   );
 }
