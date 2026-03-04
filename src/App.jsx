@@ -70,6 +70,43 @@ export default function App() {
     return () => data.subscription.unsubscribe();
   }, []);
 
+  const [allowedStockRooms, setAllowedStockRooms] = useState([]);
+
+    useEffect(() => {
+        if (!session) return;
+    
+        const loadUserRooms = async () => {
+          const { data, error } = await supabase
+            .from("user_stock_rooms")
+            .select("stock_room")
+            .eq("user_id", session.user.id);
+    
+          if (error) return alert(error.message);
+          setAllowedStockRooms(data.map(r => r.stock_room));
+          if (data.length > 0) setSelectedStockRoom(data[0]); // default to first
+        };
+    
+        loadUserRooms();
+      }, [session]);
+    
+      // ✅ Place isAdmin & roomsToShow here, after session & allowedStockRooms
+      const isAdmin = session?.user?.role === "admin";
+      const roomsToShow = isAdmin ? stockRooms : allowedStockRooms;
+    
+      return (
+        <div style={styles.container}>
+          <div style={styles.sidebar}>
+            {/* Use roomsToShow in the select */}
+            <select
+              style={styles.sidebarSelect}
+              value={selectedStockRoom}
+              onChange={e => setSelectedStockRoom(e.target.value)}
+            >
+              <option value="">Select Stock Room</option>
+              {roomsToShow.map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
   const handleAuth = async () => {
     if (!authEmail || !authPassword) return alert("Fill email and password");
     let result;
@@ -286,10 +323,16 @@ const netValue =
       <div style={styles.sidebar}>
         <div>
           <div style={styles.sidebarHeader}>Lago De Oro</div>
-          <select style={styles.sidebarSelect} value={selectedStockRoom} onChange={e=>setSelectedStockRoom(e.target.value)}>
-            <option value="">Select Stock Room</option>
-            {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
+          <select
+              style={styles.sidebarSelect}
+              value={selectedStockRoom}
+              onChange={e => setSelectedStockRoom(e.target.value)}
+            >
+              <option value="">Select Stock Room</option>
+              {allowedStockRooms.map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
           <div style={styles.sidebarTabs}>
             <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
             <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
