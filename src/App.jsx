@@ -42,6 +42,7 @@ const styles = {
 
 // ================= APP COMPONENT =================
 export default function App() {
+  const [allowedStockRooms, setAllowedStockRooms] = useState([]);
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -69,19 +70,42 @@ export default function App() {
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
-
-  const handleAuth = async () => {
-    if (!authEmail || !authPassword) return alert("Fill email and password");
-    let result;
-    if (isSignUp) {
-      result = await supabase.auth.signUp({ email: authEmail, password: authPassword });
-      if (result.error) return alert(result.error.message);
-      alert("Sign up successful! Please check your email to confirm.");
-    } else {
-      result = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
-      if (result.error) return alert(result.error.message);
-    }
-  };
+  useEffect(() => {
+      if (session?.user) {
+        // fetch the stock rooms this user can access
+        const fetchStockRooms = async () => {
+          const { data, error } = await supabase
+            .from("user_stock_rooms")
+            .select("stock_room")
+            .eq("user_id", session.user.id);
+    
+          if (error) {
+            console.error("Error fetching stock rooms:", error);
+            return;
+          }
+    
+          setAllowedStockRooms(data.map(d => d.stock_room));
+    
+          // auto-select the first allowed stock room
+          setSelectedStockRoom(data[0]?.stock_room || "");
+        };
+    
+        fetchStockRooms();
+      }
+    }, [session]);
+    
+      const handleAuth = async () => {
+        if (!authEmail || !authPassword) return alert("Fill email and password");
+        let result;
+        if (isSignUp) {
+          result = await supabase.auth.signUp({ email: authEmail, password: authPassword });
+          if (result.error) return alert(result.error.message);
+          alert("Sign up successful! Please check your email to confirm.");
+        } else {
+          result = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+          if (result.error) return alert(result.error.message);
+        }
+      };
 
   // ================= LOAD DATA =================
   const loadData = async () => {
@@ -286,10 +310,16 @@ const netValue =
       <div style={styles.sidebar}>
         <div>
           <div style={styles.sidebarHeader}>Lago De Oro</div>
-          <select style={styles.sidebarSelect} value={selectedStockRoom} onChange={e=>setSelectedStockRoom(e.target.value)}>
-            <option value="">Select Stock Room</option>
-            {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
+          <select
+              style={styles.sidebarSelect}
+              value={selectedStockRoom}
+              onChange={e => setSelectedStockRoom(e.target.value)}
+            >
+              <option value="">Select Stock Room</option>
+              {allowedStockRooms.map(room => (
+                <option key={room} value={room}>{room}</option>
+              ))}
+            </select>
           <div style={styles.sidebarTabs}>
             <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
             <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
@@ -882,21 +912,19 @@ const netValue =
                   <input style={styles.input} type="date" value={form.date} onChange={e => handleFormChange("date", e.target.value)} />
 
                   <select
-  style={styles.input}
-  value={form.item_name}
-  onChange={e => handleFormChange("item_name", e.target.value)}
->
-  <option value="">Select Item</option>
-  {[
-    ...new Set(
-      items
-        .filter(i => i.location === selectedStockRoom && !i.deleted)
-        .map(i => i.item_name)
-    )
-  ].map(itemName => (
-    <option key={itemName} value={itemName}>{itemName}</option>
-  ))}
-</select>
+                    style={styles.input}
+                    value={form.item_name}
+                    onChange={e => handleFormChange("item_name", e.target.value)}
+                  >
+                    <option value="">Select Item</option>
+                    {[...new Set(
+                      items
+                        .filter(i => i.location === selectedStockRoom && !i.deleted)
+                        .map(i => i.item_name)
+                    )].map(itemName => (
+                      <option key={itemName} value={itemName}>{itemName}</option>
+                    ))}
+                  </select>
 
                   {/* 🔹 BRAND SELECTOR (Stock-Room Aware) */}
                   <select
