@@ -431,7 +431,11 @@ const netValue =
          
             <div style={{ flex: 1, background:"#f9fafb", padding:20, borderRadius:10 }}>
             <h2>Deleted Inventory</h2>
-            <table style={styles.table}>
+            <table style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            tableLayout: "fixed"
+          }}>
               <thead>
                 <tr>
                   <th style={styles.thtd}>Item Name</th>
@@ -459,16 +463,20 @@ const netValue =
             
             <div style={{ flex: 1, background:"#f9fafb", padding:20, borderRadius:10 }}>
             <h2>Deleted Transactions</h2>
-            <table style={styles.table}>
+            <table style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              tableLayout: "fixed"
+            }}>
               <thead>
                 <tr>
-                  <th style={styles.thtd}>Date</th>
-                  <th style={styles.thtd}>Item</th>
-                  <th style={styles.thtd}>Brand</th>
-                  <th style={styles.thtd}>Type</th>
-                  <th style={styles.thtd}>Qty</th>
-                  <th style={styles.thtd}>Total Price</th>
-                  <th style={styles.thtd}>Actions</th>
+                  <th style={{ width: "12%" }}>Date</th>
+                  <th style={{ width: "18%" }}>Item</th>
+                  <th style={{ width: "12%" }}>Brand</th>
+                  <th style={{ width: "10%" }}>Type</th>
+                  <th style={{ width: "8%" }}>Qty</th>
+                  <th style={{ width: "15%" }}>Total Price</th>
+                  <th style={{ width: "25%" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -476,16 +484,94 @@ const netValue =
                   ? emptyRowComponent(7, "No deleted transactions")
                   : deletedTransactions.map(t => (
                     <tr key={t.id}>
-                      <td style={styles.thtd}>{t.date}</td>
-                      <td style={styles.thtd}>{t.items?.item_name}</td>
-                      <td style={styles.thtd}>{t.items?.brand}</td>
-                      <td style={styles.thtd}>{t.type}</td>
-                      <td style={styles.thtd}>{t.quantity}</td>
-                      <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
-                      <td style={styles.thtd}>
-                        <button style={{ ...styles.buttonSecondary, background:"#34d399", color:"#fff", marginRight: 8 }} onClick={() => setConfirmAction({ type:"restoreTx", data:t })}>Restore</button>
-                        <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"permanentDeleteTx", data:t })}>Delete Permanently</button>
-                      </td>
+                      <td style={{
+                        padding: 10,
+                        borderBottom: "1px solid #e5e7eb",
+                        textAlign: "center",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}>{t.date}</td>
+                      <td style={{
+                        padding: 10,
+                        borderBottom: "1px solid #e5e7eb",
+                        textAlign: "center",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}>{t.items?.item_name}</td>
+                      <td style={{
+                        padding: 10,
+                        borderBottom: "1px solid #e5e7eb",
+                        textAlign: "center",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}>{t.items?.brand}</td>
+                       <td style={{
+                        padding: 10,
+                        borderBottom: "1px solid #e5e7eb",
+                        textAlign: "center",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}>{t.type}</td>
+                      <td style={{
+                        padding: 10,
+                        borderBottom: "1px solid #e5e7eb",
+                        textAlign: "center",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}>{t.quantity}</td>
+                      <td style={{
+                        padding: 10,
+                        borderBottom: "1px solid #e5e7eb",
+                        textAlign: "center",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
+                      <td style={{
+                          padding: 10,
+                          borderBottom: "1px solid #e5e7eb"
+                        }}>
+                          <div style={{
+                            display: "flex",
+                            gap: 8,
+                            justifyContent: "center"
+                          }}>
+                            <button
+                              style={{
+                                flex: 1,
+                                background: "#10b981",
+                                border: "none",
+                                padding: "8px 0",
+                                borderRadius: 6,
+                                color: "#fff",
+                                fontWeight: 600,
+                                cursor: "pointer"
+                              }}
+                            >
+                              Restore
+                            </button>
+                        
+                            <button
+                              style={{
+                                flex: 1,
+                                background: "#ef4444",
+                                border: "none",
+                                padding: "8px 0",
+                                borderRadius: 6,
+                                color: "#fff",
+                                fontWeight: 600,
+                                cursor: "pointer"
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
                     </tr>
                   ))}
               </tbody>
