@@ -422,14 +422,15 @@ const netValue =
         )}
 
         {/* ================= DELETED HISTORY TAB ================= */}
-        {activeTab==="deleted" && (
+       {activeTab==="deleted" && (
           <div style={{
-              flex: 1,
-              background: "#f9fafb",
-              padding: 20,
-              borderRadius: 10
-            }}>
-              <h2>Deleted Inventory</h2>
+            display: "flex",
+            gap: 20,
+            alignItems: "flex-start"
+          }}>
+         
+            <div style={{ flex: 1, background:"#f9fafb", padding:20, borderRadius:10 }}>
+            <h2>Deleted Inventory</h2>>
             <table style={styles.table}>
               <thead>
                 <tr>
@@ -454,14 +455,10 @@ const netValue =
                 ))}
               </tbody>
             </table>
-
-              <div style={{
-                flex: 1,
-                background: "#f9fafb",
-                padding: 20,
-                borderRadius: 10
-              }}>
-                <h2>Deleted Transactions</h2>
+              </div>
+            
+            <div style={{ flex: 1, background:"#f9fafb", padding:20, borderRadius:10 }}>
+            <h2>Deleted Transactions</h2>
             <table style={styles.table}>
               <thead>
                 <tr>
@@ -493,6 +490,7 @@ const netValue =
                   ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 
