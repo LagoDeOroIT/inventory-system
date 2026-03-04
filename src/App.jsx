@@ -411,53 +411,59 @@ const netValue =
               <th style={styles.thtd}>Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {filteredTransactions.filter(t => t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length === 0
-              ? emptyRowComponent(7, "No transactions")
-              : filteredTransactions.filter(t => t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t => (
-                  <tr key={t.id}>
-                    <td style={styles.thtd}>{t.date}</td>
-                    <td style={styles.thtd}>{t.items?.item_name}</td>
-                    <td style={styles.thtd}>{t.items?.brand}</td>
-                    <td style={styles.thtd}>{t.type}</td>
-                    <td style={styles.thtd}>{t.quantity}</td>
-                    <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
-                    <td style={styles.thtd}>
-                      <div style={{ display: "flex", gap: 8 }}>
-                        <button
-                          style={styles.buttonSecondary}
-                          onClick={() => {
-                            const relatedBrands = items
-                              .filter(i => i.item_name === t.items?.item_name && i.location === selectedStockRoom)
-                              .map(i => i.brand);
-                            setForm({
-                              id: t.id,
-                              date: t.date,
-                              item_id: t.item_id,
-                              item_name: t.items?.item_name || "",
-                              brand: t.brand,
-                              brandOptions: [...new Set(relatedBrands)],
-                              type: t.type,
-                              quantity: t.quantity,
-                              price: t.unit_price || t.items?.unit_price || 0
-                            });
-                            setModalType("transaction");
-                            setShowModal(true);
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
-                          onClick={() => setConfirmAction({ type:"deleteTx", data:t })}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-          </tbody>
+              <tbody>
+        {(() => {
+          const searchedTransactions = filteredTransactions.filter(t =>
+            t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())
+          );
+      
+          if (searchedTransactions.length === 0) return emptyRowComponent(7, "No transactions");
+      
+          return searchedTransactions.map(t => (
+            <tr key={t.id}>
+              <td style={styles.thtd}>{t.date}</td>
+              <td style={styles.thtd}>{t.items?.item_name}</td>
+              <td style={styles.thtd}>{t.items?.brand}</td>
+              <td style={styles.thtd}>{t.type}</td>
+              <td style={styles.thtd}>{t.quantity}</td>
+              <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
+              <td style={styles.thtd}>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    style={styles.buttonSecondary}
+                    onClick={() => {
+                      const relatedBrands = items
+                        .filter(i => i.item_name === t.items?.item_name && i.location === selectedStockRoom)
+                        .map(i => i.brand);
+                      setForm({
+                        id: t.id,
+                        date: t.date,
+                        item_id: t.item_id,
+                        item_name: t.items?.item_name || "",
+                        brand: t.brand,
+                        brandOptions: [...new Set(relatedBrands)],
+                        type: t.type,
+                        quantity: t.quantity,
+                        price: t.unit_price || t.items?.unit_price || 0
+                      });
+                      setModalType("transaction");
+                      setShowModal(true);
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
+                    onClick={() => setConfirmAction({ type:"deleteTx", data:t })}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ));
+        })()}
+      </tbody>
         </table>
       </div>
     </div>
