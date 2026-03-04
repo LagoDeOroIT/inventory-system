@@ -305,52 +305,114 @@ const netValue =
 
       {/* MAIN AREA */}
       <div style={styles.main}>
-        {/* STOCK INVENTORY TAB */}
-{activeTab==="stock" && (
+        {/* STOCK INVENTORY TAB WITH SEARCH */}
+{activeTab === "stock" && (
   <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-    <div style={{
-      flex: 1,
-      background: "#fff",
-      padding: 20,
-      borderRadius: 12,
-      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-      display: "flex",
-      flexDirection: "column",
-      overflowX: "auto"
-    }}>
+    {/* Search Bar */}
+    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+      <input
+        type="text"
+        placeholder="Search by Item Name or Brand..."
+        value={stockSearch}
+        onChange={(e) => setStockSearch(e.target.value)}
+        style={{
+          padding: "8px 12px",
+          borderRadius: 8,
+          border: "1px solid #d1d5db",
+          width: 300,
+          fontSize: 14,
+          outline: "none",
+        }}
+      />
+    </div>
+
+    {/* Table Card */}
+    <div
+      style={{
+        flex: 1,
+        background: "#fff",
+        padding: 20,
+        borderRadius: 12,
+        boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+        display: "flex",
+        flexDirection: "column",
+        overflowX: "auto",
+      }}
+    >
       <h2>Available Stocks</h2>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
           <tr>
             {["Qty", "Item Name", "Brand", "Price", "Total Value", "Actions"].map((th, idx) => (
-              <th key={idx} style={{
-                padding: "12px 10px",
-                textAlign: "left",
-                fontSize: 14,
-                fontWeight: 600,
-                borderBottom: "1px solid #e5e7eb"
-              }}>{th}</th>
+              <th
+                key={idx}
+                style={{
+                  padding: "12px 10px",
+                  textAlign: "left",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  borderBottom: "1px solid #e5e7eb",
+                }}
+              >
+                {th}
+              </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {stockInventory.length === 0 ? emptyRowComponent(6, "No stock data") :
-            stockInventory.map(i => (
-              <tr key={i.id}>
-                <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.stock}</td>
-                <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.item_name}</td>
-                <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.brand}</td>
-                <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>₱{i.unit_price.toFixed(2)}</td>
-                <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
-                <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <button style={{ ...styles.buttonSecondary }} onClick={() => { setForm({ id: i.id, item_name: i.item_name, brand: i.brand, price: i.unit_price, brandOptions:[i.brand] }); setModalType("item"); setShowModal(true); }}>Edit</button>
-                    <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"deleteItem", data:i })}>Delete</button>
-                  </div>
-                </td>
-              </tr>
-            ))
-          }
+          {stockInventory.filter(
+            (item) =>
+              item.item_name.toLowerCase().includes(stockSearch.toLowerCase()) ||
+              item.brand.toLowerCase().includes(stockSearch.toLowerCase())
+          ).length === 0 ? (
+            <tr>
+              <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                No matching items
+              </td>
+            </tr>
+          ) : (
+            stockInventory
+              .filter(
+                (item) =>
+                  item.item_name.toLowerCase().includes(stockSearch.toLowerCase()) ||
+                  item.brand.toLowerCase().includes(stockSearch.toLowerCase())
+              )
+              .map((i) => (
+                <tr key={i.id}>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.stock}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.item_name}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.brand}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>₱{i.unit_price.toFixed(2)}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <button
+                        style={{ ...styles.buttonSecondary }}
+                        onClick={() => {
+                          setForm({
+                            id: i.id,
+                            item_name: i.item_name,
+                            brand: i.brand,
+                            price: i.unit_price,
+                            brandOptions: [i.brand],
+                          });
+                          setModalType("item");
+                          setShowModal(true);
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                        onClick={() => setConfirmAction({ type: "deleteItem", data: i })}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+          )}
         </tbody>
       </table>
     </div>
