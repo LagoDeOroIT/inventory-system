@@ -423,8 +423,13 @@ const netValue =
 
         {/* ================= DELETED HISTORY TAB ================= */}
         {activeTab==="deleted" && (
-          <div style={styles.card}>
-            <h3>Deleted Inventory</h3>
+          <div style={{
+              flex: 1,
+              background: "#f9fafb",
+              padding: 20,
+              borderRadius: 10
+            }}>
+              <h2>Deleted Inventory</h2>
             <table style={styles.table}>
               <thead>
                 <tr>
@@ -450,7 +455,13 @@ const netValue =
               </tbody>
             </table>
 
-            <h3 style={{ marginTop:24 }}>Deleted Transactions</h3>
+              <div style={{
+                flex: 1,
+                background: "#f9fafb",
+                padding: 20,
+                borderRadius: 10
+              }}>
+                <h2>Deleted Transactions</h2>
             <table style={styles.table}>
               <thead>
                 <tr>
