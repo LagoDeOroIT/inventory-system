@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import SignUpForm from "./SignUpForm";
+
+function App() {
+  return (
+    <div>
+      <h1>Create New User</h1>
+      <SignUpForm />
+    </div>
+  );
+}
 
 // ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
