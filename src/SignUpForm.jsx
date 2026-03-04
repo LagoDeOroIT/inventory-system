@@ -1,13 +1,14 @@
+// SignUpForm.jsx
 import React, { useState } from "react";
-import { supabase } from "./supabaseClient"; // your supabase client
-
-const stockRooms = ["L1", "L2 Room 1", "L2 Room 2", "Warehouse A"];
+import { supabase } from "./supabaseClient"; 
 
 export default function SignUpForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [selectedRooms, setSelectedRooms] = useState([]);
   const [message, setMessage] = useState("");
+
+  const stockRooms = ["L1", "L2 Room 1", "L2 Room 2", "Warehouse A"];
 
   const handleRoomChange = (e) => {
     const options = Array.from(e.target.selectedOptions).map(
@@ -20,7 +21,6 @@ export default function SignUpForm() {
     e.preventDefault();
     setMessage("");
 
-    // 1️⃣ Create Auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -33,7 +33,6 @@ export default function SignUpForm() {
 
     const userId = authData.user.id;
 
-    // 2️⃣ Create profile with stock room access
     const { error: profileError } = await supabase.from("profiles").insert([
       {
         id: userId,
