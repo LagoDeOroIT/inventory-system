@@ -430,7 +430,7 @@ const netValue =
           }}>
          
             <div style={{ flex: 1, background:"#f9fafb", padding:20, borderRadius:10 }}>
-            <h2>Deleted Inventory</h2>>
+            <h2>Deleted Inventory</h2>
             <table style={styles.table}>
               <thead>
                 <tr>
