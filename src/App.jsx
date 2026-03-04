@@ -544,8 +544,8 @@ const netValue =
         </table>
       </div>
     </div>
-  )}
-</div>
+  </div>
+)}
 
         {/* ================= PROFESSIONAL MONTHLY REPORT ================= */}
 {activeTab === "report" && (
