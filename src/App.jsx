@@ -551,7 +551,7 @@ const netValue =
                   ? emptyRowComponent(7, "No deleted transactions")
                   : deletedTransactions.map(t => (
                     <tr key={t.id}>
-                      <<td style={{
+                      <td style={{
                         padding: "12px 10px",
                         borderBottom: "1px solid #f1f5f9",
                         fontSize: 14,
