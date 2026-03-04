@@ -6,7 +6,12 @@ const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
 const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// ================= STYLES =================
+// ================= CONSTANTS =================
+const stockRooms = [
+  "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
+  "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
+];
+
 const styles = {
   container: { display: "flex", fontFamily: "Inter, Arial, sans-serif", minHeight: "100vh", background: "#f3f4f6" },
   sidebar: { width: 220, background: "#111827", color: "#fff", padding: 20, display: "flex", flexDirection: "column", justifyContent: "space-between" },
@@ -42,35 +47,34 @@ const styles = {
 
 // ================= APP COMPONENT =================
 export default function App() {
+  // ==== STATE HOOKS ====
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
-  const [inSearch, setInSearch] = useState("");
+  const [allowedStockRooms, setAllowedStockRooms] = useState([]);
   const [stockSearch, setStockSearch] = useState("");
+  const [inSearch, setInSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
-  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id: null });
+  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
   const [confirmAction, setConfirmAction] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [reportMonth, setReportMonth] = useState(new Date().getMonth()+1);
+  const [reportYear, setReportYear] = useState(new Date().getFullYear());
 
-  const stockRooms = [
-    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
-    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
-  ];
-
-  // ================= AUTH =================
+  // ==== AUTH LISTENER ====
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_event, session) => setSession(session));
     return () => data.subscription.unsubscribe();
   }, []);
 
-  // Load user-allowed stock rooms
+  // ==== LOAD USER STOCK ROOMS ====
   useEffect(() => {
     if (!session) return;
     const loadUserRooms = async () => {
@@ -85,109 +89,27 @@ export default function App() {
     loadUserRooms();
   }, [session]);
 
-  // ====== COMPUTED ======
-  const isAdmin = session?.user?.role === "admin";
-  const roomsToShow = isAdmin ? stockRooms : allowedStockRooms;
-
-  // ====== FUNCTIONS ======
-  const handleAuth = async () => {
-    if (!authEmail || !authPassword) return alert("Fill email and password");
-    let result;
-    if (isSignUp) {
-      result = await supabase.auth.signUp({ email: authEmail, password: authPassword });
-      if (result.error) return alert(result.error.message);
-      alert("Sign up successful! Please check your email to confirm.");
-    } else {
-      result = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
-      if (result.error) return alert(result.error.message);
-    }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
-  };
-
-  // ====== RENDER ======
-  if (!session) {
-    return (
-      <div style={{ padding: 40, textAlign: "center" }}>
-        <h2>{isSignUp ? "Sign Up for Inventory" : "Inventory Login"}</h2>
-        <input
-          style={{ marginBottom: 12, padding: 8, width: 250 }}
-          placeholder="Email"
-          value={authEmail}
-          onChange={e => setAuthEmail(e.target.value)}
-        />
-        <input
-          style={{ marginBottom: 12, padding: 8, width: 250 }}
-          type="password"
-          placeholder="Password"
-          value={authPassword}
-          onChange={e => setAuthPassword(e.target.value)}
-        />
-        <button style={{ ...styles.buttonPrimary, marginBottom: 12 }} onClick={handleAuth}>
-          {isSignUp ? "Sign Up" : "Login"}
-        </button>
-        <div>
-          <button style={styles.buttonSecondary} onClick={() => setIsSignUp(!isSignUp)}>
-            {isSignUp ? "Already have an account? Login" : "Don't have an account? Sign Up"}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div style={styles.container}>
-      <div style={styles.sidebar}>
-        <div>
-          <h3 style={{ marginBottom: 12 }}>Stock Rooms</h3>
-          <select
-            style={styles.sidebarSelect}
-            value={selectedStockRoom}
-            onChange={e => setSelectedStockRoom(e.target.value)}
-          >
-            <option value="">Select Stock Room</option>
-            {roomsToShow.map(r => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <p style={{ color: "#fff", marginBottom: 8 }}>Logged in as: {session.user.email}</p>
-          <button style={styles.buttonPrimary} onClick={handleLogout}>Logout</button>
-        </div>
-      </div>
-      <div style={{ flex: 1, padding: 24 }}>
-        <h2>Welcome to Inventory</h2>
-        <p>Selected Stock Room: {selectedStockRoom || "None"}</p>
-      </div>
-    </div>
-  );
-}
-
-  // ================= LOAD DATA =================
+  // ==== DATA LOADING ====
   const loadData = async () => {
     const { data: itemsData } = await supabase.from("items").select("*");
-    const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
+    setItems((itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false })));
 
     const { data: tx } = await supabase.from("inventory_transactions")
       .select("*, items(item_name, brand, unit_price, location)")
       .order("date", { ascending: false });
-    const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
-
-    setItems(itemsWithDeleted);
-    setTransactions(transactionsWithDeleted);
+    setTransactions((tx || []).map(t => ({ ...t, deleted: t.deleted ?? false })));
   };
 
-  useEffect(() => { if(session) loadData(); }, [session]);
+  useEffect(() => {
+    if(session) loadData();
+  }, [session]);
 
-  // ================= FILTERS =================
+  // ==== COMPUTED ====
+  const isAdmin = session?.user?.role === "admin";
+  const roomsToShow = isAdmin ? stockRooms : allowedStockRooms;
   const filteredTransactions = transactions
     .filter(t => !t.deleted)
     .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
-
   const stockInventory = items
     .filter(i => !i.deleted)
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
@@ -199,95 +121,40 @@ export default function App() {
       );
       return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
     });
-
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
   const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
-  // ================= MONTHLY REPORT STATE =================
-const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
-const [reportYear, setReportYear] = useState(new Date().getFullYear());
 
-// ================= MONTHLY REPORT LOGIC =================
-const monthlyTransactions = filteredTransactions.filter(t => {
-  if (!t.date) return false;
-  const txDate = new Date(t.date);
-  return (
-    txDate.getMonth() + 1 === Number(reportMonth) &&
-    txDate.getFullYear() === Number(reportYear)
-  );
-});
-
-const monthlySummary = monthlyTransactions.reduce((acc, t) => {
-  const total =
-    (Number(t.quantity) || 0) *
-    (Number(t.unit_price) || Number(t.items?.unit_price) || 0);
-
-  if (t.type === "IN") {
-    acc.totalInQty += Number(t.quantity) || 0;
-    acc.totalInValue += total;
-  } else {
-    acc.totalOutQty += Number(t.quantity) || 0;
-    acc.totalOutValue += total;
-  }
-
-  return acc;
-}, {
-  totalInQty: 0,
-  totalOutQty: 0,
-  totalInValue: 0,
-  totalOutValue: 0
-});
-
-const netValue =
-  monthlySummary.totalInValue - monthlySummary.totalOutValue;
-  // ================= FORM HANDLER =================
+  // ==== FORM HANDLER ====
   const handleFormChange = (key, value) => {
-  setForm(prev => {
-    const updated = { ...prev, [key]: value };
+    setForm(prev => {
+      const updated = { ...prev, [key]: value };
 
-    if (key === "item_name") {
-      // Reset brand when changing item
-      updated.brand = "";
-
-      // Optional: if only one brand exists, pre-select it
-      const relatedBrands = items
-        .filter(i => i.item_name === value && i.location === selectedStockRoom && !i.deleted)
-        .map(i => i.brand);
-      if (relatedBrands.length === 1) updated.brand = relatedBrands[0];
-    }
-
-    if (key === "brand") {
-      // Optional: auto-fill price based on selected item + brand
-      const selectedItem = items.find(
-        i => i.item_name === prev.item_name && i.brand === value && i.location === selectedStockRoom
-      );
-      if (selectedItem) updated.price = selectedItem.unit_price;
-    }
-
-    return updated;
-  });
-};
-
-  const openNewItemModal = () => {
-    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
-    setModalType("item");
-    setShowModal(true);
+      if(key==="item_name") updated.brand="";
+      if(key==="brand"){
+        const selectedItem = items.find(i=>i.item_name===prev.item_name && i.brand===value && i.location===selectedStockRoom);
+        if(selectedItem) updated.price = selectedItem.unit_price;
+      }
+      return updated;
+    });
   };
 
-  const openNewTransactionModal = () => {
-    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
-    setModalType("transaction");
-    setShowModal(true);
-  };
-
-  const handleNewClick = () => {
-    if(!selectedStockRoom) {
-      setModalType("stockRoomPrompt");
-      setShowModal(true);
+  // ==== AUTH ====
+  const handleAuth = async () => {
+    if(!authEmail || !authPassword) return alert("Fill email and password");
+    let result;
+    if(isSignUp){
+      result = await supabase.auth.signUp({ email: authEmail, password: authPassword });
+      if(result.error) return alert(result.error.message);
+      alert("Sign up successful! Check your email to confirm.");
     } else {
-      setModalType("newOption");
-      setShowModal(true);
+      result = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+      if(result.error) return alert(result.error.message);
     }
   };
+
+  const handleLogout = async () => { await supabase.auth.signOut(); setSession(null); };
+
+  const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
 
   // ================= SUBMIT =================
   const handleSubmit = async () => {
@@ -337,29 +204,33 @@ const netValue =
     }
   };
 
-  const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
+  const openNewItemModal = () => { setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null }); setModalType("item"); setShowModal(true); };
+  const openNewTransactionModal = () => { setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null }); setModalType("transaction"); setShowModal(true); };
+  const handleNewClick = () => { if(!selectedStockRoom){ setModalType("stockRoomPrompt"); setShowModal(true); } else { setModalType("newOption"); setShowModal(true); } };
 
+    // ==== MONTHLY REPORT COMPUTED ====
+  const monthlyTransactions = filteredTransactions.filter(t=>{
+    if(!t.date) return false;
+    const txDate = new Date(t.date);
+    return txDate.getMonth()+1===Number(reportMonth) && txDate.getFullYear()===Number(reportYear);
+  });
+  const monthlySummary = monthlyTransactions.reduce((acc,t)=>{
+    const total = (Number(t.quantity)||0)*(Number(t.unit_price)||Number(t.items?.unit_price)||0);
+    if(t.type==="IN"){ acc.totalInQty+=Number(t.quantity)||0; acc.totalInValue+=total; }
+    else { acc.totalOutQty+=Number(t.quantity)||0; acc.totalOutValue+=total; }
+    return acc;
+  },{ totalInQty:0, totalOutQty:0, totalInValue:0, totalOutValue:0 });
+  const netValue = monthlySummary.totalInValue - monthlySummary.totalOutValue;
+  
   // ================= AUTH SCREEN =================
+    // ==== AUTH SCREEN ====
   if(!session) return (
     <div style={{ padding:40, textAlign:"center" }}>
-      {!session?.user ? (
-        <>
-          <h2>{isSignUp ? "Sign Up for Inventory" : "Inventory Login"}</h2>
-          <input style={styles.input} placeholder="Email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} />
-          <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e=>setAuthPassword(e.target.value)} />
-          <button style={{ ...styles.buttonPrimary, marginBottom:12 }} onClick={handleAuth}>{isSignUp ? "Sign Up" : "Login"}</button>
-          <div>
-            <button style={styles.buttonSecondary} onClick={() => setIsSignUp(!isSignUp)}>
-              {isSignUp ? "Already have an account? Login" : "Don't have an account? Sign Up"}
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <h2>Welcome back, {session.user.email}!</h2>
-          <button style={{ ...styles.buttonPrimary, marginTop:12 }} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
-        </>
-      )}
+      <h2>{isSignUp ? "Sign Up for Inventory" : "Inventory Login"}</h2>
+      <input style={styles.input} placeholder="Email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} />
+      <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e=>setAuthPassword(e.target.value)} />
+      <button style={{...styles.buttonPrimary, marginBottom:12}} onClick={handleAuth}>{isSignUp?"Sign Up":"Login"}</button>
+      <button style={styles.buttonSecondary} onClick={()=>setIsSignUp(!isSignUp)}>{isSignUp?"Already have an account? Login":"Don't have an account? Sign Up"}</button>
     </div>
   );
 
