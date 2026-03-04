@@ -429,13 +429,22 @@ const netValue =
             alignItems: "flex-start"
           }}>
          
-            <div style={{ flex: 1, background:"#f9fafb", padding:20, borderRadius:10 }}>
+            <div style={{
+                flex: 1,
+                background: "#ffffff",
+                padding: 20,
+                borderRadius: 12,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+              }}>
             <h2>Deleted Inventory</h2>
-            <table style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            tableLayout: "fixed"
-          }}>
+           <table style={{
+                width: "100%",
+                borderCollapse: "separate",
+                borderSpacing: 0,
+                background: "#ffffff",
+                borderRadius: 8,
+                overflow: "hidden"
+              }}>
               <thead>
                 <tr>
                   <th style={styles.thtd}>Item Name</th>
@@ -461,22 +470,80 @@ const netValue =
             </table>
               </div>
             
-            <div style={{ flex: 1, background:"#f9fafb", padding:20, borderRadius:10 }}>
+            <div style={{
+              flex: 1,
+              background: "#ffffff",
+              padding: 20,
+              borderRadius: 12,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+            }}>
             <h2>Deleted Transactions</h2>
             <table style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              tableLayout: "fixed"
-            }}>
+                width: "100%",
+                borderCollapse: "separate",
+                borderSpacing: 0,
+                background: "#ffffff",
+                borderRadius: 8,
+                overflow: "hidden"
+              }}>
               <thead>
                 <tr>
-                  <th style={{ width: "12%" }}>Date</th>
-                  <th style={{ width: "18%" }}>Item</th>
-                  <th style={{ width: "12%" }}>Brand</th>
-                  <th style={{ width: "10%" }}>Type</th>
-                  <th style={{ width: "8%" }}>Qty</th>
-                  <th style={{ width: "15%" }}>Total Price</th>
-                  <th style={{ width: "25%" }}>Actions</th>
+                  <th style={{
+                    padding: "12px 10px",
+                    background: "#f3f4f6",
+                    textAlign: "left",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    borderBottom: "1px solid #e5e7eb"
+                  }}>Date</th>
+                  <th style={{
+                    padding: "12px 10px",
+                    background: "#f3f4f6",
+                    textAlign: "left",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    borderBottom: "1px solid #e5e7eb"
+                  }}>Item</th>
+                  <th style={{
+                    padding: "12px 10px",
+                    background: "#f3f4f6",
+                    textAlign: "left",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    borderBottom: "1px solid #e5e7eb"
+                  }}>Brand</th>
+                  <th style={{
+                    padding: "12px 10px",
+                    background: "#f3f4f6",
+                    textAlign: "left",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    borderBottom: "1px solid #e5e7eb"
+                  }}>Type</th>
+                  <th style={{
+                    padding: "12px 10px",
+                    background: "#f3f4f6",
+                    textAlign: "left",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    borderBottom: "1px solid #e5e7eb"
+                  }}>Qty</th>
+                  <th style={{
+                    padding: "12px 10px",
+                    background: "#f3f4f6",
+                    textAlign: "left",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    borderBottom: "1px solid #e5e7eb"
+                  }}>Total Price</th>
+                  <th style={{
+                    padding: "12px 10px",
+                    background: "#f3f4f6",
+                    textAlign: "left",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    borderBottom: "1px solid #e5e7eb"
+                  }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -484,94 +551,81 @@ const netValue =
                   ? emptyRowComponent(7, "No deleted transactions")
                   : deletedTransactions.map(t => (
                     <tr key={t.id}>
-                      <td style={{
-                        padding: 10,
-                        borderBottom: "1px solid #e5e7eb",
-                        textAlign: "center",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis"
+                      <<td style={{
+                        padding: "12px 10px",
+                        borderBottom: "1px solid #f1f5f9",
+                        fontSize: 14,
+                        verticalAlign: "middle"
                       }}>{t.date}</td>
                       <td style={{
-                        padding: 10,
-                        borderBottom: "1px solid #e5e7eb",
-                        textAlign: "center",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis"
+                        padding: "12px 10px",
+                        borderBottom: "1px solid #f1f5f9",
+                        fontSize: 14,
+                        verticalAlign: "middle"
                       }}>{t.items?.item_name}</td>
                       <td style={{
-                        padding: 10,
-                        borderBottom: "1px solid #e5e7eb",
-                        textAlign: "center",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis"
+                        padding: "12px 10px",
+                        borderBottom: "1px solid #f1f5f9",
+                        fontSize: 14,
+                        verticalAlign: "middle"
                       }}>{t.items?.brand}</td>
-                       <td style={{
-                        padding: 10,
-                        borderBottom: "1px solid #e5e7eb",
-                        textAlign: "center",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis"
+                      <td style={{
+                        padding: "12px 10px",
+                        borderBottom: "1px solid #f1f5f9",
+                        fontSize: 14,
+                        verticalAlign: "middle"
                       }}>{t.type}</td>
                       <td style={{
-                        padding: 10,
-                        borderBottom: "1px solid #e5e7eb",
-                        textAlign: "center",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis"
+                        padding: "12px 10px",
+                        borderBottom: "1px solid #f1f5f9",
+                        fontSize: 14,
+                        verticalAlign: "middle"
                       }}>{t.quantity}</td>
                       <td style={{
-                        padding: 10,
-                        borderBottom: "1px solid #e5e7eb",
-                        textAlign: "center",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis"
+                        padding: "12px 10px",
+                        borderBottom: "1px solid #f1f5f9",
+                        fontSize: 14,
+                        verticalAlign: "middle"
                       }}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
                       <td style={{
-                          padding: 10,
-                          borderBottom: "1px solid #e5e7eb"
+                        padding: "12px 10px",
+                        borderBottom: "1px solid #f1f5f9"
+                      }}>
+                        <div style={{
+                          display: "flex",
+                          gap: 10
                         }}>
-                          <div style={{
-                            display: "flex",
-                            gap: 8,
-                            justifyContent: "center"
-                          }}>
-                            <button
-                              style={{
-                                flex: 1,
-                                background: "#10b981",
-                                border: "none",
-                                padding: "8px 0",
-                                borderRadius: 6,
-                                color: "#fff",
-                                fontWeight: 600,
-                                cursor: "pointer"
-                              }}
-                            >
-                              Restore
-                            </button>
-                        
-                            <button
-                              style={{
-                                flex: 1,
-                                background: "#ef4444",
-                                border: "none",
-                                padding: "8px 0",
-                                borderRadius: 6,
-                                color: "#fff",
-                                fontWeight: 600,
-                                cursor: "pointer"
-                              }}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
+                          <button
+                            style={{
+                              background: "#10b981",
+                              border: "none",
+                              padding: "6px 14px",
+                              borderRadius: 6,
+                              color: "#fff",
+                              fontSize: 13,
+                              fontWeight: 500,
+                              cursor: "pointer"
+                            }}
+                          >
+                            Restore
+                          </button>
+                      
+                          <button
+                            style={{
+                              background: "#ef4444",
+                              border: "none",
+                              padding: "6px 14px",
+                              borderRadius: 6,
+                              color: "#fff",
+                              fontSize: 13,
+                              fontWeight: 500,
+                              cursor: "pointer"
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
               </tbody>
