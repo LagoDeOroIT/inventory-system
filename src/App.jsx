@@ -131,13 +131,13 @@ export default function App() {
   // ================= FILTERS =================
   const filteredTransactions = transactions
   .filter(t => !t.deleted)
-  .filter(t => allowedRooms.includes(t.items?.location))
-  .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+  .filter(t => t.items && allowedRooms.includes(t.items.location))
+  .filter(t => !selectedStockRoom || t.items.location === selectedStockRoom);
 
-  const stockInventory = items
-    .filter(i => !i.deleted)
-    .filter(i => allowedRooms.includes(i.location))
-    .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
+const stockInventory = items
+  .filter(i => !i.deleted)
+  .filter(i => allowedRooms.includes(i.location))
+  .filter(i => !selectedStockRoom || i.location === selectedStockRoom);
     .map(i => {
       const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
       const stock = related.reduce(
