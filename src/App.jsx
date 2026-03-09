@@ -134,18 +134,26 @@ export default function App() {
   .filter(t => t.items && allowedRooms.includes(t.items.location))
   .filter(t => !selectedStockRoom || t.items.location === selectedStockRoom);
 
+// ================= STOCK INVENTORY =================
 const stockInventory = items
   .filter(i => !i.deleted)
   .filter(i => allowedRooms.includes(i.location))
-  .filter(i => !selectedStockRoom || i.location === selectedStockRoom);
-    .map(i => {
-      const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
-      const stock = related.reduce(
-        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
-        0
-      );
-      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
-    });
+  .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
+  .map(i => {
+    const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
+    const stock = related.reduce(
+      (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
+      0
+    );
+    return {
+      id: i.id,
+      item_name: i.item_name,
+      brand: i.brand,
+      unit_price: i.unit_price,
+      stock,
+      location: i.location
+    };
+  });
  // ================= STOCK INVENTORY TOTALS =================
         const totalInStockQty = stockInventory.reduce((sum, i) => {
           // sum of IN transactions only
