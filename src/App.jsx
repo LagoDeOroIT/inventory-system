@@ -50,7 +50,6 @@ export default function App() {
   const [inSearch, setInSearch] = useState("");
   const [stockSearch, setStockSearch] = useState("");
   const [deletedSearch, setDeletedSearch] = useState("");
-  const [deletedDate, setDeletedDate] = useState("");
   const [deletedInventorySearch, setDeletedInventorySearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
@@ -133,10 +132,6 @@ export default function App() {
     (t.items?.brand || "")
       .toLowerCase()
       .includes(deletedSearch.toLowerCase());
-
-  const matchesDate = deletedDate ? t.date === deletedDate : true;
-
-  return matchesSearch && matchesDate;
 });
   
   // ================= MONTHLY REPORT STATE =================
