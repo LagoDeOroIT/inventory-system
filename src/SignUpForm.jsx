@@ -21,10 +21,51 @@ export default function SignUpForm() {
   };
 
   const handleSignUp = async () => {
-    setError("");
-    if (!email || !password || stockRooms.length === 0) {
-      return setError("Please fill all fields including stock rooms.");
+  setError(""); // clear previous errors
+
+  if (!email || !password || stockRooms.length === 0) {
+    return setError("Please fill all fields including assigned stock rooms.");
+  }
+
+  try {
+    // 1️⃣ Sign up via Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (authError) {
+      console.error("Supabase Auth signUp error:", authError); // <-- log full error
+      return setError("Auth error: " + authError.message);
     }
+
+    console.log("Auth user created:", authData.user);
+
+    // 2️⃣ Insert profile into profiles table
+    const { error: profileError } = await supabase.from("profiles").insert([
+      {
+        id: authData.user.id,
+        email,
+        stock_room: stockRooms,
+        role,
+      },
+    ]);
+
+    if (profileError) {
+      console.error("Profile insert error:", profileError); // <-- log full error
+      return setError("Profile insert error: " + profileError.message);
+    }
+
+    alert(`Sign up successful! Assigned stock rooms: ${stockRooms.join(", ")}. Role: ${role}`);
+
+    // Clear form
+    setEmail(""); setPassword(""); setStockRooms([]); setRole("user");
+
+  } catch (err) {
+    console.error("Unexpected error during signup:", err);
+    setError("Unexpected error: " + err.message);
+  }
+};
 
     const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
     if (authError) return setError(authError.message);
