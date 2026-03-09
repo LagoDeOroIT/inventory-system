@@ -274,29 +274,21 @@ const netValue =
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
 
   // ================= AUTH SCREEN =================
-  if(!session) return (
-    <div style={{ padding:40, textAlign:"center" }}>
-      {!session?.user ? (
-        <>
-          <h2>{isSignUp ? "Sign Up for Inventory" : "Inventory Login"}</h2>
-          <input style={styles.input} placeholder="Email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} />
-          <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e=>setAuthPassword(e.target.value)} />
-          <button style={{ ...styles.buttonPrimary, marginBottom:12 }} onClick={handleAuth}>{isSignUp ? "Sign Up" : "Login"}</button>
-          <div>
-            <button style={styles.buttonSecondary} onClick={() => setIsSignUp(!isSignUp)}>
-              {isSignUp ? "Already have an account? Login" : "Don't have an account? Sign Up"}
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <h2>Welcome back, {session.user.email}!</h2>
-          <button style={{ ...styles.buttonPrimary, marginTop:12 }} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
-        </>
-      )}
+  if (!session) return (
+  <div style={{ padding: 40, textAlign: "center" }}>
+    {isSignUp ? <SignUpForm /> : <LoginForm />}
+    <div>
+      <button
+        style={styles.buttonSecondary}
+        onClick={() => setIsSignUp(!isSignUp)}
+      >
+        {isSignUp
+          ? "Already have an account? Login"
+          : "Don't have an account? Sign Up"}
+      </button>
     </div>
-  );
-
+  </div>
+);
   // ================= MAIN APP =================
   return (
     <div style={styles.container}>
