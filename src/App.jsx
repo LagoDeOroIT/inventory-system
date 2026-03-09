@@ -117,6 +117,37 @@ export default function App() {
       );
       return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
     });
+  // ================= STOCK INVENTORY TOTALS WITH VALUE =================
+        const totalInStockQty = stockInventory.reduce((sum, item) => {
+          const inTx = transactions
+            .filter(t => !t.deleted && t.item_id === item.id && t.type === "IN")
+            .reduce((acc, t) => acc + Number(t.quantity || 0), 0);
+          return sum + inTx;
+        }, 0);
+        
+        const totalInStockValue = stockInventory.reduce((sum, item) => {
+          const inTx = transactions
+            .filter(t => !t.deleted && t.item_id === item.id && t.type === "IN")
+            .reduce((acc, t) => acc + Number(t.quantity || 0) * (t.unit_price || item.unit_price || 0), 0);
+          return sum + inTx;
+        }, 0);
+        
+        const totalOutStockQty = stockInventory.reduce((sum, item) => {
+          const outTx = transactions
+            .filter(t => !t.deleted && t.item_id === item.id && t.type === "OUT")
+            .reduce((acc, t) => acc + Number(t.quantity || 0), 0);
+          return sum + outTx;
+        }, 0);
+        
+        const totalOutStockValue = stockInventory.reduce((sum, item) => {
+          const outTx = transactions
+            .filter(t => !t.deleted && t.item_id === item.id && t.type === "OUT")
+            .reduce((acc, t) => acc + Number(t.quantity || 0) * (t.unit_price || item.unit_price || 0), 0);
+          return sum + outTx;
+        }, 0);
+        
+        const netStockQty = totalInStockQty - totalOutStockQty;
+        const netStockValue = totalInStockValue - totalOutStockValue;
 
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
   const filteredDeletedItems = deletedItems.filter(i =>
@@ -327,6 +358,28 @@ const netValue =
 {activeTab === "stock" && (
   <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
     {/* Search Bar */}
+    {/* STOCK KPI SUMMARY WITH VALUE */}
+      <div style={{ display:"flex", gap:16, marginBottom:16 }}>
+        <div style={{ ...styles.card, borderLeft:"6px solid #10b981" }}>
+          <h4>Total IN</h4>
+          <p>{totalInStockQty} units</p>
+          <strong>₱{totalInStockValue.toFixed(2)}</strong>
+        </div>
+        <div style={{ ...styles.card, borderLeft:"6px solid #ef4444" }}>
+          <h4>Total OUT</h4>
+          <p>{totalOutStockQty} units</p>
+          <strong>₱{totalOutStockValue.toFixed(2)}</strong>
+        </div>
+        <div style={{
+          ...styles.card,
+          borderLeft:`6px solid ${netStockQty >=0 ? "#10b981" : "#ef4444"}`,
+          background: netStockQty >=0 ? "#ecfdf5" : "#fef2f2"
+        }}>
+          <h4>Net Movement</h4>
+          <p>{netStockQty} units</p>
+          <strong>₱{netStockValue.toFixed(2)}</strong>
+        </div>
+      </div>
     <div style={{ display: "flex", justifyContent: "flex-end" }}>
       <input
         type="text"
