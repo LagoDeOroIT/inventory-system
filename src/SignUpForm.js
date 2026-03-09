@@ -9,7 +9,8 @@ export default function SignUpForm() {
 
   const handleSignUp = async () => {
     if (!email || !password || !stockRoom) {
-      return alert("Fill all fields including assigned stock room");
+      alert("Fill all fields including assigned stock room");
+      return;
     }
 
     // 1️⃣ Create user in Supabase Auth
@@ -18,43 +19,53 @@ export default function SignUpForm() {
       password,
     });
 
-    if (authError) return alert(authError.message);
+    if (authError) {
+      alert(authError.message);
+      return;
+    }
 
     // 2️⃣ Insert user profile with stock room
     const { error: profileError } = await supabase
       .from("profiles")
-      .insert([
-        { id: authData.user.id, email, stock_room: stockRoom },
-      ]);
+      .insert([{ id: authData.user.id, email, stock_room: stockRoom }]);
 
-    if (profileError) return alert(profileError.message);
+    if (profileError) {
+      alert(profileError.message);
+      return;
+    }
 
     alert("Sign up successful! User assigned to stock room: " + stockRoom);
+
+    // optional: clear form
+    setEmail("");
+    setPassword("");
+    setStockRoom("");
   };
 
   return (
     <div>
       <h2>Sign Up</h2>
+
       <input
         type="email"
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
-      <br />
+
       <input
         type="password"
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      <br />
+
       <select value={stockRoom} onChange={(e) => setStockRoom(e.target.value)}>
         <option value="">Select Stock Room</option>
         <option value="Room A">Room A</option>
         <option value="Room B">Room B</option>
       </select>
-      <br />
+
       <button onClick={handleSignUp}>Sign Up</button>
     </div>
   );
