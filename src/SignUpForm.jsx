@@ -1,4 +1,4 @@
-// src/SignUpForm.js
+// src/SignUpForm.jsx
 import { useState } from "react";
 import { supabase } from "./supabaseClient";
 
@@ -9,8 +9,7 @@ export default function SignUpForm() {
 
   const handleSignUp = async () => {
     if (!email || !password || !stockRoom) {
-      alert("Fill all fields including assigned stock room");
-      return;
+      return alert("Fill all fields including assigned stock room");
     }
 
     const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
