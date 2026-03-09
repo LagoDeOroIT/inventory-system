@@ -127,34 +127,32 @@ export default function App() {
         loadProfile();
       }, [session]);
   // ================= FILTERS =================
-  const isAdmin = profile?.role === "admin";
-
-// Transactions
-const filteredTransactions = transactions
-  .filter((t) => !t.deleted)
-  .filter((t) => isAdmin || (t.items && allowedRooms.includes(t.items.location)))
-  .filter((t) => !selectedStockRoom || (t.items && t.items.location === selectedStockRoom));
-
-// Stock inventory
-const stockInventory = items
-  .filter((i) => !i.deleted)
-  .filter((i) => isAdmin || allowedRooms.includes(i.location))
-  .filter((i) => !selectedStockRoom || i.location === selectedStockRoom)
-  .map((i) => {
-    const related = transactions.filter((t) => t.item_id === i.id && !t.deleted);
-    const stock = related.reduce(
-      (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
-      0
-    );
-    return {
-      id: i.id,
-      item_name: i.item_name,
-      brand: i.brand,
-      unit_price: i.unit_price,
-      stock,
-      location: i.location,
-    };
-  });
+          const isAdmin = profile?.role === "admin";
+        
+        // Transactions
+        const filteredTransactions = transactions.filter((t) => {
+          if (t.deleted) return false;
+          if (!isAdmin && (!t.items || !allowedRooms.includes(t.items.location))) return false;
+          if (selectedStockRoom && (!t.items || t.items.location !== selectedStockRoom)) return false;
+          return true;
+        });
+        
+        // Stock inventory
+        const stockInventory = items
+          .filter((i) => {
+            if (i.deleted) return false;
+            if (!isAdmin && !allowedRooms.includes(i.location)) return false;
+            if (selectedStockRoom && i.location !== selectedStockRoom) return false;
+            return true;
+          })
+          .map((i) => {
+            const related = transactions.filter((t) => t.item_id === i.id && !t.deleted);
+            const stock = related.reduce(
+              (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
+              0
+            );
+            return { ...i, stock };
+          });
  // ================= STOCK INVENTORY TOTALS =================
         const totalInStockQty = stockInventory.reduce((sum, i) => {
           // sum of IN transactions only
@@ -358,17 +356,17 @@ const netValue =
         <div>
           <div style={styles.sidebarHeader}>Lago De Oro</div>
           <select
-          style={styles.sidebarSelect}
-          value={selectedStockRoom}
-          onChange={(e) => setSelectedStockRoom(e.target.value)}
-        >
-          <option value="">Select Stock Room</option>
-          {(profile?.role === "admin" ? stockRooms : allowedRooms).map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
+            style={styles.sidebarSelect}
+            value={selectedStockRoom}
+            onChange={(e) => setSelectedStockRoom(e.target.value)}
+          >
+            <option value="">All Stock Rooms</option>
+            {stockRooms.map((room) => (
+              <option key={room} value={room}>
+                {room}
+              </option>
+            ))}
+          </select>
           <div style={styles.sidebarTabs}>
             <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
             <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
