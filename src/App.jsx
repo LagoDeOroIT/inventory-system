@@ -115,36 +115,39 @@ export default function App() {
   }, []);
   // ================= LOAD USER PROFILE =================
         useEffect(() => {
-        if (!session) return;
-      
-        const loadProfile = async () => {
-          const { data, error } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", session.user.id)
-            .single();
-      
-          if (error) {
-            console.error("Profile load error:", error);
-            return;
-          }
-      
-          setProfile(data);
-      
-          const isAdmin = data.role?.toLowerCase() === "admin";
-          const rooms = isAdmin
-            ? stockRooms // admin sees all
-            : Array.isArray(data.stock_room)
-              ? data.stock_room
-              : (data.stock_room?.split(",") || []);
-      
-          setAllowedRooms(rooms);
-      
-          console.log("Is Admin:", isAdmin, "Allowed Rooms:", rooms);
-        };
-      
-        loadProfile();
-      }, [session]);
+  if (!session) return;
+
+  const loadProfile = async () => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", session.user.id)
+      .single();
+
+    if (error) {
+      console.error("Profile load error:", error);
+      return;
+    }
+
+    setProfile(data);
+
+    const isAdmin = data.role?.toLowerCase() === "admin";
+    const rooms = isAdmin
+      ? stockRooms
+      : Array.isArray(data.stock_room)
+        ? data.stock_room
+        : (data.stock_room?.split(",") || []);
+
+    setAllowedRooms(rooms);
+
+    console.log("Is Admin:", isAdmin, "Allowed Rooms:", rooms);
+
+    // 🔹 Call loadData here so that items and transactions are loaded correctly
+    await loadData();
+  };
+
+  loadProfile();
+}, [session]);
   // ================= FILTERS =================
           const isAdmin = profile?.role === "admin";
         
