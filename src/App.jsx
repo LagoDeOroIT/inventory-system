@@ -41,6 +41,8 @@ const styles = {
 // ================= APP COMPONENT =================
 export default function App() {
   const [session, setSession] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [allowedRooms, setAllowedRooms] = useState([]);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
@@ -77,14 +79,67 @@ export default function App() {
   };
 
   useEffect(() => { if(session) loadData(); }, [session]);
-
+  // ================= AUTH SESSION =================
+  useEffect(() => {
+  
+    // Get existing session
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+    });
+  
+    // Listen for login/logout
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  
+  }, []);
+  // ================= LOAD USER PROFILE =================
+    useEffect(() => {
+    
+      if (!session) return;
+    
+      const loadProfile = async () => {
+    
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+    
+        if (error) {
+          console.error("Profile load error:", error);
+          return;
+        }
+    
+        setProfile(data);
+    
+        // Admin = all rooms
+        if (data.role === "admin") {
+          setAllowedRooms(stockRooms);
+        } else {
+          setAllowedRooms(data.stock_room || []);
+        }
+    
+      };
+    
+      loadProfile();
+    
+    }, [session]);
   // ================= FILTERS =================
   const filteredTransactions = transactions
+    .filter(t => !t.deleted)
+    .filter(t => allowedRooms.includes(t.items?.location))
+    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
     .filter(t => !t.deleted)
     .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
   const stockInventory = items
     .filter(i => !i.deleted)
+    .filter(i => allowedRooms.includes(i.location))
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
     .map(i => {
       const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
@@ -298,7 +353,7 @@ const netValue =
           <div style={styles.sidebarHeader}>Lago De Oro</div>
           <select style={styles.sidebarSelect} value={selectedStockRoom} onChange={e=>setSelectedStockRoom(e.target.value)}>
             <option value="">Select Stock Room</option>
-            {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
+            {allowedRooms.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
           <div style={styles.sidebarTabs}>
             <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
@@ -308,7 +363,11 @@ const netValue =
           </div>
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap: 8, marginTop:16 }}>
-          {session?.user?.email && <div style={{ color:"#fff", marginBottom:8, fontSize:14, fontWeight:500 }}>Logged in as:<br />{session.user.email}</div>}
+          {profile?.email && (
+            <div style={{ color:"#fff", marginBottom:8, fontSize:14, fontWeight:500 }}>
+              Logged in as:<br />{profile.email}
+            </div>
+          )}
           <button style={styles.buttonPrimary} onClick={handleNewClick}>+ New</button>
           <button style={{...styles.buttonSecondary, background:"#ef4444", color:"#fff"}} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
         </div>
