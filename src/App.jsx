@@ -1,3 +1,4 @@
+import React from "react";
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import SignUpForm from "./SignUpForm.jsx";
