@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import SignUpForm from "./SignUpForm";
+import LoginForm from "./LoginForm";
 import { supabase } from "./supabaseClient";
 
 // ================= STYLES =================
@@ -61,27 +62,6 @@ export default function App() {
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
     "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
   ];
-
-  // ================= AUTH =================
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
-  }, []);
-
-  const handleAuth = async () => {
-    if (!authEmail || !authPassword) return alert("Fill email and password");
-    let result;
-    if (isSignUp) {
-      result = await supabase.auth.signUp({ email: authEmail, password: authPassword });
-      if (result.error) return alert(result.error.message);
-      alert("Sign up successful! Please check your email to confirm.");
-    } else {
-      result = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
-      if (result.error) return alert(result.error.message);
-    }
-  };
-
   // ================= LOAD DATA =================
   const loadData = async () => {
     const { data: itemsData } = await supabase.from("items").select("*");
