@@ -64,37 +64,37 @@ export default function App() {
     "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
   ];
   // ================= LOAD DATA =================
-    const loadData = async () => {
-    // Load items
-    const { data: itemsData, error: itemsError } = await supabase
-      .from("items")
-      .select("*");
-    if (itemsError) console.error("Error loading items:", itemsError);
-  
-    // Load transactions with items info
-    const { data: txData, error: txError } = await supabase
-      .from("inventory_transactions")
-      .select("*, items(item_name, brand, unit_price, location)")
-      .order("date", { ascending: false });
-    if (txError) console.error("Error loading transactions:", txError);
-  
-    const isAdmin = profile?.role?.toLowerCase() === "admin";
-  
-    // Filter items and transactions by allowed rooms if not admin
-    const filteredItems = isAdmin
-      ? itemsData
-      : itemsData.filter(i => allowedRooms.includes(i.location?.trim()));
-  
-    const filteredTransactions = isAdmin
-      ? txData
-      : txData.filter(t => allowedRooms.includes(t.items?.location?.trim()));
-  
-    setItems(filteredItems || []);
-    setTransactions(filteredTransactions || []);
-  
-    console.log("Filtered Items:", filteredItems);
-    console.log("Filtered Transactions:", filteredTransactions);
-  };
+    const loadData = async (profileData, allowedRoomsList) => {
+  // Load items
+  const { data: itemsData, error: itemsError } = await supabase
+    .from("items")
+    .select("*");
+  if (itemsError) console.error("Error loading items:", itemsError);
+
+  // Load transactions with items info
+  const { data: txData, error: txError } = await supabase
+    .from("inventory_transactions")
+    .select("*, items(item_name, brand, unit_price, location)")
+    .order("date", { ascending: false });
+  if (txError) console.error("Error loading transactions:", txError);
+
+  const isAdmin = profileData.role?.toLowerCase() === "admin";
+
+  // Filter items and transactions by allowed rooms if not admin
+  const filteredItems = isAdmin
+    ? itemsData
+    : itemsData.filter(i => allowedRoomsList.some(r => r.trim() === i.location?.trim()));
+
+  const filteredTransactions = isAdmin
+    ? txData
+    : txData.filter(t => allowedRoomsList.some(r => r.trim() === t.items?.location?.trim()));
+
+  setItems(filteredItems || []);
+  setTransactions(filteredTransactions || []);
+
+  console.log("Filtered Items:", filteredItems);
+  console.log("Filtered Transactions:", filteredTransactions);
+};
   // ================= AUTH SESSION =================
   useEffect(() => {
   
@@ -129,21 +129,19 @@ export default function App() {
       return;
     }
 
-    setProfile(data);
+   setProfile(data);
 
-    const isAdmin = data.role?.toLowerCase() === "admin";
-    const rooms = isAdmin
-      ? stockRooms
-      : Array.isArray(data.stock_room)
-        ? data.stock_room
-        : (data.stock_room?.split(",") || []);
+const isAdmin = data.role?.toLowerCase() === "admin";
+const rooms = isAdmin
+  ? stockRooms
+  : Array.isArray(data.stock_room)
+    ? data.stock_room
+    : (data.stock_room?.split(",") || []);
 
-    setAllowedRooms(rooms);
+setAllowedRooms(rooms);
 
-    console.log("Is Admin:", isAdmin, "Allowed Rooms:", rooms);
-
-    // 🔹 Call loadData here so that items and transactions are loaded correctly
-    await loadData();
+// Pass profile data and allowed rooms into loadData
+await loadData(data, rooms);
   };
 
   loadProfile();
