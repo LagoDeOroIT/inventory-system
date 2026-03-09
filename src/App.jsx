@@ -647,7 +647,7 @@ const netValue =
           <tbody>
             {filteredDeletedTransactions.length === 0
               ? emptyRowComponent(7, "No deleted transactions")
-              : filteredDeletedTransactions.map(t => ((t => (
+              : filteredDeletedTransactions.map(t => (
                 <tr key={t.id}>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.date}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.items?.item_name}</td>
