@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 // ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
-const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtaHB5ZGJzeXN4amlrZ2h4amliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1OTc1NzUsImV4cCI6MjA4NDE3MzU3NX0.AYzyQMAIZKsJFrm4cqv60zmJ76QPk4wKlZdBKkRHsYw";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ================= STYLES =================
@@ -142,22 +142,22 @@ export default function App() {
         const netStockQty = totalInStockQty - totalOutStockQty;
         const netStockValue = totalInStockValue - totalOutStockValue;
 
-  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
-  const filteredDeletedItems = deletedItems.filter(i =>
-  i.item_name.toLowerCase().includes(deletedInventorySearch.toLowerCase()) ||
-  i.brand.toLowerCase().includes(deletedInventorySearch.toLowerCase())
-  );
-  const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
-  const filteredDeletedTransactions = deletedTransactions.filter(t => {
-  const matchesSearch =
-    (t.items?.item_name || "")
-      .toLowerCase()
-      .includes(deletedSearch.toLowerCase()) ||
-    (t.items?.brand || "")
-      .toLowerCase()
-      .includes(deletedSearch.toLowerCase());
-      return matchesSearch; 
-});
+        const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
+        const filteredDeletedItems = deletedItems.filter(i =>
+        i.item_name.toLowerCase().includes(deletedInventorySearch.toLowerCase()) ||
+        i.brand.toLowerCase().includes(deletedInventorySearch.toLowerCase())
+        );
+        const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+        const filteredDeletedTransactions = deletedTransactions.filter(t => {
+        const matchesSearch =
+          (t.items?.item_name || "")
+            .toLowerCase()
+            .includes(deletedSearch.toLowerCase()) ||
+          (t.items?.brand || "")
+            .toLowerCase()
+            .includes(deletedSearch.toLowerCase());
+            return matchesSearch; 
+      });
   
   // ================= MONTHLY REPORT STATE =================
 const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
