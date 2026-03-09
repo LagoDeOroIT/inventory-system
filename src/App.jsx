@@ -141,9 +141,6 @@ export default function App() {
         
         const netStockQty = totalInStockQty - totalOutStockQty;
         const netStockValue = totalInStockValue - totalOutStockValue;
-          
-        const netStockQty = totalInStockQty - totalOutStockQty;
-        const netStockValue = totalInStockValue - totalOutStockValue;
 
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
   const filteredDeletedItems = deletedItems.filter(i =>
