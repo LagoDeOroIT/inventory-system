@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import SignUpForm from "./SignUpForm.jsx";
 import LoginForm from "./LoginForm.jsx";
 import { supabase } from "./supabaseClient";
@@ -131,11 +130,9 @@ export default function App() {
     }, [session]);
   // ================= FILTERS =================
   const filteredTransactions = transactions
-    .filter(t => !t.deleted)
-    .filter(t => allowedRooms.includes(t.items?.location))
-    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
-    .filter(t => !t.deleted)
-    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+  .filter(t => !t.deleted)
+  .filter(t => allowedRooms.includes(t.items?.location))
+  .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
 
   const stockInventory = items
     .filter(i => !i.deleted)
