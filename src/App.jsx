@@ -603,23 +603,6 @@ const netValue =
           value={deletedSearch}
           onChange={e => setDeletedSearch(e.target.value)}
         />
-      
-        <input
-          type="date"
-          style={styles.input}
-          value={deletedDate}
-          onChange={e => setDeletedDate(e.target.value)}
-        />
-      
-        <button
-          style={styles.buttonSecondary}
-          onClick={() => {
-            setDeletedSearch("");
-            setDeletedDate("");
-          }}
-        >
-          Clear
-        </button>
       </div>
       <div style={{ overflowY: "auto", flex: 1 }}>
         <table style={{
