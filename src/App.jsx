@@ -64,20 +64,37 @@ export default function App() {
     "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
   ];
   // ================= LOAD DATA =================
-  const loadData = async () => {
-    const { data: itemsData } = await supabase.from("items").select("*");
-    const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
-
-    const { data: tx } = await supabase.from("inventory_transactions")
+    const loadData = async () => {
+    // Load items
+    const { data: itemsData, error: itemsError } = await supabase
+      .from("items")
+      .select("*");
+    if (itemsError) console.error("Error loading items:", itemsError);
+  
+    // Load transactions with items info
+    const { data: txData, error: txError } = await supabase
+      .from("inventory_transactions")
       .select("*, items(item_name, brand, unit_price, location)")
       .order("date", { ascending: false });
-    const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
-
-    setItems(itemsWithDeleted);
-    setTransactions(transactionsWithDeleted);
+    if (txError) console.error("Error loading transactions:", txError);
+  
+    const isAdmin = profile?.role?.toLowerCase() === "admin";
+  
+    // Filter items and transactions by allowed rooms if not admin
+    const filteredItems = isAdmin
+      ? itemsData
+      : itemsData.filter(i => allowedRooms.includes(i.location?.trim()));
+  
+    const filteredTransactions = isAdmin
+      ? txData
+      : txData.filter(t => allowedRooms.includes(t.items?.location?.trim()));
+  
+    setItems(filteredItems || []);
+    setTransactions(filteredTransactions || []);
+  
+    console.log("Filtered Items:", filteredItems);
+    console.log("Filtered Transactions:", filteredTransactions);
   };
-
-  useEffect(() => { if(session) loadData(); }, [session]);
   // ================= AUTH SESSION =================
   useEffect(() => {
   
@@ -114,14 +131,16 @@ export default function App() {
       
           setProfile(data);
       
-          const rooms =
-            data.role === "admin"
-              ? stockRooms // admin sees all stock rooms
-              : Array.isArray(data.stock_room)
+          const isAdmin = data.role?.toLowerCase() === "admin";
+          const rooms = isAdmin
+            ? stockRooms // admin sees all
+            : Array.isArray(data.stock_room)
               ? data.stock_room
               : (data.stock_room?.split(",") || []);
       
           setAllowedRooms(rooms);
+      
+          console.log("Is Admin:", isAdmin, "Allowed Rooms:", rooms);
         };
       
         loadProfile();
