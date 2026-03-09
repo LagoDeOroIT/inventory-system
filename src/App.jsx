@@ -97,61 +97,65 @@ export default function App() {
   
   }, []);
   // ================= LOAD USER PROFILE =================
-    useEffect(() => {
-  if (!session) return;
-
-  const loadProfile = async () => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", session.user.id)
-      .single();
-
-    if (error) {
-      console.error("Profile load error:", error);
-      return;
-    }
-
-    setProfile(data);
-
-    // Ensure stock rooms are always an array
-    const rooms = data.role === "admin"
-      ? stockRooms // admin sees all stock rooms
-      : Array.isArray(data.stock_room)
-        ? data.stock_room
-        : (data.stock_room?.split(",") || []);
-
-    setAllowedRooms(rooms);
-  };
-
-  loadProfile();
-}, [session]);
+        useEffect(() => {
+      if (!session) return;
+    
+      const loadProfile = async () => {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+    
+        if (error) {
+          console.error("Profile load error:", error);
+          return;
+        }
+    
+        setProfile(data);
+    
+        // Admin sees all stock rooms, others see their assigned ones
+        if (data.role === "admin") {
+          setAllowedRooms(stockRooms);
+        } else {
+          const rooms = Array.isArray(data.stock_room)
+            ? data.stock_room
+            : (data.stock_room?.split(",") || []);
+          setAllowedRooms(rooms);
+        }
+      };
+    
+      loadProfile();
+    }, [session]);
   // ================= FILTERS =================
-  const filteredTransactions = transactions
-  .filter(t => !t.deleted)
-  .filter(t => t.items && allowedRooms.includes(t.items.location))
-  .filter(t => !selectedStockRoom || t.items.location === selectedStockRoom);
+  const isAdmin = profile?.role === "admin";
 
-// ================= STOCK INVENTORY =================
-const stockInventory = items
-  .filter(i => !i.deleted)
-  .filter(i => allowedRooms.includes(i.location))
-  .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
-  .map(i => {
-    const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
-    const stock = related.reduce(
-      (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
-      0
-    );
-    return {
-      id: i.id,
-      item_name: i.item_name,
-      brand: i.brand,
-      unit_price: i.unit_price,
-      stock,
-      location: i.location
-    };
-  });
+      // Transactions
+      const filteredTransactions = transactions
+        .filter(t => !t.deleted)
+        .filter(t => !t.items || isAdmin || allowedRooms.includes(t.items.location))
+        .filter(t => !selectedStockRoom || t.items.location === selectedStockRoom);
+      
+      // Stock inventory
+      const stockInventory = items
+        .filter(i => !i.deleted)
+        .filter(i => isAdmin || allowedRooms.includes(i.location))
+        .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
+        .map(i => {
+          const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
+          const stock = related.reduce(
+            (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
+            0
+          );
+          return {
+            id: i.id,
+            item_name: i.item_name,
+            brand: i.brand,
+            unit_price: i.unit_price,
+            stock,
+            location: i.location
+          };
+        });
  // ================= STOCK INVENTORY TOTALS =================
         const totalInStockQty = stockInventory.reduce((sum, i) => {
           // sum of IN transactions only
@@ -354,9 +358,15 @@ const netValue =
       <div style={styles.sidebar}>
         <div>
           <div style={styles.sidebarHeader}>Lago De Oro</div>
-          <select style={styles.sidebarSelect} value={selectedStockRoom} onChange={e=>setSelectedStockRoom(e.target.value)}>
+          <select
+            style={styles.sidebarSelect}
+            value={selectedStockRoom}
+            onChange={e => setSelectedStockRoom(e.target.value)}
+          >
             <option value="">Select Stock Room</option>
-            {allowedRooms.map(r => <option key={r} value={r}>{r}</option>)}
+            {(profile?.role === "admin" ? stockRooms : allowedRooms).map(r => (
+              <option key={r} value={r}>{r}</option>
+            ))}
           </select>
           <div style={styles.sidebarTabs}>
             <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
