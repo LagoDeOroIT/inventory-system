@@ -352,8 +352,17 @@ const netValue =
   <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
     {/* Search Bar */}
     {/* STOCK INVENTORY KPI SUMMARY */}
-    <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
-      <div style={{ ...styles.card, borderLeft: "6px solid #10b981" }}>
+    <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: 16,
+          marginBottom: "16px"
+        }}>
+      <div style={{
+          ...styles.card,
+          background: netStockQty >= 0 ? "#ecfdf5" : "#fef2f2",
+          borderLeft: `6px solid ${netStockQty >=0 ? "#10b981" : "#ef4444"}`
+        }}>
         <h4 style={{ margin: 0 }}>Total IN</h4>
         <p style={{ margin: 0, fontSize: "1.1rem" }}>{totalInStockQty} units</p>
         <strong style={{ fontSize: "1.2rem" }}>₱{totalInStockValue.toFixed(2)}</strong>
