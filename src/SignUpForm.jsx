@@ -1,3 +1,4 @@
+// src/SignUpForm.jsx
 import React, { useState } from "react";
 import { supabase } from "./supabaseClient";
 
@@ -13,75 +14,58 @@ export default function SignUpForm() {
     "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
   ];
 
+  // Toggle checkbox selection
   const toggleStockRoom = (room) => {
     setStockRooms(stockRooms.includes(room)
-      ? stockRooms.filter((r) => r !== room)
+      ? stockRooms.filter(r => r !== room)
       : [...stockRooms, room]
     );
   };
 
+  // Async signup handler
   const handleSignUp = async () => {
-  setError(""); // clear previous errors
+    setError("");
 
-  if (!email || !password || stockRooms.length === 0) {
-    return setError("Please fill all fields including assigned stock rooms.");
-  }
-
-  try {
-    // 1️⃣ Sign up via Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (authError) {
-      console.error("Supabase Auth signUp error:", authError); // <-- log full error
-      return setError("Auth error: " + authError.message);
+    if (!email || !password || stockRooms.length === 0) {
+      return setError("Please fill all fields including assigned stock rooms.");
     }
 
-    console.log("Auth user created:", authData.user);
-
-    // 2️⃣ Insert profile into profiles table
-    const { error: profileError } = await supabase.from("profiles").insert([
-      {
-        id: authData.user.id,
+    try {
+      // 1️⃣ Create user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
-        stock_room: stockRooms,
-        role,
-      },
-    ]);
+        password,
+      });
+      if (authError) {
+        console.error("Supabase Auth signUp error:", authError);
+        return setError("Auth error: " + authError.message);
+      }
 
-    if (profileError) {
-      console.error("Profile insert error:", profileError); // <-- log full error
-      return setError("Profile insert error: " + profileError.message);
+      console.log("Auth user created:", authData.user);
+
+      // 2️⃣ Insert user profile
+      const { error: profileError } = await supabase.from("profiles").insert([
+        {
+          id: authData.user.id,
+          email,
+          stock_room: stockRooms,
+          role,
+        },
+      ]);
+      if (profileError) {
+        console.error("Profile insert error:", profileError);
+        return setError("Profile insert error: " + profileError.message);
+      }
+
+      alert(`Sign up successful! Assigned stock rooms: ${stockRooms.join(", ")}. Role: ${role}`);
+
+      // Clear form
+      setEmail(""); setPassword(""); setStockRooms([]); setRole("user");
+
+    } catch (err) {
+      console.error("Unexpected error during signup:", err);
+      setError("Unexpected error: " + err.message);
     }
-
-    alert(`Sign up successful! Assigned stock rooms: ${stockRooms.join(", ")}. Role: ${role}`);
-
-    // Clear form
-    setEmail(""); setPassword(""); setStockRooms([]); setRole("user");
-
-  } catch (err) {
-    console.error("Unexpected error during signup:", err);
-    setError("Unexpected error: " + err.message);
-  }
-};
-
-    const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
-    if (authError) return setError(authError.message);
-
-    const { error: profileError } = await supabase.from("profiles").insert([
-      {
-        id: authData.user.id,
-        email,
-        stock_room: stockRooms,
-        role, // store role
-      },
-    ]);
-    if (profileError) return setError(profileError.message);
-
-    alert(`Sign up successful! Assigned stock rooms: ${stockRooms.join(", ")}. Role: ${role}`);
-    setEmail(""); setPassword(""); setStockRooms([]); setRole("user");
   };
 
   return (
@@ -89,7 +73,9 @@ export default function SignUpForm() {
       display:"flex", justifyContent:"center", alignItems:"center", minHeight:"100vh", backgroundColor:"#f0f2f5",
       fontFamily:"'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
     }}>
-      <div style={{width:"420px", backgroundColor:"#fff", padding:"30px", borderRadius:"10px", boxShadow:"0 4px 12px rgba(0,0,0,0.15)"}}>
+      <div style={{
+        width:"420px", backgroundColor:"#fff", padding:"30px", borderRadius:"10px", boxShadow:"0 4px 12px rgba(0,0,0,0.15)"
+      }}>
         <h2 style={{textAlign:"center", marginBottom:"20px", color:"#333"}}>Create Your Account</h2>
         {error && <p style={{color:"red", textAlign:"center", marginBottom:"15px"}}>{error}</p>}
 
@@ -102,11 +88,15 @@ export default function SignUpForm() {
           style={{width:"100%", padding:"10px", marginBottom:"15px", borderRadius:"5px", border:"1px solid #ccc"}}/>
 
         <label>Assign Stock Rooms</label>
-        <div style={{border:"1px solid #ccc", borderRadius:"5px", padding:"10px", maxHeight:"150px", overflowY:"auto", backgroundColor:"#fafafa", marginBottom:"20px"}}>
+        <div style={{
+          border:"1px solid #ccc", borderRadius:"5px", padding:"10px", maxHeight:"150px",
+          overflowY:"auto", backgroundColor:"#fafafa", marginBottom:"20px"
+        }}>
           {stockRoomOptions.map(room => (
             <div key={room} style={{marginBottom:"5px"}}>
               <label>
-                <input type="checkbox" checked={stockRooms.includes(room)} onChange={()=>toggleStockRoom(room)} style={{marginRight:"8px"}}/>
+                <input type="checkbox" checked={stockRooms.includes(room)} onChange={()=>toggleStockRoom(room)}
+                  style={{marginRight:"8px"}}/>
                 {room}
               </label>
             </div>
