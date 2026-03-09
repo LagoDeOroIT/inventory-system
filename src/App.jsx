@@ -132,6 +132,7 @@ export default function App() {
     (t.items?.brand || "")
       .toLowerCase()
       .includes(deletedSearch.toLowerCase());
+      return matchesSearch; 
 });
   
   // ================= MONTHLY REPORT STATE =================
