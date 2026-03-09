@@ -98,36 +98,34 @@ export default function App() {
   }, []);
   // ================= LOAD USER PROFILE =================
     useEffect(() => {
-    
-      if (!session) return;
-    
-      const loadProfile = async () => {
-    
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-    
-        if (error) {
-          console.error("Profile load error:", error);
-          return;
-        }
-    
-        setProfile(data);
-    
-        // Admin = all rooms
-        if (data.role === "admin") {
-          setAllowedRooms(stockRooms);
-        } else {
-          setAllowedRooms(data.stock_room || []);
-        }
-    
-      };
-    
-      loadProfile();
-    
-    }, [session]);
+  if (!session) return;
+
+  const loadProfile = async () => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", session.user.id)
+      .single();
+
+    if (error) {
+      console.error("Profile load error:", error);
+      return;
+    }
+
+    setProfile(data);
+
+    // Ensure stock rooms are always an array
+    const rooms = data.role === "admin"
+      ? stockRooms // admin sees all stock rooms
+      : Array.isArray(data.stock_room)
+        ? data.stock_room
+        : (data.stock_room?.split(",") || []);
+
+    setAllowedRooms(rooms);
+  };
+
+  loadProfile();
+}, [session]);
   // ================= FILTERS =================
   const filteredTransactions = transactions
   .filter(t => !t.deleted)
