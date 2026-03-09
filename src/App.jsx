@@ -49,6 +49,9 @@ export default function App() {
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [stockSearch, setStockSearch] = useState("");
+  const [deletedSearch, setDeletedSearch] = useState("");
+  const [deletedDate, setDeletedDate] = useState("");
+  const [deletedInventorySearch, setDeletedInventorySearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
@@ -117,7 +120,25 @@ export default function App() {
     });
 
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
+  const filteredDeletedItems = deletedItems.filter(i =>
+  i.item_name.toLowerCase().includes(deletedInventorySearch.toLowerCase()) ||
+  i.brand.toLowerCase().includes(deletedInventorySearch.toLowerCase())
+  );
   const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+  const filteredDeletedTransactions = deletedTransactions.filter(t => {
+  const matchesSearch =
+    (t.items?.item_name || "")
+      .toLowerCase()
+      .includes(deletedSearch.toLowerCase()) ||
+    (t.items?.brand || "")
+      .toLowerCase()
+      .includes(deletedSearch.toLowerCase());
+
+  const matchesDate = deletedDate ? t.date === deletedDate : true;
+
+  return matchesSearch && matchesDate;
+});
+  
   // ================= MONTHLY REPORT STATE =================
 const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
 const [reportYear, setReportYear] = useState(new Date().getFullYear());
@@ -493,6 +514,14 @@ const netValue =
       maxHeight: "600px",          // max height for scroll
     }}>
       <h2>Deleted Inventory</h2>
+      <div style={{ marginBottom: 12 }}>
+        <input
+          style={styles.input}
+          placeholder="Search item or brand..."
+          value={deletedInventorySearch}
+          onChange={(e) => setDeletedInventorySearch(e.target.value)}
+        />
+      </div>
       <div style={{ overflowY: "auto", flex: 1 }}>
         <table style={{
           width: "100%",
@@ -512,9 +541,9 @@ const netValue =
             </tr>
           </thead>
           <tbody>
-            {deletedItems.length === 0
+            {filteredDeletedItems.length === 0
               ? emptyRowComponent(4, "No deleted items")
-              : deletedItems.map(i => (
+              : filteredDeletedItems.map(i => (
                 <tr key={i.id}>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{i.item_name}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{i.brand}</td>
@@ -572,6 +601,31 @@ const netValue =
       maxHeight: "600px",          // max height for scroll
     }}>
       <h2>Deleted Transactions</h2>
+      <div style={{ display:"flex", gap:10, marginBottom:12 }}>
+        <input
+          style={styles.input}
+          placeholder="Search item or brand..."
+          value={deletedSearch}
+          onChange={e => setDeletedSearch(e.target.value)}
+        />
+      
+        <input
+          type="date"
+          style={styles.input}
+          value={deletedDate}
+          onChange={e => setDeletedDate(e.target.value)}
+        />
+      
+        <button
+          style={styles.buttonSecondary}
+          onClick={() => {
+            setDeletedSearch("");
+            setDeletedDate("");
+          }}
+        >
+          Clear
+        </button>
+      </div>
       <div style={{ overflowY: "auto", flex: 1 }}>
         <table style={{
           width: "100%",
@@ -591,9 +645,9 @@ const netValue =
             </tr>
           </thead>
           <tbody>
-            {deletedTransactions.length === 0
+            {filteredDeletedTransactions.length === 0
               ? emptyRowComponent(7, "No deleted transactions")
-              : deletedTransactions.map(t => (
+              : filteredDeletedTransactions.map(t => ((t => (
                 <tr key={t.id}>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.date}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.items?.item_name}</td>
