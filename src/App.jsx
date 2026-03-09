@@ -368,9 +368,11 @@ const netValue =
             value={selectedStockRoom}
             onChange={(e) => setSelectedStockRoom(e.target.value)}
           >
-            <option value="">All Stock Rooms</option>
+            <option value="">Select Stock Room</option>
             {(profile?.role === "admin" ? stockRooms : allowedRooms).map((r) => (
-              <option key={r} value={r}>{r}</option>
+              <option key={r} value={r}>
+                {r}
+              </option>
             ))}
           </select>
           <div style={styles.sidebarTabs}>
