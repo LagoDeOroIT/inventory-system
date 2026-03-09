@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import SignUpForm from "./SignUpForm";
-import LoginForm from "./LoginForm";
+import SignUpForm from "./SignUpForm.jsx";
+import LoginForm from "./LoginForm.jsx";
 import { supabase } from "./supabaseClient";
 
 // ================= STYLES =================
