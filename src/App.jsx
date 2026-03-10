@@ -141,6 +141,7 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
+  const [brandOptions, setBrandOptions] = useState([]);
   const [inSearch, setInSearch] = useState("");
   const [outSearch, setOutSearch] = useState("");
   const [stockSearch, setStockSearch] = useState("");
@@ -334,25 +335,59 @@ export default function App() {
     monthlySummary.totalInValue - monthlySummary.totalOutValue;
   // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
-  setForm(prev => {
-    const updated = { ...prev, [key]: value };
-    if (key === "item_name") {
-      updated.brand = "";
-      const relatedBrands = items
-        .filter(i => i.item_name === value && i.location === selectedStockRoom && !i.deleted)
-        .map(i => i.brand);
-      if (relatedBrands.length === 1) updated.brand = relatedBrands[0];
-    }
-    if (key === "brand") {
-      // Optional: auto-fill price based on selected item + brand
-      const selectedItem = items.find(
-        i => i.item_name === prev.item_name && i.brand === value && i.location === selectedStockRoom
-      );
-      if (selectedItem) updated.price = selectedItem.unit_price;
-    }
-    return updated;
-  });
-};
+
+            if (key === "item_name") {
+          
+              const relatedBrands = items
+                .filter(i =>
+                  i.item_name &&
+                  i.item_name.toLowerCase() === value.toLowerCase() &&
+                  i.location === selectedStockRoom &&
+                  !i.deleted
+                )
+                .map(i => i.brand)
+                .filter(Boolean);
+          
+              const uniqueBrands = [...new Set(relatedBrands)];
+          
+              setBrandOptions(uniqueBrands);
+            }
+          
+            setForm(prev => {
+              const updated = { ...prev, [key]: value };
+          
+              if (key === "item_name") {
+                updated.brand = "";
+          
+                const relatedBrands = items
+                  .filter(i =>
+                    i.item_name === value &&
+                    i.location === selectedStockRoom &&
+                    !i.deleted
+                  )
+                  .map(i => i.brand);
+          
+                if (relatedBrands.length === 1) {
+                  updated.brand = relatedBrands[0];
+                }
+              }
+          
+              if (key === "brand") {
+                const selectedItem = items.find(
+                  i =>
+                    i.item_name === prev.item_name &&
+                    i.brand === value &&
+                    i.location === selectedStockRoom
+                );
+          
+                if (selectedItem) {
+                  updated.price = selectedItem.unit_price;
+                }
+              }
+          
+              return updated;
+            });
+          };
   const openNewItemModal = () => {
   setForm({ 
     date:"", 
