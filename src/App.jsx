@@ -190,14 +190,14 @@ export default function App() {
       // ================= DASHBOARD DATA =================
     
     // active items only
-    const activeItems = items.filter(i => i.deleted !== true);    
-    // total inventory value
-    const totalInventoryValue = activeItems.reduce(
-      (sum, i) => sum + (i.stock * (i.unit_price || 0)),
-      0
-    );
-  const totalItems = activeItems.length;
-  const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
+   const totalItems = stockInventory.length;
+
+const totalInventoryValue = stockInventory.reduce(
+  (sum, i) => sum + (i.stock * (i.unit_price || 0)),
+  0
+);
+
+const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
   const totalTransactions = transactions.filter(t => !t.deleted).length;
   const totalCategories = new Set(activeItems.map(i => i.category)).size;
   const [confirmAction, setConfirmAction] = useState(null);
@@ -880,20 +880,6 @@ if (form.type === "OUT") {
           </thead>
           <tbody>
             {(() => {
-              const stockInventory = items.filter(i => !i.deleted);
-                  // DASHBOARD DATA
-              const totalItems = stockInventory.length;
-              
-              const totalCategories = new Set(
-                stockInventory.map(i => i.category || "Uncategorized")
-              ).size;
-              
-              const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
-              
-              const totalInventoryValue = stockInventory.reduce(
-                (sum, i) => sum + (i.stock * Number(i.unit_price || 0)),
-                0
-              );
               const filteredIn = inTransactions.filter(
                 (item) =>
                   (item.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
