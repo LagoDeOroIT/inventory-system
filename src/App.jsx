@@ -1531,7 +1531,11 @@ if (form.type === "OUT") {
         >
           Cancel
         </button>
+        </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
-  </div>
-)}
+  );
+}
