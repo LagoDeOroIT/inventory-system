@@ -278,10 +278,25 @@ export default function App() {
   const inTransactions = filteredTransactions.filter(t => t.type === "IN");
   const outTransactions = filteredTransactions.filter(t => t.type === "OUT");
 
-  const stockInventory = items
-    .filter(i => !i.deleted)
-    .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
-    .map(i => {
+      const stockInventory = items
+      .filter(i => !i.deleted)
+      .filter(i => {
+        if (!selectedStockRoom) return true;
+        return (i.location || "").trim().toLowerCase() === selectedStockRoom.trim().toLowerCase();
+      })
+      .map(i => {
+        const stock = stockMap[i.id] || 0;
+    
+        return { 
+          id: i.id,
+          item_name: i.item_name,
+          brand: i.brand,
+          category: i.category,
+          unit_price: i.unit_price,
+          stock,
+          location: i.location
+        };
+      });
       const stock = stockMap[i.id] || 0;
       
       return { 
