@@ -293,7 +293,7 @@ export default function App() {
           brand: i.brand,
           category: i.category,
           unit_price: i.unit_price,
-          stock,
+          stock: stock,
           location: i.location
         };
       });
