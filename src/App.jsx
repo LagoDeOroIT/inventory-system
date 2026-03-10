@@ -1074,7 +1074,7 @@ const netValue =
                     style={styles.input} 
                     placeholder="Item Name" 
                     value={form.item_name} 
-                    onChange={e => handleFormChange("item_name", e.target.value)} 
+                    onChange={e => handleFormChange("item_name", e.target.value)}
                   />
                   <input 
                     style={styles.input} 
@@ -1103,38 +1103,38 @@ const netValue =
                   <input style={styles.input} type="date" value={form.date} onChange={e => handleFormChange("date", e.target.value)} />
 
                   <select
-  style={styles.input}
-  value={form.item_name}
-  onChange={e => handleFormChange("item_name", e.target.value)}
->
-  <option value="">Select Item</option>
-  {[
-    ...new Set(
-      items
-        .filter(i => i.location === selectedStockRoom && !i.deleted)
-        .map(i => i.item_name)
-    )
-  ].map(itemName => (
-    <option key={itemName} value={itemName}>{itemName}</option>
-  ))}
-</select>
+                style={styles.input}
+                value={form.item_name}
+                onChange={e => handleFormChange("item_name", e.target.value)}
+              >
+                <option value="">Select Item</option>
+                {[
+                  ...new Set(
+                    items
+                      .filter(i => i.location === selectedStockRoom && !i.deleted)
+                      .map(i => i.item_name)
+                  )
+                ].map(itemName => (
+                  <option key={itemName} value={itemName}>{itemName}</option>
+                ))}
+              </select>
 
                   {/* 🔹 BRAND SELECTOR (Stock-Room Aware) */}
                   <select
-  style={styles.input}
-  value={form.brand}
-  onChange={e => handleFormChange("brand", e.target.value)}
-  disabled={!form.item_name} // disabled until an item is selected
->
-  <option value="">Select Brand</option>
-  {items
-    .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom && !i.deleted)
-    .map(i => i.brand)
-    .filter((brand, index, self) => self.indexOf(brand) === index) // unique brands
-    .map(brand => (
-      <option key={brand} value={brand}>{brand}</option>
-    ))}
-</select>
+                    style={styles.input}
+                    value={form.brand}
+                    onChange={e => handleFormChange("brand", e.target.value)}
+                    disabled={!form.item_name} // disabled until an item is selected
+                  >
+                    <option value="">Select Brand</option>
+                    {items
+                      .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom && !i.deleted)
+                      .map(i => i.brand)
+                      .filter((brand, index, self) => self.indexOf(brand) === index) // unique brands
+                      .map(brand => (
+                        <option key={brand} value={brand}>{brand}</option>
+                      ))}
+                  </select>
 
                   <div style={styles.toggleGroup}>
                     <button style={styles.toggleButton(form.type==="IN")} onClick={() => handleFormChange("type","IN")}>IN</button>
@@ -1160,12 +1160,13 @@ const netValue =
           <div style={styles.modalOverlay} onClick={() => setConfirmAction(null)}>
             <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
               <h3>Confirm Action</h3>
-<p>
-  {confirmAction.type === "createItemConfirm"
-    ? "This item does not exist. Do you want to create a new item?"
-    : `Are you sure you want to ${confirmAction.type.includes("delete") ? "delete" : "restore"} this ${confirmAction.type.includes("Tx") ? "transaction" : "item"}?`
-  }
-</p>              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+                  <p>
+                    {confirmAction.type === "createItemConfirm"
+                      ? "This item does not exist. Do you want to create a new item?"
+                      : `Are you sure you want to ${confirmAction.type.includes("delete") ? "delete" : "restore"} this ${confirmAction.type.includes("Tx") ? "transaction" : "item"}?`
+                    }
+                  </p>              
+              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
                 <button style={styles.buttonPrimary} onClick={async () => {
                   const { type, data } = confirmAction;
 
