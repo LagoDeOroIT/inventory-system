@@ -254,17 +254,15 @@ export default function App() {
   const stockInventory = items
         .filter(i => !i.deleted)
         .filter(i => {
-          if (!selectedStockRoom) return true;
-      
-          const selected = selectedStockRoom.replace(/\s+/g," ").trim().toLowerCase();
-      
-          return transactions.some(t => {
-            const location = (t.location || "")
+         if (!selectedStockRoom) return true;
+
+            const selected = selectedStockRoom.replace(/\s+/g," ").trim().toLowerCase();
+            const itemLocation = (i.location || "")
               .replace(/\s+/g," ")
               .trim()
               .toLowerCase();
-      
-            return t.item_id === i.id && location === selected;
+            
+            return itemLocation === selected;
           });
         })
       .map(i => {
