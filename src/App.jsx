@@ -634,7 +634,7 @@ const netValue =
           </thead>
           <tbody>
             {(() => {
-              const filteredIn = inInventory.filter(
+              const filteredIn = inTransactions.filter(
                 (item) =>
                   item.item_name.toLowerCase().includes(inSearch.toLowerCase()) ||
                   item.brand.toLowerCase().includes(inSearch.toLowerCase())
