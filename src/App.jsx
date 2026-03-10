@@ -197,15 +197,10 @@ export default function App() {
       (sum, i) => sum + (i.stock * (i.unit_price || 0)),
       0
     );
-    
-    // total item types
-    const totalItems = activeItems.length;
-    
-    // low stock items
-    const lowStockItems = activeItems.filter(i => i.stock <= 5).length;
-    
-    // total transactions
-    const totalTransactions = transactions.filter(t => !t.deleted).length;
+  const totalItems = activeItems.length;
+  const lowStockItems = activeItems.filter(i => i.stock <= 5).length;
+  const totalTransactions = transactions.filter(t => !t.deleted).length;
+  const totalCategories = new Set(activeItems.map(i => i.category)).size;
   const [confirmAction, setConfirmAction] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
