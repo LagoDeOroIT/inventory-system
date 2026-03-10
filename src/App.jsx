@@ -346,103 +346,105 @@ const netValue =
   return (
     <div style={styles.container}>
       {/* SIDEBAR */}
-        <div style={{
-          ...styles.sidebar,
-          display: "flex",
-          flexDirection: "column",
-          height: "100vh",
-          justifyContent: "space-between",
-          padding: "16px 12px",       // smaller horizontal padding on narrow screens
-          boxSizing: "border-box",
-          width: "220px",             // fixed default width
-          minWidth: "180px",          // ensures it doesn't shrink too much
-          maxWidth: "250px",          // prevents it from being too wide on large screens
-        }}>
-          {/* Top Section */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={styles.sidebarHeader}>Lago De Oro</div>
-            
-            <select
-              style={{ ...styles.sidebarSelect, width: "100%" }}
-              value={selectedStockRoom}
-              onChange={e => setSelectedStockRoom(e.target.value)}
-            >
-              <option value="">Select Stock Room</option>
-              {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
-        
-            <div style={styles.sidebarTabs}>
-              <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
-              <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
-              <button style={styles.tabButton(activeTab==="deleted")} onClick={()=>setActiveTab("deleted")}>🗑️ Deleted History</button>
-              <button style={styles.tabButton(activeTab==="report")} onClick={()=>setActiveTab("report")}>📊 Monthly Report</button>
-            </div>
-          </div>
-        
-          {/* Bottom Section */}
           <div style={{
+            ...styles.sidebar,
             display: "flex",
             flexDirection: "column",
-            gap: 12,
-            alignItems: "center",
-            paddingBottom: 16,
-            textAlign: "center"
+            height: "100vh",
+            justifyContent: "space-between",
+            padding: "16px 12px",       // smaller horizontal padding on narrow screens
+            boxSizing: "border-box",
+            width: "220px",             // fixed default width
+            minWidth: "180px",          // ensures it doesn't shrink too much
+            maxWidth: "250px",          // prevents it from being too wide on large screens
           }}>
-            {session?.user?.email && (
-              <div style={{
-                color: "#f9fafb",
-                fontSize: 13,
-                fontWeight: 500,
-                marginBottom: 8,
-                lineHeight: 1.3,
-                wordBreak: "break-word"
-              }}>
-                Logged in as<br />
-                <span style={{ fontWeight: 700 }}>{session.user.email}</span>
+            {/* Top Section */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={styles.sidebarHeader}>Lago De Oro</div>
+              
+              <select
+                style={{ ...styles.sidebarSelect, width: "100%" }}
+                value={selectedStockRoom}
+                onChange={e => setSelectedStockRoom(e.target.value)}
+              >
+                <option value="">Select Stock Room</option>
+                {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+          
+              <div style={styles.sidebarTabs}>
+                <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
+                <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
+                <button style={styles.tabButton(activeTab==="deleted")} onClick={()=>setActiveTab("deleted")}>🗑️ Deleted History</button>
+                <button style={styles.tabButton(activeTab==="report")} onClick={()=>setActiveTab("report")}>📊 Monthly Report</button>
               </div>
-            )}
+            </div>
           
-            <button
-              style={{
-                width: "100%",
-                padding: "10px 0",
-                borderRadius: 8,
-                border: "none",
-                background: "#2563eb",
-                color: "#fff",
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: "pointer",
-                transition: "background 0.2s"
-              }}
-              onClick={handleNewClick}
-              onMouseEnter={e => e.currentTarget.style.background = "#1d4ed8"}
-              onMouseLeave={e => e.currentTarget.style.background = "#2563eb"}
-            >
-              + New
-            </button>
+            {/* Bottom Section */}
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              alignItems: "center",
+              paddingBottom: 16,
+              textAlign: "center"
+            }}>
+              {session?.user?.email && (
+                <div style={{
+                  color: "#f9fafb",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  marginBottom: 8,
+                  lineHeight: 1.3,
+                  wordBreak: "break-word"
+                }}>
+                  Logged in as<br />
+                  <span style={{ fontWeight: 700 }}>{session.user.email}</span>
+                </div>
+              )}
+            
+              {/* + New Button */}
+              <button
+                style={{
+                  width: "100%",
+                  padding: "10px 0",
+                  borderRadius: 8,
+                  border: "none",
+                  background: "#1f2937",      // dark gray for main system consistency
+                  color: "#2563eb",           // bright blue text for action emphasis
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  transition: "background 0.2s, color 0.2s"
+                }}
+                onClick={handleNewClick}
+                onMouseEnter={e => { e.currentTarget.style.background = "#2563eb"; e.currentTarget.style.color = "#fff"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "#1f2937"; e.currentTarget.style.color = "#2563eb"; }}
+              >
+                + New
+              </button>
           
-            <button
-              style={{
-                width: "100%",
-                padding: "10px 0",
-                borderRadius: 8,
-                border: "none",
-                background: "#ef4444",
-                color: "#fff",
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: "pointer",
-                transition: "background 0.2s"
-              }}
-              onClick={async () => { await supabase.auth.signOut(); setSession(null); }}
-              onMouseEnter={e => e.currentTarget.style.background = "#dc2626"}
-              onMouseLeave={e => e.currentTarget.style.background = "#ef4444"}
-            >
-              Logout
-            </button>
+              {/* Logout Button */}
+              <button
+                style={{
+                  width: "100%",
+                  padding: "10px 0",
+                  borderRadius: 8,
+                  border: "none",
+                  background: "#b91c1c",      // dark red consistent with Delete buttons
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  transition: "background 0.2s"
+                }}
+                onClick={async () => { await supabase.auth.signOut(); setSession(null); }}
+                onMouseEnter={e => e.currentTarget.style.background = "#991b1b"}
+                onMouseLeave={e => e.currentTarget.style.background = "#b91c1c"}
+              >
+                Logout
+              </button>
+            </div>
           </div>
-        </div>
 
       {/* MAIN AREA */}
       <div style={styles.main}>
