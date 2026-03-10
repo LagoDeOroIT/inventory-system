@@ -187,6 +187,25 @@ export default function App() {
   const categories = [
   ...new Set(items.map(i => i.category).filter(Boolean))
     ];
+      // ================= DASHBOARD DATA =================
+    
+    // active items only
+    const activeItems = items.filter(i => !i.deleted);
+    
+    // total inventory value
+    const totalInventoryValue = activeItems.reduce(
+      (sum, i) => sum + (i.stock * (i.unit_price || 0)),
+      0
+    );
+    
+    // total item types
+    const totalItems = activeItems.length;
+    
+    // low stock items
+    const lowStockItems = activeItems.filter(i => i.stock <= 5).length;
+    
+    // total transactions
+    const totalTransactions = transactions.filter(t => !t.deleted).length;
   const [confirmAction, setConfirmAction] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
