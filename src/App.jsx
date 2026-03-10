@@ -1070,23 +1070,28 @@ const netValue =
               {modalType === "item" && (
                 <>
                   <h3>{form.id ? "Edit Item" : "New Item"}</h3>
-                  <input style={styles.input} placeholder="Item Name" value={form.item_name} onChange={e => handleFormChange("item_name", e.target.value)} />
-
-                  {/* 🔹 BRAND SELECTOR (Stock-Room Aware) */}
-                  <input
-                    style={styles.input}
-                    list="brand-list-item"
-                    placeholder="Brand"
-                    value={form.brand}
-                    onChange={e => handleFormChange("brand", e.target.value)}
+                  <input 
+                    style={styles.input} 
+                    placeholder="Item Name" 
+                    value={form.item_name} 
+                    onChange={e => handleFormChange("item_name", e.target.value)} 
                   />
-                 
-
-                  <input style={styles.input} type="number" placeholder="Price" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
-                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
-                    <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-                  </div>
+                  <input 
+                    style={styles.input} 
+                    placeholder="Brand" 
+                    value={form.brand} 
+                    onChange={e => handleFormChange("brand", e.target.value)} 
+                  />
+                  <input 
+                    style={styles.input} 
+                    placeholder="Price" 
+                    value={form.price} 
+                    onChange={e => handleFormChange("price", e.target.value)} 
+                  />
+                  <button style={styles.buttonPrimary} onClick={handleSubmit}>
+                    {form.id ? "Update" : "Create"}
+                  </button>
+                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
                 </>
               )}
 
