@@ -147,7 +147,7 @@ await loadData(data, rooms);
   loadProfile();
 }, [session]);
   // ================= FILTERS =================
-          const isAdmin = profile?.role === "admin";
+          const isAdmin = profile?.role?.toLowerCase() === "admin";
         
         // Transactions
         const filteredTransactions = transactions.filter((t) => {
@@ -328,7 +328,7 @@ const netValue =
       setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
       setShowModal(false);
       setModalType("");
-      loadData();
+      await loadData(profile, allowedRooms);
     } else if(modalType === "item") {
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
       const itemData = { item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom };
@@ -346,7 +346,7 @@ const netValue =
       setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
       setShowModal(false);
       setModalType("");
-      loadData();
+      await loadData(profile, allowedRooms);
     }
   };
 
@@ -1101,29 +1101,29 @@ const netValue =
                   if(type==="deleteItem") {
                     await supabase.from("items").update({ deleted:true }).eq("id", data.id);
                     await supabase.from("inventory_transactions").update({ deleted:true }).eq("item_id", data.id);
-                    loadData();
+                    await loadData(profile, allowedRooms);
                   }
                   else if(type==="permanentDeleteItem") {
                     await supabase.from("items").delete().eq("id", data.id);
                     await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
-                    loadData();
+                    await loadData(profile, allowedRooms);
                   }
                   else if(type==="restoreItem") {
                     await supabase.from("items").update({ deleted:false }).eq("id", data.id);
                     await supabase.from("inventory_transactions").update({ deleted:false }).eq("item_id", data.id);
-                    loadData();
+                    await loadData(profile, allowedRooms);
                   }
                   else if(type==="deleteTx") {
                     await supabase.from("inventory_transactions").update({ deleted:true }).eq("id", data.id);
-                    loadData();
+                    await loadData(profile, allowedRooms);
                   }
                   else if(type==="permanentDeleteTx") {
                     await supabase.from("inventory_transactions").delete().eq("id", data.id);
-                    loadData();
+                    await loadData(profile, allowedRooms);
                   }
                   else if(type==="restoreTx") {
                     await supabase.from("inventory_transactions").update({ deleted:false }).eq("id", data.id);
-                    loadData(); // ✅ refresh stock immediately
+                    await loadData(profile, allowedRooms); // ✅ refresh stock immediately
                   }
                   else if(type === "createItemConfirm") {
                   setModalTypeBeforeItem("transaction");
