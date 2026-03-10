@@ -135,7 +135,7 @@ export default function App() {
     const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
 
     const { data: tx } = await supabase.from("inventory_transactions")
-      .select("*, items(item_name, brand, unit_price, location)")
+      .select("*, items(item_name, brand, unit_price, location, category)")
       .order("date", { ascending: false });
     const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
 
@@ -148,7 +148,17 @@ export default function App() {
   // ================= FILTERS =================
   const filteredTransactions = transactions
     .filter(t => !t.deleted)
-    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+    .filter(t => !selectedStockRoom || t.location === selectedStockRoom);  
+  
+  const stockMap = filteredTransactions.reduce((acc, t) => {
+        const qty = Number(t.quantity) || 0;
+      
+        if (!acc[t.item_id]) acc[t.item_id] = 0;
+      
+        acc[t.item_id] += t.type === "IN" ? qty : -qty;
+      
+        return acc;
+      }, {});
   const inTransactions = filteredTransactions.filter(t => t.type === "IN");
   const outTransactions = filteredTransactions.filter(t => t.type === "OUT");
 
@@ -156,11 +166,7 @@ export default function App() {
     .filter(i => !i.deleted)
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
     .map(i => {
-      const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
-      const stock = related.reduce(
-        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
-        0
-      );
+      const stock = stockMap[i.id] || 0;
       return { 
             id: i.id,
             item_name: i.item_name,
@@ -200,7 +206,7 @@ const monthlyTransactions = filteredTransactions.filter(t => {
 const monthlySummary = monthlyTransactions.reduce((acc, t) => {
   const total =
     (Number(t.quantity) || 0) *
-    (Number(t.unit_price) || Number(t.items?.unit_price) || 0);
+    Number(t.unit_price ?? t.items?.unit_price ?? 0);
 
   if (t.type === "IN") {
     acc.totalInQty += Number(t.quantity) || 0;
@@ -304,6 +310,17 @@ const netValue =
   });
   return;
 }
+      /* 🚨 PREVENT NEGATIVE STOCK */
+if (form.type === "OUT") {
+
+  const currentStock = stockMap[existingItem.id] || 0;
+
+  if (Number(form.quantity) > currentStock) {
+    alert("Not enough stock.");
+    return;
+  }
+}
+
       const txData = {
         date: form.date,
         item_id: existingItem.id,
@@ -574,7 +591,7 @@ const netValue =
           
               return Object.entries(groupedStock).map(([category, items]) => {
 
-                const isOpen = openCategories[category];
+                const isOpen = openCategories[category] ?? true;
               
                 const totalValue = items.reduce(
                   (sum, i) => sum + (i.stock * i.unit_price),
@@ -596,14 +613,43 @@ const netValue =
               
                     {/* ITEMS */}
                     {isOpen && items.map(i => (
-                      <tr key={i.id}>
+                      <tr
+                          key={i.id}
+                          style={{
+                            background: i.stock <= 5 ? "#fee2e2" : "transparent"
+                          }}
+                        >
                         <td style={styles.thtd}>{i.stock}</td>
                         <td style={styles.thtd}>{i.item_name}</td>
                         <td style={styles.thtd}>{i.brand}</td>
-                        <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
-                        <td style={styles.thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
+                        <td style={styles.thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
+                        <td style={styles.thtd}>₱{(i.stock * Number(i.unit_price || 0)).toFixed(2)}</td>
                         <td style={styles.thtd}>
-                          {/* keep your edit/delete buttons here */}
+                          <div style={{ display:"flex", gap:10 }}>
+                            <button
+                              style={{ ...styles.buttonSecondary }}
+                              onClick={() => {
+                                setForm({
+                                  id: i.id,
+                                  item_name: i.item_name,
+                                  brand: i.brand,
+                                  price: i.unit_price,
+                                  brandOptions: [i.brand],
+                                });
+                                setModalType("item");
+                                setShowModal(true);
+                              }}
+                            >
+                              Edit
+                            </button>
+                        
+                            <button
+                              style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
+                              onClick={() => setConfirmAction({ type:"deleteItem", data:i })}
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -665,7 +711,7 @@ const netValue =
               if (filteredIn.length === 0) {
                 return (
                   <tr>
-                    <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                    <td colSpan={7} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
                       No matching items
                     </td>
                   </tr>
@@ -674,7 +720,7 @@ const netValue =
           
               // Group by category
               const groupedIn = filteredIn.reduce((acc, item) => {
-                const cat = item.category || "Uncategorized";
+                const cat = item.items?.category || "Uncategorized";
                 if (!acc[cat]) acc[cat] = [];
                 acc[cat].push(item);
                 return acc;
@@ -683,17 +729,18 @@ const netValue =
               return Object.entries(groupedIn).map(([category, items]) => (
                 <React.Fragment key={category}>
                   <tr>
-                    <td colSpan={6} style={{ background: "#f3f4f6", fontWeight: 600, padding: "10px 12px" }}>
+                    <td colSpan={7} style={{ background: "#f3f4f6", fontWeight: 600, padding: "10px 12px" }}>
                       {category}
                     </td>
                   </tr>
                   {items.map((i) => (
                     <tr key={i.id}>
-                      <td>{i.qty}</td>
-                      <td>{i.item_name}</td>
-                      <td>{i.brand}</td>
-                      <td>₱{i.unit_price.toFixed(2)}</td>
-                      <td>₱{(i.qty * i.unit_price).toFixed(2)}</td>
+                      <td>{i.date}</td>
+                      <td>{i.items?.item_name}</td>
+                      <td>{i.items?.brand}</td>
+                      <td>{i.items?.category}</td>
+                      <td>{i.quantity}</td>
+                      <td>₱{(i.quantity * (i.unit_price || i.items?.unit_price)).toFixed(2)}</td>
                       <td>
                         {/* Your Edit/Delete buttons here */}
                       </td>
@@ -747,7 +794,7 @@ const netValue =
                 if (filteredOut.length === 0) {
                   return (
                     <tr>
-                      <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                      <td colSpan={7} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
                         No matching items
                       </td>
                     </tr>
@@ -756,7 +803,7 @@ const netValue =
             
                 // Group by category
                 const groupedOut = filteredOut.reduce((acc, item) => {
-                  const cat = item.category || "Uncategorized";
+                  const cat = item.items?.category || "Uncategorized";
                   if (!acc[cat]) acc[cat] = [];
                   acc[cat].push(item);
                   return acc;
@@ -766,31 +813,35 @@ const netValue =
                   <React.Fragment key={category}>
                     {/* Category Header */}
                     <tr>
-                      <td colSpan={6} style={{ background: "#f3f4f6", fontWeight: 600, padding: "10px 12px" }}>
+                      <td colSpan={7} style={{ background: "#f3f4f6", fontWeight: 600, padding: "10px 12px" }}>
                         {category}
                       </td>
                     </tr>
                     {/* Items under the category */}
                     {items.map((i) => (
                       <tr key={i.id}>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.qty}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.item_name}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.brand}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>₱{i.unit_price.toFixed(2)}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>₱{(i.qty * i.unit_price).toFixed(2)}</td>
+                      <td>{i.date}</td>
+                      <td>{i.items?.item_name}</td>
+                      <td>{i.items?.brand}</td>
+                      <td>{i.items?.category}</td>
+                      <td>{i.quantity}</td>
+                      <td>₱{(i.quantity * (i.unit_price || i.items?.unit_price)).toFixed(2)}</td>
                         <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
                           <div style={{ display: "flex", gap: 10 }}>
                             <button
                               style={{ ...styles.buttonSecondary }}
                               onClick={() => {
                                 setForm({
-                                  id: i.id,
-                                  item_name: i.item_name,
-                                  brand: i.brand,
-                                  price: i.unit_price,
-                                  brandOptions: [i.brand],
-                                });
-                                setModalType("item");
+                                    id: i.id,
+                                    date: i.date,
+                                    item_name: i.items?.item_name,
+                                    brand: i.items?.brand,
+                                    type: i.type,
+                                    quantity: i.quantity,
+                                    price: i.unit_price || i.items?.unit_price,
+                                    brandOptions: [i.items?.brand],
+                                  });
+                                setModalType("transaction");
                                 setShowModal(true);
                               }}
                             >
@@ -798,7 +849,7 @@ const netValue =
                             </button>
                             <button
                               style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
-                              onClick={() => setConfirmAction({ type: "deleteItem", data: i })}
+                              onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
                             >
                               Delete
                             </button>
@@ -872,7 +923,7 @@ const netValue =
                 if (filteredDeleted.length === 0) {
                   return (
                     <tr>
-                      <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                      <td colSpan={4} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
                         No deleted items
                       </td>
                     </tr>
@@ -891,27 +942,30 @@ const netValue =
                   <React.Fragment key={category}>
                     {/* Category Header */}
                     <tr>
-                      <td colSpan={6} style={{ background: "#f3f4f6", fontWeight: 600, padding: "10px 12px" }}>
+                      <td colSpan={4} style={{ background: "#f3f4f6", fontWeight: 600, padding: "10px 12px" }}>
                         {category}
                       </td>
                     </tr>
                     {/* Items under the category */}
                     {items.map((i) => (
                       <tr key={i.id}>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.qty}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.item_name}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.brand}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>₱{i.unit_price.toFixed(2)}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>₱{(i.qty * i.unit_price).toFixed(2)}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
-                          <button
-                            style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
-                            onClick={() => restoreDeletedItem(i)}
-                          >
-                            Restore
-                          </button>
+                        <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>{i.item_name}</td>
+                        
+                        <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>{i.brand}</td>
+                        
+                        <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                        ₱{Number(i.unit_price || 0).toFixed(2)}
                         </td>
-                      </tr>
+                        
+                        <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                        <button
+                        style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
+                        onClick={() => setConfirmAction({ type:"restoreItem", data:i })}
+                        >
+                        Restore
+                        </button>
+                        </td>
+                        </tr>
                     ))}
                   </React.Fragment>
                 ));
@@ -959,16 +1013,16 @@ const netValue =
           </thead>
           <tbody>
               {(() => {
-                const filteredDeleted = deletedInventory.filter(
-                  (item) =>
-                    item.item_name.toLowerCase().includes(deleteSearch.toLowerCase()) ||
-                    item.brand.toLowerCase().includes(deleteSearch.toLowerCase())
-                );
+                  const filteredDeleted = deletedTransactions.filter(
+                    (t) =>
+                      (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
+                      (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
+                  );
             
                 if (filteredDeleted.length === 0) {
                   return (
                     <tr>
-                      <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                      <td colSpan={7} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
                         No deleted items
                       </td>
                     </tr>
@@ -977,7 +1031,7 @@ const netValue =
             
                 // Group by category
                 const groupedDeleted = filteredDeleted.reduce((acc, item) => {
-                  const cat = item.category || "Uncategorized";
+                  const cat = item.items?.category || "Uncategorized";
                   if (!acc[cat]) acc[cat] = [];
                   acc[cat].push(item);
                   return acc;
@@ -987,26 +1041,43 @@ const netValue =
                   <React.Fragment key={category}>
                     {/* Category Header */}
                     <tr>
-                      <td colSpan={6} style={{ background: "#f3f4f6", fontWeight: 600, padding: "10px 12px" }}>
+                      <td colSpan={7} style={{ background: "#f3f4f6", fontWeight: 600, padding: "10px 12px" }}>
                         {category}
                       </td>
                     </tr>
                     {/* Items under the category */}
                     {items.map((i) => (
                       <tr key={i.id}>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.qty}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.item_name}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.brand}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>₱{i.unit_price.toFixed(2)}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>₱{(i.qty * i.unit_price).toFixed(2)}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
-                          <button
-                            style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
-                            onClick={() => restoreDeletedItem(i)}
-                          >
-                            Restore
-                          </button>
-                        </td>
+                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>{i.date}</td>
+                      
+                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      {i.items?.item_name}
+                      </td>
+                      
+                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      {i.items?.brand}
+                      </td>
+                      
+                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      {i.type}
+                      </td>
+                      
+                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      {i.quantity}
+                      </td>
+                      
+                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      ₱{(i.quantity * (i.unit_price || i.items?.unit_price)).toFixed(2)}
+                      </td>
+                      
+                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      <button
+                      style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
+                      onClick={() => setConfirmAction({ type:"restoreTx", data:i })}
+                      >
+                      Restore
+                      </button>
+                      </td>
                       </tr>
                     ))}
                   </React.Fragment>
@@ -1134,20 +1205,42 @@ const netValue =
                   </tr>
           
                   {/* Items in this category */}
-                  {items.map((t) => {
-                    const unitPrice = Number(t.unit_price || t.items?.unit_price || 0);
+                 {Object.values(
+                  items.reduce((acc, t) => {
+                    const key = `${t.items?.item_name}-${t.items?.brand}`;
+                    const price = Number(t.unit_price || t.items?.unit_price || 0);
                     const qty = Number(t.quantity || 0);
-                    return (
-                      <tr key={t.id}>
-                        <td style={styles.thtd}>{t.items?.item_name}</td>
-                        <td style={styles.thtd}>{t.items?.brand}</td>
-                        <td style={styles.thtd}>{t.type}</td>
-                        <td style={styles.thtd}>{qty}</td>
-                        <td style={styles.thtd}>₱{unitPrice.toFixed(2)}</td>
-                        <td style={styles.thtd}>₱{(qty * unitPrice).toFixed(2)}</td>
-                      </tr>
-                    );
-                  })}
+                
+                    if (!acc[key]) {
+                      acc[key] = {
+                        item: t.items?.item_name,
+                        brand: t.items?.brand,
+                        inQty: 0,
+                        outQty: 0,
+                        price
+                      };
+                    }
+                
+                    if (t.type === "IN") acc[key].inQty += qty;
+                    else acc[key].outQty += qty;
+                
+                    return acc;
+                  }, {})
+                ).map((row, idx) => {
+                  const netQty = row.inQty - row.outQty;
+                  const netValue = netQty * row.price;
+                
+                  return (
+                    <tr key={idx}>
+                      <td style={styles.thtd}>{row.item}</td>
+                      <td style={styles.thtd}>{row.brand}</td>
+                      <td style={styles.thtd}>{row.inQty}</td>
+                      <td style={styles.thtd}>{row.outQty}</td>
+                      <td style={styles.thtd}>{netQty}</td>
+                      <td style={styles.thtd}>₱{netValue.toFixed(2)}</td>
+                    </tr>
+                  );
+                })}
                 </React.Fragment>
               ));
             })()}
@@ -1171,7 +1264,7 @@ const netValue =
         </thead>
         <tbody>
           {monthlyTransactions.length === 0
-            ? emptyRowComponent(7, "No transactions")
+            ? emptyRowComponent(6, "No transactions")
             : monthlyTransactions.map(t => (
                 <tr key={t.id}>
                   <td style={styles.thtd}>{t.date}</td>
