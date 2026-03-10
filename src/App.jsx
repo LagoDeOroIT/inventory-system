@@ -190,15 +190,14 @@ export default function App() {
       // ================= DASHBOARD DATA =================
     
     // active items only
-    const activeItems = items.filter(i => !i.deleted);
-    
+    const activeItems = items.filter(i => i.deleted !== true);    
     // total inventory value
     const totalInventoryValue = activeItems.reduce(
       (sum, i) => sum + (i.stock * (i.unit_price || 0)),
       0
     );
   const totalItems = activeItems.length;
-  const lowStockItems = activeItems.filter(i => i.stock <= 5).length;
+  const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
   const totalTransactions = transactions.filter(t => !t.deleted).length;
   const totalCategories = new Set(activeItems.map(i => i.category)).size;
   const [confirmAction, setConfirmAction] = useState(null);
@@ -217,6 +216,11 @@ export default function App() {
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
+  useEffect(() => {
+  if (session) {
+    loadData();
+  }
+}, [session]);
 
   const handleAuth = async () => {
     if (!authEmail || !authPassword) return alert("Fill email and password");
@@ -286,7 +290,7 @@ export default function App() {
 
   const stockInventory = items
     .filter(i => !i.deleted)
-    .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
+    .filter(i => !selectedStockRoom || i.location === selectedStockRoom || !i.location)
     .map(i => {
       const stock = stockMap[i.id] || 0;
       return { 
@@ -300,7 +304,7 @@ export default function App() {
           };
     });
 
-  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
+  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom || !i.location);
   const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
   const filteredDeletedItems = deletedItems.filter(i =>
   i.item_name.toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
