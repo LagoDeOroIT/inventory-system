@@ -988,19 +988,40 @@ if (form.type === "OUT") {
                         </td>
                         
                         <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                        <button
-                        style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
-                        onClick={() => setConfirmAction({ type:"restoreItem", data:i })}
-                        >
-                        Restore
-                        </button>
-                        <button
-                        style={{ ...styles.buttonSecondary, background:"#ef4444", color:"#fff" }}
-                        onClick={() => setConfirmAction({ type:"permanentDeleteItem", data:i })}
-                        >
-                        Delete Permanently
-                        </button>
-                        </td>
+                        <div style={{ display:"flex", gap:8 }}>
+                          
+                          <button
+                            style={{
+                              padding:"6px 10px",
+                              borderRadius:6,
+                              border:"none",
+                              background:"#10b981",
+                              color:"#fff",
+                              cursor:"pointer",
+                              fontSize:13
+                            }}
+                            onClick={() => setConfirmAction({ type:"restoreItem", data:i })}
+                          >
+                            Restore
+                          </button>
+                      
+                          <button
+                            style={{
+                              padding:"6px 10px",
+                              borderRadius:6,
+                              border:"none",
+                              background:"#ef4444",
+                              color:"#fff",
+                              cursor:"pointer",
+                              fontSize:13
+                            }}
+                            onClick={() => setConfirmAction({ type:"permanentDeleteItem", data:i })}
+                          >
+                            Delete
+                          </button>
+                      
+                        </div>
+                      </td>
                         </tr>
                     ))}
                   </React.Fragment>
@@ -1107,18 +1128,39 @@ if (form.type === "OUT") {
                       </td>
                       
                       <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      <button
-                      style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
-                      onClick={() => setConfirmAction({ type:"restoreTx", data:i })}
-                      >
-                      Restore
-                      </button>
-                      <button
-                      style={{ ...styles.buttonSecondary, background:"#ef4444", color:"#fff" }}
-                      onClick={() => setConfirmAction({ type:"permanentDeleteTx", data:i })}
-                      >
-                      Delete Permanently
-                      </button>
+                      <div style={{ display:"flex", gap:8 }}>
+
+                        <button
+                          style={{
+                            padding:"6px 10px",
+                            borderRadius:6,
+                            border:"none",
+                            background:"#10b981",
+                            color:"#fff",
+                            cursor:"pointer",
+                            fontSize:13
+                          }}
+                          onClick={() => setConfirmAction({ type:"restoreTx", data:i })}
+                        >
+                          Restore
+                        </button>
+                      
+                        <button
+                          style={{
+                            padding:"6px 10px",
+                            borderRadius:6,
+                            border:"none",
+                            background:"#ef4444",
+                            color:"#fff",
+                            cursor:"pointer",
+                            fontSize:13
+                          }}
+                          onClick={() => setConfirmAction({ type:"permanentDeleteTx", data:i })}
+                        >
+                          Delete
+                        </button>
+                      
+                      </div>
                       </td>
                       </tr>
                     ))}
