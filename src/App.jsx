@@ -333,61 +333,68 @@ export default function App() {
     });
   const netValue =
     monthlySummary.totalInValue - monthlySummary.totalOutValue;
-  // ================= FORM HANDLER =================
+  // ================= FORM HANDLER =================  
   const handleFormChange = (key, value) => {
 
-            if (key === "item_name") {
-          
-              const relatedBrands = items
-                .filter(i =>
-                  i.item_name &&
-                  i.item_name.toLowerCase() === value.toLowerCase() &&
-                  i.location === selectedStockRoom &&
-                  !i.deleted
-                )
-                .map(i => i.brand)
-                .filter(Boolean);
-          
-              const uniqueBrands = [...new Set(relatedBrands)];
-          
-              setBrandOptions(uniqueBrands);
+        // Update brand suggestions when typing item name
+        if (key === "item_name") {
+      
+          const relatedBrands = items
+            .filter(i =>
+              i.item_name &&
+              i.item_name.toLowerCase().includes(value.toLowerCase()) &&
+              !i.deleted
+            )
+            .map(i => i.brand)
+            .filter(Boolean);
+      
+          const uniqueBrands = [...new Set(relatedBrands)];
+      
+          setBrandOptions(uniqueBrands);
+        }
+      
+        setForm(prev => {
+          const updated = { ...prev, [key]: value };
+      
+          // Reset brand when item name changes
+          if (key === "item_name") {
+      
+            updated.brand = "";
+      
+            const exactMatchBrands = items
+              .filter(i =>
+                i.item_name &&
+                i.item_name.toLowerCase() === value.toLowerCase() &&
+                !i.deleted
+              )
+              .map(i => i.brand);
+      
+            if (exactMatchBrands.length === 1) {
+              updated.brand = exactMatchBrands[0];
             }
-          
-            setForm(prev => {
-              const updated = { ...prev, [key]: value };
-          
-              if (key === "item_name") {
-                updated.brand = "";
-          
-                const relatedBrands = items
-                  .filter(i =>
-                    i.item_name === value &&
-                    i.location === selectedStockRoom &&
-                    !i.deleted
-                  )
-                  .map(i => i.brand);
-          
-                if (relatedBrands.length === 1) {
-                  updated.brand = relatedBrands[0];
-                }
-              }
-          
-              if (key === "brand") {
-                const selectedItem = items.find(
-                  i =>
-                    i.item_name === prev.item_name &&
-                    i.brand === value &&
-                    i.location === selectedStockRoom
-                );
-          
-                if (selectedItem) {
-                  updated.price = selectedItem.unit_price;
-                }
-              }
-          
-              return updated;
-            });
-          };
+          }
+      
+          // Auto-fill price when brand is selected
+          if (key === "brand") {
+      
+            const selectedItem = items.find(
+              i =>
+                i.item_name &&
+                i.item_name.toLowerCase() === prev.item_name?.toLowerCase() &&
+                i.brand === value &&
+                !i.deleted
+            );
+      
+            if (selectedItem) {
+              updated.price = selectedItem.unit_price;
+            }
+      
+          }
+      
+          return updated;
+        });
+      
+      };
   const openNewItemModal = () => {
   setForm({ 
     date:"", 
