@@ -1048,73 +1048,76 @@ if (form.type === "OUT") {
             </tr>
           </thead>
           <tbody>
-              {(() => {
-               const filteredDeleted = deletedItems.filter(
-                  (item) =>
-                    (item.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
-                    (item.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
+            {(() => {
+              const filteredDeleted = deletedItems.filter(
+                (item) =>
+                  (item.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+                  (item.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
+              );
+          
+              if (filteredDeleted.length === 0) {
+                return (
+                  <tr>
+                    <td colSpan={4} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                      No deleted items
+                    </td>
+                  </tr>
                 );
-            
-                if (filteredDeleted.length === 0) {
-                  return (
-                    <tr>
-                      <td colSpan={4} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                        No deleted items
-                      </td>
-                    </tr>
-                  );
-                }
-                    {items.map((i) => (
-                      <tr key={i.id}>
-                        <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>{i.item_name}</td>
-                        
-                        <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>{i.brand}</td>
-                        
-                        <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                        ₱{Number(i.unit_price || 0).toFixed(2)}
-                        </td>
-                        
-                        <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                        <div style={{ display:"flex", gap:8 }}>
-                          
-                          <button
-                            style={{
-                              padding:"6px 10px",
-                              borderRadius:6,
-                              border:"none",
-                              background:"#10b981",
-                              color:"#fff",
-                              cursor:"pointer",
-                              fontSize:13
-                            }}
-                            onClick={() => setConfirmAction({ type:"restoreItem", data:i })}
-                          >
-                            Restore
-                          </button>
-                      
-                          <button
-                            style={{
-                              padding:"6px 10px",
-                              borderRadius:6,
-                              border:"none",
-                              background:"#ef4444",
-                              color:"#fff",
-                              cursor:"pointer",
-                              fontSize:13
-                            }}
-                            onClick={() => setConfirmAction({ type:"permanentDeleteItem", data:i })}
-                          >
-                            Delete
-                          </button>
-                      
-                        </div>
-                      </td>
-                        </tr>
-                    ))}
-                  </React.Fragment>
-                ));
-              })()}
-            </tbody>
+              }
+          
+              return filteredDeleted.map((i) => (
+                <tr key={i.id}>
+                  <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                    {i.item_name}
+                  </td>
+          
+                  <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                    {i.brand}
+                  </td>
+          
+                  <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                    ₱{Number(i.unit_price || 0).toFixed(2)}
+                  </td>
+          
+                  <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                    <div style={{ display:"flex", gap:8 }}>
+          
+                      <button
+                        style={{
+                          padding:"6px 10px",
+                          borderRadius:6,
+                          border:"none",
+                          background:"#10b981",
+                          color:"#fff",
+                          cursor:"pointer",
+                          fontSize:13
+                        }}
+                        onClick={() => setConfirmAction({ type:"restoreItem", data:i })}
+                      >
+                        Restore
+                      </button>
+          
+                      <button
+                        style={{
+                          padding:"6px 10px",
+                          borderRadius:6,
+                          border:"none",
+                          background:"#ef4444",
+                          color:"#fff",
+                          cursor:"pointer",
+                          fontSize:13
+                        }}
+                        onClick={() => setConfirmAction({ type:"permanentDeleteItem", data:i })}
+                      >
+                        Delete
+                      </button>
+          
+                    </div>
+                  </td>
+                </tr>
+              ));
+            })()}
+          </tbody>
         </table>
       </div>
     </div>
