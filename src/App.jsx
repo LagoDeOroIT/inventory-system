@@ -195,16 +195,38 @@ const netValue =
 };
 
   const openNewItemModal = () => {
-    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
-    setModalType("item");
-    setShowModal(true);
-  };
+  setForm({ 
+    date:"", 
+    item_id:"", 
+    item_name:"", 
+    brand:"", 
+    brandOptions:[], 
+    type:"IN", 
+    quantity:"", 
+    price:"", 
+    id:null,
+    location: selectedStockRoom  // ✅ add this
+  });
+  setModalType("item");
+  setShowModal(true);
+};
 
   const openNewTransactionModal = () => {
-    setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
-    setModalType("transaction");
-    setShowModal(true);
-  };
+  setForm({ 
+    date:"", 
+    item_id:"", 
+    item_name:"", 
+    brand:"", 
+    brandOptions:[], 
+    type:"IN", 
+    quantity:"", 
+    price:"", 
+    id:null,
+    location: selectedStockRoom // ✅ add this
+  });
+  setModalType("transaction");
+  setShowModal(true);
+};
 
   const handleNewClick = () => {
     if(!selectedStockRoom) {
@@ -234,8 +256,8 @@ const netValue =
         brand: form.brand || existingItem.brand,
         type: form.type,
         quantity: Number(form.quantity),
-        location: selectedStockRoom,
-        unit_price: Number(form.price || existingItem.unit_price || 0)
+        unit_price: Number(form.price || existingItem.unit_price || 0),
+        location: form.location || selectedStockRoom  // ✅ add this line
       };
       if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
       else await supabase.from("inventory_transactions").insert([txData]);
@@ -245,7 +267,12 @@ const netValue =
       loadData();
     } else if(modalType === "item") {
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
-      const itemData = { item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom };
+      const itemData = { 
+        item_name: form.item_name, 
+        brand: form.brand, 
+        unit_price: Number(form.price),
+        location: form.location || selectedStockRoom  // ✅ add stock room
+      };      
       if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
       else {
         const { data } = await supabase.from("items").insert([itemData]);
