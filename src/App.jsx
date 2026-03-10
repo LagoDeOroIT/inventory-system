@@ -264,7 +264,6 @@ export default function App() {
             
             return itemLocation === selected;
           });
-        })
       .map(i => {
    const stock = stockMap[i.id] || 0;
         return {
