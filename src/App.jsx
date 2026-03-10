@@ -345,35 +345,20 @@ const netValue =
   // ================= MAIN APP =================
   return (
     <div style={styles.container}>
-      {/* PROFESSIONAL SIDEBAR */}
-        <div style={{
-          ...styles.sidebar,
-          display: "flex",
-          flexDirection: "column",
-          height: "100vh",
-          justifyContent: "space-between",
-          padding: "20px 16px",
-          backgroundColor: "#1e293b",   // dark gray
-          color: "#f8fafc",
-          boxSizing: "border-box",
-          width: "220px",
-          minWidth: "180px",
-        }}>
-        
+      {/* SIDEBAR */}
+        <div style={styles.sidebar}>
           {/* Top Section */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ fontSize: 22, fontWeight: 700, color: "#f8fafc", marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>
               Lago De Oro
             </div>
-            
+        
             <select
               style={{
                 width: "100%",
                 padding: "8px",
                 borderRadius: 6,
-                border: "1px solid #334155",
-                backgroundColor: "#1e293b",
-                color: "#f8fafc",
+                border: "1px solid #ccc",
                 fontSize: 14
               }}
               value={selectedStockRoom}
@@ -383,7 +368,7 @@ const netValue =
               {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
         
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ marginTop: 16 }}>
               <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
               <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
               <button style={styles.tabButton(activeTab==="deleted")} onClick={()=>setActiveTab("deleted")}>🗑️ Deleted History</button>
@@ -392,12 +377,11 @@ const netValue =
           </div>
         
           {/* Bottom Section */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center", paddingBottom: 16 }}>
-            
+          <div style={{ marginTop: "auto" }}>
             {session?.user?.email && (
-              <div style={{ fontSize: 13, textAlign: "center", lineHeight: 1.3, color: "#cbd5e1" }}>
+              <div style={{ fontSize: 13, textAlign: "center", lineHeight: 1.3, color: "#666" }}>
                 Logged in as<br />
-                <span style={{ fontWeight: 600, color: "#f8fafc" }}>{session.user.email}</span>
+                <span style={{ fontWeight: 600 }}>{session.user.email}</span>
               </div>
             )}
         
@@ -409,10 +393,11 @@ const netValue =
                 borderRadius: 6,
                 border: "none",
                 backgroundColor: "#3b82f6", // professional blue
-                color: "#f8fafc",
+                color: "#fff",
                 fontWeight: 600,
                 fontSize: 14,
                 cursor: "pointer",
+                marginTop: 12,
                 transition: "background 0.2s"
               }}
               onClick={handleNewClick}
@@ -429,11 +414,12 @@ const netValue =
                 padding: "10px 0",
                 borderRadius: 6,
                 border: "none",
-                backgroundColor: "#ef4444", // subtle red for destructive
-                color: "#f8fafc",
+                backgroundColor: "#ef4444", // subtle red
+                color: "#fff",
                 fontWeight: 600,
                 fontSize: 14,
                 cursor: "pointer",
+                marginTop: 8,
                 transition: "background 0.2s"
               }}
               onClick={async () => { await supabase.auth.signOut(); setSession(null); }}
@@ -442,7 +428,6 @@ const netValue =
             >
               Logout
             </button>
-        
           </div>
         </div>
 
