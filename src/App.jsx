@@ -161,7 +161,15 @@ export default function App() {
         (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
         0
       );
-      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
+      return { 
+            id: i.id,
+            item_name: i.item_name,
+            brand: i.brand,
+            category: i.category,
+            unit_price: i.unit_price,
+            stock,
+            location: i.location
+          };
     });
 
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
@@ -544,8 +552,8 @@ const netValue =
               const groupedStock = stockInventory
                 .filter(
                   (item) =>
-                    item.item_name.toLowerCase().includes(stockSearch.toLowerCase()) ||
-                    item.brand.toLowerCase().includes(stockSearch.toLowerCase())
+                    (item.item_name || "").toLowerCase().includes(stockSearch.toLowerCase()) ||
+                    (item.brand || "").toLowerCase().includes(stockSearch.toLowerCase())
                 )
                 .reduce((acc, item) => {
                   const cat = item.category || "Uncategorized";
@@ -650,8 +658,8 @@ const netValue =
             {(() => {
               const filteredIn = inTransactions.filter(
                 (item) =>
-                  item.item_name.toLowerCase().includes(inSearch.toLowerCase()) ||
-                  item.brand.toLowerCase().includes(inSearch.toLowerCase())
+                  (item.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
+                  (item.items?.brand || "").toLowerCase().includes(inSearch.toLowerCase())
               );
           
               if (filteredIn.length === 0) {
@@ -730,11 +738,11 @@ const netValue =
           </thead>
           <tbody>
               {(() => {
-                const filteredOut = outInventory.filter(
-                  (item) =>
-                    item.item_name.toLowerCase().includes(outSearch.toLowerCase()) ||
-                    item.brand.toLowerCase().includes(outSearch.toLowerCase())
-                );
+                    const filteredOut = outTransactions.filter(
+                      (item) =>
+                        (item.items?.item_name || "").toLowerCase().includes(outSearch.toLowerCase()) ||
+                        (item.items?.brand || "").toLowerCase().includes(outSearch.toLowerCase())
+                    );
             
                 if (filteredOut.length === 0) {
                   return (
@@ -855,10 +863,10 @@ const netValue =
           </thead>
           <tbody>
               {(() => {
-                const filteredDeleted = deletedInventory.filter(
+               const filteredDeleted = deletedItems.filter(
                   (item) =>
-                    item.item_name.toLowerCase().includes(deleteSearch.toLowerCase()) ||
-                    item.brand.toLowerCase().includes(deleteSearch.toLowerCase())
+                    (item.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+                    (item.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
                 );
             
                 if (filteredDeleted.length === 0) {
