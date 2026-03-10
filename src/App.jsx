@@ -1160,11 +1160,11 @@ if (form.type === "OUT") {
           </thead>
           <tbody>
               {(() => {
-                  const filteredDeleted = deletedTransactions.filter(
-                    (t) =>
-                      (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
-                      (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
-                  );
+                const filteredDeleted = deletedTransactions.filter(
+                  (t) =>
+                    (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
+                    (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
+                );
             
                 if (filteredDeleted.length === 0) {
                   return (
@@ -1175,33 +1175,36 @@ if (form.type === "OUT") {
                     </tr>
                   );
                 }
-                    {items.map((i) => (
-                      <tr key={i.id}>
-                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>{i.date}</td>
-                      
-                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+            
+                return filteredDeleted.map((i) => (
+                  <tr key={i.id}>
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      {i.date}
+                    </td>
+            
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
                       {i.items?.item_name}
-                      </td>
-                      
-                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                    </td>
+            
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
                       {i.items?.brand}
-                      </td>
-                      
-                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                    </td>
+            
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
                       {i.type}
-                      </td>
-                      
-                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                    </td>
+            
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
                       {i.quantity}
-                      </td>
-                      
-                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                    </td>
+            
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
                       ₱{(i.quantity * (i.unit_price || i.items?.unit_price)).toFixed(2)}
-                      </td>
-                      
-                      <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                    </td>
+            
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
                       <div style={{ display:"flex", gap:8 }}>
-
+            
                         <button
                           style={{
                             padding:"6px 10px",
@@ -1216,7 +1219,7 @@ if (form.type === "OUT") {
                         >
                           Restore
                         </button>
-                      
+            
                         <button
                           style={{
                             padding:"6px 10px",
@@ -1231,12 +1234,10 @@ if (form.type === "OUT") {
                         >
                           Delete
                         </button>
-                      
+            
                       </div>
-                      </td>
-                      </tr>
-                    ))}
-                  </React.Fragment>
+                    </td>
+                  </tr>
                 ));
               })()}
             </tbody>
