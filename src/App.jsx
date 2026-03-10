@@ -631,16 +631,16 @@ if (form.type === "OUT") {
               
                     {/* CATEGORY HEADER */}
                     <tr
-                        style={styles.categoryRow}
-                        onClick={() => toggleCategory(category)}
+                      style={styles.categoryRow}
+                      onClick={()=>toggleCategory(category)}
                       >
-                      <td colSpan={6} style={{ padding:"12px 14px" }}>
+                      <td colSpan={6} style={{padding:"12px 14px"}}>
                       
                       <div style={styles.categoryContainer}>
                       
                       <div style={styles.categoryLeft}>
                       <span style={{color:"#6b7280"}}>
-                      {isOpen ? "▾" : "▸"}
+                      {openCategories[category] ? "▾" : "▸"}
                       </span>
                       
                       <span>{category}</span>
