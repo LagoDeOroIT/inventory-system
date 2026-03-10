@@ -462,70 +462,119 @@ const netValue =
 
 {/* TRANSACTIONS TAB */}
 {activeTab === "transactions" && (
-  <div style={{ display: "flex", gap: 20 }}>
-    {/* IN Transactions Table */}
-    <div style={{ flex: 1, background: "#fff", padding: 20, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", overflowX: "auto" }}>
-      <h3>IN Transactions</h3>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
-            {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
-              <th key={idx}>{th}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {inTransactions.length === 0
-            ? <tr><td colSpan={6}>No IN transactions</td></tr>
-            : inTransactions.map(t => (
-                <tr key={t.id}>
-                  <td>{t.date}</td>
-                  <td>{t.items?.item_name}</td>
-                  <td>{t.items?.brand}</td>
-                  <td>{t.quantity}</td>
-                  <td>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
-                  <td>
-                    <button>Edit</button>
-                    <button onClick={() => setConfirmAction({ type:"deleteTx", data:t })}>Delete</button>
-                  </td>
-                </tr>
-              ))
-          }
-        </tbody>
-      </table>
+  <div style={{
+    display: "flex",
+    gap: 20,
+    alignItems: "stretch", // ensures equal height
+  }}>
+    {/* ================= IN TRANSACTIONS ================= */}
+    <div style={{
+      flex: 1,
+      background: "#fff",
+      padding: 20,
+      borderRadius: 12,
+      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+      display: "flex",
+      flexDirection: "column",
+      maxHeight: "600px", // scrollable height
+    }}>
+      <h2>IN Transactions</h2>
+      <input
+        style={{ ...styles.input, marginBottom: 10 }}
+        placeholder="Search IN transactions..."
+        value={inSearch}
+        onChange={(e) => setInSearch(e.target.value)}
+      />
+      <div style={{ overflowY: "auto", flex: 1 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
+            <tr>
+              {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
+                <th key={idx} style={{ padding: "12px 10px", textAlign: "left", fontSize: 14, fontWeight: 600, borderBottom: "1px solid #e5e7eb" }}>
+                  {th}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTransactions.filter(t => t.type === "IN" && t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length === 0
+              ? emptyRowComponent(6, "No IN transactions")
+              : filteredTransactions.filter(t => t.type === "IN" && t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase()))
+                  .map(t => (
+                    <tr key={t.id}>
+                      <td style={styles.thtd}>{t.date}</td>
+                      <td style={styles.thtd}>{t.items?.item_name}</td>
+                      <td style={styles.thtd}>{t.items?.brand}</td>
+                      <td style={styles.thtd}>{t.quantity}</td>
+                      <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
+                      <td style={styles.thtd}>
+                        <div style={{ display: "flex", gap: 10 }}>
+                          <button style={{ ...styles.buttonSecondary }} onClick={() => { /* edit logic */ }}>Edit</button>
+                          <button style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }} onClick={() => setConfirmAction({ type: "deleteTx", data: t })}>Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    {/* OUT Transactions Table */}
-    <div style={{ flex: 1, background: "#fff", padding: 20, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", overflowX: "auto" }}>
-      <h3>OUT Transactions</h3>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
-            {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
-              <th key={idx}>{th}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {outTransactions.length === 0
-            ? <tr><td colSpan={6}>No OUT transactions</td></tr>
-            : outTransactions.map(t => (
-                <tr key={t.id}>
-                  <td>{t.date}</td>
-                  <td>{t.items?.item_name}</td>
-                  <td>{t.items?.brand}</td>
-                  <td>{t.quantity}</td>
-                  <td>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
-                  <td>
-                    <button>Edit</button>
-                    <button onClick={() => setConfirmAction({ type:"deleteTx", data:t })}>Delete</button>
-                  </td>
-                </tr>
-              ))
-          }
-        </tbody>
-      </table>
+    {/* ================= OUT TRANSACTIONS ================= */}
+    <div style={{
+      flex: 1,
+      background: "#fff",
+      padding: 20,
+      borderRadius: 12,
+      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+      display: "flex",
+      flexDirection: "column",
+      maxHeight: "600px", // scrollable height
+    }}>
+      <h2>OUT Transactions</h2>
+      <input
+        style={{ ...styles.input, marginBottom: 10 }}
+        placeholder="Search OUT transactions..."
+        value={outSearch}
+        onChange={(e) => setOutSearch(e.target.value)}
+      />
+      <div style={{ overflowY: "auto", flex: 1 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
+            <tr>
+              {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
+                <th key={idx} style={{ padding: "12px 10px", textAlign: "left", fontSize: 14, fontWeight: 600, borderBottom: "1px solid #e5e7eb" }}>
+                  {th}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTransactions.filter(t => t.type === "OUT" && t.items?.item_name.toLowerCase().includes(outSearch.toLowerCase())).length === 0
+              ? emptyRowComponent(6, "No OUT transactions")
+              : filteredTransactions.filter(t => t.type === "OUT" && t.items?.item_name.toLowerCase().includes(outSearch.toLowerCase()))
+                  .map(t => (
+                    <tr key={t.id}>
+                      <td style={styles.thtd}>{t.date}</td>
+                      <td style={styles.thtd}>{t.items?.item_name}</td>
+                      <td style={styles.thtd}>{t.items?.brand}</td>
+                      <td style={styles.thtd}>{t.quantity}</td>
+                      <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
+                      <td style={styles.thtd}>
+                        <div style={{ display: "flex", gap: 10 }}>
+                          <button style={{ ...styles.buttonSecondary }} onClick={() => { /* edit logic */ }}>Edit</button>
+                          <button style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }} onClick={() => setConfirmAction({ type: "deleteTx", data: t })}>Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
+
   </div>
 )}
 
