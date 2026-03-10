@@ -105,6 +105,8 @@ export default function App() {
   const filteredTransactions = transactions
     .filter(t => !t.deleted)
     .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+  const inTransactions = filteredTransactions.filter(t => t.type === "IN");
+  const outTransactions = filteredTransactions.filter(t => t.type === "OUT");
 
   const stockInventory = items
     .filter(i => !i.deleted)
@@ -459,52 +461,68 @@ const netValue =
 )}
 
 {/* TRANSACTIONS TAB */}
-{activeTab==="transactions" && (
-  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-    <div style={{
-      flex: 1,
-      background: "#fff",
-      padding: 20,
-      borderRadius: 12,
-      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-      display: "flex",
-      flexDirection: "column",
-      overflowX: "auto"
-    }}>
-      <input style={{ ...styles.input, marginBottom: 12 }} placeholder="Search..." value={inSearch} onChange={e => setInSearch(e.target.value)} />
+{activeTab === "transactions" && (
+  <div style={{ display: "flex", gap: 20 }}>
+    {/* IN Transactions Table */}
+    <div style={{ flex: 1, background: "#fff", padding: 20, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", overflowX: "auto" }}>
+      <h3>IN Transactions</h3>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
+        <thead>
           <tr>
-            {["Date", "Item", "Brand", "Type", "Qty", "Total Price", "Actions"].map((th, idx) => (
-              <th key={idx} style={{
-                padding: "12px 10px",
-                textAlign: "left",
-                fontSize: 14,
-                fontWeight: 600,
-                borderBottom: "1px solid #e5e7eb"
-              }}>{th}</th>
+            {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
+              <th key={idx}>{th}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length===0
-            ? emptyRowComponent(7,"No transactions")
-            : filteredTransactions.filter(t=>t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).map(t => (
-            <tr key={t.id}>
-              <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{t.date}</td>
-              <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{t.items?.item_name}</td>
-              <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{t.items?.brand}</td>
-              <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{t.type}</td>
-              <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{t.quantity}</td>
-              <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
-              <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button style={{ ...styles.buttonSecondary }} onClick={() => { /* edit logic */ }}>Edit</button>
-                  <button style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }} onClick={() => setConfirmAction({ type:"deleteTx", data:t })}>Delete</button>
-                </div>
-              </td>
-            </tr>
-          ))}
+          {inTransactions.length === 0
+            ? <tr><td colSpan={6}>No IN transactions</td></tr>
+            : inTransactions.map(t => (
+                <tr key={t.id}>
+                  <td>{t.date}</td>
+                  <td>{t.items?.item_name}</td>
+                  <td>{t.items?.brand}</td>
+                  <td>{t.quantity}</td>
+                  <td>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
+                  <td>
+                    <button>Edit</button>
+                    <button onClick={() => setConfirmAction({ type:"deleteTx", data:t })}>Delete</button>
+                  </td>
+                </tr>
+              ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    {/* OUT Transactions Table */}
+    <div style={{ flex: 1, background: "#fff", padding: 20, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", overflowX: "auto" }}>
+      <h3>OUT Transactions</h3>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead>
+          <tr>
+            {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
+              <th key={idx}>{th}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {outTransactions.length === 0
+            ? <tr><td colSpan={6}>No OUT transactions</td></tr>
+            : outTransactions.map(t => (
+                <tr key={t.id}>
+                  <td>{t.date}</td>
+                  <td>{t.items?.item_name}</td>
+                  <td>{t.items?.brand}</td>
+                  <td>{t.quantity}</td>
+                  <td>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
+                  <td>
+                    <button>Edit</button>
+                    <button onClick={() => setConfirmAction({ type:"deleteTx", data:t })}>Delete</button>
+                  </td>
+                </tr>
+              ))
+          }
         </tbody>
       </table>
     </div>
