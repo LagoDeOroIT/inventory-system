@@ -1485,73 +1485,37 @@ if (form.type === "OUT") {
 
             try {
 
-              // ================= DELETE ITEM (SOFT) =================
               if (type === "deleteItem") {
-                await supabase
-                  .from("items")
-                  .update({ deleted: true })
-                  .eq("id", data.id);
-
-                await supabase
-                  .from("inventory_transactions")
-                  .update({ deleted: true })
-                  .eq("item_id", data.id);
+                await supabase.from("items").update({ deleted: true }).eq("id", data.id);
+                await supabase.from("inventory_transactions").update({ deleted: true }).eq("item_id", data.id);
               }
 
-              // ================= RESTORE ITEM =================
               else if (type === "restoreItem") {
-                await supabase
-                  .from("items")
-                  .update({ deleted: false })
-                  .eq("id", data.id);
-
-                await supabase
-                  .from("inventory_transactions")
-                  .update({ deleted: false })
-                  .eq("item_id", data.id);
+                await supabase.from("items").update({ deleted: false }).eq("id", data.id);
+                await supabase.from("inventory_transactions").update({ deleted: false }).eq("item_id", data.id);
               }
 
-              // ================= PERMANENT DELETE ITEM =================
               else if (type === "permanentDeleteItem") {
-                await supabase
-                  .from("inventory_transactions")
-                  .delete()
-                  .eq("item_id", data.id);
-
-                await supabase
-                  .from("items")
-                  .delete()
-                  .eq("id", data.id);
+                await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
+                await supabase.from("items").delete().eq("id", data.id);
               }
 
-              // ================= DELETE TRANSACTION (SOFT) =================
               else if (type === "deleteTx") {
-                await supabase
-                  .from("inventory_transactions")
-                  .update({ deleted: true })
-                  .eq("id", data.id);
+                await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", data.id);
               }
 
-              // ================= RESTORE TRANSACTION =================
               else if (type === "restoreTx") {
-                await supabase
-                  .from("inventory_transactions")
-                  .update({ deleted: false })
-                  .eq("id", data.id);
+                await supabase.from("inventory_transactions").update({ deleted: false }).eq("id", data.id);
               }
 
-              // ================= PERMANENT DELETE TRANSACTION =================
               else if (type === "permanentDeleteTx") {
-                await supabase
-                  .from("inventory_transactions")
-                  .delete()
-                  .eq("id", data.id);
+                await supabase.from("inventory_transactions").delete().eq("id", data.id);
               }
 
               await loadData();
 
             } catch (error) {
-              console.error("Action error:", error);
+              console.error(error);
               alert("Something went wrong.");
             }
 
@@ -1571,8 +1535,3 @@ if (form.type === "OUT") {
     </div>
   </div>
 )}
-         </div> {/* END MAIN AREA */}
-
-    </div> {/* END CONTAINER */}
-  );
-}
