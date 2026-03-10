@@ -1508,6 +1508,34 @@ if (form.type === "OUT") {
                     value={form.brand} 
                     onChange={e => handleFormChange("brand", e.target.value)} 
                   />
+                  {brandOptions.length > 0 && (
+                  <div style={{
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 6,
+                    marginTop: 4,
+                    marginBottom: 8,
+                    background: "#fff",
+                    maxHeight: 120,
+                    overflowY: "auto"
+                  }}>
+                    {brandOptions.map((b, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: "8px 10px",
+                          cursor: "pointer",
+                          borderBottom: "1px solid #f1f5f9"
+                        }}
+                        onClick={() => {
+                          handleFormChange("brand", b);
+                          setBrandOptions([]);
+                        }}
+                      >
+                        {b}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                   <input
                     list="category-list"
