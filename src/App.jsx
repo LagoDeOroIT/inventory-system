@@ -188,16 +188,7 @@ export default function App() {
   ...new Set(items.map(i => i.category).filter(Boolean))
     ];
       // ================= DASHBOARD DATA =================
-    
-    // active items only
-   const totalItems = stockInventory.length;
-
-const totalInventoryValue = stockInventory.reduce(
-  (sum, i) => sum + (i.stock * (i.unit_price || 0)),
-  0
-);
-
-const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
+   
   const totalTransactions = transactions.filter(t => !t.deleted).length;
   const totalCategories = new Set(activeItems.map(i => i.category)).size;
   const [confirmAction, setConfirmAction] = useState(null);
@@ -293,6 +284,7 @@ const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
     .filter(i => !selectedStockRoom || i.location === selectedStockRoom || !i.location)
     .map(i => {
       const stock = stockMap[i.id] || 0;
+      
       return { 
             id: i.id,
             item_name: i.item_name,
@@ -303,6 +295,14 @@ const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
             location: i.location
           };
     });
+  const totalItems = stockInventory.length;
+
+  const totalInventoryValue = stockInventory.reduce(
+    (sum, i) => sum + (i.stock * (i.unit_price || 0)),
+    0
+  );
+
+  const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
 
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom || !i.location);
   const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
