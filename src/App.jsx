@@ -1,54 +1,42 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-
 // ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://mkfhjklomofrvnnwwknh.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZmhqa2xvbW9mcnZubnd3a25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTczNzAsImV4cCI6MjA4ODU5MzM3MH0.6Q8p9ms8mnf2daONf7HTP3jGZD_bQuNQrv6cpy0ZUts";
 const supabase = createClient(supabaseUrl, supabaseKey);
-
 // ================= STYLES =================
 const styles = {
-
   container:{},
   sidebar:{},
   main:{},
-
   thtd:{
     padding:"10px"
   },
-
   buttonSecondary:{
     padding:"6px 12px"
   },
-
   categoryRow:{
     background:"#f8fafc",
     cursor:"pointer"
   },
-
   categoryContainer:{
     display:"flex",
     justifyContent:"space-between"
   },
-
   categoryLeft:{
     display:"flex",
     gap:10
   },
-
   categoryRight:{
     display:"flex",
     gap:20
   },
-
-  // ⭐ ADD HERE
   dashboard:{
     display:"grid",
     gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",
     gap:20,
     marginBottom:20
   },
-
   dashboardCard:{
     background:"#fff",
     border:"1px solid #e5e7eb",
@@ -56,13 +44,11 @@ const styles = {
     padding:"18px",
     boxShadow:"0 2px 6px rgba(0,0,0,0.05)"
   },
-
   dashboardTitle:{
     fontSize:13,
     color:"#6b7280",
     marginBottom:6
   },
-
   dashboardValue:{
     fontSize:22,
     fontWeight:700,
@@ -102,29 +88,28 @@ const styles = {
   borderTop:"1px solid #e5e7eb",
   borderBottom:"1px solid #e5e7eb",
   cursor:"pointer"
-},
-
-categoryContainer:{
-  display:"flex",
-  justifyContent:"space-between",
-  alignItems:"center",
-  fontWeight:600
-},
-
-categoryLeft:{
-  display:"flex",
-  alignItems:"center",
-  gap:10,
-  fontSize:15
-},
-
-categoryRight:{
-  display:"flex",
-  gap:20,
-  fontSize:13,
-  color:"#6b7280",
-  fontWeight:500
-},
+  },
+  categoryContainer:{
+    display:"flex",
+    justifyContent:"space-between",
+    alignItems:"center",
+    fontWeight:600
+  },
+  
+  categoryLeft:{
+    display:"flex",
+    alignItems:"center",
+    gap:10,
+    fontSize:15
+  },
+  
+  categoryRight:{
+    display:"flex",
+    gap:20,
+    fontSize:13,
+    color:"#6b7280",
+    fontWeight:500
+  },
   header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
   title: { fontSize: 28, fontWeight: 700, color: "#111827" },
   buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
@@ -148,8 +133,7 @@ categoryRight:{
     fontWeight: 600,
   }),
   newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
-};
-
+  };
 // ================= APP COMPONENT =================
 export default function App() {
   const [session, setSession] = useState(null);
@@ -187,19 +171,15 @@ export default function App() {
   const categories = [
   ...new Set(items.map(i => i.category).filter(Boolean))
     ];
-      // ================= DASHBOARD DATA =================
-   
-  
+  // ================= DASHBOARD DATA =================
   const [confirmAction, setConfirmAction] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
-
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
     "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
   ];
-
   // ================= AUTH =================
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -211,7 +191,6 @@ export default function App() {
     loadData();
   }
 }, [session]);
-
   const handleAuth = async () => {
     if (!authEmail || !authPassword) return alert("Fill email and password");
     let result;
@@ -224,72 +203,59 @@ export default function App() {
       if (result.error) return alert(result.error.message);
     }
   };
-
   // ================= LOAD DATA =================
         const loadData = async () => {
-      
         const { data: itemsData } = await supabase.from("items").select("*");
-      
         const itemsWithDeleted = (itemsData || []).map(i => ({
           ...i,
           deleted: i.deleted ?? false
         }));
-      
         const { data: tx } = await supabase
           .from("inventory_transactions")
           .select("*, items(item_name, brand, unit_price, location, category)")
           .order("date", { ascending: false });
-      
         const transactionsWithDeleted = (tx || []).map(t => ({
           ...t,
           deleted: t.deleted ?? false
         }));
-      
         setItems(itemsWithDeleted);
         setTransactions(transactionsWithDeleted);
-      
-        // ✅ Initialize categories as CLOSED
         const closed = {};
-
         itemsWithDeleted.forEach(i => {
           const cat = i.category || "Uncategorized";
-        
           if (!(cat in closed)) {
             closed[cat] = false;
           }
         });
-        
         setOpenCategories(closed);
       };
   // ================= FILTERS =================
   const filteredTransactions = transactions
     .filter(t => !t.deleted)
     .filter(t => !selectedStockRoom || t.location === selectedStockRoom);  
-  
   const stockMap = filteredTransactions.reduce((acc, t) => {
         const qty = Number(t.quantity) || 0;
-      
         if (!acc[t.item_id]) acc[t.item_id] = 0;
-      
         acc[t.item_id] += t.type === "IN" ? qty : -qty;
-      
         return acc;
       }, {});
   const inTransactions = filteredTransactions.filter(t => t.type === "IN");
   const outTransactions = filteredTransactions.filter(t => t.type === "OUT");
-
-      const stockInventory = items
+  const stockInventory = items
       .filter(i => !i.deleted)
       .filter(i => {
         if (!selectedStockRoom) return true;
     
-        return (i.location || "")
-          .trim()
-          .toLowerCase() === selectedStockRoom.trim().toLowerCase();
+        const hasStockInRoom = transactions.some(t =>
+          t.item_id === i.id &&
+          t.location &&
+          t.location.trim().toLowerCase() === selectedStockRoom.trim().toLowerCase()
+        );
+    
+        return hasStockInRoom;
       })
       .map(i => {
-        const stock = stockMap[i.id] || 0;
-    
+   const stock = stockMap[i.id] || 0;
         return {
           id: i.id,
           item_name: i.item_name,
@@ -300,85 +266,71 @@ export default function App() {
           location: i.location
         };
       });
-    
     const totalTransactions = transactions.filter(t => !t.deleted).length;
-    
     const totalCategories = new Set(
       stockInventory.map(i => i.category || "Uncategorized")
     ).size;
-  const totalItems = stockInventory.length;
-
-  const totalInventoryValue = stockInventory.reduce(
+    const totalItems = stockInventory.length;
+    const totalInventoryValue = stockInventory.reduce(
     (sum, i) => sum + (i.stock * (i.unit_price || 0)),
     0
   );
-
-  const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
-
-  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom || !i.location);
-  const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
-  const filteredDeletedItems = deletedItems.filter(i =>
-  (i.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
-  (i.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
-);
-
-const filteredDeletedTransactions = deletedTransactions.filter(t =>
-  t.items?.item_name?.toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
-  t.items?.brand?.toLowerCase().includes(deletedTxSearch.toLowerCase())
-);
-  // ================= MONTHLY REPORT STATE =================
-const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
-const [reportYear, setReportYear] = useState(new Date().getFullYear());
-
-// ================= MONTHLY REPORT LOGIC =================
-const monthlyTransactions = filteredTransactions.filter(t => {
-  if (!t.date) return false;
-  const txDate = new Date(t.date);
-  return (
-    txDate.getMonth() + 1 === Number(reportMonth) &&
-    txDate.getFullYear() === Number(reportYear)
+    const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
+    const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom || !i.location);
+    const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+    const filteredDeletedItems = deletedItems.filter(i =>
+    (i.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+    (i.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
   );
-});
-
-const monthlySummary = monthlyTransactions.reduce((acc, t) => {
-  const total =
-    (Number(t.quantity) || 0) *
-    Number(t.unit_price ?? t.items?.unit_price ?? 0);
-
-  if (t.type === "IN") {
-    acc.totalInQty += Number(t.quantity) || 0;
-    acc.totalInValue += total;
-  } else {
-    acc.totalOutQty += Number(t.quantity) || 0;
-    acc.totalOutValue += total;
-  }
-
-  return acc;
-}, {
-  totalInQty: 0,
-  totalOutQty: 0,
-  totalInValue: 0,
-  totalOutValue: 0
-});
-
-const netValue =
-  monthlySummary.totalInValue - monthlySummary.totalOutValue;
+    const filteredDeletedTransactions = deletedTransactions.filter(t =>
+      t.items?.item_name?.toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
+      t.items?.brand?.toLowerCase().includes(deletedTxSearch.toLowerCase())
+    );
+  // ================= MONTHLY REPORT STATE =================
+    const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
+    const [reportYear, setReportYear] = useState(new Date().getFullYear());
+    // ================= MONTHLY REPORT LOGIC =================
+    const monthlyTransactions = filteredTransactions.filter(t => {
+      if (!t.date) return false;
+      const txDate = new Date(t.date);
+      return (
+        txDate.getMonth() + 1 === Number(reportMonth) &&
+        txDate.getFullYear() === Number(reportYear)
+      );
+    });
+    const monthlySummary = monthlyTransactions.reduce((acc, t) => {
+    const total =
+      (Number(t.quantity) || 0) *
+      Number(t.unit_price ?? t.items?.unit_price ?? 0);
+  
+    if (t.type === "IN") {
+      acc.totalInQty += Number(t.quantity) || 0;
+      acc.totalInValue += total;
+    } else {
+      acc.totalOutQty += Number(t.quantity) || 0;
+      acc.totalOutValue += total;
+    }
+  
+    return acc;
+  }, {
+      totalInQty: 0,
+      totalOutQty: 0,
+      totalInValue: 0,
+      totalOutValue: 0
+    });
+  const netValue =
+    monthlySummary.totalInValue - monthlySummary.totalOutValue;
   // ================= FORM HANDLER =================
   const handleFormChange = (key, value) => {
   setForm(prev => {
     const updated = { ...prev, [key]: value };
-
     if (key === "item_name") {
-      // Reset brand when changing item
       updated.brand = "";
-
-      // Optional: if only one brand exists, pre-select it
       const relatedBrands = items
         .filter(i => i.item_name === value && i.location === selectedStockRoom && !i.deleted)
         .map(i => i.brand);
       if (relatedBrands.length === 1) updated.brand = relatedBrands[0];
     }
-
     if (key === "brand") {
       // Optional: auto-fill price based on selected item + brand
       const selectedItem = items.find(
@@ -386,11 +338,9 @@ const netValue =
       );
       if (selectedItem) updated.price = selectedItem.unit_price;
     }
-
     return updated;
   });
 };
-
   const openNewItemModal = () => {
   setForm({ 
     date:"", 
@@ -407,7 +357,6 @@ const netValue =
   setModalType("item");
   setShowModal(true);
 };
-
   const openNewTransactionModal = () => {
   setForm({ 
     date:"", 
@@ -424,7 +373,6 @@ const netValue =
   setModalType("transaction");
   setShowModal(true);
 };
-
   const handleNewClick = () => {
     if(!selectedStockRoom) {
       setModalType("stockRoomPrompt");
@@ -434,7 +382,6 @@ const netValue =
       setShowModal(true);
     }
   };
-
   // ================= SUBMIT =================
   const handleSubmit = async () => {
     if(modalType === "transaction") {
@@ -447,17 +394,13 @@ const netValue =
   });
   return;
 }
-      /* 🚨 PREVENT NEGATIVE STOCK */
 if (form.type === "OUT") {
-
   const currentStock = stockMap[existingItem.id] || 0;
-
   if (Number(form.quantity) > currentStock) {
     alert("Not enough stock.");
     return;
   }
 }
-
       const txData = {
         date: form.date,
         item_id: existingItem.id,
@@ -499,9 +442,7 @@ if (form.type === "OUT") {
       loadData();
     }
   };
-
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
-
   // ================= AUTH SCREEN =================
   if(!session) return (
     <div style={{ padding:40, textAlign:"center" }}>
@@ -525,7 +466,6 @@ if (form.type === "OUT") {
       )}
     </div>
   );
-
   // ================= MAIN APP =================
   return (
     <div style={styles.container}>
@@ -554,7 +494,7 @@ if (form.type === "OUT") {
               <option value="">Select Stock Room</option>
               {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
-        
+      
             <div style={styles.sidebarTabs}>
               <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
               <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
