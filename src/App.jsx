@@ -67,7 +67,7 @@ const styles = {
     fontSize:22,
     fontWeight:700,
     color:"#111827"
-  }
+  },
   container: { 
     display: "flex", 
     fontFamily: "Inter, Arial, sans-serif", 
