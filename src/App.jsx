@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
-import SignUpForm from "./SignUpForm.jsx";
-import LoginForm from "./LoginForm.jsx";
-import { supabase } from "./supabaseClient";
+import { createClient } from "@supabase/supabase-js";
+
+// ================= SUPABASE CONFIG =================
+const supabaseUrl = "https://pmhpydbsysxjikghxjib.supabase.co";
+const supabaseKey = "sb_publishable_Io95Lcjqq86G_9Lq9oPbxw_Ggkl1V4x";
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ================= STYLES =================
 const styles = {
@@ -40,16 +43,12 @@ const styles = {
 // ================= APP COMPONENT =================
 export default function App() {
   const [session, setSession] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [allowedRooms, setAllowedRooms] = useState([]);
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [stockSearch, setStockSearch] = useState("");
-  const [deletedSearch, setDeletedSearch] = useState("");
-  const [deletedInventorySearch, setDeletedInventorySearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
@@ -63,158 +62,62 @@ export default function App() {
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
     "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
   ];
-  // ================= LOAD DATA =================
-    const loadData = async (profileData, allowedRoomsList) => {
-  // Load items
-  const { data: itemsData, error: itemsError } = await supabase
-    .from("items")
-    .select("*");
-  if (itemsError) console.error("Error loading items:", itemsError);
 
-  // Load transactions with items info
-  const { data: txData, error: txError } = await supabase
-    .from("inventory_transactions")
-    .select("*, items(item_name, brand, unit_price, location)")
-    .order("date", { ascending: false });
-  if (txError) console.error("Error loading transactions:", txError);
-
-  const isAdmin = profileData.role?.toLowerCase() === "admin";
-
-  // Filter items and transactions by allowed rooms if not admin
-  const filteredItems = isAdmin
-    ? itemsData
-    : itemsData.filter(i => allowedRoomsList.some(r => r.trim() === i.location?.trim()));
-
-  const filteredTransactions = isAdmin
-    ? txData
-    : txData.filter(t => allowedRoomsList.some(r => r.trim() === t.items?.location?.trim()));
-
-  setItems(filteredItems || []);
-  setTransactions(filteredTransactions || []);
-
-  console.log("Filtered Items:", filteredItems);
-  console.log("Filtered Transactions:", filteredTransactions);
-};
-  // ================= AUTH SESSION =================
+  // ================= AUTH =================
   useEffect(() => {
-  
-    // Get existing session
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-    });
-  
-    // Listen for login/logout
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-  
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => data.subscription.unsubscribe();
   }, []);
-  // ================= LOAD USER PROFILE =================
-        useEffect(() => {
-  if (!session) return;
 
-  const loadProfile = async () => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", session.user.id)
-      .single();
-
-    if (error) {
-      console.error("Profile load error:", error);
-      return;
+  const handleAuth = async () => {
+    if (!authEmail || !authPassword) return alert("Fill email and password");
+    let result;
+    if (isSignUp) {
+      result = await supabase.auth.signUp({ email: authEmail, password: authPassword });
+      if (result.error) return alert(result.error.message);
+      alert("Sign up successful! Please check your email to confirm.");
+    } else {
+      result = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+      if (result.error) return alert(result.error.message);
     }
-
-   setProfile(data);
-
-const isAdmin = data.role?.toLowerCase() === "admin";
-const rooms = isAdmin
-  ? stockRooms
-  : Array.isArray(data.stock_room)
-    ? data.stock_room
-    : (data.stock_room?.split(",") || []);
-
-setAllowedRooms(rooms);
-
-// Pass profile data and allowed rooms into loadData
-await loadData(data, rooms);
   };
 
-  loadProfile();
-}, [session]);
-  // ================= FILTERS =================
-          const isAdmin = profile?.role?.toLowerCase() === "admin";
-        
-        // Transactions
-        const filteredTransactions = transactions.filter((t) => {
-          if (t.deleted) return false;
-          if (!isAdmin && (!t.items || !allowedRooms.includes(t.items.location))) return false;
-          if (selectedStockRoom && (!t.items || t.items.location !== selectedStockRoom)) return false;
-          return true;
-        });
-        
-        // Stock inventory
-        const stockInventory = items
-          .filter((i) => {
-            if (i.deleted) return false;
-            if (!isAdmin && !allowedRooms.includes(i.location)) return false;
-            if (selectedStockRoom && i.location !== selectedStockRoom) return false;
-            return true;
-          })
-          .map((i) => {
-            const related = transactions.filter((t) => t.item_id === i.id && !t.deleted);
-            const stock = related.reduce(
-              (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
-              0
-            );
-            return { ...i, stock };
-          });
- // ================= STOCK INVENTORY TOTALS =================
-        const totalInStockQty = stockInventory.reduce((sum, i) => {
-          // sum of IN transactions only
-          const inTx = transactions.filter(t => t.item_id === i.id && t.type === "IN" && !t.deleted);
-          return sum + inTx.reduce((s, t) => s + Number(t.quantity), 0);
-        }, 0);
-        
-        const totalOutStockQty = stockInventory.reduce((sum, i) => {
-          const outTx = transactions.filter(t => t.item_id === i.id && t.type === "OUT" && !t.deleted);
-          return sum + outTx.reduce((s, t) => s + Number(t.quantity), 0);
-        }, 0);
-        
-        const totalInStockValue = stockInventory.reduce((sum, i) => {
-          const inTx = transactions.filter(t => t.item_id === i.id && t.type === "IN" && !t.deleted);
-          return sum + inTx.reduce((s, t) => s + Number(t.quantity) * (t.unit_price || i.unit_price), 0);
-        }, 0);
-        
-        const totalOutStockValue = stockInventory.reduce((sum, i) => {
-          const outTx = transactions.filter(t => t.item_id === i.id && t.type === "OUT" && !t.deleted);
-          return sum + outTx.reduce((s, t) => s + Number(t.quantity) * (t.unit_price || i.unit_price), 0);
-        }, 0);
-        
-        const netStockQty = totalInStockQty - totalOutStockQty;
-        const netStockValue = totalInStockValue - totalOutStockValue;
+  // ================= LOAD DATA =================
+  const loadData = async () => {
+    const { data: itemsData } = await supabase.from("items").select("*");
+    const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
 
-        const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
-        const filteredDeletedItems = deletedItems.filter(i =>
-        i.item_name.toLowerCase().includes(deletedInventorySearch.toLowerCase()) ||
-        i.brand.toLowerCase().includes(deletedInventorySearch.toLowerCase())
-        );
-        const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
-        const filteredDeletedTransactions = deletedTransactions.filter(t => {
-        const matchesSearch =
-          (t.items?.item_name || "")
-            .toLowerCase()
-            .includes(deletedSearch.toLowerCase()) ||
-          (t.items?.brand || "")
-            .toLowerCase()
-            .includes(deletedSearch.toLowerCase());
-            return matchesSearch; 
-      });
-  
+    const { data: tx } = await supabase.from("inventory_transactions")
+      .select("*, items(item_name, brand, unit_price, location)")
+      .order("date", { ascending: false });
+    const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
+
+    setItems(itemsWithDeleted);
+    setTransactions(transactionsWithDeleted);
+  };
+
+  useEffect(() => { if(session) loadData(); }, [session]);
+
+  // ================= FILTERS =================
+  const filteredTransactions = transactions
+    .filter(t => !t.deleted)
+    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+
+  const stockInventory = items
+    .filter(i => !i.deleted)
+    .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
+    .map(i => {
+      const related = transactions.filter(t => t.item_id === i.id && !t.deleted);
+      const stock = related.reduce(
+        (sum, t) => sum + (t.type === "IN" ? Number(t.quantity) : -Number(t.quantity)),
+        0
+      );
+      return { id: i.id, item_name: i.item_name, brand: i.brand, unit_price: i.unit_price, stock, location: i.location };
+    });
+
+  const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
+  const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
   // ================= MONTHLY REPORT STATE =================
 const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
 const [reportYear, setReportYear] = useState(new Date().getFullYear());
@@ -324,17 +227,17 @@ const netValue =
         unit_price: Number(form.price || existingItem.unit_price || 0)
       };
       if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
-      else const { data, error } = await supabase   .from("inventory_transactions")   .insert([txData]);  if (error) {   console.error("Insert error:", error);   alert(error.message); }
+      else await supabase.from("inventory_transactions").insert([txData]);
       setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
       setShowModal(false);
       setModalType("");
-      await loadData(profile, allowedRooms);
+      loadData();
     } else if(modalType === "item") {
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
       const itemData = { item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom };
       if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
       else {
-        const { data, error } = await supabase   .from("items")   .insert([itemData])   .select();
+        const { data } = await supabase.from("items").insert([itemData]);
         if(data?.length && modalTypeBeforeItem === "transaction") {
           setForm(prev => ({ ...prev, item_id: data[0].id }));
           setModalType("transaction");
@@ -346,28 +249,36 @@ const netValue =
       setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
       setShowModal(false);
       setModalType("");
-      await loadData(profile, allowedRooms);
+      loadData();
     }
   };
 
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
 
   // ================= AUTH SCREEN =================
-  if (!session) return (
-  <div style={{ padding: 40, textAlign: "center" }}>
-    {isSignUp ? <SignUpForm /> : <LoginForm />}
-    <div>
-      <button
-        style={styles.buttonSecondary}
-        onClick={() => setIsSignUp(!isSignUp)}
-      >
-        {isSignUp
-          ? "Already have an account? Login"
-          : "Don't have an account? Sign Up"}
-      </button>
+  if(!session) return (
+    <div style={{ padding:40, textAlign:"center" }}>
+      {!session?.user ? (
+        <>
+          <h2>{isSignUp ? "Sign Up for Inventory" : "Inventory Login"}</h2>
+          <input style={styles.input} placeholder="Email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} />
+          <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e=>setAuthPassword(e.target.value)} />
+          <button style={{ ...styles.buttonPrimary, marginBottom:12 }} onClick={handleAuth}>{isSignUp ? "Sign Up" : "Login"}</button>
+          <div>
+            <button style={styles.buttonSecondary} onClick={() => setIsSignUp(!isSignUp)}>
+              {isSignUp ? "Already have an account? Login" : "Don't have an account? Sign Up"}
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <h2>Welcome back, {session.user.email}!</h2>
+          <button style={{ ...styles.buttonPrimary, marginTop:12 }} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
+        </>
+      )}
     </div>
-  </div>
-);
+  );
+
   // ================= MAIN APP =================
   return (
     <div style={styles.container}>
@@ -375,17 +286,9 @@ const netValue =
       <div style={styles.sidebar}>
         <div>
           <div style={styles.sidebarHeader}>Lago De Oro</div>
-          <select
-            style={styles.sidebarSelect}
-            value={selectedStockRoom}
-            onChange={(e) => setSelectedStockRoom(e.target.value)}
-          >
-            <option value="">All Stock Rooms</option>
-            {stockRooms.map((room) => (
-              <option key={room} value={room}>
-                {room}
-              </option>
-            ))}
+          <select style={styles.sidebarSelect} value={selectedStockRoom} onChange={e=>setSelectedStockRoom(e.target.value)}>
+            <option value="">Select Stock Room</option>
+            {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
           <div style={styles.sidebarTabs}>
             <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
@@ -395,11 +298,7 @@ const netValue =
           </div>
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap: 8, marginTop:16 }}>
-          {profile?.email && (
-            <div style={{ color:"#fff", marginBottom:8, fontSize:14, fontWeight:500 }}>
-              Logged in as:<br />{profile.email}
-            </div>
-          )}
+          {session?.user?.email && <div style={{ color:"#fff", marginBottom:8, fontSize:14, fontWeight:500 }}>Logged in as:<br />{session.user.email}</div>}
           <button style={styles.buttonPrimary} onClick={handleNewClick}>+ New</button>
           <button style={{...styles.buttonSecondary, background:"#ef4444", color:"#fff"}} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
         </div>
@@ -411,39 +310,6 @@ const netValue =
 {activeTab === "stock" && (
   <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
     {/* Search Bar */}
-    {/* STOCK INVENTORY KPI SUMMARY */}
-    <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 16,
-          marginBottom: "16px"
-        }}>
-      <div style={{
-          ...styles.card,
-          background: netStockQty >= 0 ? "#ecfdf5" : "#fef2f2",
-          borderLeft: `6px solid ${netStockQty >=0 ? "#10b981" : "#ef4444"}`
-        }}>
-        <h4 style={{ margin: 0 }}>Total IN</h4>
-        <p style={{ margin: 0, fontSize: "1.1rem" }}>{totalInStockQty} units</p>
-        <strong style={{ fontSize: "1.2rem" }}>₱{totalInStockValue.toFixed(2)}</strong>
-      </div>
-    
-      <div style={{ ...styles.card, borderLeft: "6px solid #ef4444" }}>
-        <h4 style={{ margin: 0 }}>Total OUT</h4>
-        <p style={{ margin: 0, fontSize: "1.1rem" }}>{totalOutStockQty} units</p>
-        <strong style={{ fontSize: "1.2rem" }}>₱{totalOutStockValue.toFixed(2)}</strong>
-      </div>
-    
-      <div style={{
-        ...styles.card,
-        borderLeft: `6px solid ${netStockQty >=0 ? "#10b981" : "#ef4444"}`,
-        background: netStockQty >=0 ? "#ecfdf5" : "#fef2f2"
-      }}>
-        <h4 style={{ margin: 0 }}>Net Movement</h4>
-        <p style={{ margin: 0, fontSize: "1.1rem" }}>{netStockQty} units</p>
-        <strong style={{ fontSize: "1.2rem" }}>₱{netStockValue.toFixed(2)}</strong>
-      </div>
-    </div>
     <div style={{ display: "flex", justifyContent: "flex-end" }}>
       <input
         type="text"
@@ -627,14 +493,6 @@ const netValue =
       maxHeight: "600px",          // max height for scroll
     }}>
       <h2>Deleted Inventory</h2>
-      <div style={{ marginBottom: 12 }}>
-        <input
-          style={styles.input}
-          placeholder="Search item or brand..."
-          value={deletedInventorySearch}
-          onChange={(e) => setDeletedInventorySearch(e.target.value)}
-        />
-      </div>
       <div style={{ overflowY: "auto", flex: 1 }}>
         <table style={{
           width: "100%",
@@ -654,9 +512,9 @@ const netValue =
             </tr>
           </thead>
           <tbody>
-            {filteredDeletedItems.length === 0
+            {deletedItems.length === 0
               ? emptyRowComponent(4, "No deleted items")
-              : filteredDeletedItems.map(i => (
+              : deletedItems.map(i => (
                 <tr key={i.id}>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{i.item_name}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{i.brand}</td>
@@ -714,14 +572,6 @@ const netValue =
       maxHeight: "600px",          // max height for scroll
     }}>
       <h2>Deleted Transactions</h2>
-      <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-        <input
-          style={styles.input}
-          placeholder="Search item or brand..."
-          value={deletedSearch}
-          onChange={e => setDeletedSearch(e.target.value)}
-        />
-      </div>
       <div style={{ overflowY: "auto", flex: 1 }}>
         <table style={{
           width: "100%",
@@ -741,9 +591,9 @@ const netValue =
             </tr>
           </thead>
           <tbody>
-            {filteredDeletedTransactions.length === 0
+            {deletedTransactions.length === 0
               ? emptyRowComponent(7, "No deleted transactions")
-              : filteredDeletedTransactions.map(t => (
+              : deletedTransactions.map(t => (
                 <tr key={t.id}>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.date}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.items?.item_name}</td>
@@ -789,7 +639,7 @@ const netValue =
                   </td>
                 </tr>
               ))}
-          </tbody>	
+          </tbody>
         </table>
       </div>
     </div>
@@ -977,7 +827,7 @@ const netValue =
         {showModal && (
           <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
             <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
-              
+             
               {/* NEW OPTION MODAL */}
               {modalType === "newOption" && (
                 <>
@@ -1101,29 +951,29 @@ const netValue =
                   if(type==="deleteItem") {
                     await supabase.from("items").update({ deleted:true }).eq("id", data.id);
                     await supabase.from("inventory_transactions").update({ deleted:true }).eq("item_id", data.id);
-                    await loadData(profile, allowedRooms);
+                    loadData();
                   }
                   else if(type==="permanentDeleteItem") {
                     await supabase.from("items").delete().eq("id", data.id);
                     await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
-                    await loadData(profile, allowedRooms);
+                    loadData();
                   }
                   else if(type==="restoreItem") {
                     await supabase.from("items").update({ deleted:false }).eq("id", data.id);
                     await supabase.from("inventory_transactions").update({ deleted:false }).eq("item_id", data.id);
-                    await loadData(profile, allowedRooms);
+                    loadData();
                   }
                   else if(type==="deleteTx") {
                     await supabase.from("inventory_transactions").update({ deleted:true }).eq("id", data.id);
-                    await loadData(profile, allowedRooms);
+                    loadData();
                   }
                   else if(type==="permanentDeleteTx") {
                     await supabase.from("inventory_transactions").delete().eq("id", data.id);
-                    await loadData(profile, allowedRooms);
+                    loadData();
                   }
                   else if(type==="restoreTx") {
                     await supabase.from("inventory_transactions").update({ deleted:false }).eq("id", data.id);
-                    await loadData(profile, allowedRooms); // ✅ refresh stock immediately
+                    loadData(); // ✅ refresh stock immediately
                   }
                   else if(type === "createItemConfirm") {
                   setModalTypeBeforeItem("transaction");
