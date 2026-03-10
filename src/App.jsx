@@ -1471,16 +1471,18 @@ if (form.type === "OUT") {
                     list="category-list"
                     style={styles.input}
                     placeholder="Select or type category"
-                    value={form.category}
+                    value={form.category || ""}
                     onChange={e => handleFormChange("category", e.target.value)}
                   />
                   
                   <datalist id="category-list">
-                    {categories.map(cat => (
-                      <option key={cat} value={cat} />
+                    {Array.from(
+                      new Set(items.map(i => i.category).filter(Boolean))
+                    ).map((cat, idx) => (
+                      <option key={idx} value={cat} />
                     ))}
                   </datalist>
-                  
+                                    
                   <input 
                     style={styles.input} 
                     placeholder="Price" 
