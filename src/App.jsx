@@ -189,8 +189,7 @@ export default function App() {
     ];
       // ================= DASHBOARD DATA =================
    
-  const totalTransactions = transactions.filter(t => !t.deleted).length;
-  const totalCategories = new Set(activeItems.map(i => i.category)).size;
+  
   const [confirmAction, setConfirmAction] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
@@ -295,6 +294,10 @@ export default function App() {
             location: i.location
           };
     });
+  const totalTransactions = transactions.filter(t => !t.deleted).length;
+  const totalCategories = new Set(
+  stockInventory.map(i => i.category || "Uncategorized")
+    ).size;
   const totalItems = stockInventory.length;
 
   const totalInventoryValue = stockInventory.reduce(
@@ -307,8 +310,8 @@ export default function App() {
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom || !i.location);
   const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
   const filteredDeletedItems = deletedItems.filter(i =>
-  i.item_name.toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
-  i.brand.toLowerCase().includes(deletedItemSearch.toLowerCase())
+  (i.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+  (i.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
 );
 
 const filteredDeletedTransactions = deletedTransactions.filter(t =>
