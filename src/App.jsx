@@ -605,7 +605,7 @@ const netValue =
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
-              {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
+              {["Date", "Item", "Brand", "Category", "Qty", "Total Price", "Actions"].map((th, idx) => (
                 <th key={idx} style={{ padding: "12px 10px", textAlign: "left", fontSize: 14, fontWeight: 600, borderBottom: "1px solid #e5e7eb" }}>
                   {th}
                 </th>
@@ -614,13 +614,14 @@ const netValue =
           </thead>
           <tbody>
             {filteredTransactions.filter(t => t.type === "IN" && t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase())).length === 0
-              ? emptyRowComponent(6, "No IN transactions")
+              ? emptyRowComponent(7, "No IN transactions")
               : filteredTransactions.filter(t => t.type === "IN" && t.items?.item_name.toLowerCase().includes(inSearch.toLowerCase()))
                   .map(t => (
                     <tr key={t.id}>
                       <td style={styles.thtd}>{t.date}</td>
                       <td style={styles.thtd}>{t.items?.item_name}</td>
                       <td style={styles.thtd}>{t.items?.brand}</td>
+                      <td style={styles.thtd}>{t.items?.category || "Uncategorized"}</td>
                       <td style={styles.thtd}>{t.quantity}</td>
                       <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
                       <td style={styles.thtd}>
@@ -659,7 +660,7 @@ const netValue =
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
-              {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
+              {["Date", "Item", "Brand", "Category", "Qty", "Total Price", "Actions"].map((th, idx) => (
                 <th key={idx} style={{ padding: "12px 10px", textAlign: "left", fontSize: 14, fontWeight: 600, borderBottom: "1px solid #e5e7eb" }}>
                   {th}
                 </th>
@@ -668,13 +669,14 @@ const netValue =
           </thead>
           <tbody>
             {filteredTransactions.filter(t => t.type === "OUT" && t.items?.item_name.toLowerCase().includes(outSearch.toLowerCase())).length === 0
-              ? emptyRowComponent(6, "No OUT transactions")
+              ? emptyRowComponent(7, "No OUT transactions")
               : filteredTransactions.filter(t => t.type === "OUT" && t.items?.item_name.toLowerCase().includes(outSearch.toLowerCase()))
                   .map(t => (
                     <tr key={t.id}>
                       <td style={styles.thtd}>{t.date}</td>
                       <td style={styles.thtd}>{t.items?.item_name}</td>
                       <td style={styles.thtd}>{t.items?.brand}</td>
+                      <td style={styles.thtd}>{t.items?.category || "Uncategorized"}</td>
                       <td style={styles.thtd}>{t.quantity}</td>
                       <td style={styles.thtd}>₱{((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toFixed(2)}</td>
                       <td style={styles.thtd}>
@@ -740,11 +742,12 @@ const netValue =
           </thead>
           <tbody>
                 {filteredDeletedItems.length === 0
-              ? emptyRowComponent(4, "No matching deleted items")
+              ? emptyRowComponent(5, "No matching deleted items")
               : filteredDeletedItems.map(i => (
                 <tr key={i.id}>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{i.item_name}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{i.brand}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{i.category || "Uncategorized"}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>₱{i.unit_price.toFixed(2)}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
                     <div style={{ display: "flex", gap: 10 }}>
@@ -825,12 +828,13 @@ const netValue =
           </thead>
           <tbody>
             {filteredDeletedTransactions.length === 0
-              ? emptyRowComponent(7, "No matching deleted transactions")
+              ? emptyRowComponent(8, "No matching deleted transactions")
               : filteredDeletedTransactions.map(t => (
                 <tr key={t.id}>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.date}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.items?.item_name}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.items?.brand}</td>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.items?.category || "Uncategorized"}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.type}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.quantity}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>
@@ -958,6 +962,7 @@ const netValue =
           <tr>
             <th style={styles.thtd}>Item</th>
             <th style={styles.thtd}>Brand</th>
+            <th style={styles.thtd}>Category</th>
             <th style={styles.thtd}>Total IN</th>
             <th style={styles.thtd}>Total OUT</th>
             <th style={styles.thtd}>Net Qty</th>
@@ -970,14 +975,12 @@ const netValue =
 
             monthlyTransactions.forEach(t => {
               const key = `${t.items?.item_name}-${t.items?.brand}`;
-              if (!grouped[key]) {
-                grouped[key] = {
-                  item: t.items?.item_name,
-                  brand: t.items?.brand,
-                  inQty: 0,
-                  outQty: 0,
-                  inVal: 0,
-                  outVal: 0
+
+              if (!grouped[key]) grouped[key] = { 
+                  item: t.items?.item_name, 
+                  brand: t.items?.brand, 
+                  category: t.items?.category || "Uncategorized", 
+                  inQty: 0, outQty: 0, inVal: 0, outVal: 0 
                 };
               }
 
@@ -996,7 +999,7 @@ const netValue =
             const rows = Object.values(grouped);
 
             if (rows.length === 0)
-              return emptyRowComponent(6, "No data for this month");
+              return emptyRowComponent(7, "No data for this month");
 
             return rows.map((r, index) => {
               const netQty = r.inQty - r.outQty;
@@ -1004,13 +1007,14 @@ const netValue =
 
               return (
                 <tr key={index}>
-                  <td style={styles.thtd}>{r.item}</td>
-                  <td style={styles.thtd}>{r.brand}</td>
-                  <td style={styles.thtd}>{r.inQty}</td>
-                  <td style={styles.thtd}>{r.outQty}</td>
-                  <td style={styles.thtd}>{netQty}</td>
-                  <td style={styles.thtd}>₱{netVal.toFixed(2)}</td>
-                </tr>
+                <td style={styles.thtd}>{r.item}</td>
+                <td style={styles.thtd}>{r.brand}</td>
+                <td style={styles.thtd}>{r.category}</td>  // ✅ add this
+                <td style={styles.thtd}>{r.inQty}</td>
+                <td style={styles.thtd}>{r.outQty}</td>
+                <td style={styles.thtd}>{netQty}</td>
+                <td style={styles.thtd}>₱{netVal.toFixed(2)}</td>
+              </tr>
               );
             });
           })()}
@@ -1027,6 +1031,7 @@ const netValue =
             <th style={styles.thtd}>Date</th>
             <th style={styles.thtd}>Item</th>
             <th style={styles.thtd}>Brand</th>
+            <th style={styles.thtd}>Category</th>  // ✅ Add here
             <th style={styles.thtd}>Type</th>
             <th style={styles.thtd}>Qty</th>
             <th style={styles.thtd}>Total</th>
@@ -1034,12 +1039,13 @@ const netValue =
         </thead>
         <tbody>
           {monthlyTransactions.length === 0
-            ? emptyRowComponent(6, "No transactions")
+            ? emptyRowComponent(7, "No transactions")
             : monthlyTransactions.map(t => (
                 <tr key={t.id}>
                   <td style={styles.thtd}>{t.date}</td>
                   <td style={styles.thtd}>{t.items?.item_name}</td>
                   <td style={styles.thtd}>{t.items?.brand}</td>
+                  <td style={styles.thtd}>{t.items?.category || "Uncategorized"}</td>
                   <td style={styles.thtd}>{t.type}</td>
                   <td style={styles.thtd}>{t.quantity}</td>
                   <td style={styles.thtd}>
