@@ -1333,56 +1333,55 @@ if (form.type === "OUT") {
           </tr>
         </thead>
         <tbody>
-            {(() => {
-              if (monthlyTransactions.length === 0) {
-                return (
-                  <tr>
-                    <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                      No transactions for this month
-                    </td>
-                  </tr>
-                );
-              }
-                 {Object.values(
-                  items.reduce((acc, t) => {
-                    const key = `${t.items?.item_name}-${t.items?.brand}`;
-                    const price = Number(t.unit_price || t.items?.unit_price || 0);
-                    const qty = Number(t.quantity || 0);
-                
-                    if (!acc[key]) {
-                      acc[key] = {
-                        item: t.items?.item_name,
-                        brand: t.items?.brand,
-                        inQty: 0,
-                        outQty: 0,
-                        price
-                      };
-                    }
-                
-                    if (t.type === "IN") acc[key].inQty += qty;
-                    else acc[key].outQty += qty;
-                
-                    return acc;
-                  }, {})
-                ).map((row, idx) => {
-                  const netQty = row.inQty - row.outQty;
-                  const netValue = netQty * row.price;
-                
-                  return (
-                    <tr key={idx}>
-                      <td style={styles.thtd}>{row.item}</td>
-                      <td style={styles.thtd}>{row.brand}</td>
-                      <td style={styles.thtd}>{row.inQty}</td>
-                      <td style={styles.thtd}>{row.outQty}</td>
-                      <td style={styles.thtd}>{netQty}</td>
-                      <td style={styles.thtd}>₱{netValue.toFixed(2)}</td>
-                    </tr>
-                  );
-                })}
-                </React.Fragment>
-              ));
-            })()}
-          </tbody>
+          {(() => {
+            if (monthlyTransactions.length === 0) {
+              return (
+                <tr>
+                  <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                    No transactions for this month
+                  </td>
+                </tr>
+              );
+            }
+        
+            return Object.values(
+              monthlyTransactions.reduce((acc, t) => {
+                const key = `${t.items?.item_name}-${t.items?.brand}`;
+                const price = Number(t.unit_price || t.items?.unit_price || 0);
+                const qty = Number(t.quantity || 0);
+        
+                if (!acc[key]) {
+                  acc[key] = {
+                    item: t.items?.item_name,
+                    brand: t.items?.brand,
+                    inQty: 0,
+                    outQty: 0,
+                    price
+                  };
+                }
+        
+                if (t.type === "IN") acc[key].inQty += qty;
+                else acc[key].outQty += qty;
+        
+                return acc;
+              }, {})
+            ).map((row, idx) => {
+              const netQty = row.inQty - row.outQty;
+              const netValue = netQty * row.price;
+        
+              return (
+                <tr key={idx}>
+                  <td style={styles.thtd}>{row.item}</td>
+                  <td style={styles.thtd}>{row.brand}</td>
+                  <td style={styles.thtd}>{row.inQty}</td>
+                  <td style={styles.thtd}>{row.outQty}</td>
+                  <td style={styles.thtd}>{netQty}</td>
+                  <td style={styles.thtd}>₱{netValue.toFixed(2)}</td>
+                </tr>
+              );
+            });
+          })()}
+        </tbody>
       </table>
     </div>
 
