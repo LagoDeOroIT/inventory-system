@@ -403,46 +403,60 @@ const netValue =
             )}
           
             {/* + New Button */}
-            <button
-              style={{
-                width: "100%",
-                padding: "10px 0",
-                borderRadius: 8,
-                border: "none",
-                background: "#1f2937",      // dark gray for main system consistency
-                color: "#2563eb",           // bright blue text for action emphasis
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: "pointer",
-                transition: "background 0.2s, color 0.2s"
-              }}
-              onClick={handleNewClick}
-              onMouseEnter={e => { e.currentTarget.style.background = "#2563eb"; e.currentTarget.style.color = "#fff"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "#1f2937"; e.currentTarget.style.color = "#2563eb"; }}
-            >
-              + New
-            </button>
-        
-            {/* Logout Button */}
-            <button
-              style={{
-                width: "100%",
-                padding: "10px 0",
-                borderRadius: 8,
-                border: "none",
-                background: "#b91c1c",      // dark red consistent with Delete buttons
-                color: "#fff",
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: "pointer",
-                transition: "background 0.2s"
-              }}
-              onClick={async () => { await supabase.auth.signOut(); setSession(null); }}
-              onMouseEnter={e => e.currentTarget.style.background = "#991b1b"}
-              onMouseLeave={e => e.currentTarget.style.background = "#b91c1c"}
-            >
-              Logout
-            </button>
+              <button
+                style={{
+                  width: "100%",
+                  padding: "10px 0",
+                  borderRadius: 8,
+                  border: "none",
+                  background: "#2563eb",    // friendly blue background
+                  color: "#ffffff",         // white text
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                  transition: "background 0.2s, transform 0.1s"
+                }}
+                onClick={handleNewClick}
+                onMouseEnter={e => { 
+                  e.currentTarget.style.background = "#1d4ed8";  // slightly darker on hover
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={e => { 
+                  e.currentTarget.style.background = "#2563eb";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                + New
+              </button>
+              
+              {/* Logout Button */}
+              <button
+                style={{
+                  width: "100%",
+                  padding: "10px 0",
+                  borderRadius: 8,
+                  border: "none",
+                  background: "#ef4444",   // friendly red
+                  color: "#ffffff",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                  transition: "background 0.2s, transform 0.1s"
+                }}
+                onClick={async () => { await supabase.auth.signOut(); setSession(null); }}
+                onMouseEnter={e => { 
+                  e.currentTarget.style.background = "#dc2626"; // darker red on hover
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={e => { 
+                  e.currentTarget.style.background = "#ef4444";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                Logout
+              </button>
           </div>
         </div>
 
