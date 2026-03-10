@@ -1509,23 +1509,37 @@ if (form.type === "OUT") {
                     onChange={e => handleFormChange("brand", e.target.value)} 
                   />
                   {brandOptions.length > 0 && (
-                  <div style={{
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                    marginTop: 4,
-                    marginBottom: 8,
-                    background: "#fff",
-                    maxHeight: 120,
-                    overflowY: "auto"
-                  }}>
+                  <div
+                    style={{
+                      border: "1px solid #e5e7eb",
+                      borderRadius: 8,
+                      marginTop: 4,
+                      marginBottom: 10,
+                      background: "#ffffff",
+                      boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
+                      maxHeight: 140,
+                      overflowY: "auto"
+                    }}
+                  >
                     {brandOptions.map((b, idx) => (
                       <div
                         key={idx}
                         style={{
-                          padding: "8px 10px",
+                          padding: "10px 12px",
                           cursor: "pointer",
-                          borderBottom: "1px solid #f1f5f9"
+                          fontSize: 14,
+                          transition: "background 0.15s ease",
+                          borderBottom:
+                            idx !== brandOptions.length - 1
+                              ? "1px solid #f1f5f9"
+                              : "none"
                         }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.background = "#f9fafb")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background = "#fff")
+                        }
                         onClick={() => {
                           handleFormChange("brand", b);
                           setBrandOptions([]);
