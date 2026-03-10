@@ -994,6 +994,12 @@ if (form.type === "OUT") {
                         >
                         Restore
                         </button>
+                        <button
+                        style={{ ...styles.buttonSecondary, background:"#ef4444", color:"#fff" }}
+                        onClick={() => setConfirmAction({ type:"permanentDeleteItem", data:i })}
+                        >
+                        Delete Permanently
+                        </button>
                         </td>
                         </tr>
                     ))}
@@ -1106,6 +1112,12 @@ if (form.type === "OUT") {
                       onClick={() => setConfirmAction({ type:"restoreTx", data:i })}
                       >
                       Restore
+                      </button>
+                      <button
+                      style={{ ...styles.buttonSecondary, background:"#ef4444", color:"#fff" }}
+                      onClick={() => setConfirmAction({ type:"permanentDeleteTx", data:i })}
+                      >
+                      Delete Permanently
                       </button>
                       </td>
                       </tr>
@@ -1447,80 +1459,115 @@ if (form.type === "OUT") {
           </div>
         )}
 
-       {/* ================= CONFIRM MODAL ================= */}
-        {confirmAction && (
-          <div style={styles.modalOverlay} onClick={() => setConfirmAction(null)}>
-            <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
-              <h3>Confirm Action</h3>
-                  <p>
-                    {confirmAction.type === "createItemConfirm"
-                      ? "This item does not exist. Do you want to create a new item?"
-                      : `Are you sure you want to ${confirmAction.type.includes("delete") ? "delete" : "restore"} this ${confirmAction.type.includes("Tx") ? "transaction" : "item"}?`
-                    }
-                  </p>              
-              <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
-                <button style={styles.buttonPrimary} onClick={async () => {
-                  const { type, data } = confirmAction;
+        {/* ================= CONFIRM MODAL ================= */}
+{confirmAction && (
+  <div style={styles.modalOverlay}>
+    <div style={styles.modal}>
+      <h3>Confirm Action</h3>
 
-                 if(type==="deleteItem") {
-                    await supabase
-                      .from("items")
-                      .update({ deleted:true })
-                      .eq("id", data.id);
-                  
-                    await supabase
-                      .from("inventory_transactions")
-                      .update({ deleted:true })
-                      .eq("item_id", data.id)
-                      .eq("location", data.location);
-                  
-                    loadData();
-                  }
-                  else if(type==="permanentDeleteItem") {
-                    await supabase.from("items").delete().eq("id", data.id);
-                    await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
-                    loadData();
-                  }
-                  else if(type==="restoreItem") {
-                      await supabase
-                        .from("items")
-                        .update({ deleted:false })
-                        .eq("id", data.id);
-                    
-                      await supabase
-                        .from("inventory_transactions")
-                        .update({ deleted:false })
-                        .eq("item_id", data.id)
-                        .eq("location", data.location);
-                    
-                      loadData();
-                    }
-                  else if(type==="deleteTx") {
-                    await supabase.from("inventory_transactions").update({ deleted:true }).eq("id", data.id);
-                    loadData();
-                  }
-                  else if(type==="permanentDeleteTx") {
-                    await supabase.from("inventory_transactions").delete().eq("id", data.id);
-                    loadData();
-                  }
-                  else if(type==="restoreTx") {
-                    await supabase.from("inventory_transactions").update({ deleted:false }).eq("id", data.id);
-                    loadData(); // ✅ refresh stock immediately
-                  }
-                  else if(type === "createItemConfirm") {
-                  setModalTypeBeforeItem("transaction");
-                  setModalType("item");
-                  setShowModal(true);
-                  }
+      <p>
+        Are you sure you want to{" "}
+        <b>
+          {confirmAction.type === "deleteItem" && "delete this item?"}
+          {confirmAction.type === "restoreItem" && "restore this item?"}
+          {confirmAction.type === "permanentDeleteItem" && "permanently delete this item?"}
+          {confirmAction.type === "deleteTx" && "delete this transaction?"}
+          {confirmAction.type === "restoreTx" && "restore this transaction?"}
+          {confirmAction.type === "permanentDeleteTx" && "permanently delete this transaction?"}
+        </b>
+      </p>
 
-                  setConfirmAction(null);
-                }}>Yes</button>
-                <button style={styles.buttonSecondary} onClick={() => setConfirmAction(null)}>Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
+      <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+        <button
+          style={styles.buttonPrimary}
+          onClick={async () => {
+            const { type, data } = confirmAction;
+
+            try {
+
+              // ================= DELETE ITEM (SOFT) =================
+              if (type === "deleteItem") {
+                await supabase
+                  .from("items")
+                  .update({ deleted: true })
+                  .eq("id", data.id);
+
+                await supabase
+                  .from("inventory_transactions")
+                  .update({ deleted: true })
+                  .eq("item_id", data.id);
+              }
+
+              // ================= RESTORE ITEM =================
+              else if (type === "restoreItem") {
+                await supabase
+                  .from("items")
+                  .update({ deleted: false })
+                  .eq("id", data.id);
+
+                await supabase
+                  .from("inventory_transactions")
+                  .update({ deleted: false })
+                  .eq("item_id", data.id);
+              }
+
+              // ================= PERMANENT DELETE ITEM =================
+              else if (type === "permanentDeleteItem") {
+                await supabase
+                  .from("inventory_transactions")
+                  .delete()
+                  .eq("item_id", data.id);
+
+                await supabase
+                  .from("items")
+                  .delete()
+                  .eq("id", data.id);
+              }
+
+              // ================= DELETE TRANSACTION (SOFT) =================
+              else if (type === "deleteTx") {
+                await supabase
+                  .from("inventory_transactions")
+                  .update({ deleted: true })
+                  .eq("id", data.id);
+              }
+
+              // ================= RESTORE TRANSACTION =================
+              else if (type === "restoreTx") {
+                await supabase
+                  .from("inventory_transactions")
+                  .update({ deleted: false })
+                  .eq("id", data.id);
+              }
+
+              // ================= PERMANENT DELETE TRANSACTION =================
+              else if (type === "permanentDeleteTx") {
+                await supabase
+                  .from("inventory_transactions")
+                  .delete()
+                  .eq("id", data.id);
+              }
+
+              await loadData();
+
+            } catch (error) {
+              console.error("Action error:", error);
+              alert("Something went wrong.");
+            }
+
+            setConfirmAction(null);
+          }}
+        >
+          Confirm
+        </button>
+
+        <button
+          style={styles.buttonSecondary}
+          onClick={() => setConfirmAction(null)}
+        >
+          Cancel
+        </button>
       </div>
     </div>
-  );
-}
+  </div>
+)}
