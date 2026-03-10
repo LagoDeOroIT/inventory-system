@@ -973,30 +973,34 @@ const netValue =
           {(() => {
             const grouped = {};
 
-            monthlyTransactions.forEach(t => {
-              const key = `${t.items?.item_name}-${t.items?.brand}`;
-
-              if (!grouped[key]) grouped[key] = { 
-                  item: t.items?.item_name, 
-                  brand: t.items?.brand, 
-                  category: t.items?.category || "Uncategorized", 
-                  inQty: 0, outQty: 0, inVal: 0, outVal: 0 
-                };
-              }
-
-              const total = (t.quantity || 0) *
-                (t.unit_price || t.items?.unit_price || 0);
-
-              if (t.type === "IN") {
-                grouped[key].inQty += Number(t.quantity);
-                grouped[key].inVal += total;
-              } else {
-                grouped[key].outQty += Number(t.quantity);
-                grouped[key].outVal += total;
-              }
-            });
-
-            const rows = Object.values(grouped);
+              monthlyTransactions.forEach(t => {
+                const key = `${t.items?.item_name}-${t.items?.brand}`;
+              
+                if (!grouped[key]) {
+                  grouped[key] = { 
+                    item: t.items?.item_name, 
+                    brand: t.items?.brand, 
+                    category: t.items?.category || "Uncategorized", 
+                    inQty: 0, 
+                    outQty: 0, 
+                    inVal: 0, 
+                    outVal: 0 
+                  };
+                }
+              
+                const total = (t.quantity || 0) *
+                              (t.unit_price || t.items?.unit_price || 0);
+              
+                if (t.type === "IN") {
+                  grouped[key].inQty += Number(t.quantity);
+                  grouped[key].inVal += total;
+                } else {
+                  grouped[key].outQty += Number(t.quantity);
+                  grouped[key].outVal += total;
+                }
+              });
+              
+              const rows = Object.values(grouped);
 
             if (rows.length === 0)
               return emptyRowComponent(7, "No data for this month");
