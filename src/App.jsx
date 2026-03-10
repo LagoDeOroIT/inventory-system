@@ -280,7 +280,7 @@ export default function App() {
 
   const stockInventory = items
     .filter(i => !i.deleted)
-    .filter(i => !selectedStockRoom || i.location === selectedStockRoom || !i.location)
+    .filter(i => !selectedStockRoom || i.location === selectedStockRoom)
     .map(i => {
       const stock = stockMap[i.id] || 0;
       
