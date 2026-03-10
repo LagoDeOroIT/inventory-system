@@ -442,6 +442,7 @@ const netValue =
               Logout
             </button>
           </div>
+        </div>
 
       {/* MAIN AREA */}
       <div style={styles.main}>
