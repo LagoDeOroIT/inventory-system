@@ -834,7 +834,7 @@ if (form.type === "OUT") {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
-              {["Date", "Item", "Brand", "Category", "Qty", "Total Price", "Actions"].map((th, idx) => (
+              {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
                 <th key={idx} style={{ padding: "12px 10px", textAlign: "left", fontSize: 14, fontWeight: 600, borderBottom: "1px solid #e5e7eb" }}>
                   {th}
                 </th>
@@ -858,28 +858,11 @@ if (form.type === "OUT") {
                   </tr>
                 );
               }
-          
-              // Group by category
-              const groupedIn = filteredIn.reduce((acc, item) => {
-                const cat = item.items?.category || "Uncategorized";
-                if (!acc[cat]) acc[cat] = [];
-                acc[cat].push(item);
-                return acc;
-              }, {});
-          
-              return Object.entries(groupedIn).map(([category, items]) => (
-                <React.Fragment key={category}>
-                  <tr>
-                    <td colSpan={7} style={{ background: "#f3f4f6", fontWeight: 600, padding: "10px 12px" }}>
-                      {category}
-                    </td>
-                  </tr>
                   {items.map((i) => (
                     <tr key={i.id}>
                       <td>{i.date}</td>
                       <td>{i.items?.item_name}</td>
                       <td>{i.items?.brand}</td>
-                      <td>{i.items?.category}</td>
                       <td>{i.quantity}</td>
                       <td>₱{(i.quantity * (i.unit_price || i.items?.unit_price)).toFixed(2)}</td>
                      <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
@@ -946,7 +929,7 @@ if (form.type === "OUT") {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
-              {["Date", "Item", "Brand", "Category", "Qty", "Total Price", "Actions"].map((th, idx) => (
+              {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
                 <th key={idx} style={{ padding: "12px 10px", textAlign: "left", fontSize: 14, fontWeight: 600, borderBottom: "1px solid #e5e7eb" }}>
                   {th}
                 </th>
@@ -970,30 +953,11 @@ if (form.type === "OUT") {
                     </tr>
                   );
                 }
-            
-                // Group by category
-                const groupedOut = filteredOut.reduce((acc, item) => {
-                  const cat = item.items?.category || "Uncategorized";
-                  if (!acc[cat]) acc[cat] = [];
-                  acc[cat].push(item);
-                  return acc;
-                }, {});
-            
-                return Object.entries(groupedOut).map(([category, items]) => (
-                  <React.Fragment key={category}>
-                    {/* Category Header */}
-                    <tr>
-                      <td colSpan={7} style={{ background: "#f3f4f6", fontWeight: 600, padding: "10px 12px" }}>
-                        {category}
-                      </td>
-                    </tr>
-                    {/* Items under the category */}
                     {items.map((i) => (
                       <tr key={i.id}>
                       <td>{i.date}</td>
                       <td>{i.items?.item_name}</td>
                       <td>{i.items?.brand}</td>
-                      <td>{i.items?.category}</td>
                       <td>{i.quantity}</td>
                       <td>₱{(i.quantity * (i.unit_price || i.items?.unit_price)).toFixed(2)}</td>
                         <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
@@ -1100,24 +1064,6 @@ if (form.type === "OUT") {
                     </tr>
                   );
                 }
-            
-                // Group by category
-                const groupedDeleted = filteredDeleted.reduce((acc, item) => {
-                  const cat = item.category || "Uncategorized";
-                  if (!acc[cat]) acc[cat] = [];
-                  acc[cat].push(item);
-                  return acc;
-                }, {});
-            
-                return Object.entries(groupedDeleted).map(([category, items]) => (
-                  <React.Fragment key={category}>
-                    {/* Category Header */}
-                    <tr>
-                      <td colSpan={4} style={{ background: "#f3f4f6", fontWeight: 600, padding: "10px 12px" }}>
-                        {category}
-                      </td>
-                    </tr>
-                    {/* Items under the category */}
                     {items.map((i) => (
                       <tr key={i.id}>
                         <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>{i.item_name}</td>
@@ -1226,24 +1172,6 @@ if (form.type === "OUT") {
                     </tr>
                   );
                 }
-            
-                // Group by category
-                const groupedDeleted = filteredDeleted.reduce((acc, item) => {
-                  const cat = item.items?.category || "Uncategorized";
-                  if (!acc[cat]) acc[cat] = [];
-                  acc[cat].push(item);
-                  return acc;
-                }, {});
-            
-                return Object.entries(groupedDeleted).map(([category, items]) => (
-                  <React.Fragment key={category}>
-                    {/* Category Header */}
-                    <tr>
-                      <td colSpan={7} style={{ background: "#f3f4f6", fontWeight: 600, padding: "10px 12px" }}>
-                        {category}
-                      </td>
-                    </tr>
-                    {/* Items under the category */}
                     {items.map((i) => (
                       <tr key={i.id}>
                       <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>{i.date}</td>
@@ -1411,25 +1339,6 @@ if (form.type === "OUT") {
                   </tr>
                 );
               }
-          
-              // Group by category
-              const groupedMonthly = monthlyTransactions.reduce((acc, t) => {
-                const cat = t.items?.category || "Uncategorized";
-                if (!acc[cat]) acc[cat] = [];
-                acc[cat].push(t);
-                return acc;
-              }, {});
-          
-              return Object.entries(groupedMonthly).map(([category, items]) => (
-                <React.Fragment key={category}>
-                  {/* Category Header */}
-                  <tr style={{ background: "#f3f4f6" }}>
-                    <td colSpan={6} style={{ padding: 12, fontWeight: 600 }}>
-                      {category}
-                    </td>
-                  </tr>
-          
-                  {/* Items in this category */}
                  {Object.values(
                   items.reduce((acc, t) => {
                     const key = `${t.items?.item_name}-${t.items?.brand}`;
