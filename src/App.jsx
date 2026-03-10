@@ -1509,47 +1509,48 @@ if (form.type === "OUT") {
                     onChange={e => handleFormChange("brand", e.target.value)} 
                   />
                   {brandOptions.length > 0 && (
-                  <div
-                    style={{
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 8,
-                      marginTop: 4,
-                      marginBottom: 10,
-                      background: "#ffffff",
-                      boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
-                      maxHeight: 140,
-                      overflowY: "auto"
-                    }}
-                  >
-                    {brandOptions.map((b, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          padding: "10px 12px",
-                          cursor: "pointer",
-                          fontSize: 14,
-                          transition: "background 0.15s ease",
-                          borderBottom:
-                            idx !== brandOptions.length - 1
-                              ? "1px solid #f1f5f9"
-                              : "none"
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.background = "#f9fafb")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.background = "#fff")
-                        }
-                        onClick={() => {
-                          handleFormChange("brand", b);
-                          setBrandOptions([]);
-                        }}
-                      >
-                        {b}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                    <div
+                      style={{
+                        border: "1px solid #d1d5db",
+                        borderRadius: 10,
+                        marginTop: 6,
+                        marginBottom: 12,
+                        background: "#ffffff",
+                        boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+                        maxHeight: 160,
+                        overflowY: "auto"
+                      }}
+                    >
+                      {brandOptions.map((b, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            padding: "10px 14px",
+                            cursor: "pointer",
+                            fontSize: 14,
+                            fontWeight: 500,
+                            color: "#374151",
+                            borderBottom:
+                              idx !== brandOptions.length - 1
+                                ? "1px solid #f3f4f6"
+                                : "none"
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "#eef2ff";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "#ffffff";
+                          }}
+                          onClick={() => {
+                            handleFormChange("brand", b);
+                            setBrandOptions([]);
+                          }}
+                        >
+                          {b}
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   <input
                     list="category-list"
