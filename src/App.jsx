@@ -324,7 +324,7 @@ const netValue =
         unit_price: Number(form.price || existingItem.unit_price || 0)
       };
       if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
-      else await supabase.from("inventory_transactions").insert([txData]);
+      else const { data, error } = await supabase   .from("inventory_transactions")   .insert([txData]);  if (error) {   console.error("Insert error:", error);   alert(error.message); }
       setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
       setShowModal(false);
       setModalType("");
@@ -334,7 +334,7 @@ const netValue =
       const itemData = { item_name: form.item_name, brand: form.brand, unit_price: Number(form.price), location: selectedStockRoom };
       if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
       else {
-        const { data } = await supabase.from("items").insert([itemData]);
+        const { data, error } = await supabase   .from("items")   .insert([itemData])   .select();
         if(data?.length && modalTypeBeforeItem === "transaction") {
           setForm(prev => ({ ...prev, item_id: data[0].id }));
           setModalType("transaction");
