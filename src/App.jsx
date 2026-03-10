@@ -48,6 +48,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
+  const [outSearch, setOutSearch] = useState("");
   const [stockSearch, setStockSearch] = useState("");
   const [deletedItemSearch, setDeletedItemSearch] = useState("");
   const [deletedTxSearch, setDeletedTxSearch] = useState("");
