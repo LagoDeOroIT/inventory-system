@@ -8,6 +8,68 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ================= STYLES =================
 const styles = {
+
+  container:{},
+  sidebar:{},
+  main:{},
+
+  thtd:{
+    padding:"10px"
+  },
+
+  buttonSecondary:{
+    padding:"6px 12px"
+  },
+
+  categoryRow:{
+    background:"#f8fafc",
+    cursor:"pointer"
+  },
+
+  categoryContainer:{
+    display:"flex",
+    justifyContent:"space-between"
+  },
+
+  categoryLeft:{
+    display:"flex",
+    gap:10
+  },
+
+  categoryRight:{
+    display:"flex",
+    gap:20
+  },
+
+  // ⭐ ADD HERE
+  dashboard:{
+    display:"grid",
+    gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",
+    gap:20,
+    marginBottom:20
+  },
+
+  dashboardCard:{
+    background:"#fff",
+    border:"1px solid #e5e7eb",
+    borderRadius:10,
+    padding:"18px",
+    boxShadow:"0 2px 6px rgba(0,0,0,0.05)"
+  },
+
+  dashboardTitle:{
+    fontSize:13,
+    color:"#6b7280",
+    marginBottom:6
+  },
+
+  dashboardValue:{
+    fontSize:22,
+    fontWeight:700,
+    color:"#111827"
+  }
+
+};
   container: { 
     display: "flex", 
     fontFamily: "Inter, Arial, sans-serif", 
@@ -158,21 +220,41 @@ export default function App() {
   };
 
   // ================= LOAD DATA =================
-  const loadData = async () => {
-    const { data: itemsData } = await supabase.from("items").select("*");
-    const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
+        const loadData = async () => {
+      
+        const { data: itemsData } = await supabase.from("items").select("*");
+      
+        const itemsWithDeleted = (itemsData || []).map(i => ({
+          ...i,
+          deleted: i.deleted ?? false
+        }));
+      
+        const { data: tx } = await supabase
+          .from("inventory_transactions")
+          .select("*, items(item_name, brand, unit_price, location, category)")
+          .order("date", { ascending: false });
+      
+        const transactionsWithDeleted = (tx || []).map(t => ({
+          ...t,
+          deleted: t.deleted ?? false
+        }));
+      
+        setItems(itemsWithDeleted);
+        setTransactions(transactionsWithDeleted);
+      
+        // ✅ Initialize categories as CLOSED
+        const closed = {};
 
-    const { data: tx } = await supabase.from("inventory_transactions")
-      .select("*, items(item_name, brand, unit_price, location, category)")
-      .order("date", { ascending: false });
-    const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
-
-    setItems(itemsWithDeleted);
-    setTransactions(transactionsWithDeleted);
-  };
-
-  useEffect(() => { if(session) loadData(); }, [session]);
-
+        itemsWithDeleted.forEach(i => {
+          const cat = i.category || "Uncategorized";
+        
+          if (!(cat in closed)) {
+            closed[cat] = false;
+          }
+        });
+        
+        setOpenCategories(closed);
+      };
   // ================= FILTERS =================
   const filteredTransactions = transactions
     .filter(t => !t.deleted)
@@ -572,6 +654,32 @@ if (form.type === "OUT") {
       }}
     >
       <h2>Available Stocks</h2>
+
+        <div style={styles.dashboard}>
+        
+        <div style={styles.dashboardCard}>
+        <div style={styles.dashboardTitle}>Total Inventory Value</div>
+        <div style={styles.dashboardValue}>
+        ₱{totalInventoryValue.toLocaleString(undefined,{minimumFractionDigits:2})}
+        </div>
+        </div>
+        
+        <div style={styles.dashboardCard}>
+        <div style={styles.dashboardTitle}>Total Items</div>
+        <div style={styles.dashboardValue}>{totalItems}</div>
+        </div>
+        
+        <div style={styles.dashboardCard}>
+        <div style={styles.dashboardTitle}>Low Stock Items</div>
+        <div style={styles.dashboardValue}>{lowStockItems}</div>
+        </div>
+        
+        <div style={styles.dashboardCard}>
+        <div style={styles.dashboardTitle}>Categories</div>
+        <div style={styles.dashboardValue}>{totalCategories}</div>
+        </div>
+        
+        </div>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
           <tr>
@@ -619,7 +727,7 @@ if (form.type === "OUT") {
           
               return Object.entries(groupedStock).map(([category, items]) => {
 
-                const isOpen = openCategories[category] ?? true;
+                const isOpen = openCategories[category] === true;
               
                 const totalValue = items.reduce(
                   (sum, i) => sum + (i.stock * i.unit_price),
@@ -632,7 +740,11 @@ if (form.type === "OUT") {
                     {/* CATEGORY HEADER */}
                     <tr
                       style={styles.categoryRow}
-                      onClick={()=>toggleCategory(category)}
+                      onClick={(e)=>{
+                          if(e.target.tagName !== "BUTTON"){
+                            toggleCategory(category);
+                          }
+                        }}
                       >
                       <td colSpan={6} style={{padding:"12px 14px"}}>
                       
@@ -640,7 +752,7 @@ if (form.type === "OUT") {
                       
                       <div style={styles.categoryLeft}>
                       <span style={{color:"#6b7280"}}>
-                      {openCategories[category] ? "▾" : "▸"}
+                      {isOpen ? "▾" : "▸"}
                       </span>
                       
                       <span>{category}</span>
@@ -752,6 +864,20 @@ if (form.type === "OUT") {
           </thead>
           <tbody>
             {(() => {
+              const stockInventory = items.filter(i => !i.deleted);
+                  // DASHBOARD DATA
+              const totalItems = stockInventory.length;
+              
+              const totalCategories = new Set(
+                stockInventory.map(i => i.category || "Uncategorized")
+              ).size;
+              
+              const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
+              
+              const totalInventoryValue = stockInventory.reduce(
+                (sum, i) => sum + (i.stock * Number(i.unit_price || 0)),
+                0
+              );
               const filteredIn = inTransactions.filter(
                 (item) =>
                   (item.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
