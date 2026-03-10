@@ -936,64 +936,65 @@ if (form.type === "OUT") {
             </tr>
           </thead>
           <tbody>
-              {(() => {
-                    const filteredOut = outTransactions.filter(
-                      (item) =>
-                        (item.items?.item_name || "").toLowerCase().includes(outSearch.toLowerCase()) ||
-                        (item.items?.brand || "").toLowerCase().includes(outSearch.toLowerCase())
-                    );
-            
-                if (filteredOut.length === 0) {
-                  return (
-                    <tr>
-                      <td colSpan={7} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                        No matching items
-                      </td>
-                    </tr>
-                  );
-                }
-                    {items.map((i) => (
-                      <tr key={i.id}>
-                      <td>{i.date}</td>
-                      <td>{i.items?.item_name}</td>
-                      <td>{i.items?.brand}</td>
-                      <td>{i.quantity}</td>
-                      <td>₱{(i.quantity * (i.unit_price || i.items?.unit_price)).toFixed(2)}</td>
-                        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
-                          <div style={{ display: "flex", gap: 10 }}>
-                            <button
-                              style={{ ...styles.buttonSecondary }}
-                              onClick={() => {
-                                setForm({
-                                    id: i.id,
-                                    item_id: i.item_id,
-                                    date: i.date,
-                                    item_name: i.items?.item_name,
-                                    brand: i.items?.brand,
-                                    type: i.type,
-                                    quantity: i.quantity,
-                                    price: i.unit_price || i.items?.unit_price,
-                                    brandOptions: [i.items?.brand],
-                                  });
-                                setModalType("transaction");
-                                setShowModal(true);
-                              }}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
-                              onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </React.Fragment>
-                ));
-              })()}
+            {(() => {
+              const filteredOut = outTransactions.filter(
+                (item) =>
+                  (item.items?.item_name || "").toLowerCase().includes(outSearch.toLowerCase()) ||
+                  (item.items?.brand || "").toLowerCase().includes(outSearch.toLowerCase())
+              );
+          
+              if (filteredOut.length === 0) {
+                return (
+                  <tr>
+                    <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                      No matching items
+                    </td>
+                  </tr>
+                );
+              }
+          
+              return filteredOut.map((i) => (
+                <tr key={i.id}>
+                  <td>{i.date}</td>
+                  <td>{i.items?.item_name}</td>
+                  <td>{i.items?.brand}</td>
+                  <td>{i.quantity}</td>
+                  <td>₱{(i.quantity * (i.unit_price || i.items?.unit_price)).toFixed(2)}</td>
+          
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <button
+                        style={{ ...styles.buttonSecondary }}
+                        onClick={() => {
+                          setForm({
+                            id: i.id,
+                            item_id: i.item_id,
+                            date: i.date,
+                            item_name: i.items?.item_name,
+                            brand: i.items?.brand,
+                            type: i.type,
+                            quantity: i.quantity,
+                            price: i.unit_price || i.items?.unit_price,
+                            brandOptions: [i.items?.brand],
+                          });
+                          setModalType("transaction");
+                          setShowModal(true);
+                        }}
+                      >
+                        Edit
+                      </button>
+          
+                      <button
+                        style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                        onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ));
+            })()}
           </tbody>
         </table>
       </div>
