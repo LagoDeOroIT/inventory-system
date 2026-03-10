@@ -741,8 +741,37 @@ if (form.type === "OUT") {
                       <td>{i.items?.category}</td>
                       <td>{i.quantity}</td>
                       <td>₱{(i.quantity * (i.unit_price || i.items?.unit_price)).toFixed(2)}</td>
-                      <td>
-                        {/* Your Edit/Delete buttons here */}
+                     <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
+                        <div style={{ display: "flex", gap: 10 }}>
+                          <button
+                            style={{ ...styles.buttonSecondary }}
+                            onClick={() => {
+                              setForm({
+                                id: i.id,
+                                item_id: i.item_id,
+                                date: i.date,
+                                item_name: i.items?.item_name,
+                                brand: i.items?.brand,
+                                type: i.type,
+                                quantity: i.quantity,
+                                price: i.unit_price || i.items?.unit_price,
+                                brandOptions: [i.items?.brand],
+                              });
+                              setModalType("transaction");
+                              setShowModal(true);
+                            }}
+                          >
+                            Edit
+                          </button>
+                      
+                          <button
+                            style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                            onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
+                          >
+                            Delete
+                          </button>
+                      
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -833,6 +862,7 @@ if (form.type === "OUT") {
                               onClick={() => {
                                 setForm({
                                     id: i.id,
+                                    item_id: i.item_id,
                                     date: i.date,
                                     item_name: i.items?.item_name,
                                     brand: i.items?.brand,
@@ -1432,9 +1462,18 @@ if (form.type === "OUT") {
                 <button style={styles.buttonPrimary} onClick={async () => {
                   const { type, data } = confirmAction;
 
-                  if(type==="deleteItem") {
-                    await supabase.from("items").update({ deleted:true }).eq("id", data.id);
-                    await supabase.from("inventory_transactions").update({ deleted:true }).eq("item_id", data.id);
+                 if(type==="deleteItem") {
+                    await supabase
+                      .from("items")
+                      .update({ deleted:true })
+                      .eq("id", data.id);
+                  
+                    await supabase
+                      .from("inventory_transactions")
+                      .update({ deleted:true })
+                      .eq("item_id", data.id)
+                      .eq("location", data.location);
+                  
                     loadData();
                   }
                   else if(type==="permanentDeleteItem") {
@@ -1443,10 +1482,19 @@ if (form.type === "OUT") {
                     loadData();
                   }
                   else if(type==="restoreItem") {
-                    await supabase.from("items").update({ deleted:false }).eq("id", data.id);
-                    await supabase.from("inventory_transactions").update({ deleted:false }).eq("item_id", data.id);
-                    loadData();
-                  }
+                      await supabase
+                        .from("items")
+                        .update({ deleted:false })
+                        .eq("id", data.id);
+                    
+                      await supabase
+                        .from("inventory_transactions")
+                        .update({ deleted:false })
+                        .eq("item_id", data.id)
+                        .eq("location", data.location);
+                    
+                      loadData();
+                    }
                   else if(type==="deleteTx") {
                     await supabase.from("inventory_transactions").update({ deleted:true }).eq("id", data.id);
                     loadData();
