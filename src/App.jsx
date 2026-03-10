@@ -263,7 +263,7 @@ export default function App() {
               .toLowerCase();
             
             return itemLocation === selected;
-          });
+          })
       .map(i => {
    const stock = stockMap[i.id] || 0;
         return {
