@@ -1462,7 +1462,7 @@ if (form.type === "OUT") {
         {/* ================= CONFIRM MODAL ================= */}
 {confirmAction && (
   <div style={styles.modalOverlay}>
-    <div style={styles.modal}>
+    <div style={styles.modalCard}>
       <h3>Confirm Action</h3>
 
       <p>
@@ -1571,3 +1571,8 @@ if (form.type === "OUT") {
     </div>
   </div>
 )}
+         </div> {/* END MAIN AREA */}
+
+    </div> {/* END CONTAINER */}
+  );
+}
