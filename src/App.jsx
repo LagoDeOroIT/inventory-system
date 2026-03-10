@@ -8,13 +8,35 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ================= STYLES =================
 const styles = {
-  container: { display: "flex", fontFamily: "Inter, Arial, sans-serif", minHeight: "100vh", background: "#f3f4f6" },
-  sidebar: { width: 220, background: "#111827", color: "#fff", padding: 20, display: "flex", flexDirection: "column", justifyContent: "space-between" },
+  container: { 
+    display: "flex", 
+    fontFamily: "Inter, Arial, sans-serif", 
+    height: "100vh",    // full viewport height
+    background: "#f3f4f6", 
+    overflow: "hidden"  // prevent body scroll, scroll only in main
+  },
+  sidebar: {
+    width: 220,
+    background: "#111827",
+    color: "#fff",
+    padding: 20,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    height: "100vh",     // full viewport height
+    position: "sticky",  // keep it fixed
+    top: 0
+  },  
   sidebarHeader: { fontSize: 20, fontWeight: 700, marginBottom: 24 },
   sidebarSelect: { marginBottom: 24, padding: 8, borderRadius: 6, border: "none", width: "100%" },
   sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
   tabButton: (active) => ({ padding: 10, borderRadius: 6, background: active ? "#1f2937" : "transparent", border: "none", color: "#fff", cursor: "pointer", textAlign: "left" }),
-  main: { flex: 1, padding: 24 },
+  main: { 
+    flex: 1, 
+    padding: 24, 
+    overflowY: "auto",    // allows scrolling of right side
+    height: "100vh"       // fills vertical space
+  },  
   header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
   title: { fontSize: 28, fontWeight: 700, color: "#111827" },
   buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
