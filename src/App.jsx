@@ -234,26 +234,38 @@ export default function App() {
     .filter(t => !t.deleted)
     .filter(t => !selectedStockRoom || t.location === selectedStockRoom);  
   const stockMap = filteredTransactions.reduce((acc, t) => {
-        const qty = Number(t.quantity) || 0;
+  const qty = Number(t.quantity) || 0;
+
+  const txLocation = (t.location || "").trim().toLowerCase();
+  const selectedLocation = (selectedStockRoom || "").trim().toLowerCase();
+          if (selectedStockRoom && txLocation !== selectedLocation) {
+          return acc;
+        }
+      
         if (!acc[t.item_id]) acc[t.item_id] = 0;
+      
         acc[t.item_id] += t.type === "IN" ? qty : -qty;
+      
         return acc;
       }, {});
   const inTransactions = filteredTransactions.filter(t => t.type === "IN");
   const outTransactions = filteredTransactions.filter(t => t.type === "OUT");
   const stockInventory = items
-      .filter(i => !i.deleted)
-      .filter(i => {
-        if (!selectedStockRoom) return true;
-    
-        const hasStockInRoom = transactions.some(t =>
-          t.item_id === i.id &&
-          t.location &&
-          t.location.trim().toLowerCase() === selectedStockRoom.trim().toLowerCase()
-        );
-    
-        return hasStockInRoom;
-      })
+        .filter(i => !i.deleted)
+        .filter(i => {
+          if (!selectedStockRoom) return true;
+      
+          const selected = selectedStockRoom.replace(/\s+/g," ").trim().toLowerCase();
+      
+          return transactions.some(t => {
+            const location = (t.location || "")
+              .replace(/\s+/g," ")
+              .trim()
+              .toLowerCase();
+      
+            return t.item_id === i.id && location === selected;
+          });
+        })
       .map(i => {
    const stock = stockMap[i.id] || 0;
         return {
