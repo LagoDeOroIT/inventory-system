@@ -346,26 +346,67 @@ const netValue =
   return (
     <div style={styles.container}>
       {/* SIDEBAR */}
-      <div style={styles.sidebar}>
-        <div>
-          <div style={styles.sidebarHeader}>Lago De Oro</div>
-          <select style={styles.sidebarSelect} value={selectedStockRoom} onChange={e=>setSelectedStockRoom(e.target.value)}>
-            <option value="">Select Stock Room</option>
-            {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
-          <div style={styles.sidebarTabs}>
-            <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
-            <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
-            <button style={styles.tabButton(activeTab==="deleted")} onClick={()=>setActiveTab("deleted")}>🗑️ Deleted History</button>
-            <button style={styles.tabButton(activeTab==="report")} onClick={()=>setActiveTab("report")}>📊 Monthly Report</button>
+        <div style={{
+          ...styles.sidebar,
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          justifyContent: "space-between",
+          padding: "16px 12px",       // smaller horizontal padding on narrow screens
+          boxSizing: "border-box",
+          width: "220px",             // fixed default width
+          minWidth: "180px",          // ensures it doesn't shrink too much
+          maxWidth: "250px",          // prevents it from being too wide on large screens
+        }}>
+          {/* Top Section */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={styles.sidebarHeader}>Lago De Oro</div>
+            
+            <select
+              style={{ ...styles.sidebarSelect, width: "100%" }}
+              value={selectedStockRoom}
+              onChange={e => setSelectedStockRoom(e.target.value)}
+            >
+              <option value="">Select Stock Room</option>
+              {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+        
+            <div style={styles.sidebarTabs}>
+              <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
+              <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
+              <button style={styles.tabButton(activeTab==="deleted")} onClick={()=>setActiveTab("deleted")}>🗑️ Deleted History</button>
+              <button style={styles.tabButton(activeTab==="report")} onClick={()=>setActiveTab("report")}>📊 Monthly Report</button>
+            </div>
+          </div>
+        
+          {/* Bottom Section */}
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            alignItems: "center",
+            paddingBottom: 8,          // small padding so buttons aren't flush to bottom
+          }}>
+            {session?.user?.email && (
+              <div style={{
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 500,
+                textAlign: "center",
+                wordBreak: "break-word" // keeps long emails from overflowing
+              }}>
+                Logged in as:<br />{session.user.email}
+              </div>
+            )}
+            <button style={styles.buttonPrimary} onClick={handleNewClick}>+ New</button>
+            <button
+              style={{...styles.buttonSecondary, background:"#ef4444", color:"#fff"}}
+              onClick={async () => { await supabase.auth.signOut(); setSession(null); }}
+            >
+              Logout
+            </button>
           </div>
         </div>
-        <div style={{ display:"flex", flexDirection:"column", gap: 8, marginTop:16 }}>
-          {session?.user?.email && <div style={{ color:"#fff", marginBottom:8, fontSize:14, fontWeight:500 }}>Logged in as:<br />{session.user.email}</div>}
-          <button style={styles.buttonPrimary} onClick={handleNewClick}>+ New</button>
-          <button style={{...styles.buttonSecondary, background:"#ef4444", color:"#fff"}} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
-        </div>
-      </div>
 
       {/* MAIN AREA */}
       <div style={styles.main}>
