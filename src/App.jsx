@@ -72,12 +72,33 @@ export default function App() {
   const [inSearch, setInSearch] = useState("");
   const [outSearch, setOutSearch] = useState("");
   const [stockSearch, setStockSearch] = useState("");
+  const [openCategories, setOpenCategories] = useState({});
+  const toggleCategory = (category) => {
+      setOpenCategories(prev => ({
+        ...prev,
+        [category]: !prev[category]
+      }));
+    };
   const [deletedItemSearch, setDeletedItemSearch] = useState("");
   const [deletedTxSearch, setDeletedTxSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
-  const [form, setForm] = useState({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id: null });
+  const [form, setForm] = useState({
+    date:"",
+    item_id:"",
+    item_name:"",
+    brand:"",
+    category:"",
+    brandOptions:[],
+    type:"IN",
+    quantity:"",
+    price:"",
+    id:null
+  });  
+  const categories = [
+  ...new Set(items.map(i => i.category).filter(Boolean))
+    ];
   const [confirmAction, setConfirmAction] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
@@ -293,11 +314,12 @@ const netValue =
     } else if(modalType === "item") {
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
       const itemData = { 
-        item_name: form.item_name, 
-        brand: form.brand, 
-        unit_price: Number(form.price),
-        location: form.location || selectedStockRoom  // ✅ add stock room
-      };      
+          item_name: form.item_name, 
+          brand: form.brand,
+          category: form.category,
+          unit_price: Number(form.price),
+          location: form.location || selectedStockRoom
+        };
       if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
       else {
         const { data } = await supabase.from("items").insert([itemData]);
@@ -542,53 +564,45 @@ const netValue =
                 );
               }
           
-              return Object.entries(groupedStock).map(([category, items]) => (
-                <React.Fragment key={category}>
-                  {/* Category Header */}
-                  <tr>
-                    <td colSpan={6} style={{ background: "#f3f4f6", fontWeight: 600, padding: "10px 12px" }}>
-                      {category}
-                    </td>
-                  </tr>
-          
-                  {/* Items under this category */}
-                  {items.map((i) => (
-                    <tr key={i.id}>
-                      <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.stock}</td>
-                      <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.item_name}</td>
-                      <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>{i.brand}</td>
-                      <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>₱{i.unit_price.toFixed(2)}</td>
-                      <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
-                      <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
-                        <div style={{ display: "flex", gap: 10 }}>
-                          <button
-                            style={{ ...styles.buttonSecondary }}
-                            onClick={() => {
-                              setForm({
-                                id: i.id,
-                                item_name: i.item_name,
-                                brand: i.brand,
-                                price: i.unit_price,
-                                brandOptions: [i.brand],
-                              });
-                              setModalType("item");
-                              setShowModal(true);
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
-                            onClick={() => setConfirmAction({ type: "deleteItem", data: i })}
-                          >
-                            Delete
-                          </button>
-                        </div>
+              return Object.entries(groupedStock).map(([category, items]) => {
+
+                const isOpen = openCategories[category];
+              
+                const totalValue = items.reduce(
+                  (sum, i) => sum + (i.stock * i.unit_price),
+                  0
+                );
+              
+                return (
+                  <React.Fragment key={category}>
+              
+                    {/* CATEGORY HEADER */}
+                    <tr
+                      style={{ background:"#f3f4f6", cursor:"pointer" }}
+                      onClick={() => toggleCategory(category)}
+                    >
+                      <td colSpan={6} style={{ padding:"10px 12px", fontWeight:600 }}>
+                        {isOpen ? "▼" : "▶"} {category} ({items.length} items) — ₱{totalValue.toFixed(2)}
                       </td>
                     </tr>
-                  ))}
-                </React.Fragment>
-              ));
+              
+                    {/* ITEMS */}
+                    {isOpen && items.map(i => (
+                      <tr key={i.id}>
+                        <td style={styles.thtd}>{i.stock}</td>
+                        <td style={styles.thtd}>{i.item_name}</td>
+                        <td style={styles.thtd}>{i.brand}</td>
+                        <td style={styles.thtd}>₱{i.unit_price.toFixed(2)}</td>
+                        <td style={styles.thtd}>₱{(i.stock * i.unit_price).toFixed(2)}</td>
+                        <td style={styles.thtd}>
+                          {/* keep your edit/delete buttons here */}
+                        </td>
+                      </tr>
+                    ))}
+              
+                  </React.Fragment>
+                );
+              });
             })()}
           </tbody>
       </table>
@@ -1214,6 +1228,21 @@ const netValue =
                     value={form.brand} 
                     onChange={e => handleFormChange("brand", e.target.value)} 
                   />
+
+                  <input
+                    list="category-list"
+                    style={styles.input}
+                    placeholder="Select or type category"
+                    value={form.category}
+                    onChange={e => handleFormChange("category", e.target.value)}
+                  />
+                  
+                  <datalist id="category-list">
+                    {categories.map(cat => (
+                      <option key={cat} value={cat} />
+                    ))}
+                  </datalist>
+                  
                   <input 
                     style={styles.input} 
                     placeholder="Price" 
