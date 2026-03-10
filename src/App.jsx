@@ -37,6 +37,34 @@ const styles = {
     overflowY: "auto",    // allows scrolling of right side
     height: "100vh"       // fills vertical space
   },  
+  categoryRow:{
+  background:"#f8fafc",
+  borderTop:"1px solid #e5e7eb",
+  borderBottom:"1px solid #e5e7eb",
+  cursor:"pointer"
+},
+
+categoryContainer:{
+  display:"flex",
+  justifyContent:"space-between",
+  alignItems:"center",
+  fontWeight:600
+},
+
+categoryLeft:{
+  display:"flex",
+  alignItems:"center",
+  gap:10,
+  fontSize:15
+},
+
+categoryRight:{
+  display:"flex",
+  gap:20,
+  fontSize:13,
+  color:"#6b7280",
+  fontWeight:500
+},
   header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
   title: { fontSize: 28, fontWeight: 700, color: "#111827" },
   buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
@@ -603,13 +631,35 @@ if (form.type === "OUT") {
               
                     {/* CATEGORY HEADER */}
                     <tr
-                      style={{ background:"#f3f4f6", cursor:"pointer" }}
-                      onClick={() => toggleCategory(category)}
-                    >
-                      <td colSpan={6} style={{ padding:"10px 12px", fontWeight:600 }}>
-                        {isOpen ? "▼" : "▶"} {category} ({items.length} items) — ₱{totalValue.toFixed(2)}
+                        style={styles.categoryRow}
+                        onClick={() => toggleCategory(category)}
+                      >
+                      <td colSpan={6} style={{ padding:"12px 14px" }}>
+                      
+                      <div style={styles.categoryContainer}>
+                      
+                      <div style={styles.categoryLeft}>
+                      <span style={{color:"#6b7280"}}>
+                      {isOpen ? "▾" : "▸"}
+                      </span>
+                      
+                      <span>{category}</span>
+                      </div>
+                      
+                      <div style={styles.categoryRight}>
+                      <span>
+                      {items.length} item{items.length !== 1 ? "s" : ""}
+                      </span>
+                      
+                      <span style={{fontWeight:600,color:"#111827"}}>
+                      ₱{totalValue.toLocaleString(undefined,{minimumFractionDigits:2})}
+                      </span>
+                      </div>
+                      
+                      </div>
+                      
                       </td>
-                    </tr>
+                      </tr>
               
                     {/* ITEMS */}
                     {isOpen && items.map(i => (
