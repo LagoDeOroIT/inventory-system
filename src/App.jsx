@@ -383,30 +383,65 @@ const netValue =
           <div style={{
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: 12,
             alignItems: "center",
-            paddingBottom: 8,          // small padding so buttons aren't flush to bottom
+            paddingBottom: 16,
+            textAlign: "center"
           }}>
             {session?.user?.email && (
               <div style={{
-                color: "#fff",
-                fontSize: 14,
+                color: "#f9fafb",
+                fontSize: 13,
                 fontWeight: 500,
-                textAlign: "center",
-                wordBreak: "break-word" // keeps long emails from overflowing
+                marginBottom: 8,
+                lineHeight: 1.3,
+                wordBreak: "break-word"
               }}>
-                Logged in as:<br />{session.user.email}
+                Logged in as<br />
+                <span style={{ fontWeight: 700 }}>{session.user.email}</span>
               </div>
             )}
-            <button style={styles.buttonPrimary} onClick={handleNewClick}>+ New</button>
+          
             <button
-              style={{...styles.buttonSecondary, background:"#ef4444", color:"#fff"}}
+              style={{
+                width: "100%",
+                padding: "10px 0",
+                borderRadius: 8,
+                border: "none",
+                background: "#2563eb",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: "pointer",
+                transition: "background 0.2s"
+              }}
+              onClick={handleNewClick}
+              onMouseEnter={e => e.currentTarget.style.background = "#1d4ed8"}
+              onMouseLeave={e => e.currentTarget.style.background = "#2563eb"}
+            >
+              + New
+            </button>
+          
+            <button
+              style={{
+                width: "100%",
+                padding: "10px 0",
+                borderRadius: 8,
+                border: "none",
+                background: "#ef4444",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: "pointer",
+                transition: "background 0.2s"
+              }}
               onClick={async () => { await supabase.auth.signOut(); setSession(null); }}
+              onMouseEnter={e => e.currentTarget.style.background = "#dc2626"}
+              onMouseLeave={e => e.currentTarget.style.background = "#ef4444"}
             >
               Logout
             </button>
           </div>
-        </div>
 
       {/* MAIN AREA */}
       <div style={styles.main}>
