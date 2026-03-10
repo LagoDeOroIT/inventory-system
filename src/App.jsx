@@ -49,6 +49,8 @@ export default function App() {
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [inSearch, setInSearch] = useState("");
   const [stockSearch, setStockSearch] = useState("");
+  const [deletedItemSearch, setDeletedItemSearch] = useState("");
+  const [deletedTxSearch, setDeletedTxSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
@@ -118,6 +120,15 @@ export default function App() {
 
   const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom);
   const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+  const filteredDeletedItems = deletedItems.filter(i =>
+  i.item_name.toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+  i.brand.toLowerCase().includes(deletedItemSearch.toLowerCase())
+);
+
+const filteredDeletedTransactions = deletedTransactions.filter(t =>
+  t.items?.item_name?.toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
+  t.items?.brand?.toLowerCase().includes(deletedTxSearch.toLowerCase())
+);
   // ================= MONTHLY REPORT STATE =================
 const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
 const [reportYear, setReportYear] = useState(new Date().getFullYear());
@@ -493,6 +504,12 @@ const netValue =
       maxHeight: "600px",          // max height for scroll
     }}>
       <h2>Deleted Inventory</h2>
+      <input
+        style={{ ...styles.input, marginBottom: 10 }}
+        placeholder="Search deleted items..."
+        value={deletedItemSearch}
+        onChange={(e) => setDeletedItemSearch(e.target.value)}
+      />
       <div style={{ overflowY: "auto", flex: 1 }}>
         <table style={{
           width: "100%",
@@ -512,9 +529,9 @@ const netValue =
             </tr>
           </thead>
           <tbody>
-            {deletedItems.length === 0
-              ? emptyRowComponent(4, "No deleted items")
-              : deletedItems.map(i => (
+                {filteredDeletedItems.length === 0
+              ? emptyRowComponent(4, "No matching deleted items")
+              : filteredDeletedItems.map(i => (
                 <tr key={i.id}>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{i.item_name}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{i.brand}</td>
@@ -572,6 +589,12 @@ const netValue =
       maxHeight: "600px",          // max height for scroll
     }}>
       <h2>Deleted Transactions</h2>
+      <input
+        style={{ ...styles.input, marginBottom: 10 }}
+        placeholder="Search deleted transactions..."
+        value={deletedTxSearch}
+        onChange={(e) => setDeletedTxSearch(e.target.value)}
+      />
       <div style={{ overflowY: "auto", flex: 1 }}>
         <table style={{
           width: "100%",
@@ -591,9 +614,9 @@ const netValue =
             </tr>
           </thead>
           <tbody>
-            {deletedTransactions.length === 0
-              ? emptyRowComponent(7, "No deleted transactions")
-              : deletedTransactions.map(t => (
+            {filteredDeletedTransactions.length === 0
+              ? emptyRowComponent(7, "No matching deleted transactions")
+              : filteredDeletedTransactions.map(t => (
                 <tr key={t.id}>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.date}</td>
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14, verticalAlign: "middle" }}>{t.items?.item_name}</td>
