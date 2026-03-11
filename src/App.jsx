@@ -1133,7 +1133,7 @@ if (form.type === "OUT") {
                             background: i.stock <= 5 ? "#fee2e2" : "transparent"
                           }}
                         >
-                        <td style={styles.thtd}>{i.stock}</td>
+                        <td style={styles.thtd}>{formatNumber(i.stock)}</td>
                         <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
                         <td style={styles.thtd}>{capitalizeWords(i.brand)}</td>
                         <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
@@ -1237,7 +1237,7 @@ if (form.type === "OUT") {
                     <td>{i.date}</td>
                     <td>{capitalizeWords(i.items?.item_name)}</td>
                     <td>{capitalizeWords(i.items?.brand)}</td>
-                    <td>{i.quantity}</td>
+                    <td>{formatNumber(i.quantity)}</td>
                     <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
             
                     <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
@@ -1331,7 +1331,7 @@ if (form.type === "OUT") {
                   <td>{i.date}</td>
                   <td>{capitalizeWords(i.items?.item_name)}</td>
                   <td>{capitalizeWords(i.items?.brand)}</td>
-                  <td>{i.quantity}</td>
+                  <td>{formatNumber(i.quantity)}</td>
                   <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
           
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
@@ -1568,7 +1568,7 @@ if (form.type === "OUT") {
                     </td>
             
                     <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      {i.quantity}
+                      {formatNumber(i.quantity)}
                     </td>
             
                     <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
@@ -1761,7 +1761,7 @@ if (form.type === "OUT") {
                   <td style={styles.thtd}>{capitalizeWords(row.brand)}</td>
                   <td style={styles.thtd}>{formatNumber(row.inQty)}</td>
                   <td style={styles.thtd}>{formatNumber(row.outQty)}</td>
-                  <td style={styles.thtd}>{netQty}</td>
+                  <td style={styles.thtd}>{formatNumber(netQty)}</td>
                   <td style={styles.thtd}>₱{Number(netValue).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                 </tr>
               );
