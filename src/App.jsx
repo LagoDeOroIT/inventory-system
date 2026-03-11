@@ -1903,9 +1903,6 @@ if (form.type === "OUT") {
             </div>
           </div>
         )}
-            </div> {/* CLOSE MAIN AREA */}
-    
-    </div> {/* CLOSE CONTAINER */}
     
     <style>
     {`
@@ -1929,6 +1926,7 @@ if (form.type === "OUT") {
     }
     `}
     </style>
-    
+     </div>
+  </div>
     );
     }
