@@ -32,6 +32,20 @@ const styles = {
     display:"flex",
     gap:20
   },
+  welcomeCard: {
+  background: "#ffffff",
+  padding: "60px 80px",
+  borderRadius: 12,
+  textAlign: "center",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+  maxWidth: 700
+  },
+
+  welcomeInstruction: {
+  fontSize: 14,
+  color: "#888",
+  marginTop: 10
+  },
   stockRoomHeader: {
     background: "#f3f4f6",
     padding: "12px 16px",
@@ -847,23 +861,23 @@ if (form.type === "OUT") {
       {!selectedStockRoom ? (
       
         <div style={styles.welcomeScreen}>
-      
+              
           <img
             src="/logo.jpg"
             alt="Lago de Oro"
             style={styles.welcomeLogo}
           />
-      
+        
           <h1 style={styles.welcomeTitle}>
             LAGO DE ORO NORTHERN LIGHTS AGRI-AQUATIC
             <br />
             AND RESORTS DEVELOPMENT INC.
           </h1>
-      
-          <p style={styles.welcomeSubtitle}>
+        
+          <p style={.welcomeSubtitle}>
             Please select a Stock Room to begin
           </p>
-      
+        
         </div>
       
       ) : (
