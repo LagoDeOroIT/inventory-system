@@ -146,11 +146,25 @@ export default function App() {
   const [outSearch, setOutSearch] = useState("");
   const [stockSearch, setStockSearch] = useState("");
   const [openCategories, setOpenCategories] = useState({});
+  useEffect(() => {
+  const savedCategories = localStorage.getItem("openCategories");
+  
+    if (savedCategories) {
+      setOpenCategories(JSON.parse(savedCategories));
+    }
+  }, []);
   const toggleCategory = (category) => {
-      setOpenCategories(prev => ({
-        ...prev,
-        [category]: !prev[category]
-      }));
+      setOpenCategories(prev => {
+    
+        const updated = {
+          ...prev,
+          [category]: !prev[category]
+        };
+    
+        localStorage.setItem("openCategories", JSON.stringify(updated));
+    
+        return updated;
+      });
     };
   const [deletedItemSearch, setDeletedItemSearch] = useState("");
   const [deletedTxSearch, setDeletedTxSearch] = useState("");
@@ -222,13 +236,19 @@ export default function App() {
         setItems(itemsWithDeleted);
         setTransactions(transactionsWithDeleted);
         const opened = {};
-            itemsWithDeleted.forEach(i => {
-              const cat = i.category || "Uncategorized";
-              if (!(cat in opened)) {
-                opened[cat] = true;   // categories open by default
-              }
-            });
+          itemsWithDeleted.forEach(i => {
+          const cat = i.category || "Uncategorized";
+            if (!(cat in opened)) {
+              opened[cat] = true;
+            }
+          });
+          
+          const savedCategories = localStorage.getItem("openCategories");
+          
+            if (!savedCategories) {
+          
             setOpenCategories(opened);
+            }
           };
   // ================= FILTERS =================
   const filteredTransactions = transactions
@@ -773,7 +793,31 @@ if (form.type === "OUT") {
                       {isOpen ? "▾" : "▸"}
                       </span>
                       
-                      <span>{category}</span>
+                      <span>
+                          {category}
+                        
+                          {(() => {
+                            const lowStockCount = items.filter(i => i.stock <= 5).length;
+                        
+                            if (lowStockCount === 0) return null;
+                        
+                            return (
+                              <span
+                                style={{
+                                  marginLeft:8,
+                                  background:"#fee2e2",
+                                  color:"#b91c1c",
+                                  fontSize:11,
+                                  padding:"2px 6px",
+                                  borderRadius:6,
+                                  fontWeight:600
+                                }}
+                              >
+                                ⚠ {lowStockCount} Low Stock
+                              </span>
+                            );
+                          })()}
+                        </span>
                       </div>
                       
                       <div style={styles.categoryRight}>
