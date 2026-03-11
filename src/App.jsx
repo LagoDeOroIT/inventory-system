@@ -471,8 +471,12 @@ export default function App() {
         );
       };
   // ================= FORM HANDLER =================  
-  const handleFormChange = (key, value) => {
+  
 
+        // AUTO CAPITALIZE TEXT INPUTS
+        if (typeof value === "string") {
+          value = value.trimStart().toUpperCase();
+        }
         // Update brand suggestions when typing item name
         if (key === "item_name") {
       
@@ -1630,7 +1634,7 @@ if (form.type === "OUT") {
                   <td style={styles.thtd}>
                    ₱{Number((t.quantity || 0) *
                       (t.unit_price || t.items?.unit_price || 0)
-                    ).toLocaleString(undefined,{minimumFractionDigits:2})}}
+                    ).toLocaleString(undefined,{minimumFractionDigits:2})}
                   </td>
                 </tr>
               ))}
