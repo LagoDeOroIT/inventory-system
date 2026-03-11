@@ -1682,13 +1682,13 @@ if (form.type === "OUT") {
     }}>
       <div style={{ ...styles.card, borderLeft: "6px solid #10b981" }}>
         <h4>Total IN</h4>
-        <p>{monthlySummary?.totalInQty || 0} units</p>
+        <p>{formatNumber(monthlySummary?.totalInQty || 0)} units</p>
         <strong>₱{Number(monthlySummary?.totalInValue || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</strong>
       </div>
 
       <div style={{ ...styles.card, borderLeft: "6px solid #ef4444" }}>
         <h4>Total OUT</h4>
-        <p>{monthlySummary.totalOutQty} units</p>
+        <p>{formatNumber(monthlySummary?.totalOutQty || 0)} units</p>
         <strong>₱{Number(monthlySummary?.totalOutValue || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</strong>
       </div>
 
