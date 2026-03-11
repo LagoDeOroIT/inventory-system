@@ -251,11 +251,13 @@ export default function App() {
     return () => data.subscription.unsubscribe();
   
   }, []);
+  
   useEffect(() => {
-  if (session) {
-    loadData();
-  }
-}, [session]);
+    if (session) {
+      loadUserProfile(session.user.id);   // ← load assigned rooms
+      loadData();
+    }
+  }, [session]);
   const handleAuth = async () => {
     if (!authEmail || !authPassword) return alert("Fill email and password");
     let result;
