@@ -140,8 +140,9 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [userRooms, setUserRooms] = useState([]);
-  const loadUserProfile = async (userId) => {
-  const { data, error } = await supabase
+ const loadUserProfile = async (userId) => {
+  
+    const { data, error } = await supabase
       .from("profiles")
       .select("stock_rooms, role")
       .eq("id", userId)
@@ -152,9 +153,18 @@ export default function App() {
       return;
     }
   
-    setUserRooms(data.stock_rooms || []);
+    console.log("PROFILE:", data);
+  
+    // If admin → allow all rooms
+    if (data.role === "admin") {
+      setUserRooms(stockRooms);
+    } else {
+      // Staff → only assigned rooms
+      setUserRooms(data.stock_rooms || []);
+    }
+  
   };
-    const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [brandOptions, setBrandOptions] = useState([]);
