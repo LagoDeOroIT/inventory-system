@@ -874,7 +874,7 @@ if (form.type === "OUT") {
             AND RESORTS DEVELOPMENT INC.
           </h1>
         
-          <p style={.welcomeSubtitle}>
+          <p style={styles.welcomeSubtitle}>
             Please select a Stock Room to begin
           </p>
         
