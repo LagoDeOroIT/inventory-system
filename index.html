@@ -10,21 +10,24 @@
 table{
   width:100%;
   border-collapse:collapse;
-  table-layout:fixed;
+  table-layout:auto;
+  font-size:13px;
 }
 
 th, td{
-  padding:8px 10px;
+  padding:6px 8px;
   border-bottom:1px solid #e5e7eb;
 }
 
 th{
   text-align:left;
   font-weight:600;
+  font-size:13px;
 }
 
 td{
   white-space:nowrap;
+  font-size:13px;
 }
 
 td:nth-child(4){
@@ -37,6 +40,13 @@ td:nth-child(5){
 
 td:last-child{
   text-align:center;
+}
+
+/* Smaller action buttons */
+button{
+  font-size:12px;
+  padding:3px 6px;
+  margin:1px;
 }
 </style>
   <!-- XLSX Library -->
