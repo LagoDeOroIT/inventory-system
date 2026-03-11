@@ -839,41 +839,67 @@ if (form.type === "OUT") {
   };
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
   // ================= AUTH SCREEN =================
-        if(!session) return (
+      if(!session) return (
+      
         <div style={styles.loginPage}>
       
-          <div style={styles.loginCard}>
-      
-            <div style={styles.loginTitle}>
-              Lago De Oro Inventory
+          {/* LEFT SIDE BRAND PANEL */}
+          <div style={styles.loginLeft}>
+
+            <img 
+              src="/logo.jpg" 
+              alt="Lago De Oro Logo"
+              style={{width:120, marginBottom:20}}
+            />
+
+            <div style={styles.brandTitle}>
+              Lago De Oro
             </div>
       
-            <div style={styles.loginSubtitle}>
-              Authorized Personnel Login
+            <div style={styles.brandSubtitle}>
+              Inventory Management System
             </div>
       
-            <input
-              style={styles.loginInput}
-              placeholder="Email"
-              value={authEmail}
-              onChange={e=>setAuthEmail(e.target.value)}
-            />
+          </div>
       
-            <input
-              style={styles.loginInput}
-              type="password"
-              placeholder="Password"
-              value={authPassword}
-              onChange={e=>setAuthPassword(e.target.value)}
-            />
+          {/* RIGHT SIDE LOGIN FORM */}
+          <div style={styles.loginRight}>
       
-            <button style={styles.loginButton} onClick={handleAuth}>
-              Login
-            </button>
+            <div style={styles.loginCard}>
+      
+              <div style={styles.loginTitle}>
+                Login
+              </div>
+      
+              <div style={styles.loginSubtitle}>
+                Authorized Personnel Only
+              </div>
+      
+              <input
+                style={styles.loginInput}
+                placeholder="Email"
+                value={authEmail}
+                onChange={e=>setAuthEmail(e.target.value)}
+              />
+      
+              <input
+                style={styles.loginInput}
+                type="password"
+                placeholder="Password"
+                value={authPassword}
+                onChange={e=>setAuthPassword(e.target.value)}
+              />
+      
+              <button style={styles.loginButton} onClick={handleAuth}>
+                Login
+              </button>
+      
+            </div>
       
           </div>
       
         </div>
+      
       );
   // ================= MAIN APP =================
   return (
