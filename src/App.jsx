@@ -364,34 +364,105 @@ export default function App() {
     monthlySummary.totalInValue - monthlySummary.totalOutValue;
   // ================= EXPORT EXCEL =================
     const exportMonthlyReport = () => {
-    
-      if (monthlyTransactions.length === 0) {
-        alert("No data to export.");
-        return;
-      }
-    
-      const data = monthlyTransactions.map(t => ({
-        Date: t.date,
-        Item: t.items?.item_name,
-        Brand: t.items?.brand,
-        Type: t.type,
-        Quantity: t.quantity,
-        UnitPrice: t.unit_price || t.items?.unit_price || 0,
-        Total:
-          (t.quantity || 0) *
-          (t.unit_price || t.items?.unit_price || 0)
-      }));
-    
-      const worksheet = XLSX.utils.json_to_sheet(data);
-      const workbook = XLSX.utils.book_new();
-    
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Report");
-    
-      const fileName =
-        `inventory_report_${reportYear}_${reportMonth}.xlsx`;
-    
-      XLSX.writeFile(workbook, fileName);
-    };
+      
+        if (monthlyTransactions.length === 0) {
+          alert("No data to export.");
+          return;
+        }
+      
+        const rows = [];
+      
+        // ================= REPORT HEADER =================
+        rows.push(["Lago De Oro Inventory Monthly Report"]);
+        rows.push([
+          `${new Date(0, reportMonth - 1).toLocaleString("default",{month:"long"})} ${reportYear}`
+        ]);
+        rows.push([]);
+      
+        // ================= KPI SUMMARY =================
+        rows.push(["SUMMARY"]);
+        rows.push(["Total IN Quantity", monthlySummary.totalInQty]);
+        rows.push(["Total IN Value", monthlySummary.totalInValue]);
+        rows.push(["Total OUT Quantity", monthlySummary.totalOutQty]);
+        rows.push(["Total OUT Value", monthlySummary.totalOutValue]);
+        rows.push(["Net Movement Value", netValue]);
+        rows.push([]);
+      
+        // ================= PER ITEM SUMMARY =================
+        rows.push(["PER ITEM SUMMARY"]);
+        rows.push(["Item","Brand","Total IN","Total OUT","Net Qty","Net Value"]);
+      
+        const perItem = Object.values(
+          monthlyTransactions.reduce((acc,t)=>{
+      
+            const key = `${t.items?.item_name}-${t.items?.brand}`;
+            const price = Number(t.unit_price || t.items?.unit_price || 0);
+            const qty = Number(t.quantity || 0);
+      
+            if(!acc[key]){
+              acc[key] = {
+                item:t.items?.item_name,
+                brand:t.items?.brand,
+                inQty:0,
+                outQty:0,
+                price
+              };
+            }
+      
+            if(t.type === "IN") acc[key].inQty += qty;
+            else acc[key].outQty += qty;
+      
+            return acc;
+      
+          },{})
+        );
+      
+        perItem.forEach(row=>{
+          const netQty = row.inQty - row.outQty;
+          const value = netQty * row.price;
+      
+          rows.push([
+            row.item,
+            row.brand,
+            row.inQty,
+            row.outQty,
+            netQty,
+            value
+          ]);
+        });
+      
+        rows.push([]);
+      
+        // ================= DETAILED TRANSACTIONS =================
+        rows.push(["DETAILED TRANSACTIONS"]);
+        rows.push(["Date","Item","Brand","Type","Qty","Total"]);
+      
+        monthlyTransactions.forEach(t=>{
+      
+          const price = Number(t.unit_price || t.items?.unit_price || 0);
+      
+          rows.push([
+            t.date,
+            t.items?.item_name,
+            t.items?.brand,
+            t.type,
+            t.quantity,
+            t.quantity * price
+          ]);
+      
+        });
+      
+        // ================= CREATE EXCEL =================
+        const worksheet = XLSX.utils.aoa_to_sheet(rows);
+        const workbook = XLSX.utils.book_new();
+      
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Report");
+      
+        XLSX.writeFile(
+          workbook,
+          `inventory_report_${reportYear}_${reportMonth}.xlsx`
+        );
+      };
   // ================= FORM HANDLER =================  
   const handleFormChange = (key, value) => {
 
