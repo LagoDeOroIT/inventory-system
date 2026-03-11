@@ -175,6 +175,80 @@ const styles = {
     fontSize:13,
     color:"#6b7280",
     fontWeight:500
+    },
+    loginPage:{
+    display:"flex",
+    height:"100vh",
+    width:"100%"
+  },
+  
+  loginLeft:{
+    flex:1,
+    background:"#111827",
+    color:"#fff",
+    display:"flex",
+    flexDirection:"column",
+    justifyContent:"center",
+    alignItems:"center",
+    padding:"60px"
+  },
+  
+  loginRight:{
+    flex:1,
+    background:"#f9fafb",
+    display:"flex",
+    justifyContent:"center",
+    alignItems:"center"
+  },
+  
+  loginCard:{
+    width:380,
+    background:"#fff",
+    padding:"40px",
+    borderRadius:12,
+    boxShadow:"0 20px 40px rgba(0,0,0,0.1)"
+  },
+  
+  loginTitle:{
+    fontSize:24,
+    fontWeight:700,
+    marginBottom:10
+  },
+  
+  loginSubtitle:{
+    fontSize:14,
+    color:"#6b7280",
+    marginBottom:25
+  },
+  
+  loginInput:{
+    width:"100%",
+    padding:12,
+    borderRadius:6,
+    border:"1px solid #d1d5db",
+    marginBottom:14
+  },
+  
+  loginButton:{
+    width:"100%",
+    padding:12,
+    background:"#111827",
+    color:"#fff",
+    border:"none",
+    borderRadius:6,
+    fontWeight:600,
+    cursor:"pointer"
+  },
+  
+  brandTitle:{
+    fontSize:36,
+    fontWeight:700,
+    marginBottom:10
+  },
+  
+  brandSubtitle:{
+    fontSize:16,
+    opacity:0.8
   },
   header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
   title: { fontSize: 28, fontWeight: 700, color: "#111827" },
@@ -287,7 +361,6 @@ export default function App() {
   const [confirmAction, setConfirmAction] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
     "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
@@ -328,18 +401,23 @@ export default function App() {
       loadData();
     }
   }, [session]);
-  const handleAuth = async () => {
-    if (!authEmail || !authPassword) return alert("Fill email and password");
-    let result;
-    if (isSignUp) {
-      result = await supabase.auth.signUp({ email: authEmail, password: authPassword });
-      if (result.error) return alert(result.error.message);
-      alert("Sign up successful! Please check your email to confirm.");
-    } else {
-      result = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
-      if (result.error) return alert(result.error.message);
-    }
-  };
+        const handleAuth = async () => {
+      
+        if (!authEmail || !authPassword) {
+          alert("Enter email and password");
+          return;
+        }
+      
+        const { error } = await supabase.auth.signInWithPassword({
+          email: authEmail,
+          password: authPassword
+        });
+      
+        if (error) {
+          alert(error.message);
+        }
+      
+      };
   // ================= LOAD DATA =================
         const loadData = async () => {
         const { data: itemsData } = await supabase.from("items").select("*");
@@ -761,28 +839,42 @@ if (form.type === "OUT") {
   };
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
   // ================= AUTH SCREEN =================
-  if(!session) return (
-    <div style={{ padding:40, textAlign:"center" }}>
-      {!session?.user ? (
-        <>
-          <h2>{isSignUp ? "Sign Up for Inventory" : "Inventory Login"}</h2>
-          <input style={styles.input} placeholder="Email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} />
-          <input style={styles.input} type="password" placeholder="Password" value={authPassword} onChange={e=>setAuthPassword(e.target.value)} />
-          <button style={{ ...styles.buttonPrimary, marginBottom:12 }} onClick={handleAuth}>{isSignUp ? "Sign Up" : "Login"}</button>
-          <div>
-            <button style={styles.buttonSecondary} onClick={() => setIsSignUp(!isSignUp)}>
-              {isSignUp ? "Already have an account? Login" : "Don't have an account? Sign Up"}
+        if(!session) return (
+        <div style={styles.loginPage}>
+      
+          <div style={styles.loginCard}>
+      
+            <div style={styles.loginTitle}>
+              Lago De Oro Inventory
+            </div>
+      
+            <div style={styles.loginSubtitle}>
+              Authorized Personnel Login
+            </div>
+      
+            <input
+              style={styles.loginInput}
+              placeholder="Email"
+              value={authEmail}
+              onChange={e=>setAuthEmail(e.target.value)}
+            />
+      
+            <input
+              style={styles.loginInput}
+              type="password"
+              placeholder="Password"
+              value={authPassword}
+              onChange={e=>setAuthPassword(e.target.value)}
+            />
+      
+            <button style={styles.loginButton} onClick={handleAuth}>
+              Login
             </button>
+      
           </div>
-        </>
-      ) : (
-        <>
-          <h2>Welcome back, {session.user.email}!</h2>
-          <button style={{ ...styles.buttonPrimary, marginTop:12 }} onClick={async () => { await supabase.auth.signOut(); setSession(null); }}>Logout</button>
-        </>
-      )}
-    </div>
-  );
+      
+        </div>
+      );
   // ================= MAIN APP =================
   return (
     <div style={styles.container}>
