@@ -141,29 +141,29 @@ export default function App() {
   const [items, setItems] = useState([]);
   const [userRooms, setUserRooms] = useState([]);
  const loadUserProfile = async (userId) => {
-  
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("stock_rooms, role")
-      .eq("id", userId)
-      .single();
-  
-    if (error) {
-      console.error("Profile error:", error);
-      return;
-    }
-  
-    console.log("PROFILE:", data);
-  
-    // If admin → allow all rooms
-    if (data.role === "admin") {
-      setUserRooms(stockRooms);
-    } else {
-      // Staff → only assigned rooms
-      setUserRooms(data.stock_rooms || []);
-    }
-  
-  };
+
+  console.log("LOAD PROFILE FOR USER:", userId);
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("stock_rooms, role")
+    .eq("id", userId)
+    .single();
+
+  console.log("PROFILE RESULT:", data);
+
+  if (error) {
+    console.error("Profile error:", error);
+    return;
+  }
+
+  if (data.role === "admin") {
+    setUserRooms(stockRooms);
+  } else {
+    setUserRooms(data.stock_rooms || []);
+  }
+
+};
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
