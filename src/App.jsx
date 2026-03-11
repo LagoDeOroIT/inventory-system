@@ -841,7 +841,7 @@ if (form.type === "OUT") {
           </div>
         </div>
 
-      {/* MAIN AREA */}
+   {/* MAIN AREA */}
       <div style={styles.main}>
       
       {!selectedStockRoom ? (
@@ -865,10 +865,13 @@ if (form.type === "OUT") {
           </p>
       
         </div>
-       <>
-       <div style={styles.stockRoomHeader}>
-    Stock Room: {selectedStockRoom}
-  </div>
+      
+      ) : (
+      
+      <>
+        <div style={styles.stockRoomHeader}>
+          Stock Room: {selectedStockRoom}
+        </div>
       
   {/* STOCK INVENTORY TAB WITH SEARCH */}
 {activeTab === "stock" && (
