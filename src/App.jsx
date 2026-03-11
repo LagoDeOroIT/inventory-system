@@ -470,15 +470,23 @@ export default function App() {
           `inventory_report_${reportYear}_${reportMonth}.xlsx`
         );
       };
-  // ================= FORM HANDLER =================  
-  
+  // ================= CAPITALIZE WORDS =================
+const capitalizeWords = (text) => {
+  if (!text) return text;
+
+  return text
+    .toLowerCase()
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
 
         // ================= FORM HANDLER =================  
 const handleFormChange = (key, value) => {
 
   // AUTO CAPITALIZE TEXT INPUTS
   if (typeof value === "string") {
-    value = value.trimStart().toUpperCase();
+    value = capitalizeWords(value.trimStart());
   }
 
   // Update brand suggestions when typing item name
