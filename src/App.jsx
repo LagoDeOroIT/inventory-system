@@ -846,17 +846,35 @@ if (form.type === "OUT") {
           {/* LEFT SIDE BRAND PANEL */}
           <div style={styles.loginLeft}>
 
-            <img 
-              src="/logo.jpg" 
-              alt="Lago De Oro Logo"
-              style={{width:120, marginBottom:20}}
-            />
+            <div style={{
+              background:"#ffffff",
+              padding:"10px 18px",
+              borderRadius:12,
+              marginBottom:25,
+              boxShadow:"0 6px 18px rgba(0,0,0,0.25)"
+            }}>
+              <img 
+                src="/logo.jpg"
+                alt="Lago De Oro"
+                style={{width:110, display:"block"}}
+              />
+            </div>
 
-            <div style={styles.brandTitle}>
+            <div style={{
+              fontSize:40,
+              fontWeight:800,
+              letterSpacing:1,
+              marginBottom:6
+            }}>
               Lago De Oro
             </div>
       
-            <div style={styles.brandSubtitle}>
+            <div style={{
+              fontSize:15,
+              opacity:0.85,
+              letterSpacing:1,
+              textTransform:"uppercase"
+            }}>
               Inventory Management System
             </div>
       
