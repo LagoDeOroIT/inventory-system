@@ -980,8 +980,8 @@ if (form.type === "OUT") {
                           }}
                         >
                         <td style={styles.thtd}>{i.stock}</td>
-                        <td style={styles.thtd}>{i.item_name}</td>
-                        <td style={styles.thtd}>{i.brand}</td>
+                        <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
+                        <td style={styles.thtd}>{capitalizeWords(i.brand)}</td>
                         <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                         <td style={styles.thtd}>₱{Number(i.stock * Number(i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                         <td style={styles.thtd}>
@@ -1081,8 +1081,8 @@ if (form.type === "OUT") {
                 return filteredIn.map((i) => (
                   <tr key={i.id}>
                     <td>{i.date}</td>
-                    <td>{i.items?.item_name}</td>
-                    <td>{i.items?.brand}</td>
+                    <td>{capitalizeWords(i.items?.item_name)}</td>
+                    <td>{capitalizeWords(i.items?.brand)}</td>
                     <td>{i.quantity}</td>
                     <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
             
@@ -1175,8 +1175,8 @@ if (form.type === "OUT") {
               return filteredOut.map((i) => (
                 <tr key={i.id}>
                   <td>{i.date}</td>
-                  <td>{i.items?.item_name}</td>
-                  <td>{i.items?.brand}</td>
+                  <td>{capitalizeWords(i.items?.item_name)}</td>
+                  <td>{capitalizeWords(i.items?.brand)}</td>
                   <td>{i.quantity}</td>
                   <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
           
@@ -1287,11 +1287,11 @@ if (form.type === "OUT") {
               return filteredDeleted.map((i) => (
                 <tr key={i.id}>
                   <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                    {i.item_name}
+                    {capitalizeWords(i.item_name)}
                   </td>
           
                   <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                    {i.brand}
+                    {capitalizeWords(i.brand)}
                   </td>
           
                   <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
@@ -1402,11 +1402,11 @@ if (form.type === "OUT") {
                     </td>
             
                     <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      {i.items?.item_name}
+                      {capitalizeWords(i.items?.item_name)}
                     </td>
             
                     <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      {i.items?.brand}
+                      {capitalizeWords(i.items?.brand)}
                     </td>
             
                     <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
@@ -1603,8 +1603,8 @@ if (form.type === "OUT") {
         
               return (
                 <tr key={idx}>
-                  <td style={styles.thtd}>{row.item}</td>
-                  <td style={styles.thtd}>{row.brand}</td>
+                  <td style={styles.thtd}>{capitalizeWords(row.item)}</td>
+                  <td style={styles.thtd}>{capitalizeWords(row.brand)}</td>
                   <td style={styles.thtd}>{row.inQty}</td>
                   <td style={styles.thtd}>{row.outQty}</td>
                   <td style={styles.thtd}>{netQty}</td>
@@ -1639,8 +1639,8 @@ if (form.type === "OUT") {
                 .map(t => (
                 <tr key={t.id}>
                   <td style={styles.thtd}>{t.date}</td>
-                  <td style={styles.thtd}>{t.items?.item_name}</td>
-                  <td style={styles.thtd}>{t.items?.brand}</td>
+                  <td style={styles.thtd}>{capitalizeWords(t.items?.item_name)}</td>
+                  <td style={styles.thtd}>{capitalizeWords(t.items?.brand)}</td>
                   <td style={styles.thtd}>{t.type}</td>
                   <td style={styles.thtd}>{t.quantity}</td>
                   <td style={styles.thtd}>
@@ -1795,7 +1795,9 @@ if (form.type === "OUT") {
                       .map(i => i.item_name)
                   )
                 ].map(itemName => (
-                  <option key={itemName} value={itemName}>{itemName}</option>
+                  <option key={itemName} value={itemName}>
+                    {capitalizeWords(itemName)}
+                  </option>
                 ))}
               </select>
 
@@ -1812,7 +1814,9 @@ if (form.type === "OUT") {
                       .map(i => i.brand)
                       .filter((brand, index, self) => self.indexOf(brand) === index) // unique brands
                       .map(brand => (
-                        <option key={brand} value={brand}>{brand}</option>
+                        <option key={brand} value={brand}>
+                          {capitalizeWords(brand)}
+                        </option>
                       ))}
                   </select>
 
