@@ -1828,9 +1828,9 @@ if (form.type === "OUT") {
       <p>
         Are you sure you want to{" "}
         <b>
-          {confirmAction.type === "deleteItem" && "delete item "{data?.item_name}"?"}
+          {confirmAction.type === "deleteItem" && `delete item "${confirmAction?.data?.item_name}"?`}
           {confirmAction.type === "restoreItem" && "restore this item?"}
-          {confirmAction.type === "permanentDeleteItem" && "permanently delete item "{data?.item_name}"?"}
+          {confirmAction.type === "permanentDeleteItem" && `permanently delete item "${confirmAction?.data?.item_name}"?`}
           {confirmAction.type === "deleteTx" && "delete this transaction?"}
           {confirmAction.type === "restoreTx" && "restore this transaction?"}
           {confirmAction.type === "permanentDeleteTx" && "permanently delete this transaction?"}
