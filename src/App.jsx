@@ -1899,29 +1899,28 @@ if (form.type === "OUT") {
             </div>
           </div>
         )}
-        <>
-          <style>
-        {`
-        @media print {
-        
-          body * {
-            visibility: hidden;
-          }
-        
-          #reportSection, #reportSection * {
-            visibility: visible;
-          }
-        
-          #reportSection {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-          }
-        
-        }
-        `}
-        </style>
-          </>
+        <style>
+{`
+@media print {
+
+  body * {
+    visibility: hidden;
+  }
+
+  #reportSection, #reportSection * {
+    visibility: visible;
+  }
+
+  #reportSection {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+}
+`}
+</style>
+
   );
 }
