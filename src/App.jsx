@@ -139,7 +139,22 @@ const styles = {
 export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
-  const [transactions, setTransactions] = useState([]);
+  const [userRooms, setUserRooms] = useState([]);
+  const loadUserProfile = async (userId) => {
+  const { data, error } = await supabase
+      .from("profiles")
+      .select("stock_rooms, role")
+      .eq("id", userId)
+      .single();
+  
+    if (error) {
+      console.error("Profile error:", error);
+      return;
+    }
+  
+    setUserRooms(data.stock_rooms || []);
+  };
+    const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [brandOptions, setBrandOptions] = useState([]);
@@ -199,20 +214,33 @@ export default function App() {
   ];
   // ================= AUTH =================
    useEffect(() => {
-
-        const initAuth = async () => {
-          await supabase.auth.signOut();
-          const { data } = await supabase.auth.getSession();
-          setSession(data.session);
-        };
-      
-        initAuth();
-      
-        const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-      
-        return () => data.subscription.unsubscribe();
-      
-      }, []);
+  
+    const initAuth = async () => {
+  
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+  
+      if (data.session) {
+        loadUserProfile(data.session.user.id);
+      }
+  
+    };
+  
+    initAuth();
+  
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => {
+  
+      setSession(s);
+  
+      if (s) {
+        loadUserProfile(s.user.id);
+      }
+  
+    });
+  
+    return () => data.subscription.unsubscribe();
+  
+  }, []);
   useEffect(() => {
   if (session) {
     loadData();
@@ -699,7 +727,9 @@ if (form.type === "OUT") {
               onChange={e => setSelectedStockRoom(e.target.value)}
             >
               <option value="">Select Stock Room</option>
-              {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
+              {stockRooms
+                .filter(r => userRooms.includes(r))
+                .map(r => <option key={r} value={r}>{r}</option>)}
             </select>
       
             <div style={styles.sidebarTabs}>
@@ -1679,7 +1709,9 @@ if (form.type === "OUT") {
                   <h3>Select Stock Room First</h3>
                   <select style={styles.input} value={selectedStockRoom} onChange={e => { setSelectedStockRoom(e.target.value); setModalType("newOption"); }}>
                     <option value="">Select Stock Room</option>
-                    {stockRooms.map(r => <option key={r} value={r}>{r}</option>)}
+                    {stockRooms
+                      .filter(r => userRooms.includes(r))
+                      .map(r => <option key={r} value={r}>{r}</option>)}
                   </select>
                   <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
                 </>
