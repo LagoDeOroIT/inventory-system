@@ -334,34 +334,41 @@ export default function App() {
     // ================= MONTHLY REPORT LOGIC =================
     const monthlyTransactions = filteredTransactions.filter(t => {
       if (!t.date) return false;
+    
       const txDate = new Date(t.date);
+    
       return (
         txDate.getMonth() + 1 === Number(reportMonth) &&
         txDate.getFullYear() === Number(reportYear)
       );
     });
+    
     const monthlySummary = monthlyTransactions.reduce((acc, t) => {
-    const total =
+    
       const price = Number(t.unit_price || t.items?.unit_price || 0);
-      const total = price * Number(t.quantity || 0);
-  
-    if (t.type === "IN") {
-      acc.totalInQty += Number(t.quantity) || 0;
-      acc.totalInValue += total;
-    } else {
-      acc.totalOutQty += Number(t.quantity) || 0;
-      acc.totalOutValue += total;
-    }
-  
-    return acc;
-  }, {
+      const qty = Number(t.quantity || 0);
+      const total = price * qty;
+    
+      if (t.type === "IN") {
+        acc.totalInQty += qty;
+        acc.totalInValue += total;
+      } else {
+        acc.totalOutQty += qty;
+        acc.totalOutValue += total;
+      }
+    
+      return acc;
+    
+    }, {
       totalInQty: 0,
       totalOutQty: 0,
       totalInValue: 0,
       totalOutValue: 0
     });
-  const netValue =
-    monthlySummary.totalInValue - (monthlySummary?.totalOutValue || 0);
+    
+    const netValue =
+      (monthlySummary?.totalInValue || 0) -
+      (monthlySummary?.totalOutValue || 0);
   // ================= EXPORT EXCEL =================
     const exportMonthlyReport = () => {
       
