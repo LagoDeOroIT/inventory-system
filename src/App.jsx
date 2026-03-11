@@ -196,11 +196,21 @@ export default function App() {
     "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
   ];
   // ================= AUTH =================
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
-  }, []);
+   useEffect(() => {
+
+        const initAuth = async () => {
+          await supabase.auth.signOut();
+          const { data } = await supabase.auth.getSession();
+          setSession(data.session);
+        };
+      
+        initAuth();
+      
+        const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+      
+        return () => data.subscription.unsubscribe();
+      
+      }, []);
   useEffect(() => {
   if (session) {
     loadData();
