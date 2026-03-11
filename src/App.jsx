@@ -200,12 +200,17 @@ const styles = {
   }),
   newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
   };
+  const formatNumber = (num) => {
+    if (num === null || num === undefined) return "";
+    return Number(num).toLocaleString();
+  };
+
 // ================= APP COMPONENT =================
 export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [userRooms, setUserRooms] = useState([]);
- const loadUserProfile = async (userId) => {
+  const loadUserProfile = async (userId) => {
 
   console.log("LOAD PROFILE FOR USER:", userId);
 
@@ -989,17 +994,17 @@ if (form.type === "OUT") {
         
         <div style={styles.dashboardCard}>
         <div style={styles.dashboardTitle}>Total Items</div>
-        <div style={styles.dashboardValue}>{totalItems}</div>
+        <div style={styles.dashboardValue}>{formatNumber(totalItems)}</div>
         </div>
         
         <div style={styles.dashboardCard}>
         <div style={styles.dashboardTitle}>Low Stock Items</div>
-        <div style={styles.dashboardValue}>{lowStockItems}</div>
+        <div style={styles.dashboardValue}>{formatNumber(lowStockItems)}</div>
         </div>
         
         <div style={styles.dashboardCard}>
         <div style={styles.dashboardTitle}>Categories</div>
-        <div style={styles.dashboardValue}>{totalCategories}</div>
+        <div style={styles.dashboardValue}>{formatNumber(totalCategories)}</div>
         </div>
         
         </div>
@@ -1754,8 +1759,8 @@ if (form.type === "OUT") {
                 <tr key={idx}>
                   <td style={styles.thtd}>{capitalizeWords(row.item)}</td>
                   <td style={styles.thtd}>{capitalizeWords(row.brand)}</td>
-                  <td style={styles.thtd}>{row.inQty}</td>
-                  <td style={styles.thtd}>{row.outQty}</td>
+                  <td style={styles.thtd}>{formatNumber(row.inQty)}</td>
+                  <td style={styles.thtd}>{formatNumber(row.outQty)}</td>
                   <td style={styles.thtd}>{netQty}</td>
                   <td style={styles.thtd}>₱{Number(netValue).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                 </tr>
@@ -1791,7 +1796,7 @@ if (form.type === "OUT") {
                   <td style={styles.thtd}>{capitalizeWords(t.items?.item_name)}</td>
                   <td style={styles.thtd}>{capitalizeWords(t.items?.brand)}</td>
                   <td style={styles.thtd}>{t.type}</td>
-                  <td style={styles.thtd}>{t.quantity}</td>
+                  <td style={styles.thtd}>{formatNumber(t.quantity)}</td>
                   <td style={styles.thtd}>
                    ₱{Number((t.quantity || 0) *
                       (t.unit_price || t.items?.unit_price || 0)
