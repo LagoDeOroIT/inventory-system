@@ -146,35 +146,7 @@ export default function App() {
   const [inSearch, setInSearch] = useState("");
   const [outSearch, setOutSearch] = useState("");
   const [stockSearch, setStockSearch] = useState("");
-  const exportMonthlyReport = () => {
-
-    if (monthlyTransactions.length === 0) {
-      alert("No data to export.");
-      return;
-    }
   
-    const data = monthlyTransactions.map(t => ({
-      Date: t.date,
-      Item: t.items?.item_name,
-      Brand: t.items?.brand,
-      Type: t.type,
-      Quantity: t.quantity,
-      UnitPrice: t.unit_price || t.items?.unit_price || 0,
-      Total:
-        (t.quantity || 0) *
-        (t.unit_price || t.items?.unit_price || 0)
-    }));
-  
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-  
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Report");
-  
-    const fileName =
-      `inventory_report_${reportYear}_${reportMonth}.xlsx`;
-  
-    XLSX.writeFile(workbook, fileName);
-  };
   const [openCategories, setOpenCategories] = useState({});
   useEffect(() => {
   const savedCategories = localStorage.getItem("openCategories");
@@ -390,6 +362,36 @@ export default function App() {
     });
   const netValue =
     monthlySummary.totalInValue - monthlySummary.totalOutValue;
+  // ================= EXPORT EXCEL =================
+    const exportMonthlyReport = () => {
+    
+      if (monthlyTransactions.length === 0) {
+        alert("No data to export.");
+        return;
+      }
+    
+      const data = monthlyTransactions.map(t => ({
+        Date: t.date,
+        Item: t.items?.item_name,
+        Brand: t.items?.brand,
+        Type: t.type,
+        Quantity: t.quantity,
+        UnitPrice: t.unit_price || t.items?.unit_price || 0,
+        Total:
+          (t.quantity || 0) *
+          (t.unit_price || t.items?.unit_price || 0)
+      }));
+    
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+    
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Report");
+    
+      const fileName =
+        `inventory_report_${reportYear}_${reportMonth}.xlsx`;
+    
+      XLSX.writeFile(workbook, fileName);
+    };
   // ================= FORM HANDLER =================  
   const handleFormChange = (key, value) => {
 
@@ -988,7 +990,7 @@ if (form.type === "OUT") {
                     <td>{i.items?.item_name}</td>
                     <td>{i.items?.brand}</td>
                     <td>{i.quantity}</td>
-                    <td>₱{(i.quantity * (i.unit_price || i.items?.unit_price)).toFixed(2)}</td>
+                    <td>₱{(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toFixed(2)}</td>
             
                     <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
                       <div style={{ display: "flex", gap: 10 }}>
@@ -1082,7 +1084,7 @@ if (form.type === "OUT") {
                   <td>{i.items?.item_name}</td>
                   <td>{i.items?.brand}</td>
                   <td>{i.quantity}</td>
-                  <td>₱{(i.quantity * (i.unit_price || i.items?.unit_price)).toFixed(2)}</td>
+                  <td>₱{(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toFixed(2)}</td>
           
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
                     <div style={{ display: "flex", gap: 10 }}>
@@ -1322,7 +1324,7 @@ if (form.type === "OUT") {
                     </td>
             
                     <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      ₱{(i.quantity * (i.unit_price || i.items?.unit_price)).toFixed(2)}
+                      ₱{(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toFixed(2)}
                     </td>
             
                     <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
