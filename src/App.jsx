@@ -1899,6 +1899,7 @@ if (form.type === "OUT") {
             </div>
           </div>
         )}
+        </div>
         <style>
 {`
 @media print {
@@ -1921,6 +1922,6 @@ if (form.type === "OUT") {
 }
 `}
 </style>
-
+</div>
   );
 }
