@@ -4,8 +4,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inventory System</title>
+<title>Inventory System</title>
 
+<style>
+table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+
+th, td{
+  padding:8px 10px;
+  border-bottom:1px solid #e5e7eb;
+}
+
+th{
+  text-align:left;
+  font-weight:600;
+}
+
+td{
+  white-space:nowrap;
+}
+
+td:nth-child(4){
+  text-align:center;
+}
+
+td:nth-child(5){
+  text-align:right;
+}
+
+td:last-child{
+  text-align:center;
+}
+</style>
   <!-- XLSX Library -->
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
