@@ -966,8 +966,8 @@ if (form.type === "OUT") {
                         <td style={styles.thtd}>{i.stock}</td>
                         <td style={styles.thtd}>{i.item_name}</td>
                         <td style={styles.thtd}>{i.brand}</td>
-                        <td style={styles.thtd}>₱{Number(i.unit_price || 0).toFixed(2)}</td>
-                        <td style={styles.thtd}>₱{(i.stock * Number(i.unit_price || 0)).toFixed(2)}</td>
+                        <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                        <td style={styles.thtd}>₱{Number(i.stock * Number(i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                         <td style={styles.thtd}>
                           <div style={{ display:"flex", gap:10 }}>
                             <button
@@ -1068,7 +1068,7 @@ if (form.type === "OUT") {
                     <td>{i.items?.item_name}</td>
                     <td>{i.items?.brand}</td>
                     <td>{i.quantity}</td>
-                    <td>₱{(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toFixed(2)}</td>
+                    <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
             
                     <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
                       <div style={{ display: "flex", gap: 10 }}>
@@ -1162,7 +1162,7 @@ if (form.type === "OUT") {
                   <td>{i.items?.item_name}</td>
                   <td>{i.items?.brand}</td>
                   <td>{i.quantity}</td>
-                  <td>₱{(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toFixed(2)}</td>
+                  <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
           
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
                     <div style={{ display: "flex", gap: 10 }}>
@@ -1279,7 +1279,7 @@ if (form.type === "OUT") {
                   </td>
           
                   <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                    ₱{Number(i.unit_price || 0).toFixed(2)}
+                    ₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}
                   </td>
           
                   <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
@@ -1402,7 +1402,7 @@ if (form.type === "OUT") {
                     </td>
             
                     <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      ₱{(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toFixed(2)}
+                      ₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}
                     </td>
             
                     <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
@@ -1513,13 +1513,13 @@ if (form.type === "OUT") {
       <div style={{ ...styles.card, borderLeft: "6px solid #10b981" }}>
         <h4>Total IN</h4>
         <p>{monthlySummary?.totalOutQty || 0} units</p>
-        <strong>₱{(monthlySummary?.totalInValue || 0).toFixed(2)}</strong>
+        <strong>₱{Number(monthlySummary?.totalInValue || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</strong>
       </div>
 
       <div style={{ ...styles.card, borderLeft: "6px solid #ef4444" }}>
         <h4>Total OUT</h4>
         <p>{monthlySummary.totalOutQty} units</p>
-        <strong>₱{(monthlySummary?.totalOutValue || 0).toFixed(2)}</strong>
+        <strong>₱{Number(monthlySummary?.totalOutValue || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</strong>
       </div>
 
       <div style={{
@@ -1529,7 +1529,7 @@ if (form.type === "OUT") {
       }}>
         <h4>Net Movement</h4>
         <strong style={{ fontSize: 18 }}>
-          ₱{netValue.toFixed(2)}
+          ₱{Number(netValue).toLocaleString(undefined,{minimumFractionDigits:2})}
         </strong>
       </div>
     </div>
@@ -1592,7 +1592,7 @@ if (form.type === "OUT") {
                   <td style={styles.thtd}>{row.inQty}</td>
                   <td style={styles.thtd}>{row.outQty}</td>
                   <td style={styles.thtd}>{netQty}</td>
-                  <td style={styles.thtd}>₱{netValue.toFixed(2)}</td>
+                  <td style={styles.thtd}>₱{Number(netValue).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                 </tr>
               );
             });
@@ -1628,9 +1628,9 @@ if (form.type === "OUT") {
                   <td style={styles.thtd}>{t.type}</td>
                   <td style={styles.thtd}>{t.quantity}</td>
                   <td style={styles.thtd}>
-                    ₱{((t.quantity || 0) *
+                   ₱{Number((t.quantity || 0) *
                       (t.unit_price || t.items?.unit_price || 0)
-                    ).toFixed(2)}
+                    ).toLocaleString(undefined,{minimumFractionDigits:2})}}
                   </td>
                 </tr>
               ))}
