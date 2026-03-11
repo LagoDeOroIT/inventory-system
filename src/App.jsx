@@ -1922,6 +1922,6 @@ if (form.type === "OUT") {
 }
 `}
 </style>
-</div>
+      
   );
 }
