@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import * as XLSX from "xlsx";
 // ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://mkfhjklomofrvnnwwknh.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZmhqa2xvbW9mcnZubnd3a25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTczNzAsImV4cCI6MjA4ODU5MzM3MH0.6Q8p9ms8mnf2daONf7HTP3jGZD_bQuNQrv6cpy0ZUts";
@@ -145,6 +146,35 @@ export default function App() {
   const [inSearch, setInSearch] = useState("");
   const [outSearch, setOutSearch] = useState("");
   const [stockSearch, setStockSearch] = useState("");
+  const exportMonthlyReport = () => {
+
+    if (monthlyTransactions.length === 0) {
+      alert("No data to export.");
+      return;
+    }
+  
+    const data = monthlyTransactions.map(t => ({
+      Date: t.date,
+      Item: t.items?.item_name,
+      Brand: t.items?.brand,
+      Type: t.type,
+      Quantity: t.quantity,
+      UnitPrice: t.unit_price || t.items?.unit_price || 0,
+      Total:
+        (t.quantity || 0) *
+        (t.unit_price || t.items?.unit_price || 0)
+    }));
+  
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+  
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Report");
+  
+    const fileName =
+      `inventory_report_${reportYear}_${reportMonth}.xlsx`;
+  
+    XLSX.writeFile(workbook, fileName);
+  };
   const [openCategories, setOpenCategories] = useState({});
   useEffect(() => {
   const savedCategories = localStorage.getItem("openCategories");
@@ -1385,6 +1415,12 @@ if (form.type === "OUT") {
         onClick={() => window.print()}
       >
         🖨 Print Report
+      </button>
+      <button
+        style={{ ...styles.buttonPrimary, background:"#16a34a" }}
+        onClick={exportMonthlyReport}
+      >
+      📊 Export Excel
       </button>
     </div>
 
