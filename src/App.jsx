@@ -1899,7 +1899,6 @@ if (form.type === "OUT") {
             </div>
           </div>
         )}
-      </div>
           <style>
         {`
         @media print {
