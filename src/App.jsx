@@ -32,6 +32,14 @@ const styles = {
     display:"flex",
     gap:20
   },
+  stockRoomHeader: {
+    background: "#f3f4f6",
+    padding: "12px 16px",
+    borderRadius: 8,
+    marginBottom: 16,
+    fontWeight: 600,
+    fontSize: 15
+  },
   dashboard:{
     display:"grid",
     gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",
@@ -835,7 +843,34 @@ if (form.type === "OUT") {
 
       {/* MAIN AREA */}
       <div style={styles.main}>
-        {/* STOCK INVENTORY TAB WITH SEARCH */}
+      
+      {!selectedStockRoom ? (
+      
+        <div style={styles.welcomeScreen}>
+      
+          <img
+            src="/logo.jpg"
+            alt="Lago de Oro"
+            style={styles.welcomeLogo}
+          />
+      
+          <h1 style={styles.welcomeTitle}>
+            LAGO DE ORO NORTHERN LIGHTS AGRI-AQUATIC
+            <br />
+            AND RESORTS DEVELOPMENT INC.
+          </h1>
+      
+          <p style={styles.welcomeSubtitle}>
+            Please select a Stock Room to begin
+          </p>
+      
+        </div>
+       <>
+       <div style={styles.stockRoomHeader}>
+    Stock Room: {selectedStockRoom}
+  </div>
+      
+  {/* STOCK INVENTORY TAB WITH SEARCH */}
 {activeTab === "stock" && (
   <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
     {/* Search Bar */}
@@ -1982,6 +2017,7 @@ if (form.type === "OUT") {
     }
     `}
     </style>
+         </>
      </div>
   </div>
     );
