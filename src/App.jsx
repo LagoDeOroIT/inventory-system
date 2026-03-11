@@ -47,12 +47,38 @@ const styles = {
   marginTop: 10
   },
   stockRoomHeader: {
-    background: "#f3f4f6",
-    padding: "12px 16px",
-    borderRadius: 8,
-    marginBottom: 16,
-    fontWeight: 600,
-    fontSize: 15
+  background: "#f3f4f6",
+  padding: "12px 16px",
+  borderRadius: 8,
+  marginBottom: 16,
+  fontWeight: 600,
+  fontSize: 15
+  },
+  welcomeScreen: {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  height: "100%",
+  width: "100%"
+  },
+
+  welcomeLogo: {
+  width: 220,
+  marginBottom: 25
+  },
+
+  welcomeTitle: {
+  fontSize: 30,
+  fontWeight: 700,
+  color: "#111827",
+  lineHeight: 1.4,
+  marginBottom: 10
+  },
+
+  welcomeSubtitle: {
+  fontSize: 16,
+  color: "#6b7280",
+  marginBottom: 5
   },
   dashboard:{
     display:"grid",
