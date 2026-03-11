@@ -61,6 +61,23 @@ const styles = {
   height: "100%",
   width: "100%"
   },
+  
+  welcomeContainer:{
+  background:"#ffffff",
+  padding:"70px 90px",
+  borderRadius:16,
+  textAlign:"center",
+  boxShadow:"0 20px 60px rgba(0,0,0,0.12)",
+  maxWidth:750
+  },
+
+  welcomeDivider:{
+  width:120,
+  height:4,
+  background:"#d97706",
+  margin:"20px auto",
+  borderRadius:2
+  },
 
   welcomeLogo: {
   width: 220,
@@ -887,24 +904,36 @@ if (form.type === "OUT") {
       {!selectedStockRoom ? (
       
         <div style={styles.welcomeScreen}>
-              
-          <img
-            src="/logo.jpg"
-            alt="Lago de Oro"
-            style={styles.welcomeLogo}
-          />
-        
-          <h1 style={styles.welcomeTitle}>
-            LAGO DE ORO NORTHERN LIGHTS AGRI-AQUATIC
-            <br />
-            AND RESORTS DEVELOPMENT INC.
-          </h1>
-        
-          <p style={styles.welcomeSubtitle}>
-            Please select a Stock Room to begin
-          </p>
-        
-        </div>
+
+            <div style={styles.welcomeContainer}>
+          
+              <img
+                src="/logo.jpg"
+                alt="Lago de Oro"
+                style={styles.welcomeLogo}
+              />
+          
+              <h1 style={styles.welcomeTitle}>
+                LAGO DE ORO NORTHERN LIGHTS AGRI-AQUATIC
+                <br/>
+                AND RESORTS DEVELOPMENT INC.
+                <br/>
+                INVENTORY SYSTEM
+              </h1>
+          
+              <div style={styles.welcomeDivider}></div>
+          
+              <p style={styles.welcomeSubtitle}>
+                Inventory Management Portal
+              </p>
+          
+              <p style={styles.welcomeInstruction}>
+                Please select a Stock Room from the left panel to begin
+              </p>
+          
+            </div>
+          
+          </div>
       
       ) : (
       
