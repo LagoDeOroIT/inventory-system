@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-const worksheet = XLSX.utils.json_to_sheet(data);
 
 // ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://mkfhjklomofrvnnwwknh.supabase.co";
