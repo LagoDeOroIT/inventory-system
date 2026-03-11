@@ -221,15 +221,15 @@ export default function App() {
         }));
         setItems(itemsWithDeleted);
         setTransactions(transactionsWithDeleted);
-        const closed = {};
-        itemsWithDeleted.forEach(i => {
-          const cat = i.category || "Uncategorized";
-          if (!(cat in closed)) {
-            closed[cat] = false;
-          }
-        });
-        setOpenCategories(closed);
-      };
+        const opened = {};
+            itemsWithDeleted.forEach(i => {
+              const cat = i.category || "Uncategorized";
+              if (!(cat in opened)) {
+                opened[cat] = true;   // categories open by default
+              }
+            });
+            setOpenCategories(opened);
+          };
   // ================= FILTERS =================
   const filteredTransactions = transactions
     .filter(t => !t.deleted)
