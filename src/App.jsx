@@ -342,8 +342,8 @@ export default function App() {
     });
     const monthlySummary = monthlyTransactions.reduce((acc, t) => {
     const total =
-      (Number(t.quantity) || 0) *
-      Number(t.unit_price ?? t.items?.unit_price ?? 0);
+      const price = Number(t.unit_price || t.items?.unit_price || 0);
+      const total = price * Number(t.quantity || 0);
   
     if (t.type === "IN") {
       acc.totalInQty += Number(t.quantity) || 0;
@@ -361,7 +361,7 @@ export default function App() {
       totalOutValue: 0
     });
   const netValue =
-    monthlySummary.totalInValue - monthlySummary.totalOutValue;
+    monthlySummary.totalInValue - (monthlySummary?.totalOutValue || 0);
   // ================= EXPORT EXCEL =================
     const exportMonthlyReport = () => {
       
@@ -381,10 +381,10 @@ export default function App() {
       
         // ================= KPI SUMMARY =================
         rows.push(["SUMMARY"]);
-        rows.push(["Total IN Quantity", monthlySummary.totalInQty]);
+        rows.push(["Total IN Quantity", monthlySummary?.totalOutQty || 0]);
         rows.push(["Total IN Value", monthlySummary.totalInValue]);
         rows.push(["Total OUT Quantity", monthlySummary.totalOutQty]);
-        rows.push(["Total OUT Value", monthlySummary.totalOutValue]);
+        rows.push(["Total OUT Value", (monthlySummary?.totalOutValue || 0)]);
         rows.push(["Net Movement Value", netValue]);
         rows.push([]);
       
@@ -1505,14 +1505,14 @@ if (form.type === "OUT") {
     }}>
       <div style={{ ...styles.card, borderLeft: "6px solid #10b981" }}>
         <h4>Total IN</h4>
-        <p>{monthlySummary.totalInQty} units</p>
-        <strong>₱{monthlySummary.totalInValue.toFixed(2)}</strong>
+        <p>{monthlySummary?.totalOutQty || 0} units</p>
+        <strong>₱{(monthlySummary?.totalInValue || 0).toFixed(2)}</strong>
       </div>
 
       <div style={{ ...styles.card, borderLeft: "6px solid #ef4444" }}>
         <h4>Total OUT</h4>
         <p>{monthlySummary.totalOutQty} units</p>
-        <strong>₱{monthlySummary.totalOutValue.toFixed(2)}</strong>
+        <strong>₱{(monthlySummary?.totalOutValue || 0).toFixed(2)}</strong>
       </div>
 
       <div style={{
@@ -1611,7 +1611,9 @@ if (form.type === "OUT") {
         <tbody>
           {monthlyTransactions.length === 0
             ? emptyRowComponent(6, "No transactions")
-            : monthlyTransactions.map(t => (
+            : monthlyTransactions
+                .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
+                .map(t => (
                 <tr key={t.id}>
                   <td style={styles.thtd}>{t.date}</td>
                   <td style={styles.thtd}>{t.items?.item_name}</td>
@@ -1737,11 +1739,12 @@ if (form.type === "OUT") {
                   </datalist>
                                     
                   <input 
-                    style={styles.input} 
-                    placeholder="Price" 
-                    value={form.price} 
-                    onChange={e => handleFormChange("price", e.target.value)} 
-                  />
+                      style={styles.input}
+                      type="number"
+                      placeholder="Price"
+                      value={form.price}
+                      onChange={e => handleFormChange("price", e.target.value)}
+                    />
                   <button style={styles.buttonPrimary} onClick={handleSubmit}>
                     {form.id ? "Update" : "Create"}
                   </button>
@@ -1818,9 +1821,9 @@ if (form.type === "OUT") {
       <p>
         Are you sure you want to{" "}
         <b>
-          {confirmAction.type === "deleteItem" && "delete this item?"}
+          {confirmAction.type === "deleteItem" && "delete item "{data?.item_name}"?"}
           {confirmAction.type === "restoreItem" && "restore this item?"}
-          {confirmAction.type === "permanentDeleteItem" && "permanently delete this item?"}
+          {confirmAction.type === "permanentDeleteItem" && "permanently delete item "{data?.item_name}"?"}
           {confirmAction.type === "deleteTx" && "delete this transaction?"}
           {confirmAction.type === "restoreTx" && "restore this transaction?"}
           {confirmAction.type === "permanentDeleteTx" && "permanently delete this transaction?"}
