@@ -1343,6 +1343,7 @@ if (form.type === "OUT") {
 
         {/* ================= PROFESSIONAL MONTHLY REPORT ================= */}
 {activeTab === "report" && (
+<div id="reportSection">
   <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
     {/* HEADER */}
@@ -1360,7 +1361,7 @@ if (form.type === "OUT") {
     </div>
 
     {/* FILTERS */}
-    <div style={{ display: "flex", gap: 12 }}>
+      <div style={{ display: "flex", gap: 12, alignItems:"center" }}>
       <select
         style={styles.input}
         value={reportMonth}
@@ -1379,6 +1380,12 @@ if (form.type === "OUT") {
         value={reportYear}
         onChange={e => setReportYear(Number(e.target.value))}
       />
+      <button
+        style={styles.buttonPrimary}
+        onClick={() => window.print()}
+      >
+        🖨 Print Report
+      </button>
     </div>
 
     {/* KPI SUMMARY */}
@@ -1514,6 +1521,7 @@ if (form.type === "OUT") {
     </div>
 
   </div>
+</div>
 )}
 
                {/* ================= MODAL ================= */}
@@ -1769,6 +1777,29 @@ if (form.type === "OUT") {
           </div>
         )}
       </div>
+          <style>
+        {`
+        @media print {
+        
+          body * {
+            visibility: hidden;
+          }
+        
+          #reportSection, #reportSection * {
+            visibility: visible;
+          }
+        
+          #reportSection {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+        
+        }
+        `}
+        </style>
     </div>
+
   );
 }
