@@ -659,7 +659,11 @@ export default function App() {
         );
       };
   // ================= CAPITALIZE WORDS =================
-const capitalizeWords = (text) => {
+  const displayBrand = (brand) => {
+  if (!brand || brand.trim() === "") return "No Brand";
+  return capitalizeWords(brand);
+  };
+  const capitalizeWords = (text) => {
   if (!text) return text;
 
   return text
@@ -815,7 +819,7 @@ if (form.type === "OUT") {
       if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
       const itemData = { 
           item_name: form.item_name, 
-          brand: form.brand,
+          brand: form.brand || "No Brand",
           category: form.category,
           unit_price: Number(form.price),
           location: form.location || selectedStockRoom
@@ -1271,7 +1275,7 @@ if (form.type === "OUT") {
                         >
                         <td style={styles.thtd}>{formatNumber(i.stock)}</td>
                         <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
-                        <td style={styles.thtd}>{capitalizeWords(i.brand)}</td>
+                        <td style={styles.thtd}>{displayBrand(i.brand)}</td>
                         <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                         <td style={styles.thtd}>₱{Number(i.stock * Number(i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                         <td style={styles.thtd}>
@@ -1372,7 +1376,7 @@ if (form.type === "OUT") {
                   <tr key={i.id}>
                     <td>{i.date}</td>
                     <td>{capitalizeWords(i.items?.item_name)}</td>
-                    <td>{capitalizeWords(i.items?.brand)}</td>
+                    <td>{displayBrand(i.items?.brand)}</td>
                     <td>{formatNumber(i.quantity)}</td>
                     <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
             
@@ -1466,7 +1470,7 @@ if (form.type === "OUT") {
                 <tr key={i.id}>
                   <td>{i.date}</td>
                   <td>{capitalizeWords(i.items?.item_name)}</td>
-                  <td>{capitalizeWords(i.items?.brand)}</td>
+                  <td>{displayBrand(i.items?.brand)}</td>
                   <td>{formatNumber(i.quantity)}</td>
                   <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
           
@@ -1581,7 +1585,7 @@ if (form.type === "OUT") {
                   </td>
           
                   <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                    {capitalizeWords(i.brand)}
+                    <td>{capitalizeWords(i.items?.brand)}</td>
                   </td>
           
                   <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
@@ -1696,7 +1700,7 @@ if (form.type === "OUT") {
                     </td>
             
                     <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      {capitalizeWords(i.items?.brand)}
+                      {displayBrand(i.items?.brand)}
                     </td>
             
                     <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
@@ -1894,7 +1898,7 @@ if (form.type === "OUT") {
               return (
                 <tr key={idx}>
                   <td style={styles.thtd}>{capitalizeWords(row.item)}</td>
-                  <td style={styles.thtd}>{capitalizeWords(row.brand)}</td>
+                  <td style={styles.thtd}>{displayBrand(row.brand)}</td>
                   <td style={styles.thtd}>{formatNumber(row.inQty)}</td>
                   <td style={styles.thtd}>{formatNumber(row.outQty)}</td>
                   <td style={styles.thtd}>{formatNumber(netQty)}</td>
@@ -1930,7 +1934,7 @@ if (form.type === "OUT") {
                 <tr key={t.id}>
                   <td style={styles.thtd}>{t.date}</td>
                   <td style={styles.thtd}>{capitalizeWords(t.items?.item_name)}</td>
-                  <td style={styles.thtd}>{capitalizeWords(t.items?.brand)}</td>
+                  <td style={styles.thtd}>{displayBrand(t.items?.brand)}</td>
                   <td style={styles.thtd}>{t.type}</td>
                   <td style={styles.thtd}>{formatNumber(t.quantity)}</td>
                   <td style={styles.thtd}>
