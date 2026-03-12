@@ -803,7 +803,7 @@ if (form.type === "OUT") {
       const txData = {
         date: form.date,
         item_id: existingItem.id,
-        brand: form.brand || existingItem.brand,
+        brand: form.brand || existingItem.brand || "No Brand",
         type: form.type,
         quantity: Number(form.quantity),
         unit_price: Number(form.price || existingItem.unit_price || 0),
@@ -816,7 +816,7 @@ if (form.type === "OUT") {
       setModalType("");
       loadData();
     } else if(modalType === "item") {
-      if(!form.item_name || !form.brand || !form.price) return alert("Fill required fields");
+      if(!form.item_name || !form.price) return alert("Fill required fields");
       const itemData = { 
           item_name: form.item_name, 
           brand: form.brand || "No Brand",
