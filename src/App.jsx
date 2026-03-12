@@ -685,13 +685,18 @@ const handleFormChange = (key, value) => {
   if (key === "item_name") {
 
     const relatedBrands = items
-      .filter(i =>
-        i.item_name &&
-        i.item_name.toLowerCase().includes(value.toLowerCase()) &&
-        !i.deleted
-      )
-      .map(i => i.brand)
-      .filter(Boolean);
+          .filter(i =>
+            i.item_name &&
+            i.item_name.toLowerCase().includes(value.toLowerCase()) &&
+            !i.deleted &&
+            (!selectedStockRoom || (i.location || "").toLowerCase() === selectedStockRoom.toLowerCase())
+          )
+          .map(i => i.brand)
+          .filter(Boolean);
+      
+        const uniqueBrands = [...new Set(relatedBrands)];
+        setBrandOptions(uniqueBrands);
+      }
 
     const uniqueBrands = [...new Set(relatedBrands)];
 
@@ -721,20 +726,21 @@ const handleFormChange = (key, value) => {
 
     // Auto-fill price when brand is selected
     if (key === "brand") {
-
-      const selectedItem = items.find(
-        i =>
-          i.item_name &&
-          i.item_name.toLowerCase() === prev.item_name?.toLowerCase() &&
-          i.brand === value &&
-          !i.deleted
-      );
-
-      if (selectedItem) {
-        updated.price = selectedItem.unit_price;
+        const selectedItem = items.find(
+          i =>
+            i.item_name &&
+            i.item_name.toLowerCase() === prev.item_name?.toLowerCase() &&
+            i.brand === value &&
+            !i.deleted &&
+            (!selectedStockRoom || (i.location || "").toLowerCase() === selectedStockRoom.toLowerCase()) // ✅ filter by stock room
+        );
+      
+        if (selectedItem) {
+          updated.price = selectedItem.unit_price;
+        } else {
+          updated.price = ""; // reset if no match in this stock room
+        }
       }
-
-    }
 
     return updated;
   });
