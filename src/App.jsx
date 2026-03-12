@@ -1585,7 +1585,7 @@ if (form.type === "OUT") {
                   </td>
           
                   <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                    <td>{capitalizeWords(i.items?.brand)}</td>
+                    {capitalizeWords(i.items?.brand)}
                   </td>
           
                   <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
