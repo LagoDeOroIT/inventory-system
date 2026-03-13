@@ -341,6 +341,7 @@ const styles = {
 export default function App() {
   const [session, setSession] = useState(null);
   const [notification, setNotification] = useState("");
+  const [categoryOptions, setCategoryOptions] = useState([]);
   const [items, setItems] = useState([]);
   const [itemOptions, setItemOptions] = useState([]);
   const [userRooms, setUserRooms] = useState([]);
@@ -2261,21 +2262,55 @@ if (form.type === "OUT") {
                     </div>
                   )}
 
-                  <input
-                    list="category-list"
-                    style={styles.input}
-                    placeholder="Select or type category"
-                    value={form.category || ""}
-                    onChange={e => handleFormChange("category", e.target.value)}
-                  />
-                  
-                  <datalist id="category-list">
-                    {Array.from(
-                      new Set(items.map(i => i.category).filter(Boolean))
-                    ).map((cat, idx) => (
-                      <option key={idx} value={cat} />
-                    ))}
-                  </datalist>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      style={styles.input}
+                      placeholder="Category"
+                      value={form.category || ""}
+                      onChange={e => {
+                        const value = e.target.value;
+                        handleFormChange("category", value);
+                    
+                        const matches = items
+                          .filter(i =>
+                            i.location === selectedStockRoom &&
+                            !i.deleted &&
+                            i.category &&
+                            i.category.toLowerCase().includes(value.toLowerCase())
+                          )
+                          .map(i => i.category);
+                    
+                        setCategoryOptions([...new Set(matches)]);
+                      }}
+                      onFocus={() => {
+                        const allCategories = items
+                          .filter(i => i.location === selectedStockRoom && !i.deleted)
+                          .map(i => i.category)
+                          .filter(Boolean);
+                    
+                        setCategoryOptions([...new Set(allCategories)]);
+                      }}
+                      onBlur={() => setTimeout(() => setCategoryOptions([]), 150)}
+                    />
+                    
+                    {categoryOptions.length > 0 && (
+                      <div style={styles.dropdown}>
+                        {categoryOptions.map((cat, idx) => (
+                          <div
+                            key={idx}
+                            style={styles.dropdownItem}
+                            onClick={() => {
+                              handleFormChange("category", cat);
+                              setCategoryOptions([]);
+                            }}
+                          >
+                            {capitalizeWords(cat)}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    </div>
                                     
                   <input 
                       style={styles.input}
