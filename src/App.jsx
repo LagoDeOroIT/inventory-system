@@ -1079,46 +1079,46 @@ if (form.type === "OUT") {
    {/* MAIN AREA */}
       <div style={styles.main}>
       
-      {!selectedStockRoom ? (
-      
-        <div style={styles.welcomeScreen}>
+      {!selectedStockRoom && !showModal ? (
 
-            <div style={styles.welcomeContainer}>
+            <div style={styles.welcomeScreen}>
           
-              <img
-                src="/logo.jpg"
-                alt="Lago de Oro"
-                style={styles.welcomeLogo}
-              />
+              <div style={styles.welcomeContainer}>
           
-              <h1 style={styles.welcomeTitle}>
-                LAGO DE ORO NORTHERN LIGHTS AGRI-AQUATIC
-                <br/>
-                AND RESORTS DEVELOPMENT INC.
-                <br/>
-                INVENTORY SYSTEM
-              </h1>
+                <img
+                  src="/logo.jpg"
+                  alt="Lago de Oro"
+                  style={styles.welcomeLogo}
+                />
           
-              <div style={styles.welcomeDivider}></div>
+                <h1 style={styles.welcomeTitle}>
+                  LAGO DE ORO NORTHERN LIGHTS AGRI-AQUATIC
+                  <br/>
+                  AND RESORTS DEVELOPMENT INC.
+                  <br/>
+                  INVENTORY SYSTEM
+                </h1>
           
-              <p style={styles.welcomeSubtitle}>
-                Inventory Management Portal
-              </p>
+                <div style={styles.welcomeDivider}></div>
           
-              <p style={styles.welcomeInstruction}>
-                Please select a Stock Room from the left panel to begin
-              </p>
+                <p style={styles.welcomeSubtitle}>
+                  Inventory Management Portal
+                </p>
+          
+                <p style={styles.welcomeInstruction}>
+                  Please select a Stock Room from the left panel to begin
+                </p>
+          
+              </div>
           
             </div>
           
-          </div>
-      
-      ) : (
-      
-      <>
-        <div style={styles.stockRoomHeader}>
-          Stock Room: {selectedStockRoom}
-        </div>
+          ) : (
+          
+          <>
+            <div style={styles.stockRoomHeader}>
+              Stock Room: {selectedStockRoom}
+            </div>
       
   {/* STOCK INVENTORY TAB WITH SEARCH */}
 {activeTab === "stock" && (
