@@ -810,7 +810,7 @@ const handleFormChange = (key, value) => {
     }
   };
   // ================= SUBMIT =================
-  const handleSubmit = async () => {
+   const saveTransaction = async () => {
     if(modalType === "transaction") {
       if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
       const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
@@ -823,8 +823,10 @@ const handleFormChange = (key, value) => {
 }
 if (form.type === "OUT") {
   const currentStock = stockMap[existingItem.id] || 0;
-  if (Number(form.quantity) > currentStock) {
-    alert("Not enough stock.");
+  const requestedQty = Number(form.quantity) || 0;
+
+  if (requestedQty > currentStock) {
+    alert(`Not enough stock.\n\nAvailable: ${currentStock}`);
     return;
   }
 }
