@@ -40,7 +40,28 @@ const styles = {
   boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
   maxWidth: 700
   },
-
+  dropdown: {
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    right: 0,
+    border: "1px solid #d1d5db",
+    borderRadius: 10,
+    marginTop: 4,
+    background: "#ffffff",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+    maxHeight: 160,
+    overflowY: "auto",
+    zIndex: 1000
+  },
+  dropdownItem: {
+    padding: "10px 14px",
+    cursor: "pointer",
+    fontSize: 14,
+    fontWeight: 500,
+    color: "#374151",
+    borderBottom: "1px solid #f3f4f6"
+  },
   welcomeInstruction: {
   fontSize: 14,
   color: "#888",
@@ -2147,12 +2168,55 @@ if (form.type === "OUT") {
                         </div>
                       )}
                   </div>
-                  <input 
-                    style={styles.input} 
-                    placeholder="Brand" 
-                    value={form.brand} 
-                    onChange={e => handleFormChange("brand", e.target.value)} 
-                  />
+                  <div style={{ position: "relative" }}>
+
+                    <input
+                      style={styles.input}
+                      placeholder="Brand"
+                      value={form.brand}
+                      onChange={e => {
+                        const value = e.target.value;
+                        handleFormChange("brand", value);
+                    
+                        const matches = items
+                          .filter(i =>
+                            i.location === selectedStockRoom &&
+                            !i.deleted &&
+                            i.brand &&
+                            i.brand.toLowerCase().includes(value.toLowerCase())
+                          )
+                          .map(i => i.brand);
+                    
+                        setBrandOptions([...new Set(matches)]);
+                      }}
+                      onFocus={() => {
+                        const allBrands = items
+                          .filter(i => i.location === selectedStockRoom && !i.deleted)
+                          .map(i => i.brand);
+                    
+                        setBrandOptions([...new Set(allBrands)]);
+                      }}
+                      onBlur={() => setTimeout(() => setBrandOptions([]), 150)}
+                    />
+                    
+                    {brandOptions.length > 0 && (
+                      <div style={styles.dropdown}>
+                        {brandOptions.map((b, idx) => (
+                          <div
+                            key={idx}
+                            style={styles.dropdownItem}
+                            onClick={() => {
+                              handleFormChange("brand", b);
+                              setBrandOptions([]);
+                            }}
+                          >
+                            {capitalizeWords(b)}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    </div>
                   {form.brand && brandOptions.length > 0 && (
                     <div
                       style={{
