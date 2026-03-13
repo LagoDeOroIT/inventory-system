@@ -500,10 +500,6 @@ export default function App() {
         setItems(itemsWithDeleted);
         setTransactions(transactionsWithDeleted);
       
-        // ✅ Add these lines to populate IN and OUT tables
-        setInTransactions(transactionsWithDeleted.filter(t => t.type === "IN"));
-        setOutTransactions(transactionsWithDeleted.filter(t => t.type === "OUT"));
-      
         // Category state
         const opened = {};
         itemsWithDeleted.forEach(i => {
