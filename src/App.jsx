@@ -435,6 +435,7 @@ export default function App() {
       setSession(data.session);
   
       if (data.session) {
+        setActiveTab("dashboard"); // ⭐ ADD THIS LINE
         loadUserProfile(data.session.user.id);
       }
   
@@ -1134,7 +1135,10 @@ if (form.type === "OUT") {
                   boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
                   transition: "background 0.2s, transform 0.1s"
                 }}
-                onClick={async () => { await supabase.auth.signOut(); setSession(null); }}
+                onClick={async () => { await supabase.auth.signOut();
+                setActiveTab("dashboard");
+                setSession(null);
+                }}
                 onMouseEnter={e => { 
                   e.currentTarget.style.background = "#dc2626"; // darker red on hover
                   e.currentTarget.style.transform = "translateY(-1px)";
