@@ -801,7 +801,7 @@ const handleFormChange = (key, value) => {
   setShowModal(true);
 };
  const handleNewClick = () => {
-
+  
     if (!selectedStockRoom) {
       setModalType("stockRoomPrompt");
       setShowModal(true);
