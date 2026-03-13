@@ -2066,12 +2066,25 @@ if (form.type === "OUT") {
               {modalType === "item" && (
                 <>
                   <h3>{form.id ? "Edit Item" : "New Item"}</h3>
-                  <input 
-                    style={styles.input} 
-                    placeholder="Item Name" 
-                    value={form.item_name} 
-                    onChange={e => handleFormChange("item_name", e.target.value)}
-                  />
+                  <input
+                      list="item-list"
+                      style={styles.input}
+                      placeholder="Select or type item name"
+                      value={form.item_name}
+                      onChange={e => handleFormChange("item_name", e.target.value)}
+                    />
+                    
+                    <datalist id="item-list">
+                      {Array.from(
+                        new Set(
+                          items
+                            .filter(i => i.location === selectedStockRoom && !i.deleted)
+                            .map(i => i.item_name)
+                        )
+                      ).map((item, idx) => (
+                        <option key={idx} value={item} />
+                      ))}
+                    </datalist>
                   <input 
                     style={styles.input} 
                     placeholder="Brand" 
