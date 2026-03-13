@@ -871,90 +871,64 @@ if (form.type === "OUT") {
     }
   };
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
-  // ================= AUTH SCREEN =================
-      if(!session) return (
-      
+      // ================= MAIN RETURN =================
+  return (
+    <>
+      {!session ? (
         <div style={styles.loginPage}>
-      
           {/* LEFT SIDE BRAND PANEL */}
           <div style={styles.loginLeft}>
-
-            <div style={{
-              background:"#ffffff",
-              padding:"10px 18px",
-              borderRadius:12,
-              marginBottom:25,
-              boxShadow:"0 6px 18px rgba(0,0,0,0.25)"
-            }}>
-              <img 
-                src="/logo.jpg"
-                alt="Lago De Oro"
-                style={{width:110, display:"block"}}
-              />
+            <div
+              style={{
+                background: "#ffffff",
+                padding: "10px 18px",
+                borderRadius: 12,
+                marginBottom: 25,
+                boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
+              }}
+            >
+              <img src="/logo.jpg" alt="Lago De Oro" style={{ width: 110, display: "block" }} />
             </div>
 
-            <div style={{
-              fontSize:40,
-              fontWeight:800,
-              letterSpacing:1,
-              marginBottom:6
-            }}>
+            <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: 1, marginBottom: 6 }}>
               Lago De Oro
             </div>
-      
-            <div style={{
-              fontSize:15,
-              opacity:0.85,
-              letterSpacing:1,
-              textTransform:"uppercase"
-            }}>
+
+            <div style={{ fontSize: 15, opacity: 0.85, letterSpacing: 1, textTransform: "uppercase" }}>
               Inventory Management System
             </div>
-      
           </div>
-      
+
           {/* RIGHT SIDE LOGIN FORM */}
           <div style={styles.loginRight}>
-      
             <div style={styles.loginCard}>
-      
-              <div style={styles.loginTitle}>
-                Login
-              </div>
-      
-              <div style={styles.loginSubtitle}>
-                Authorized Personnel Only
-              </div>
-      
+              <div style={styles.loginTitle}>Login</div>
+              <div style={styles.loginSubtitle}>Authorized Personnel Only</div>
+
               <input
                 style={styles.loginInput}
                 placeholder="Email"
                 value={authEmail}
-                onChange={e=>setAuthEmail(e.target.value)}
+                onChange={(e) => setAuthEmail(e.target.value)}
               />
-      
+
               <input
                 style={styles.loginInput}
                 type="password"
                 placeholder="Password"
                 value={authPassword}
-                onChange={e=>setAuthPassword(e.target.value)}
+                onChange={(e) => setAuthPassword(e.target.value)}
               />
-      
+
               <button style={styles.loginButton} onClick={handleAuth}>
                 Login
               </button>
-      
             </div>
-      
           </div>
-      
         </div>
-      
-      );
-  // ================= MAIN APP =================
-  return (
-    <div style={styles.container}>
+      ) : (
+        // ================= MAIN APP =================
+        <div style={styles.container}>
      {/* SIDEBAR */}
         <div style={{
           ...styles.sidebar,
