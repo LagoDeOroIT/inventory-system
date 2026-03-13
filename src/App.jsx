@@ -1,570 +1,779 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { useMemo } from "react"; // make sure useMemo is imported
 
 // ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://mkfhjklomofrvnnwwknh.supabase.co";
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZmhqa2xvbW9mcnZubnd3a25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTczNzAsImV4cCI6MjA4ODU5MzM3MH0.6Q8p9ms8mnf2daONf7HTP3jGZD_bQuNQrv6cpy0ZUts";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZmhqa2xvbW9mcnZubnd3a25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTczNzAsImV4cCI6MjA4ODU5MzM3MH0.6Q8p9ms8mnf2daONf7HTP3jGZD_bQuNQrv6cpy0ZUts";
 const supabase = createClient(supabaseUrl, supabaseKey);
-
 // ================= STYLES =================
 const styles = {
-  container: {
-    display: "flex",
-    minHeight: "100vh",
-    fontFamily: "'Inter', sans-serif",
-    background: "#f9fafb",
+  container:{},
+  sidebar:{},
+  main:{},
+  thtd:{
+    padding:"10px"
+  },
+  buttonSecondary:{
+    padding:"6px 12px"
+  },
+  categoryRow:{
+    background:"#f8fafc",
+    cursor:"pointer"
+  },
+  categoryContainer:{
+    display:"flex",
+    justifyContent:"space-between"
+  },
+  categoryLeft:{
+    display:"flex",
+    gap:10
+  },
+  categoryRight:{
+    display:"flex",
+    gap:20
+  },
+  welcomeCard: {
+  background: "#ffffff",
+  padding: "60px 80px",
+  borderRadius: 12,
+  textAlign: "center",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+  maxWidth: 700
+  },
+
+  welcomeInstruction: {
+  fontSize: 14,
+  color: "#888",
+  marginTop: 10
+  },
+  stockRoomHeader: {
+  background: "#f3f4f6",
+  padding: "12px 16px",
+  borderRadius: 8,
+  marginBottom: 16,
+  fontWeight: 600,
+  fontSize: 15
+  },
+  welcomeScreen: {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  height: "100%",
+  width: "100%"
+  },
+  
+  welcomeContainer:{
+  background:"#ffffff",
+  padding:"70px 90px",
+  borderRadius:16,
+  textAlign:"center",
+  boxShadow:"0 20px 60px rgba(0,0,0,0.12)",
+  maxWidth:750
+  },
+
+  welcomeDivider:{
+  width:120,
+  height:4,
+  background:"#d97706",
+  margin:"20px auto",
+  borderRadius:2
+  },
+
+  welcomeLogo: {
+  width: 220,
+  marginBottom: 25
+  },
+
+  welcomeTitle: {
+  fontSize: 30,
+  fontWeight: 700,
+  color: "#111827",
+  lineHeight: 1.4,
+  marginBottom: 10
+  },
+
+  welcomeSubtitle: {
+  fontSize: 16,
+  color: "#6b7280",
+  marginBottom: 5
+  },
+  dashboard:{
+    display:"grid",
+    gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",
+    gap:20,
+    marginBottom:20
+  },
+  dashboardCard:{
+    background:"#fff",
+    border:"1px solid #e5e7eb",
+    borderRadius:10,
+    padding:"18px",
+    boxShadow:"0 2px 6px rgba(0,0,0,0.05)"
+  },
+  dashboardTitle:{
+    fontSize:13,
+    color:"#6b7280",
+    marginBottom:6
+  },
+  dashboardValue:{
+    fontSize:22,
+    fontWeight:700,
+    color:"#111827"
+  },
+  container: { 
+    display: "flex", 
+    fontFamily: "Inter, Arial, sans-serif", 
+    height: "100vh",    // full viewport height
+    background: "#f3f4f6", 
+    overflow: "hidden"  // prevent body scroll, scroll only in main
   },
   sidebar: {
+    width: 220,
     background: "#111827",
-    color: "#f9fafb",
-  },
-  sidebarHeader: {
-    fontSize: 20,
-    fontWeight: 700,
-    marginBottom: 16,
-  },
-  sidebarSelect: {
-    padding: "8px 10px",
-    borderRadius: 6,
-    border: "none",
-    outline: "none",
-    marginBottom: 12,
-  },
-  sidebarTabs: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  tabButton: (active) => ({
-    padding: "10px 12px",
-    borderRadius: 8,
-    border: "none",
-    cursor: "pointer",
-    textAlign: "left",
-    background: active ? "#1f2937" : "transparent",
-    color: active ? "#fff" : "#d1d5db",
-    fontWeight: 600,
-    transition: "background 0.2s",
-  }),
-  main: {
-    flex: 1,
+    color: "#fff",
     padding: 20,
     display: "flex",
     flexDirection: "column",
-    gap: 20,
+    justifyContent: "space-between",
+    height: "100vh",     // full viewport height
+    position: "sticky",  // keep it fixed
+    top: 0
+  },  
+  sidebarHeader: { fontSize: 20, fontWeight: 700, marginBottom: 24 },
+  sidebarSelect: { marginBottom: 24, padding: 8, borderRadius: 6, border: "none", width: "100%" },
+  sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
+  tabButton: (active) => ({ padding: 10, borderRadius: 6, background: active ? "#1f2937" : "transparent", border: "none", color: "#fff", cursor: "pointer", textAlign: "left" }),
+  main: { 
+    flex: 1, 
+    padding: 24, 
+    overflowY: "auto",    // allows scrolling of right side
+    height: "100vh"       // fills vertical space
+  },  
+  categoryRow:{
+  background:"#f8fafc",
+  borderTop:"1px solid #e5e7eb",
+  borderBottom:"1px solid #e5e7eb",
+  cursor:"pointer"
   },
-  welcomeScreen: {
-    flex: 1,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
+  categoryContainer:{
+    display:"flex",
+    justifyContent:"space-between",
+    alignItems:"center",
+    fontWeight:600
   },
-  welcomeContainer: { textAlign: "center" },
-  welcomeLogo: { width: 100, marginBottom: 16 },
-  welcomeTitle: { fontSize: 20, fontWeight: 700, lineHeight: 1.4 },
-  welcomeDivider: { height: 2, width: 40, background: "#2563eb", margin: "16px auto" },
-  welcomeSubtitle: { fontSize: 16, color: "#6b7280" },
-  welcomeInstruction: { fontSize: 14, color: "#9ca3af" },
-  stockRoomHeader: { fontSize: 16, fontWeight: 600 },
-  dashboard: { display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 },
-  dashboardCard: { background: "#fff", flex: 1, padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
-  dashboardTitle: { fontSize: 14, color: "#6b7280", marginBottom: 8 },
-  dashboardValue: { fontSize: 18, fontWeight: 700 },
-  categoryRow: { background: "#f9fafb", cursor: "pointer" },
-  categoryContainer: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  categoryLeft: { display: "flex", alignItems: "center", gap: 8, fontWeight: 600 },
-  categoryRight: { display: "flex", alignItems: "center", gap: 12 },
-  thtd: { padding: "12px 10px", borderBottom: "1px solid #f1f5f9", fontSize: 14 },
-  buttonPrimary: {
-    padding: "8px 12px",
-    borderRadius: 6,
-    border: "none",
-    background: "#2563eb",
-    color: "#fff",
-    cursor: "pointer",
-    fontWeight: 600,
+  
+  categoryLeft:{
+    display:"flex",
+    alignItems:"center",
+    gap:10,
+    fontSize:15
   },
-  buttonSecondary: {
-    padding: "8px 12px",
-    borderRadius: 6,
-    border: "1px solid #d1d5db",
-    background: "#fff",
-    color: "#374151",
-    cursor: "pointer",
-    fontWeight: 500,
+  
+  categoryRight:{
+    display:"flex",
+    gap:20,
+    fontSize:13,
+    color:"#6b7280",
+    fontWeight:500
+    },
+    loginPage:{
+    display:"flex",
+    height:"100vh",
+    width:"100%"
   },
-  buttonEdit: {
-    padding: "6px 10px",
-    borderRadius: 6,
-    border: "none",
-    background: "#2563eb",
-    color: "#fff",
-    cursor: "pointer",
-    fontSize: 13,
+  
+  loginLeft:{
+    flex:1,
+    background:"#111827",
+    color:"#fff",
+    display:"flex",
+    flexDirection:"column",
+    justifyContent:"center",
+    alignItems:"center",
+    padding:"60px"
   },
-  buttonDelete: {
-    padding: "6px 10px",
-    borderRadius: 6,
-    border: "none",
-    background: "#ef4444",
-    color: "#fff",
-    cursor: "pointer",
-    fontSize: 13,
+  
+  loginRight:{
+    flex:1,
+    background:"#f9fafb",
+    display:"flex",
+    justifyContent:"center",
+    alignItems:"center"
   },
-  buttonRestore: {
-    padding: "6px 10px",
-    borderRadius: 6,
-    border: "none",
-    background: "#10b981",
-    color: "#fff",
-    cursor: "pointer",
-    fontSize: 13,
+  
+  loginCard:{
+    width:380,
+    background:"#fff",
+    padding:"40px",
+    borderRadius:12,
+    boxShadow:"0 20px 40px rgba(0,0,0,0.1)"
   },
-  input: {
-    padding: "8px 12px",
-    borderRadius: 6,
-    border: "1px solid #d1d5db",
-    fontSize: 14,
-    outline: "none",
+  
+  loginTitle:{
+    fontSize:24,
+    fontWeight:700,
+    marginBottom:10
   },
-  toggleGroup: { display: "flex", gap: 12, margin: "10px 0" },
+  
+  loginSubtitle:{
+    fontSize:14,
+    color:"#6b7280",
+    marginBottom:25
+  },
+  
+  loginInput:{
+    width:"100%",
+    padding:12,
+    borderRadius:6,
+    border:"1px solid #d1d5db",
+    marginBottom:14
+  },
+  
+  loginButton:{
+    width:"100%",
+    padding:12,
+    background:"#111827",
+    color:"#fff",
+    border:"none",
+    borderRadius:6,
+    fontWeight:600,
+    cursor:"pointer"
+  },
+  
+  brandTitle:{
+    fontSize:36,
+    fontWeight:700,
+    marginBottom:10
+  },
+  
+  brandSubtitle:{
+    fontSize:16,
+    opacity:0.8
+  },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
+  title: { fontSize: 28, fontWeight: 700, color: "#111827" },
+  buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
+  buttonSecondary: { background: "#e5e7eb", color: "#374151", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
+  card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
+  table: { width: "100%", borderCollapse: "collapse", marginTop: 16 },
+  thtd: { border: "1px solid #e5e7eb", padding: 8, textAlign: "left" },
+  emptyRow: { textAlign: "center", padding: 12, color: "#6b7280" },
+  modalOverlay: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 },
+  modalCard: { background: "#fff", padding: 24, borderRadius: 8, width: 400, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" },
+  input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
+  toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
   toggleButton: (active) => ({
     flex: 1,
     padding: "8px 0",
     borderRadius: 6,
-    border: "1px solid #d1d5db",
-    cursor: "pointer",
-    fontWeight: 600,
-    background: active ? "#2563eb" : "#fff",
+    border: active ? "none" : "1px solid #d1d5db",
+    background: active ? "#1f2937" : "#fff",
     color: active ? "#fff" : "#374151",
-  }),
-  card: { background: "#fff", padding: 16, borderRadius: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
-  table: { width: "100%", borderCollapse: "collapse" },
-  modalOverlay: {
-    position: "fixed",
-    top: 0, left: 0,
-    width: "100vw",
-    height: "100vh",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-  },
-  modalCard: {
-    background: "#fff",
-    padding: 20,
-    borderRadius: 12,
-    width: "400px",
-    maxHeight: "90vh",
-    overflowY: "auto",
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
-  newOptionButton: {
-    padding: "8px 12px",
-    borderRadius: 8,
-    border: "none",
     cursor: "pointer",
     fontWeight: 600,
-    marginBottom: 10,
-    width: "100%",
-  },
-  // ================= STYLES (add these) =================
-loginPage: {
-  display: "flex",
-  height: "100vh",
-  width: "100vw",
-  fontFamily: "'Inter', sans-serif",
-},
-loginLeft: {
-  flex: 1,
-  background: "#111827",
-  color: "#fff",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-},
-loginRight: {
-  flex: 1,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-},
-loginCard: {
-  background: "#fff",
-  padding: 24,
-  borderRadius: 12,
-  width: 320,
-  display: "flex",
-  flexDirection: "column",
-  gap: 12,
-  boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
-},
-loginTitle: { fontSize: 20, fontWeight: 700 },
-loginSubtitle: { fontSize: 14, color: "#6b7280" },
-loginInput: {
-  padding: "10px 12px",
-  borderRadius: 6,
-  border: "1px solid #d1d5db",
-  fontSize: 14,
-  outline: "none",
-},
-loginButton: {
-  padding: "10px 12px",
-  borderRadius: 6,
-  border: "none",
-  background: "#2563eb",
-  color: "#fff",
-  cursor: "pointer",
-  fontWeight: 600,
-},
-tableHeader: {
-  textAlign: "left",
-  padding: "10px",
-  background: "#f3f4f6",
-  fontWeight: 600,
-  fontSize: 14,
-  borderBottom: "1px solid #e5e7eb",
-},
-tableCell: {
-  padding: "10px",
-  borderBottom: "1px solid #f1f5f9",
-  fontSize: 14,
-},
-searchInput: {
-  padding: "8px 12px",
-  borderRadius: 6,
-  border: "1px solid #d1d5db",
-  fontSize: 14,
-  marginBottom: 12,
-  width: "100%",
-},
-modalBackdrop: {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100vw",
-  height: "100vh",
-  backgroundColor: "rgba(0,0,0,0.5)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1000,
-},
-modalContent: {
-  background: "#fff",
-  padding: 20,
-  borderRadius: 12,
-  width: "400px",
-  maxHeight: "90vh",
-  overflowY: "auto",
-  display: "flex",
-  flexDirection: "column",
-  gap: 12,
-},
-emptyRow: {
-  textAlign: "center",
-  padding: 16,
-  color: "#6b7280",
-  fontStyle: "italic",
-},
-};
-
-// ================= HELPERS =================
-const formatNumber = (num) => (num == null ? "" : Number(num).toLocaleString());
-
-const capitalizeWords = (text) => text ? text.toLowerCase().split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : text;
-
-const displayBrand = (brand) => (!brand || brand.trim() === "" ? "No Brand" : capitalizeWords(brand));
-
-// ================= STOCK ROOMS =================
-const stockRooms = [
-  "L1", "L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
-  "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room"
-];
+  }),
+  newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
+  };
+  const formatNumber = (num) => {
+    if (num === null || num === undefined) return "";
+    return Number(num).toLocaleString();
+  };
 
 // ================= APP COMPONENT =================
 export default function App() {
-  // ================= STATE =================
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
-  const [transactions, setTransactions] = useState([]);
   const [userRooms, setUserRooms] = useState([]);
+  const loadUserProfile = async (userId) => {
+
+  console.log("LOAD PROFILE FOR USER:", userId);
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("stock_rooms, role")
+    .eq("id", userId)
+    .single();
+
+  console.log("PROFILE RESULT:", data);
+
+  if (error) {
+    console.error("Profile error:", error);
+    return;
+  }
+
+  if (data.role === "admin") {
+    setUserRooms(stockRooms);
+  } else {
+    setUserRooms(data.stock_rooms || []);
+  }
+
+};
+  const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [brandOptions, setBrandOptions] = useState([]);
   const [inSearch, setInSearch] = useState("");
   const [outSearch, setOutSearch] = useState("");
   const [stockSearch, setStockSearch] = useState("");
+  
   const [openCategories, setOpenCategories] = useState({});
+  useEffect(() => {
+  const savedCategories = localStorage.getItem("openCategories");
+  
+    if (savedCategories) {
+      setOpenCategories(JSON.parse(savedCategories));
+    }
+  }, []);
+  const toggleCategory = (category) => {
+      setOpenCategories(prev => {
+    
+        const updated = {
+          ...prev,
+          [category]: !prev[category]
+        };
+    
+        localStorage.setItem("openCategories", JSON.stringify(updated));
+    
+        return updated;
+      });
+    };
   const [deletedItemSearch, setDeletedItemSearch] = useState("");
   const [deletedTxSearch, setDeletedTxSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
   const [form, setForm] = useState({
-    date: "", item_id: "", item_name: "", brand: "", category: "", brandOptions: [], type: "IN", quantity: "", price: "", id: null, location: ""
-  });
+    date:"",
+    item_id:"",
+    item_name:"",
+    brand:"",
+    category:"",
+    brandOptions:[],
+    type:"IN",
+    quantity:"",
+    price:"",
+    id:null
+  });  
+  const categories = [
+  ...new Set(items.map(i => i.category).filter(Boolean))
+    ];
+  // ================= DASHBOARD DATA =================
   const [confirmAction, setConfirmAction] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
-  const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
-  const [reportYear, setReportYear] = useState(new Date().getFullYear());
-
-   // ================= EFFECTS =================
-  // load categories, session, user profile, and data
-  useEffect(() => {
-    const savedCategories = localStorage.getItem("openCategories");
-    if (savedCategories) setOpenCategories(JSON.parse(savedCategories));
-  }, []);
-
-  useEffect(() => {
+  const stockRooms = [
+    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
+    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
+  ];
+  // ================= AUTH =================
+   useEffect(() => {
+  
     const initAuth = async () => {
+  
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
-      if (data.session) loadUserProfile(data.session.user.id);
+  
+      if (data.session) {
+        loadUserProfile(data.session.user.id);
+      }
+  
     };
+  
     initAuth();
-
+  
     const { data } = supabase.auth.onAuthStateChange((_e, s) => {
+  
       setSession(s);
-      if (s) loadUserProfile(s.user.id);
+  
+      if (s) {
+        loadUserProfile(s.user.id);
+      }
+  
     });
-
+  
     return () => data.subscription.unsubscribe();
+  
   }, []);
-
+  
   useEffect(() => {
     if (session) {
-      loadUserProfile(session.user.id);
+      loadUserProfile(session.user.id);   // ← load assigned rooms
       loadData();
     }
   }, [session]);
-
-  // ================= USEMEMO COMPUTED VALUES =================
-  const stockInventory = useMemo(
-    () => items.filter(i => i.location === selectedStockRoom && !i.deleted),
-    [items, selectedStockRoom]
-  );
-
-  const inTransactions = useMemo(
-    () => transactions.filter(t => t.type === "IN" && !t.deleted && t.location === selectedStockRoom),
-    [transactions, selectedStockRoom]
-  );
-
-  const outTransactions = useMemo(
-    () => transactions.filter(t => t.type === "OUT" && !t.deleted && t.location === selectedStockRoom),
-    [transactions, selectedStockRoom]
-  );
-
-  const deletedItems = useMemo(
-    () => items.filter(i => i.deleted),
-    [items]
-  );
-
-  const deletedTransactions = useMemo(
-    () => transactions.filter(t => t.deleted),
-    [transactions]
-  );
-// ================= OTHER COMPUTED VALUES =================
-  const totalInventoryValue = stockInventory.reduce((sum, i) => sum + (i.quantity * i.unit_price), 0);
-  const totalItems = stockInventory.reduce((sum, i) => sum + i.quantity, 0);
-  const lowStockItems = stockInventory.filter(i => i.quantity <= 5).length;
-  const totalCategories = new Set(stockInventory.map(i => i.category || "Uncategorized")).size;
-
-  const monthlyTransactions = transactions.filter(t => {
-    const date = new Date(t.date);
-    return date.getMonth() + 1 === Number(reportMonth) &&
-           date.getFullYear() === Number(reportYear) &&
-           t.location === selectedStockRoom;
-  });
-
-  const monthlySummary = {
-    totalTx: monthlyTransactions.length,
-  };
-
-  const netValue = monthlyTransactions.reduce((sum, t) => sum + (t.quantity * t.unit_price || 0), 0);
-  // ================= LOAD USER PROFILE =================
-  const loadUserProfile = async (userId) => {
-    const { data, error } = await supabase.from("profiles").select("stock_rooms, role").eq("id", userId).single();
-    if (error) return console.error("Profile error:", error);
-    setUserRooms(data.role === "admin" ? stockRooms : data.stock_rooms || []);
-  };
-  // ================= HANDLE FORM SUBMIT =================
-const handleSubmit = async () => {
-  if (!session?.user?.id) {
-    return alert("Session expired, please login again.");
-  }
-  if (!form.item_name || !form.quantity) {
-    return alert("Please fill all required fields.");
-  }
-
-  try {
-    if (modalType === "item") {
-      // Add new item
-      const { error } = await supabase.from("items").insert([{
-        item_name: form.item_name,
-        brand: form.brand,
-        category: form.category,
-        quantity: Number(form.quantity),
-        unit_price: Number(form.price),
-        location: form.location
-      }]);
-      if (error) throw error;
-    } else if (modalType === "transaction") {
-      // Add new transaction
-      const { error } = await supabase.from("inventory_transactions").insert([{
-        item_id: form.item_id,
-        type: form.type, // "IN" or "OUT"
-        quantity: Number(form.quantity),
-        price: Number(form.price),
-        date: form.date || new Date().toISOString().slice(0,10),
-        user_id: session.user.id
-      }]);
-      if (error) throw error;
-    } else if (modalType === "edit") {
-      // Edit item
-      const { error } = await supabase.from("items").update({
-        item_name: form.item_name,
-        brand: form.brand,
-        category: form.category,
-        quantity: Number(form.quantity),
-        unit_price: Number(form.price),
-        location: form.location
-      }).eq("id", form.id);
-      if (error) throw error;
-    } else if (modalType === "editIn" || modalType === "editOut") {
-      // Edit transaction
-      const { error } = await supabase.from("inventory_transactions").update({
-        item_id: form.item_id,
-        type: form.type,
-        quantity: Number(form.quantity),
-        price: Number(form.price),
-        date: form.date
-      }).eq("id", form.id);
-      if (error) throw error;
-    }
-
-    setShowModal(false);
-    await loadData(); // Refresh data
-  } catch (err) {
-    console.error(err);
-    alert("Error saving data: " + err.message);
-  }
-};
-  // ================= EXPORT MONTHLY REPORT =================
-const exportMonthlyReport = (stockRoom, month, year) => {
-  if (!session?.user?.id) return alert("Session expired, please login again.");
-
-  const filtered = transactions.filter(tx => {
-    const txDate = new Date(tx.date);
-    return tx.location === stockRoom &&
-           txDate.getMonth() + 1 === Number(month) &&
-           txDate.getFullYear() === Number(year);
-  });
-
-  if (!filtered.length) return alert("No transactions for this month.");
-
-  let csv = "Date,Item,Brand,Qty,Type,Value\n";
-  filtered.forEach(tx => {
-    const itemName = tx.items?.item_name || "Unknown";
-    const brand = tx.items?.brand || "No Brand";
-    const value = (tx.quantity * tx.price) || 0;
-    csv += `${tx.date},${itemName},${brand},${tx.quantity},${tx.type},${value}\n`;
-  });
-
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `MonthlyReport_${stockRoom}_${month}-${year}.csv`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
+        const handleAuth = async () => {
+      
+        if (!authEmail || !authPassword) {
+          alert("Enter email and password");
+          return;
+        }
+      
+        const { error } = await supabase.auth.signInWithPassword({
+          email: authEmail,
+          password: authPassword
+        });
+      
+        if (error) {
+          alert(error.message);
+        }
+      
+      };
   // ================= LOAD DATA =================
-  const loadData = async () => {
-    const { data: itemsData } = await supabase.from("items").select("*");
-    const itemsWithDeleted = (itemsData || []).map(i => ({ ...i, deleted: i.deleted ?? false }));
+        const loadData = async () => {
+        const { data: itemsData } = await supabase.from("items").select("*");
+        const itemsWithDeleted = (itemsData || []).map(i => ({
+          ...i,
+          deleted: i.deleted ?? false
+        }));
+        const { data: tx } = await supabase
+          .from("inventory_transactions")
+          .select("*, items(item_name, brand, unit_price, location, category)")
+          .order("date", { ascending: false });
+        const transactionsWithDeleted = (tx || []).map(t => ({
+          ...t,
+          deleted: t.deleted ?? false
+        }));
+        setItems(itemsWithDeleted);
+        setTransactions(transactionsWithDeleted);
+        const opened = {};
+          itemsWithDeleted.forEach(i => {
+          const cat = i.category || "Uncategorized";
+            if (!(cat in opened)) {
+              opened[cat] = true;
+            }
+          });
+          
+          const savedCategories = localStorage.getItem("openCategories");
+          
+            if (!savedCategories) {
+          
+            setOpenCategories(opened);
+            }
+          };
+  // ================= FILTERS =================
+  const filteredTransactions = transactions
+    .filter(t => !t.deleted)
+    .filter(t => !selectedStockRoom || t.location === selectedStockRoom);  
+  const stockMap = filteredTransactions.reduce((acc, t) => {
+  const qty = Number(t.quantity) || 0;
 
-    const { data: tx } = await supabase.from("inventory_transactions").select("*, items(item_name, brand, unit_price, location, category)").order("date", { ascending: false });
-    const transactionsWithDeleted = (tx || []).map(t => ({ ...t, deleted: t.deleted ?? false }));
+  const txLocation = (t.location || "").trim().toLowerCase();
+  const selectedLocation = (selectedStockRoom || "").trim().toLowerCase();
+          if (selectedStockRoom && txLocation !== selectedLocation) {
+          return acc;
+        }
+      
+        if (!acc[t.item_id]) acc[t.item_id] = 0;
+      
+        acc[t.item_id] += t.type === "IN" ? qty : -qty;
+      
+        return acc;
+      }, {});
+  const inTransactions = filteredTransactions.filter(t => t.type === "IN");
+  const outTransactions = filteredTransactions.filter(t => t.type === "OUT");
+  const stockInventory = items
+        .filter(i => !i.deleted)
+        .filter(i => {
+         if (!selectedStockRoom) return true;
 
-    setItems(itemsWithDeleted);
-    setTransactions(transactionsWithDeleted);
-
-    // Initialize open categories if not saved
-    const opened = {};
-    itemsWithDeleted.forEach(i => { const cat = i.category || "Uncategorized"; if (!(cat in opened)) opened[cat] = true; });
-    if (!localStorage.getItem("openCategories")) setOpenCategories(opened);
-  };
-
-  // ================= CATEGORY TOGGLE =================
-  const toggleCategory = (category) => {
-    setOpenCategories(prev => {
-      const updated = { ...prev, [category]: !prev[category] };
-      localStorage.setItem("openCategories", JSON.stringify(updated));
-      return updated;
+            const selected = selectedStockRoom.replace(/\s+/g," ").trim().toLowerCase();
+            const itemLocation = (i.location || "")
+              .replace(/\s+/g," ")
+              .trim()
+              .toLowerCase();
+            
+            return itemLocation === selected;
+          })
+      .map(i => {
+   const stock = stockMap[i.id] || 0;
+        return {
+          id: i.id,
+          item_name: i.item_name,
+          brand: i.brand,
+          category: i.category,
+          unit_price: i.unit_price,
+          stock: stock,
+          location: i.location
+        };
+      });
+    const totalTransactions = transactions.filter(t => !t.deleted).length;
+    const totalCategories = new Set(
+      stockInventory.map(i => i.category || "Uncategorized")
+    ).size;
+    const totalItems = stockInventory.length;
+    const totalInventoryValue = stockInventory.reduce(
+    (sum, i) => sum + (i.stock * (i.unit_price || 0)),
+    0
+  );
+    const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
+    const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom || !i.location);
+    const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+    const filteredDeletedItems = deletedItems.filter(i =>
+    (i.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+    (i.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
+  );
+    const filteredDeletedTransactions = deletedTransactions.filter(t =>
+      t.items?.item_name?.toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
+      t.items?.brand?.toLowerCase().includes(deletedTxSearch.toLowerCase())
+    );
+  // ================= MONTHLY REPORT STATE =================
+    const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
+    const [reportYear, setReportYear] = useState(new Date().getFullYear());
+    // ================= MONTHLY REPORT LOGIC =================
+    const monthlyTransactions = filteredTransactions.filter(t => {
+      if (!t.date) return false;
+    
+      const txDate = new Date(t.date);
+    
+      return (
+        txDate.getMonth() + 1 === Number(reportMonth) &&
+        txDate.getFullYear() === Number(reportYear)
+      );
     });
+    
+    const monthlySummary = monthlyTransactions.reduce((acc, t) => {
+    
+      const price = Number(t.unit_price || t.items?.unit_price || 0);
+      const qty = Number(t.quantity || 0);
+      const total = price * qty;
+    
+      if (t.type === "IN") {
+        acc.totalInQty += qty;
+        acc.totalInValue += total;
+      } else {
+        acc.totalOutQty += qty;
+        acc.totalOutValue += total;
+      }
+    
+      return acc;
+    
+    }, {
+      totalInQty: 0,
+      totalOutQty: 0,
+      totalInValue: 0,
+      totalOutValue: 0
+    });
+    
+    const netValue =
+      (monthlySummary?.totalInValue || 0) -
+      (monthlySummary?.totalOutValue || 0);
+  // ================= EXPORT EXCEL =================
+    const exportMonthlyReport = () => {
+      
+        if (monthlyTransactions.length === 0) {
+          alert("No data to export.");
+          return;
+        }
+      
+        const rows = [];
+      
+        // ================= REPORT HEADER =================
+        rows.push(["Lago De Oro Inventory Monthly Report"]);
+        rows.push([
+          `${new Date(0, reportMonth - 1).toLocaleString("default",{month:"long"})} ${reportYear}`
+        ]);
+        rows.push([]);
+      
+        // ================= KPI SUMMARY =================
+        rows.push(["SUMMARY"]);
+        rows.push(["Total IN Quantity", monthlySummary?.totalOutQty || 0]);
+        rows.push(["Total IN Value", monthlySummary.totalInValue]);
+        rows.push(["Total OUT Quantity", monthlySummary.totalOutQty]);
+        rows.push(["Total OUT Value", (monthlySummary?.totalOutValue || 0)]);
+        rows.push(["Net Movement Value", netValue]);
+        rows.push([]);
+      
+        // ================= PER ITEM SUMMARY =================
+        rows.push(["PER ITEM SUMMARY"]);
+        rows.push(["Item","Brand","Total IN","Total OUT","Net Qty","Net Value"]);
+      
+        const perItem = Object.values(
+          monthlyTransactions.reduce((acc,t)=>{
+      
+            const key = `${t.items?.item_name}-${t.items?.brand}`;
+            const price = Number(t.unit_price || t.items?.unit_price || 0);
+            const qty = Number(t.quantity || 0);
+      
+            if(!acc[key]){
+              acc[key] = {
+                item:t.items?.item_name,
+                brand:t.items?.brand,
+                inQty:0,
+                outQty:0,
+                price
+              };
+            }
+      
+            if(t.type === "IN") acc[key].inQty += qty;
+            else acc[key].outQty += qty;
+      
+            return acc;
+      
+          },{})
+        );
+      
+        perItem.forEach(row=>{
+          const netQty = row.inQty - row.outQty;
+          const value = netQty * row.price;
+      
+          rows.push([
+            row.item,
+            row.brand,
+            row.inQty,
+            row.outQty,
+            netQty,
+            value
+          ]);
+        });
+      
+        rows.push([]);
+      
+        // ================= DETAILED TRANSACTIONS =================
+        rows.push(["DETAILED TRANSACTIONS"]);
+        rows.push(["Date","Item","Brand","Type","Qty","Total"]);
+      
+        monthlyTransactions.forEach(t=>{
+      
+          const price = Number(t.unit_price || t.items?.unit_price || 0);
+      
+          rows.push([
+            t.date,
+            t.items?.item_name,
+            t.items?.brand,
+            t.type,
+            t.quantity,
+            t.quantity * price
+          ]);
+      
+        });
+      
+        // ================= CREATE EXCEL =================
+        const worksheet = XLSX.utils.aoa_to_sheet(rows);
+        const workbook = XLSX.utils.book_new();
+      
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Report");
+      
+        XLSX.writeFile(
+          workbook,
+          `inventory_report_${reportYear}_${reportMonth}.xlsx`
+        );
+      };
+  // ================= CAPITALIZE WORDS =================
+  const displayBrand = (brand) => {
+  if (!brand || brand.trim() === "") return "No Brand";
+  return capitalizeWords(brand);
   };
+  const capitalizeWords = (text) => {
+  if (!text) return text;
 
-  // ================= AUTH HANDLER =================
-  const handleAuth = async () => {
-    if (!authEmail || !authPassword) return alert("Enter email and password");
-    const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
-    if (error) alert(error.message);
-  };
+  return text
+    .toLowerCase()
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
 
-  // ================= FORM HANDLER =================
-  const handleFormChange = (key, value) => {
-    if (typeof value === "string") value = capitalizeWords(value.trimStart());
+        // ================= FORM HANDLER =================  
+const handleFormChange = (key, value) => {
 
+  // AUTO CAPITALIZE TEXT INPUTS
+  if (typeof value === "string") {
+    value = capitalizeWords(value.trimStart());
+  }
+
+  // Update brand suggestions when typing item name
+  if (key === "item_name") {
+
+    const relatedBrands = items
+      .filter(i =>
+        i.item_name &&
+        i.item_name.toLowerCase().includes(value.toLowerCase()) &&
+        !i.deleted
+      )
+      .map(i => i.brand)
+      .filter(Boolean);
+
+    const uniqueBrands = [...new Set(relatedBrands)];
+
+    setBrandOptions(uniqueBrands);
+  }
+
+  setForm(prev => {
+    const updated = { ...prev, [key]: value };
+
+    // Reset brand when item name changes
     if (key === "item_name") {
-      const relatedBrands = items.filter(i => i.item_name && i.item_name.toLowerCase().includes(value.toLowerCase()) && !i.deleted).map(i => i.brand).filter(Boolean);
-      setBrandOptions([...new Set(relatedBrands)]);
+
+      updated.brand = "";
+
+      const exactMatchBrands = items
+        .filter(i =>
+          i.item_name &&
+          i.item_name.toLowerCase() === value.toLowerCase() &&
+          !i.deleted
+        )
+        .map(i => i.brand);
+
+      if (exactMatchBrands.length === 1) {
+        updated.brand = exactMatchBrands[0];
+      }
     }
 
-    setForm(prev => {
-      const updated = { ...prev, [key]: value };
+    // Auto-fill price when brand is selected
+    if (key === "brand") {
 
-      // Reset brand when item name changes
-      if (key === "item_name") {
-        updated.brand = "";
-        const exactMatchBrands = items.filter(i => i.item_name && i.item_name.toLowerCase() === value.toLowerCase() && !i.deleted).map(i => i.brand);
-        if (exactMatchBrands.length === 1) updated.brand = exactMatchBrands[0];
+      const selectedItem = items.find(
+        i =>
+          i.item_name &&
+          i.item_name.toLowerCase() === prev.item_name?.toLowerCase() &&
+          i.brand === value &&
+          !i.deleted
+      );
+
+      if (selectedItem) {
+        updated.price = selectedItem.unit_price;
       }
 
-      // Auto-fill price
-      if (key === "brand") {
-        const selectedItem = items.find(i => i.item_name?.toLowerCase() === prev.item_name?.toLowerCase() && i.brand === value && !i.deleted);
-        if (selectedItem) updated.price = selectedItem.unit_price;
-      }
+    }
 
-      return updated;
-    });
-  };
+    return updated;
+  });
 
-  // ================= OPEN MODALS =================
+};
   const openNewItemModal = () => {
-    setForm({ date: "", item_id: "", item_name: "", brand: "", brandOptions: [], type: "IN", quantity: "", price: "", id: null, location: selectedStockRoom });
-    setModalType("item");
-    setShowModal(true);
-  };
-
+  setForm({ 
+    date:"", 
+    item_id:"", 
+    item_name:"", 
+    brand:"", 
+    brandOptions:[], 
+    type:"IN", 
+    quantity:"", 
+    price:"", 
+    id:null,
+    location: selectedStockRoom  // ✅ add this
+  });
+  setModalType("item");
+  setShowModal(true);
+};
   const openNewTransactionModal = () => {
-    setForm({ date: "", item_id: "", item_name: "", brand: "", brandOptions: [], type: "IN", quantity: "", price: "", id: null, location: selectedStockRoom });
-    setModalType("transaction");
-    setShowModal(true);
-  };
-
+  setForm({ 
+    date:"", 
+    item_id:"", 
+    item_name:"", 
+    brand:"", 
+    brandOptions:[], 
+    type:"IN", 
+    quantity:"", 
+    price:"", 
+    id:null,
+    location: selectedStockRoom // ✅ add this
+  });
+  setModalType("transaction");
+  setShowModal(true);
+};
   const handleNewClick = () => {
-    if (!selectedStockRoom) {
+    if(!selectedStockRoom) {
       setModalType("stockRoomPrompt");
       setShowModal(true);
     } else {
@@ -572,706 +781,1464 @@ const exportMonthlyReport = (stockRoom, month, year) => {
       setShowModal(true);
     }
   };
-
-  // ================= EMPTY ROW COMPONENT =================
+  // ================= SUBMIT =================
+  const handleSubmit = async () => {
+    if(modalType === "transaction") {
+      if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
+      const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
+     if(!existingItem) {
+  setConfirmAction({
+    type: "createItemConfirm",
+    data: { ...form }
+  });
+  return;
+}
+if (form.type === "OUT") {
+  const currentStock = stockMap[existingItem.id] || 0;
+  if (Number(form.quantity) > currentStock) {
+    alert("Not enough stock.");
+    return;
+  }
+}
+      const txData = {
+        date: form.date,
+        item_id: existingItem.id,
+        brand: form.brand || existingItem.brand || "No Brand",
+        type: form.type,
+        quantity: Number(form.quantity),
+        unit_price: Number(form.price || existingItem.unit_price || 0),
+        location: form.location || selectedStockRoom  // ✅ add this line
+      };
+      if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
+      else await supabase.from("inventory_transactions").insert([txData]);
+      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+      setShowModal(false);
+      setModalType("");
+      loadData();
+    } else if(modalType === "item") {
+      if(!form.item_name || !form.price) return alert("Fill required fields");
+      const itemData = { 
+          item_name: form.item_name, 
+          brand: form.brand || "No Brand",
+          category: form.category,
+          unit_price: Number(form.price),
+          location: form.location || selectedStockRoom
+        };
+      if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
+      else {
+        const { data } = await supabase.from("items").insert([itemData]);
+        if(data?.length && modalTypeBeforeItem === "transaction") {
+          setForm(prev => ({ ...prev, item_id: data[0].id }));
+          setModalType("transaction");
+          setShowModal(true);
+          setModalTypeBeforeItem("");
+          return;
+        }
+      }
+      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+      setShowModal(false);
+      setModalType("");
+      loadData();
+    }
+  };
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
+  // ================= AUTH SCREEN =================
+      if(!session) return (
+      
+        <div style={styles.loginPage}>
+      
+          {/* LEFT SIDE BRAND PANEL */}
+          <div style={styles.loginLeft}>
 
-  // ================= LOGIN SCREEN =================
-  if (!session) return (
-    <div style={styles.loginPage}>
-      <div style={styles.loginLeft}>
-        <div style={{ background: "#fff", padding: "10px 18px", borderRadius: 12, marginBottom: 25, boxShadow: "0 6px 18px rgba(0,0,0,0.25)" }}>
-          <img src="/logo.jpg" alt="Lago De Oro" style={{ width: 110, display: "block" }} />
+            <div style={{
+              background:"#ffffff",
+              padding:"10px 18px",
+              borderRadius:12,
+              marginBottom:25,
+              boxShadow:"0 6px 18px rgba(0,0,0,0.25)"
+            }}>
+              <img 
+                src="/logo.jpg"
+                alt="Lago De Oro"
+                style={{width:110, display:"block"}}
+              />
+            </div>
+
+            <div style={{
+              fontSize:40,
+              fontWeight:800,
+              letterSpacing:1,
+              marginBottom:6
+            }}>
+              Lago De Oro
+            </div>
+      
+            <div style={{
+              fontSize:15,
+              opacity:0.85,
+              letterSpacing:1,
+              textTransform:"uppercase"
+            }}>
+              Inventory Management System
+            </div>
+      
+          </div>
+      
+          {/* RIGHT SIDE LOGIN FORM */}
+          <div style={styles.loginRight}>
+      
+            <div style={styles.loginCard}>
+      
+              <div style={styles.loginTitle}>
+                Login
+              </div>
+      
+              <div style={styles.loginSubtitle}>
+                Authorized Personnel Only
+              </div>
+      
+              <input
+                style={styles.loginInput}
+                placeholder="Email"
+                value={authEmail}
+                onChange={e=>setAuthEmail(e.target.value)}
+              />
+      
+              <input
+                style={styles.loginInput}
+                type="password"
+                placeholder="Password"
+                value={authPassword}
+                onChange={e=>setAuthPassword(e.target.value)}
+              />
+      
+              <button style={styles.loginButton} onClick={handleAuth}>
+                Login
+              </button>
+      
+            </div>
+      
+          </div>
+      
         </div>
-        <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: 1, marginBottom: 6 }}>Lago De Oro</div>
-        <div style={{ fontSize: 15, opacity: 0.85, letterSpacing: 1, textTransform: "uppercase" }}>Inventory Management System</div>
-      </div>
-      <div style={styles.loginRight}>
-        <div style={styles.loginCard}>
-          <div style={styles.loginTitle}>Login</div>
-          <div style={styles.loginSubtitle}>Authorized Personnel Only</div>
-          <input style={styles.loginInput} placeholder="Email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
-          <input style={styles.loginInput} type="password" placeholder="Password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} />
-          <button style={styles.loginButton} onClick={handleAuth}>Login</button>
-        </div>
-      </div>
-    </div>
-  );
-  // ================= COMPUTED VARIABLES =================
-
-// Filter items for selected stock room
-const stockInventory = useMemo(
-  () => items.filter(i => i.location === selectedStockRoom && !i.deleted),
-  [items, selectedStockRoom]
-);
-
-// Inventory totals
-const totalInventoryValue = stockInventory.reduce((sum, i) => sum + (i.quantity * i.unit_price), 0);
-const totalItems = stockInventory.reduce((sum, i) => sum + i.quantity, 0);
-const lowStockItems = stockInventory.filter(i => i.quantity <= 5).length;
-const totalCategories = new Set(stockInventory.map(i => i.category || "Uncategorized")).size;
-
-// Transactions separated by type
-const inTransactions = useMemo(
-  () => transactions.filter(t => t.type === "IN" && !t.deleted && t.location === selectedStockRoom),
-  [transactions, selectedStockRoom]
-);
-
-const outTransactions = useMemo(
-  () => transactions.filter(t => t.type === "OUT" && !t.deleted && t.location === selectedStockRoom),
-  [transactions, selectedStockRoom]
-);
-
-// Deleted history
-const deletedItems = items.filter(i => i.deleted);
-const deletedTransactions = transactions.filter(t => t.deleted);
-
-// Monthly report
-const monthlyTransactions = transactions.filter(t => {
-  const date = new Date(t.date);
-  return date.getMonth() + 1 === Number(reportMonth) &&
-         date.getFullYear() === Number(reportYear) &&
-         t.location === selectedStockRoom;
-});
-
-const monthlySummary = {
-  totalTx: monthlyTransactions.length,
-};
-
-const netValue = monthlyTransactions.reduce((sum, t) => sum + (t.quantity * t.price), 0);
-// ================= MAIN APP =================
-return (
-  <div style={styles.container}>
-    {/* SIDEBAR */}
-    <div
-      style={{
-        ...styles.sidebar,
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        justifyContent: "space-between",
-        padding: "16px 12px",
-        boxSizing: "border-box",
-        width: "220px",
-        minWidth: "180px",
-        maxWidth: "250px",
-      }}
-    >
-      {/* Top Section */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <div style={styles.sidebarHeader}>Lago De Oro</div>
-
-        <select
-          style={{ ...styles.sidebarSelect, width: "100%" }}
-          value={selectedStockRoom}
-          onChange={(e) => setSelectedStockRoom(e.target.value)}
-        >
-          <option value="">Select Stock Room</option>
-          {stockRooms
-            .filter((r) => userRooms.includes(r))
-            .map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-        </select>
-
-        <div style={styles.sidebarTabs}>
-          <button
-            style={styles.tabButton(activeTab === "stock")}
-            onClick={() => setActiveTab("stock")}
-          >
-            📦 Stock Inventory
-          </button>
-          <button
-            style={styles.tabButton(activeTab === "transactions")}
-            onClick={() => setActiveTab("transactions")}
-          >
-            📄 Transactions
-          </button>
-          <button
-            style={styles.tabButton(activeTab === "deleted")}
-            onClick={() => setActiveTab("deleted")}
-          >
-            🗑️ Deleted History
-          </button>
-          <button
-            style={styles.tabButton(activeTab === "report")}
-            onClick={() => setActiveTab("report")}
-          >
-            📊 Monthly Report
-          </button>
-        </div>
-      </div>
-
-      {/* Bottom Section */}
-      <div
-        style={{
+      
+      );
+  // ================= MAIN APP =================
+  return (
+    <div style={styles.container}>
+     {/* SIDEBAR */}
+        <div style={{
+          ...styles.sidebar,
           display: "flex",
           flexDirection: "column",
-          gap: 12,
-          alignItems: "center",
-          paddingBottom: 16,
-          textAlign: "center",
-        }}
-      >
-        {session?.user?.email && (
-          <div
-            style={{
-              color: "#f9fafb",
-              fontSize: 13,
-              fontWeight: 500,
-              marginBottom: 8,
-              lineHeight: 1.3,
-              wordBreak: "break-word",
-            }}
-          >
-            Logged in as
-            <br />
-            <span style={{ fontWeight: 700 }}>{session.user.email}</span>
+          height: "100vh",
+          justifyContent: "space-between",
+          padding: "16px 12px",       // smaller horizontal padding on narrow screens
+          boxSizing: "border-box",
+          width: "220px",             // fixed default width
+          minWidth: "180px",          // ensures it doesn't shrink too much
+          maxWidth: "250px",          // prevents it from being too wide on large screens
+        }}>
+          {/* Top Section */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={styles.sidebarHeader}>Lago De Oro</div>
+            
+            <select
+              style={{ ...styles.sidebarSelect, width: "100%" }}
+              value={selectedStockRoom}
+              onChange={e => setSelectedStockRoom(e.target.value)}
+            >
+              <option value="">Select Stock Room</option>
+              {stockRooms
+                .filter(r => userRooms.includes(r))
+                .map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+      
+            <div style={styles.sidebarTabs}>
+              <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
+              <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
+              <button style={styles.tabButton(activeTab==="deleted")} onClick={()=>setActiveTab("deleted")}>🗑️ Deleted History</button>
+              <button style={styles.tabButton(activeTab==="report")} onClick={()=>setActiveTab("report")}>📊 Monthly Report</button>
+            </div>
           </div>
-        )}
-
-        {/* + New Button */}
-        <button
-          style={{
-            width: "100%",
-            padding: "10px 0",
-            borderRadius: 8,
-            border: "none",
-            background: "#2563eb",
-            color: "#ffffff",
-            fontWeight: 600,
-            fontSize: 14,
-            cursor: "pointer",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-            transition: "background 0.2s, transform 0.1s",
-          }}
-          onClick={handleNewClick}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#1d4ed8";
-            e.currentTarget.style.transform = "translateY(-1px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "#2563eb";
-            e.currentTarget.style.transform = "translateY(0)";
-          }}
-        >
-          + New
-        </button>
-
-        {/* Logout Button */}
-        <button
-          style={{
-            width: "100%",
-            padding: "10px 0",
-            borderRadius: 8,
-            border: "none",
-            background: "#ef4444",
-            color: "#ffffff",
-            fontWeight: 600,
-            fontSize: 14,
-            cursor: "pointer",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-            transition: "background 0.2s, transform 0.1s",
-          }}
-          onClick={async () => {
-            await supabase.auth.signOut();
-            setSession(null);
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#dc2626";
-            e.currentTarget.style.transform = "translateY(-1px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "#ef4444";
-            e.currentTarget.style.transform = "translateY(0)";
-          }}
-        >
-          Logout
-        </button>
-      </div>
-    </div>
-
-    {/* MAIN AREA */}
-    <div style={styles.main}>
-      {!selectedStockRoom ? (
-        <div style={styles.welcomeScreen}>
-          <div style={styles.welcomeContainer}>
-            <img src="/logo.jpg" alt="Lago de Oro" style={styles.welcomeLogo} />
-            <h1 style={styles.welcomeTitle}>
-              LAGO DE ORO NORTHERN LIGHTS AGRI-AQUATIC
-              <br />
-              AND RESORTS DEVELOPMENT INC.
-              <br />
-              INVENTORY SYSTEM
-            </h1>
-            <div style={styles.welcomeDivider}></div>
-            <p style={styles.welcomeSubtitle}>Inventory Management Portal</p>
-            <p style={styles.welcomeInstruction}>
-              Please select a Stock Room from the left panel to begin
-            </p>
+        
+          {/* Bottom Section */}
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            alignItems: "center",
+            paddingBottom: 16,
+            textAlign: "center"
+          }}>
+            {session?.user?.email && (
+              <div style={{
+                color: "#f9fafb",
+                fontSize: 13,
+                fontWeight: 500,
+                marginBottom: 8,
+                lineHeight: 1.3,
+                wordBreak: "break-word"
+              }}>
+                Logged in as<br />
+                <span style={{ fontWeight: 700 }}>{session.user.email}</span>
+              </div>
+            )}
+          
+            {/* + New Button */}
+              <button
+                style={{
+                  width: "100%",
+                  padding: "10px 0",
+                  borderRadius: 8,
+                  border: "none",
+                  background: "#2563eb",    // friendly blue background
+                  color: "#ffffff",         // white text
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                  transition: "background 0.2s, transform 0.1s"
+                }}
+                onClick={handleNewClick}
+                onMouseEnter={e => { 
+                  e.currentTarget.style.background = "#1d4ed8";  // slightly darker on hover
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={e => { 
+                  e.currentTarget.style.background = "#2563eb";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                + New
+              </button>
+              
+              {/* Logout Button */}
+              <button
+                style={{
+                  width: "100%",
+                  padding: "10px 0",
+                  borderRadius: 8,
+                  border: "none",
+                  background: "#ef4444",   // friendly red
+                  color: "#ffffff",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                  transition: "background 0.2s, transform 0.1s"
+                }}
+                onClick={async () => { await supabase.auth.signOut(); setSession(null); }}
+                onMouseEnter={e => { 
+                  e.currentTarget.style.background = "#dc2626"; // darker red on hover
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={e => { 
+                  e.currentTarget.style.background = "#ef4444";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                Logout
+              </button>
           </div>
         </div>
+
+   {/* MAIN AREA */}
+      <div style={styles.main}>
+      
+      {!selectedStockRoom ? (
+      
+        <div style={styles.welcomeScreen}>
+
+            <div style={styles.welcomeContainer}>
+          
+              <img
+                src="/logo.jpg"
+                alt="Lago de Oro"
+                style={styles.welcomeLogo}
+              />
+          
+              <h1 style={styles.welcomeTitle}>
+                LAGO DE ORO NORTHERN LIGHTS AGRI-AQUATIC
+                <br/>
+                AND RESORTS DEVELOPMENT INC.
+                <br/>
+                INVENTORY SYSTEM
+              </h1>
+          
+              <div style={styles.welcomeDivider}></div>
+          
+              <p style={styles.welcomeSubtitle}>
+                Inventory Management Portal
+              </p>
+          
+              <p style={styles.welcomeInstruction}>
+                Please select a Stock Room from the left panel to begin
+              </p>
+          
+            </div>
+          
+          </div>
+      
       ) : (
-        <>
-          <div style={styles.stockRoomHeader}>Stock Room: {selectedStockRoom}</div>
-
-          {/* ================= STOCK INVENTORY TAB ================= */}
-          {activeTab === "stock" && (
-            <StockInventoryTab
-              stockInventory={stockInventory}
-              stockSearch={stockSearch}
-              openCategories={openCategories}
-              toggleCategory={toggleCategory}
-              setForm={setForm}
-              setModalType={setModalType}
-              setShowModal={setShowModal}
-              totalInventoryValue={totalInventoryValue}
-              totalItems={totalItems}
-              lowStockItems={lowStockItems}
-              totalCategories={totalCategories}
-            />
-          )}
-
-          {/* ================= TRANSACTIONS TAB ================= */}
-          {activeTab === "transactions" && (
-            <TransactionsTab
-              inTransactions={inTransactions}
-              outTransactions={outTransactions}
-              inSearch={inSearch}
-              outSearch={outSearch}
-              setForm={setForm}
-              setModalType={setModalType}
-              setShowModal={setShowModal}
-            />
-          )}
-
-          {/* ================= DELETED TAB ================= */}
-          {activeTab === "deleted" && (
-            <DeletedTab
-              deletedItems={deletedItems}
-              deletedTransactions={deletedTransactions}
-              deletedItemSearch={deletedItemSearch}
-              deletedTxSearch={deletedTxSearch}
-              setConfirmAction={setConfirmAction}
-            />
-          )}
-
-          {/* ================= MONTHLY REPORT TAB ================= */}
-          {activeTab === "report" && (
-            <MonthlyReportTab
-              monthlyTransactions={monthlyTransactions}
-              reportMonth={reportMonth}
-              reportYear={reportYear}
-              setReportMonth={setReportMonth}
-              setReportYear={setReportYear}
-              selectedStockRoom={selectedStockRoom}
-              exportMonthlyReport={exportMonthlyReport}
-              monthlySummary={monthlySummary}
-              netValue={netValue}
-            />
-          )}
-
-          {/* ================= MODAL ================= */}
-          {showModal && (
-            <Modal
-              modalType={modalType}
-              setShowModal={setShowModal}
-              form={form}
-              setForm={setForm}
-              items={items}
-              brandOptions={brandOptions}
-              setBrandOptions={setBrandOptions}
-              handleFormChange={handleFormChange}
-              handleSubmit={handleSubmit}
-              selectedStockRoom={selectedStockRoom}
-            />
-          )}
-
-          {/* ================= CONFIRM MODAL ================= */}
-          {confirmAction && (
-            <ConfirmModal
-              confirmAction={confirmAction}
-              setConfirmAction={setConfirmAction}
-              loadData={loadData}
-              supabase={supabase}
-            />
-          )}
-
-          {/* ================= PRINT STYLING ================= */}
-          <style>
-            {`
-              @media print {
-                body * { visibility: hidden; }
-                #reportSection, #reportSection * { visibility: visible; }
-                #reportSection { position: absolute; left: 0; top: 0; width: 100%; }
-              }
-            `}
-          </style>
-        </>
-      )}
-    </div>
-  </div>
-);
-
-// ================= STOCK INVENTORY TAB =================
-function StockInventoryTab({ stockInventory, stockSearch, openCategories, toggleCategory, setForm, setModalType, setShowModal, totalInventoryValue, totalItems, lowStockItems, totalCategories }) {
-  return (
-    <div style={{ flex: 1, padding: 20, overflowY: "auto" }}>
-      {/* Search bar */}
+      
+      <>
+        <div style={styles.stockRoomHeader}>
+          Stock Room: {selectedStockRoom}
+        </div>
+      
+  {/* STOCK INVENTORY TAB WITH SEARCH */}
+{activeTab === "stock" && (
+  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    {/* Search Bar */}
+    <div style={{ display: "flex", justifyContent: "flex-end" }}>
       <input
         type="text"
-        placeholder="Search items..."
+        placeholder="Search by Item Name or Brand..."
         value={stockSearch}
         onChange={(e) => setStockSearch(e.target.value)}
-        style={{ width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #ccc" }}
+        style={{
+          padding: "8px 12px",
+          borderRadius: 8,
+          border: "1px solid #d1d5db",
+          width: 300,
+          fontSize: 14,
+          outline: "none",
+        }}
       />
-
-      {/* Inventory summary */}
-      <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
-        <div>Total Items: {totalItems}</div>
-        <div>Low Stock: {lowStockItems}</div>
-        <div>Total Categories: {totalCategories}</div>
-        <div>Total Inventory Value: ₱{totalInventoryValue.toLocaleString()}</div>
-      </div>
-
-      {/* Inventory table */}
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={styles.tableHeader}>Category</th>
-              <th style={styles.tableHeader}>Item Name</th>
-              <th style={styles.tableHeader}>Brand</th>
-              <th style={styles.tableHeader}>Stock</th>
-              <th style={styles.tableHeader}>Unit Price</th>
-              <th style={styles.tableHeader}>Value</th>
-              <th style={styles.tableHeader}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stockInventory.map((item) => (
-              <tr key={item.id}>
-                <td style={styles.tableCell}>{item.category}</td>
-                <td style={styles.tableCell}>{item.item_name}</td>
-                <td style={styles.tableCell}>{displayBrand(item.brand)}</td>
-                <td style={styles.tableCell}>{item.quantity}</td>
-                <td style={styles.tableCell}>₱{item.unit_price?.toLocaleString()}</td>
-                <td style={styles.tableCell}>₱{(item.quantity * item.unit_price)?.toLocaleString()}</td>
-                <td style={styles.tableCell}>
-                  <button onClick={() => { setForm(item); setModalType("edit"); setShowModal(true); }}>Edit</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
-  );
-}
 
-// ================= TRANSACTIONS TAB =================
-function TransactionsTab({ inTransactions, outTransactions, inSearch, outSearch, setForm, setModalType, setShowModal }) {
-  return (
-    <div style={{ flex: 1, padding: 20, overflowY: "auto" }}>
-      {/* IN Transactions */}
+    {/* Table Card */}
+    <div
+      style={{
+        flex: 1,
+        background: "#fff",
+        padding: 20,
+        borderRadius: 12,
+        boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+        display: "flex",
+        flexDirection: "column",
+        overflowX: "auto",
+      }}
+    >
+      <h2>Available Stocks</h2>
+
+        <div style={styles.dashboard}>
+        
+        <div style={styles.dashboardCard}>
+        <div style={styles.dashboardTitle}>Total Inventory Value</div>
+        <div style={styles.dashboardValue}>
+        ₱{totalInventoryValue.toLocaleString(undefined,{minimumFractionDigits:2})}
+        </div>
+        </div>
+        
+        <div style={styles.dashboardCard}>
+        <div style={styles.dashboardTitle}>Total Items</div>
+        <div style={styles.dashboardValue}>{formatNumber(totalItems)}</div>
+        </div>
+        
+        <div style={styles.dashboardCard}>
+        <div style={styles.dashboardTitle}>Low Stock Items</div>
+        <div style={styles.dashboardValue}>{formatNumber(lowStockItems)}</div>
+        </div>
+        
+        <div style={styles.dashboardCard}>
+        <div style={styles.dashboardTitle}>Categories</div>
+        <div style={styles.dashboardValue}>{formatNumber(totalCategories)}</div>
+        </div>
+        
+        </div>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
+          <tr>
+            {["Qty", "Item Name", "Brand", "Price", "Total Value", "Actions"].map((th, idx) => (
+              <th
+                key={idx}
+                style={{
+                  padding: "12px 10px",
+                  textAlign: "left",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  borderBottom: "1px solid #e5e7eb",
+                }}
+              >
+                {th}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+            {(() => {
+              // Group stock by category
+              const groupedStock = stockInventory
+                .filter(
+                  (item) =>
+                    (item.item_name || "").toLowerCase().includes(stockSearch.toLowerCase()) ||
+                    (item.brand || "").toLowerCase().includes(stockSearch.toLowerCase())
+                )
+                .reduce((acc, item) => {
+                  const cat = item.category || "Uncategorized";
+                  if (!acc[cat]) acc[cat] = [];
+                  acc[cat].push(item);
+                  return acc;
+                }, {});
+          
+              if (Object.keys(groupedStock).length === 0) {
+                return (
+                  <tr>
+                    <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                      No matching items
+                    </td>
+                  </tr>
+                );
+              }
+          
+              return Object.entries(groupedStock).map(([category, items]) => {
+
+                const isOpen = openCategories[category] === true;
+              
+                const totalValue = items.reduce(
+                  (sum, i) => sum + (i.stock * i.unit_price),
+                  0
+                );
+              
+                return (
+                  <React.Fragment key={category}>
+              
+                    {/* CATEGORY HEADER */}
+                    <tr
+                      style={styles.categoryRow}
+                      onClick={(e)=>{
+                          if(e.target.tagName !== "BUTTON"){
+                            toggleCategory(category);
+                          }
+                        }}
+                      >
+                      <td colSpan={6} style={{padding:"12px 14px"}}>
+                      
+                      <div style={styles.categoryContainer}>
+                      
+                      <div style={styles.categoryLeft}>
+                      <span style={{color:"#6b7280"}}>
+                      {isOpen ? "▾" : "▸"}
+                      </span>
+                      
+                      <span>
+                          {category}
+                        
+                          {(() => {
+                            const lowStockCount = items.filter(i => i.stock <= 5).length;
+                        
+                            if (lowStockCount === 0) return null;
+                        
+                            return (
+                              <span
+                                style={{
+                                  marginLeft:8,
+                                  background:"#fee2e2",
+                                  color:"#b91c1c",
+                                  fontSize:11,
+                                  padding:"2px 6px",
+                                  borderRadius:6,
+                                  fontWeight:600
+                                }}
+                              >
+                                ⚠ {lowStockCount} Low Stock
+                              </span>
+                            );
+                          })()}
+                        </span>
+                      </div>
+                      
+                      <div style={styles.categoryRight}>
+                      <span>
+                      {items.length} item{items.length !== 1 ? "s" : ""}
+                      </span>
+                      
+                      <span style={{fontWeight:600,color:"#111827"}}>
+                      ₱{totalValue.toLocaleString(undefined,{minimumFractionDigits:2})}
+                      </span>
+                      </div>
+                      
+                      </div>
+                      
+                      </td>
+                      </tr>
+              
+                    {/* ITEMS */}
+                    {isOpen && items.map(i => (
+                      <tr
+                          key={i.id}
+                          style={{
+                            background: i.stock <= 5 ? "#fee2e2" : "transparent"
+                          }}
+                        >
+                        <td style={styles.thtd}>{formatNumber(i.stock)}</td>
+                        <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
+                        <td style={styles.thtd}>{displayBrand(i.brand)}</td>
+                        <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                        <td style={styles.thtd}>₱{Number(i.stock * Number(i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                        <td style={styles.thtd}>
+                          <div style={{ display:"flex", gap:10 }}>
+                            <button
+                              style={{ ...styles.buttonSecondary }}
+                              onClick={() => {
+                                setForm({
+                                  id: i.id,
+                                  item_name: i.item_name,
+                                  brand: i.brand,
+                                  price: i.unit_price,
+                                  brandOptions: [i.brand],
+                                });
+                                setModalType("item");
+                                setShowModal(true);
+                              }}
+                            >
+                              Edit
+                            </button>
+                        
+                            <button
+                              style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
+                              onClick={() => setConfirmAction({ type:"deleteItem", data:i })}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+              
+                  </React.Fragment>
+                );
+              });
+            })()}
+          </tbody>
+      </table>
+    </div>
+  </div>
+)}
+
+{/* TRANSACTIONS TAB */}
+{activeTab === "transactions" && (
+  <div style={{
+    display: "flex",
+    gap: 20,
+    alignItems: "stretch", // ensures equal height
+  }}>
+    {/* ================= IN TRANSACTIONS ================= */}
+    <div style={{
+      flex: 1,
+      background: "#fff",
+      padding: 20,
+      borderRadius: 12,
+      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+      display: "flex",
+      flexDirection: "column",
+      maxHeight: "600px", // scrollable height
+    }}>
       <h2>IN Transactions</h2>
       <input
-        type="text"
+        style={{ ...styles.input, marginBottom: 10 }}
         placeholder="Search IN transactions..."
         value={inSearch}
         onChange={(e) => setInSearch(e.target.value)}
-        style={styles.searchInput}
       />
-      <div style={{ overflowX: "auto" }}>
-        <table style={styles.table}>
-          <thead>
+      <div style={{ overflowY: "auto", flex: 1 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
-              <th style={styles.tableHeader}>Date</th>
-              <th style={styles.tableHeader}>Item</th>
-              <th style={styles.tableHeader}>Qty</th>
-              <th style={styles.tableHeader}>By</th>
-              <th style={styles.tableHeader}>Actions</th>
+              {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
+                <th key={idx} style={{ padding: "12px 10px", textAlign: "left", fontSize: 14, fontWeight: 600, borderBottom: "1px solid #e5e7eb" }}>
+                  {th}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {inTransactions.map(tx => (
-              <tr key={tx.id}>
-                <td style={styles.tableCell}>{tx.date}</td>
-                <td style={styles.tableCell}>{tx.items?.item_name}</td>
-                <td style={styles.tableCell}>{tx.quantity}</td>
-                <td style={styles.tableCell}>{tx.user_email || tx.user_id}</td>
-                <td style={styles.tableCell}>
-                  <button onClick={() => { setForm(tx); setModalType("editIn"); setShowModal(true); }}>Edit</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+              {(() => {
+                const filteredIn = inTransactions.filter(
+                  (item) =>
+                    (item.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
+                    (item.items?.brand || "").toLowerCase().includes(inSearch.toLowerCase())
+                );
+            
+                if (filteredIn.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                        No matching items
+                      </td>
+                    </tr>
+                  );
+                }
+            
+                return filteredIn.map((i) => (
+                  <tr key={i.id}>
+                    <td>{i.date}</td>
+                    <td>{capitalizeWords(i.items?.item_name)}</td>
+                    <td>{displayBrand(i.items?.brand)}</td>
+                    <td>{formatNumber(i.quantity)}</td>
+                    <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+            
+                    <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
+                      <div style={{ display: "flex", gap: 10 }}>
+                        <button
+                          style={{ ...styles.buttonSecondary }}
+                          onClick={() => {
+                            setForm({
+                              id: i.id,
+                              item_id: i.item_id,
+                              date: i.date,
+                              item_name: i.items?.item_name,
+                              brand: i.items?.brand,
+                              type: i.type,
+                              quantity: i.quantity,
+                              price: i.unit_price || i.items?.unit_price,
+                              brandOptions: [i.items?.brand],
+                            });
+                            setModalType("transaction");
+                            setShowModal(true);
+                          }}
+                        >
+                          Edit
+                        </button>
+            
+                        <button
+                          style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                          onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ));
+              })()}
+            </tbody>
         </table>
       </div>
+    </div>
 
-      {/* OUT Transactions */}
-      <h2 style={{ marginTop: 20 }}>OUT Transactions</h2>
+    {/* ================= OUT TRANSACTIONS ================= */}
+    <div style={{
+      flex: 1,
+      background: "#fff",
+      padding: 20,
+      borderRadius: 12,
+      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+      display: "flex",
+      flexDirection: "column",
+      maxHeight: "600px", // scrollable height
+    }}>
+      <h2>OUT Transactions</h2>
       <input
-        type="text"
+        style={{ ...styles.input, marginBottom: 10 }}
         placeholder="Search OUT transactions..."
         value={outSearch}
         onChange={(e) => setOutSearch(e.target.value)}
-        style={styles.searchInput}
       />
-      <div style={{ overflowX: "auto" }}>
-        <table style={styles.table}>
-          <thead>
+      <div style={{ overflowY: "auto", flex: 1 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
-              <th style={styles.tableHeader}>Date</th>
-              <th style={styles.tableHeader}>Item</th>
-              <th style={styles.tableHeader}>Qty</th>
-              <th style={styles.tableHeader}>By</th>
-              <th style={styles.tableHeader}>Actions</th>
+              {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
+                <th key={idx} style={{ padding: "12px 10px", textAlign: "left", fontSize: 14, fontWeight: 600, borderBottom: "1px solid #e5e7eb" }}>
+                  {th}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {outTransactions.map(tx => (
-              <tr key={tx.id}>
-                <td style={styles.tableCell}>{tx.date}</td>
-                <td style={styles.tableCell}>{tx.items?.item_name}</td>
-                <td style={styles.tableCell}>{tx.quantity}</td>
-                <td style={styles.tableCell}>{tx.user_email || tx.user_id}</td>
-                <td style={styles.tableCell}>
-                  <button onClick={() => { setForm(tx); setModalType("editOut"); setShowModal(true); }}>Edit</button>
-                </td>
-              </tr>
-            ))}
+            {(() => {
+              const filteredOut = outTransactions.filter(
+                (item) =>
+                  (item.items?.item_name || "").toLowerCase().includes(outSearch.toLowerCase()) ||
+                  (item.items?.brand || "").toLowerCase().includes(outSearch.toLowerCase())
+              );
+          
+              if (filteredOut.length === 0) {
+                return (
+                  <tr>
+                    <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                      No matching items
+                    </td>
+                  </tr>
+                );
+              }
+          
+              return filteredOut.map((i) => (
+                <tr key={i.id}>
+                  <td>{i.date}</td>
+                  <td>{capitalizeWords(i.items?.item_name)}</td>
+                  <td>{displayBrand(i.items?.brand)}</td>
+                  <td>{formatNumber(i.quantity)}</td>
+                  <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+          
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <button
+                        style={{ ...styles.buttonSecondary }}
+                        onClick={() => {
+                          setForm({
+                            id: i.id,
+                            item_id: i.item_id,
+                            date: i.date,
+                            item_name: i.items?.item_name,
+                            brand: i.items?.brand,
+                            type: i.type,
+                            quantity: i.quantity,
+                            price: i.unit_price || i.items?.unit_price,
+                            brandOptions: [i.items?.brand],
+                          });
+                          setModalType("transaction");
+                          setShowModal(true);
+                        }}
+                      >
+                        Edit
+                      </button>
+          
+                      <button
+                        style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                        onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ));
+            })()}
           </tbody>
         </table>
       </div>
     </div>
-  );
-}
 
-// ================= DELETED TAB =================
-function DeletedTab({ deletedItems, deletedTransactions, deletedItemSearch, deletedTxSearch, setConfirmAction }) {
-  return (
-    <div style={{ flex: 1, padding: 20, overflowY: "auto" }}>
-      <h2>Deleted Items</h2>
+  </div>
+)}
+
+        {/* ================= DELETED HISTORY TAB ================= */}
+       {activeTab==="deleted" && (
+  <div style={{
+    display: "flex",
+    gap: 20,
+    alignItems: "stretch", // ensures equal height
+  }}>
+
+    {/* ================= DELETED INVENTORY ================= */}
+    <div style={{
+      flex: 1,
+      background: "#fff",
+      padding: 20,
+      borderRadius: 12,
+      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+      display: "flex",
+      flexDirection: "column",
+      maxHeight: "600px",          // max height for scroll
+    }}>
+      <h2>Deleted Inventory</h2>
       <input
-        type="text"
+        style={{ ...styles.input, marginBottom: 10 }}
         placeholder="Search deleted items..."
         value={deletedItemSearch}
         onChange={(e) => setDeletedItemSearch(e.target.value)}
-        style={styles.searchInput}
       />
-      <div style={{ overflowX: "auto" }}>
-        <table style={styles.table}>
-          <thead>
+      <div style={{ overflowY: "auto", flex: 1 }}>
+        <table style={{
+          width: "100%",
+          borderCollapse: "collapse",
+        }}>
+          <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
-              <th style={styles.tableHeader}>Item</th>
-              <th style={styles.tableHeader}>Category</th>
-              <th style={styles.tableHeader}>Deleted By</th>
-              <th style={styles.tableHeader}>Actions</th>
+              {["Item Name", "Brand", "Price", "Actions"].map((th, idx) => (
+                <th key={idx} style={{
+                  padding: "12px 10px",
+                  textAlign: "left",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  borderBottom: "1px solid #e5e7eb"
+                }}>{th}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {deletedItems.map(d => (
-              <tr key={d.id}>
-                <td style={styles.tableCell}>{d.item_name}</td>
-                <td style={styles.tableCell}>{d.category}</td>
-                <td style={styles.tableCell}>{d.deleted_by}</td>
-                <td style={styles.tableCell}>
-                  <button onClick={() => setConfirmAction({ type: "restoreItem", item: d })}>Restore</button>
-                  <button onClick={() => setConfirmAction({ type: "deleteItem", item: d })}>Delete</button>
-                </td>
-              </tr>
-            ))}
+            {(() => {
+              const filteredDeleted = deletedItems.filter(
+                (item) =>
+                  (item.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+                  (item.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
+              );
+          
+              if (filteredDeleted.length === 0) {
+                return (
+                  <tr>
+                    <td colSpan={4} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                      No deleted items
+                    </td>
+                  </tr>
+                );
+              }
+          
+              return filteredDeleted.map((i) => (
+                <tr key={i.id}>
+                  <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                    {capitalizeWords(i.item_name)}
+                  </td>
+          
+                  <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                    {capitalizeWords(i.items?.brand)}
+                  </td>
+          
+                  <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                    ₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}
+                  </td>
+          
+                  <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                    <div style={{ display:"flex", gap:8 }}>
+          
+                      <button
+                        style={{
+                          padding:"6px 10px",
+                          borderRadius:6,
+                          border:"none",
+                          background:"#10b981",
+                          color:"#fff",
+                          cursor:"pointer",
+                          fontSize:13
+                        }}
+                        onClick={() => setConfirmAction({ type:"restoreItem", data:i })}
+                      >
+                        Restore
+                      </button>
+          
+                      <button
+                        style={{
+                          padding:"6px 10px",
+                          borderRadius:6,
+                          border:"none",
+                          background:"#ef4444",
+                          color:"#fff",
+                          cursor:"pointer",
+                          fontSize:13
+                        }}
+                        onClick={() => setConfirmAction({ type:"permanentDeleteItem", data:i })}
+                      >
+                        Delete
+                      </button>
+          
+                    </div>
+                  </td>
+                </tr>
+              ));
+            })()}
           </tbody>
         </table>
       </div>
+    </div>
 
-      <h2 style={{ marginTop: 20 }}>Deleted Transactions</h2>
+    {/* ================= DELETED TRANSACTIONS ================= */}
+    <div style={{
+      flex: 1,
+      background: "#fff",
+      padding: 20,
+      borderRadius: 12,
+      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+      display: "flex",
+      flexDirection: "column",
+      maxHeight: "600px",          // max height for scroll
+    }}>
+      <h2>Deleted Transactions</h2>
       <input
-        type="text"
+        style={{ ...styles.input, marginBottom: 10 }}
         placeholder="Search deleted transactions..."
         value={deletedTxSearch}
         onChange={(e) => setDeletedTxSearch(e.target.value)}
-        style={styles.searchInput}
       />
-      <div style={{ overflowX: "auto" }}>
-        <table style={styles.table}>
-          <thead>
+      <div style={{ overflowY: "auto", flex: 1 }}>
+        <table style={{
+          width: "100%",
+          borderCollapse: "collapse",
+        }}>
+          <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
-              <th style={styles.tableHeader}>Item</th>
-              <th style={styles.tableHeader}>Qty</th>
-              <th style={styles.tableHeader}>Deleted By</th>
-              <th style={styles.tableHeader}>Actions</th>
+              {["Date", "Item", "Brand", "Type", "Qty", "Total Price", "Actions"].map((th, idx) => (
+                <th key={idx} style={{
+                  padding: "12px 10px",
+                  textAlign: "left",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  borderBottom: "1px solid #e5e7eb"
+                }}>{th}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {deletedTransactions.map(d => (
-              <tr key={d.id}>
-                <td style={styles.tableCell}>{d.items?.item_name}</td>
-                <td style={styles.tableCell}>{d.quantity}</td>
-                <td style={styles.tableCell}>{d.deleted_by}</td>
-                <td style={styles.tableCell}>
-                  <button onClick={() => setConfirmAction({ type: "restoreTx", tx: d })}>Restore</button>
-                  <button onClick={() => setConfirmAction({ type: "deleteTx", tx: d })}>Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+              {(() => {
+                const filteredDeleted = deletedTransactions.filter(
+                  (t) =>
+                    (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
+                    (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
+                );
+            
+                if (filteredDeleted.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={7} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                        No deleted items
+                      </td>
+                    </tr>
+                  );
+                }
+            
+                return filteredDeleted.map((i) => (
+                  <tr key={i.id}>
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      {i.date}
+                    </td>
+            
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      {capitalizeWords(i.items?.item_name)}
+                    </td>
+            
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      {displayBrand(i.items?.brand)}
+                    </td>
+            
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      {i.type}
+                    </td>
+            
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      {formatNumber(i.quantity)}
+                    </td>
+            
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      ₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}
+                    </td>
+            
+                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                      <div style={{ display:"flex", gap:8 }}>
+            
+                        <button
+                          style={{
+                            padding:"6px 10px",
+                            borderRadius:6,
+                            border:"none",
+                            background:"#10b981",
+                            color:"#fff",
+                            cursor:"pointer",
+                            fontSize:13
+                          }}
+                          onClick={() => setConfirmAction({ type:"restoreTx", data:i })}
+                        >
+                          Restore
+                        </button>
+            
+                        <button
+                          style={{
+                            padding:"6px 10px",
+                            borderRadius:6,
+                            border:"none",
+                            background:"#ef4444",
+                            color:"#fff",
+                            cursor:"pointer",
+                            fontSize:13
+                          }}
+                          onClick={() => setConfirmAction({ type:"permanentDeleteTx", data:i })}
+                        >
+                          Delete
+                        </button>
+            
+                      </div>
+                    </td>
+                  </tr>
+                ));
+              })()}
+            </tbody>
         </table>
       </div>
     </div>
-  );
-}
 
-// ================= MONTHLY REPORT TAB =================
-function MonthlyReportTab({ monthlyTransactions, reportMonth, reportYear, setReportMonth, setReportYear, selectedStockRoom, exportMonthlyReport, monthlySummary, netValue }) {
-  return (
-    <div style={{ flex: 1, padding: 20, overflowY: "auto" }} id="reportSection">
-      <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-        <input type="month" value={`${reportYear}-${reportMonth}`} onChange={(e) => {
-          const [y, m] = e.target.value.split("-");
-          setReportYear(Number(y));
-          setReportMonth(Number(m));
-        }} />
-        <button onClick={() => exportMonthlyReport(selectedStockRoom, reportMonth, reportYear)}>Export Report</button>
+  </div>
+)}
+
+        {/* ================= PROFESSIONAL MONTHLY REPORT ================= */}
+{activeTab === "report" && (
+<div id="reportSection">
+  <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+
+    {/* HEADER */}
+    <div style={{
+      background: "#111827",
+      color: "#fff",
+      padding: 20,
+      borderRadius: 10
+    }}>
+      <h2 style={{ margin: 0 }}>Lago De Oro Inventory Monthly Report</h2>
+      <p style={{ margin: "4px 0 0 0", opacity: 0.8 }}>
+        {new Date(0, reportMonth - 1).toLocaleString("default", { month: "long" })} {reportYear}
+        {selectedStockRoom && ` — ${selectedStockRoom}`}
+      </p>
+    </div>
+
+    {/* FILTERS */}
+      <div style={{ display: "flex", gap: 12, alignItems:"center" }}>
+      <select
+        style={styles.input}
+        value={reportMonth}
+        onChange={e => setReportMonth(Number(e.target.value))}
+      >
+        {[...Array(12)].map((_, i) => (
+          <option key={i+1} value={i+1}>
+            {new Date(0, i).toLocaleString("default", { month: "long" })}
+          </option>
+        ))}
+      </select>
+
+      <input
+        style={styles.input}
+        type="number"
+        value={reportYear}
+        onChange={e => setReportYear(Number(e.target.value))}
+      />
+      <button
+        style={styles.buttonPrimary}
+        onClick={() => window.print()}
+      >
+        🖨 Print Report
+      </button>
+      <button
+        style={{ ...styles.buttonPrimary, background:"#16a34a" }}
+        onClick={exportMonthlyReport}
+      >
+      📊 Export Excel
+      </button>
+    </div>
+
+    {/* KPI SUMMARY */}
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: 16
+    }}>
+      <div style={{ ...styles.card, borderLeft: "6px solid #10b981" }}>
+        <h4>Total IN</h4>
+        <p>{formatNumber(monthlySummary?.totalInQty || 0)} units</p>
+        <strong>₱{Number(monthlySummary?.totalInValue || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</strong>
       </div>
 
-      <h2>Monthly Summary</h2>
-      <div>Total Transactions: {monthlySummary.totalTx}</div>
-      <div>Net Value: ₱{netValue.toLocaleString()}</div>
+      <div style={{ ...styles.card, borderLeft: "6px solid #ef4444" }}>
+        <h4>Total OUT</h4>
+        <p>{formatNumber(monthlySummary?.totalOutQty || 0)} units</p>
+        <strong>₱{Number(monthlySummary?.totalOutValue || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</strong>
+      </div>
 
-      <div style={{ overflowX: "auto", marginTop: 12 }}>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.tableHeader}>Date</th>
-              <th style={styles.tableHeader}>Item</th>
-              <th style={styles.tableHeader}>Qty</th>
-              <th style={styles.tableHeader}>Type</th>
-              <th style={styles.tableHeader}>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            {monthlyTransactions.map(tx => (
-              <tr key={tx.id}>
-                <td style={styles.tableCell}>{tx.date}</td>
-                <td style={styles.tableCell}>{tx.items?.item_name}</td>
-                <td style={styles.tableCell}>{tx.quantity}</td>
-                <td style={styles.tableCell}>{tx.type}</td>
-                <td style={styles.tableCell}>₱{(tx.quantity * tx.price).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div style={{
+        ...styles.card,
+        background: netValue >= 0 ? "#ecfdf5" : "#fef2f2",
+        borderLeft: `6px solid ${netValue >= 0 ? "#10b981" : "#ef4444"}`
+      }}>
+        <h4>Net Movement</h4>
+        <strong style={{ fontSize: 18 }}>
+          ₱{Number(netValue).toLocaleString(undefined,{minimumFractionDigits:2})}
+        </strong>
       </div>
     </div>
-  );
-}
 
-// ================= MODAL COMPONENT =================
-function Modal({ modalType, setShowModal, form, setForm, items, brandOptions, setBrandOptions, handleFormChange, handleSubmit, selectedStockRoom }) {
-  return (
-    <div style={styles.modalBackdrop}>
-      <div style={styles.modalContent}>
-        <h3>{modalType}</h3>
-
-        {/* Item Name */}
-        <input
-          type="text"
-          placeholder="Item Name"
-          value={form.item_name || ""}
-          onChange={(e) => handleFormChange("item_name", e.target.value)}
-        />
-
-        {/* Brand */}
-        <input
-          type="text"
-          placeholder="Brand"
-          list="brandOptions"
-          value={form.brand || ""}
-          onChange={(e) => handleFormChange("brand", e.target.value)}
-        />
-        <datalist id="brandOptions">
-          {brandOptions.map((b, idx) => <option key={idx} value={b} />)}
-        </datalist>
-
-        {/* Category */}
-        <input
-          type="text"
-          placeholder="Category"
-          value={form.category || ""}
-          onChange={(e) => handleFormChange("category", e.target.value)}
-        />
-
-        {/* Quantity */}
-        <input
-          type="number"
-          placeholder="Quantity"
-          value={form.quantity || ""}
-          onChange={(e) => handleFormChange("quantity", e.target.value)}
-        />
-
-        {/* Price */}
-        <input
-          type="number"
-          placeholder="Unit Price"
-          value={form.price || ""}
-          onChange={(e) => handleFormChange("price", e.target.value)}
-        />
-
-        {/* Date (for transactions) */}
-        {(modalType === "transaction" || modalType.startsWith("edit")) && (
-          <input
-            type="date"
-            value={form.date || ""}
-            onChange={(e) => handleFormChange("date", e.target.value)}
-          />
-        )}
-
-        {/* Type (IN/OUT for transactions) */}
-        {(modalType === "transaction" || modalType.startsWith("edit")) && (
-          <select value={form.type} onChange={(e) => handleFormChange("type", e.target.value)}>
-            <option value="IN">IN</option>
-            <option value="OUT">OUT</option>
-          </select>
-        )}
-
-        {/* Location */}
-        <input
-          type="text"
-          placeholder="Location"
-          value={form.location || selectedStockRoom}
-          onChange={(e) => handleFormChange("location", e.target.value)}
-        />
-
-        {/* Buttons */}
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <button onClick={handleSubmit}>Submit</button>
-          <button onClick={() => setShowModal(false)}>Close</button>
-        </div>
-      </div>
+    {/* PER ITEM SUMMARY */}
+    <div style={styles.card}>
+      <h3>Per Item Summary</h3>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.thtd}>Item</th>
+            <th style={styles.thtd}>Brand</th>
+            <th style={styles.thtd}>Total IN</th>
+            <th style={styles.thtd}>Total OUT</th>
+            <th style={styles.thtd}>Net Qty</th>
+            <th style={styles.thtd}>Net Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(() => {
+            if (monthlyTransactions.length === 0) {
+              return (
+                <tr>
+                  <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                    No transactions for this month
+                  </td>
+                </tr>
+              );
+            }
+        
+            return Object.values(
+              monthlyTransactions.reduce((acc, t) => {
+                const key = `${t.items?.item_name}-${t.items?.brand}`;
+                const price = Number(t.unit_price || t.items?.unit_price || 0);
+                const qty = Number(t.quantity || 0);
+        
+                if (!acc[key]) {
+                  acc[key] = {
+                    item: t.items?.item_name,
+                    brand: t.items?.brand,
+                    inQty: 0,
+                    outQty: 0,
+                    price
+                  };
+                }
+        
+                if (t.type === "IN") acc[key].inQty += qty;
+                else acc[key].outQty += qty;
+        
+                return acc;
+              }, {})
+            ).map((row, idx) => {
+              const netQty = row.inQty - row.outQty;
+              const netValue = netQty * row.price;
+        
+              return (
+                <tr key={idx}>
+                  <td style={styles.thtd}>{capitalizeWords(row.item)}</td>
+                  <td style={styles.thtd}>{displayBrand(row.brand)}</td>
+                  <td style={styles.thtd}>{formatNumber(row.inQty)}</td>
+                  <td style={styles.thtd}>{formatNumber(row.outQty)}</td>
+                  <td style={styles.thtd}>{formatNumber(netQty)}</td>
+                  <td style={styles.thtd}>₱{Number(netValue).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                </tr>
+              );
+            });
+          })()}
+        </tbody>
+      </table>
     </div>
-  );
-}
 
-// ================= CONFIRM MODAL =================
-function ConfirmModal({ confirmAction, setConfirmAction, loadData, supabase }) {
-  return (
-    <div style={styles.modalBackdrop}>
-      <div style={styles.modalContent}>
-        <h3>Confirm {confirmAction.type}</h3>
-        <p>Are you sure you want to proceed?</p>
-        <div style={{ display: "flex", gap: 12 }}>
-          <button onClick={async () => {
-            // handle confirm logic
+    {/* DETAILED TRANSACTIONS */}
+    <div style={styles.card}>
+      <h3>Detailed Transactions</h3>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.thtd}>Date</th>
+            <th style={styles.thtd}>Item</th>
+            <th style={styles.thtd}>Brand</th>
+            <th style={styles.thtd}>Type</th>
+            <th style={styles.thtd}>Qty</th>
+            <th style={styles.thtd}>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {monthlyTransactions.length === 0
+            ? emptyRowComponent(6, "No transactions")
+            : monthlyTransactions
+                .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
+                .map(t => (
+                <tr key={t.id}>
+                  <td style={styles.thtd}>{t.date}</td>
+                  <td style={styles.thtd}>{capitalizeWords(t.items?.item_name)}</td>
+                  <td style={styles.thtd}>{displayBrand(t.items?.brand)}</td>
+                  <td style={styles.thtd}>{t.type}</td>
+                  <td style={styles.thtd}>{formatNumber(t.quantity)}</td>
+                  <td style={styles.thtd}>
+                   ₱{Number((t.quantity || 0) *
+                      (t.unit_price || t.items?.unit_price || 0)
+                    ).toLocaleString(undefined,{minimumFractionDigits:2})}
+                  </td>
+                </tr>
+              ))}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+)}
+
+               {/* ================= MODAL ================= */}
+        {showModal && (
+          <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
+            <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
+             
+              {/* NEW OPTION MODAL */}
+              {modalType === "newOption" && (
+                <>
+                  <h3>What do you want to add?</h3>
+                  <button style={{ ...styles.newOptionButton, background:"#1f2937", color:"#fff" }} onClick={openNewItemModal}>Add New Item</button>
+                  <button style={{ ...styles.newOptionButton, background:"#e5e7eb", color:"#374151" }} onClick={openNewTransactionModal}>Add New Transaction</button>
+                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+                </>
+              )}
+
+              {/* STOCK ROOM PROMPT */}
+              {modalType === "stockRoomPrompt" && (
+                <>
+                  <h3>Select Stock Room First</h3>
+                  <select style={styles.input} value={selectedStockRoom} onChange={e => { setSelectedStockRoom(e.target.value); setModalType("newOption"); }}>
+                    <option value="">Select Stock Room</option>
+                    {stockRooms
+                      .filter(r => userRooms.includes(r))
+                      .map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+                </>
+              )}
+
+              {/* ADD ITEM MODAL */}
+              {modalType === "item" && (
+                <>
+                  <h3>{form.id ? "Edit Item" : "New Item"}</h3>
+                  <input 
+                    style={styles.input} 
+                    placeholder="Item Name" 
+                    value={form.item_name} 
+                    onChange={e => handleFormChange("item_name", e.target.value)}
+                  />
+                  <input 
+                    style={styles.input} 
+                    placeholder="Brand" 
+                    value={form.brand} 
+                    onChange={e => handleFormChange("brand", e.target.value)} 
+                  />
+                  {brandOptions.length > 0 && (
+                    <div
+                      style={{
+                        border: "1px solid #d1d5db",
+                        borderRadius: 10,
+                        marginTop: 6,
+                        marginBottom: 12,
+                        background: "#ffffff",
+                        boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+                        maxHeight: 160,
+                        overflowY: "auto"
+                      }}
+                    >
+                      {brandOptions.map((b, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            padding: "10px 14px",
+                            cursor: "pointer",
+                            fontSize: 14,
+                            fontWeight: 500,
+                            color: "#374151",
+                            borderBottom:
+                              idx !== brandOptions.length - 1
+                                ? "1px solid #f3f4f6"
+                                : "none"
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "#eef2ff";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "#ffffff";
+                          }}
+                          onClick={() => {
+                            handleFormChange("brand", b);
+                            setBrandOptions([]);
+                          }}
+                        >
+                          {b}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <input
+                    list="category-list"
+                    style={styles.input}
+                    placeholder="Select or type category"
+                    value={form.category || ""}
+                    onChange={e => handleFormChange("category", e.target.value)}
+                  />
+                  
+                  <datalist id="category-list">
+                    {Array.from(
+                      new Set(items.map(i => i.category).filter(Boolean))
+                    ).map((cat, idx) => (
+                      <option key={idx} value={cat} />
+                    ))}
+                  </datalist>
+                                    
+                  <input 
+                      style={styles.input}
+                      type="number"
+                      placeholder="Price"
+                      value={form.price}
+                      onChange={e => handleFormChange("price", e.target.value)}
+                    />
+                  <button style={styles.buttonPrimary} onClick={handleSubmit}>
+                    {form.id ? "Update" : "Create"}
+                  </button>
+                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+                </>
+              )}
+
+              {/* ADD TRANSACTION MODAL */}
+              {modalType === "transaction" && (
+                <>
+                  <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
+
+                  <input style={styles.input} type="date" value={form.date} onChange={e => handleFormChange("date", e.target.value)} />
+
+                  <select
+                style={styles.input}
+                value={form.item_name}
+                onChange={e => handleFormChange("item_name", e.target.value)}
+              >
+                <option value="">Select Item</option>
+                {[
+                  ...new Set(
+                    items
+                      .filter(i => i.location === selectedStockRoom && !i.deleted)
+                      .map(i => i.item_name)
+                  )
+                ].map(itemName => (
+                  <option key={itemName} value={itemName}>
+                    {capitalizeWords(itemName)}
+                  </option>
+                ))}
+              </select>
+
+                  {/* 🔹 BRAND SELECTOR (Stock-Room Aware) */}
+                  <select
+                    style={styles.input}
+                    value={form.brand}
+                    onChange={e => handleFormChange("brand", e.target.value)}
+                    disabled={!form.item_name} // disabled until an item is selected
+                  >
+                    <option value="">Select Brand</option>
+                    {items
+                      .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom && !i.deleted)
+                      .map(i => i.brand)
+                      .filter((brand, index, self) => self.indexOf(brand) === index) // unique brands
+                      .map(brand => (
+                        <option key={brand} value={brand}>
+                          {capitalizeWords(brand)}
+                        </option>
+                      ))}
+                  </select>
+
+                  <div style={styles.toggleGroup}>
+                    <button style={styles.toggleButton(form.type==="IN")} onClick={() => handleFormChange("type","IN")}>IN</button>
+                    <button style={styles.toggleButton(form.type==="OUT")} onClick={() => handleFormChange("type","OUT")}>OUT</button>
+                  </div>
+
+                  <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e => handleFormChange("quantity", e.target.value)} />
+                  <input style={styles.input} type="number" placeholder="Price per unit" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
+
+                  <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
+                    <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
+                    <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+                  </div>
+                </>
+              )}
+
+            </div>
+          </div>
+        )}
+
+        {/* ================= CONFIRM MODAL ================= */}
+{confirmAction && (
+  <div style={styles.modalOverlay}>
+    <div style={styles.modalCard}>
+      <h3>Confirm Action</h3>
+
+      <p>
+        Are you sure you want to{" "}
+        <b>
+          {confirmAction.type === "deleteItem" && `delete item "${confirmAction?.data?.item_name}"?`}
+          {confirmAction.type === "restoreItem" && "restore this item?"}
+          {confirmAction.type === "permanentDeleteItem" && `permanently delete item "${confirmAction?.data?.item_name}"?`}
+          {confirmAction.type === "deleteTx" && "delete this transaction?"}
+          {confirmAction.type === "restoreTx" && "restore this transaction?"}
+          {confirmAction.type === "permanentDeleteTx" && "permanently delete this transaction?"}
+        </b>
+      </p>
+
+      <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+        <button
+          style={styles.buttonPrimary}
+          onClick={async () => {
+            const { type, data } = confirmAction;
+
+            try {
+
+              if (type === "deleteItem") {
+                await supabase.from("items").update({ deleted: true }).eq("id", data.id);
+                await supabase.from("inventory_transactions").update({ deleted: true }).eq("item_id", data.id);
+              }
+
+              else if (type === "restoreItem") {
+                await supabase.from("items").update({ deleted: false }).eq("id", data.id);
+                await supabase.from("inventory_transactions").update({ deleted: false }).eq("item_id", data.id);
+              }
+
+              else if (type === "permanentDeleteItem") {
+                await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
+                await supabase.from("items").delete().eq("id", data.id);
+              }
+
+              else if (type === "deleteTx") {
+                await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", data.id);
+              }
+
+              else if (type === "restoreTx") {
+                await supabase.from("inventory_transactions").update({ deleted: false }).eq("id", data.id);
+              }
+
+              else if (type === "permanentDeleteTx") {
+                await supabase.from("inventory_transactions").delete().eq("id", data.id);
+              }
+
+              await loadData();
+
+            } catch (error) {
+              console.error(error);
+              alert("Something went wrong.");
+            }
+
             setConfirmAction(null);
-            await loadData();
-          }}>Yes</button>
-          <button onClick={() => setConfirmAction(null)}>Cancel</button>
+          }}
+        >
+          Confirm
+        </button>
+
+        <button
+          style={styles.buttonSecondary}
+          onClick={() => setConfirmAction(null)}
+        >
+          Cancel
+        </button>
         </div>
-      </div>
+            </div>
+          </div>
+        )}
+    
+          <style>
+          {`
+          @media print {
+          
+            body * {
+              visibility: hidden;
+            }
+          
+            #reportSection, #reportSection * {
+              visibility: visible;
+            }
+          
+            #reportSection {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+            }
+          
+          }
+          `}
+         </style>
+
+      </>
+      )}
+
     </div>
-  );
-}
+  </div>
+    );
+    }
