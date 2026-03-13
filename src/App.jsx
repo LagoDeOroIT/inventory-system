@@ -800,14 +800,18 @@ const handleFormChange = (key, value) => {
   setModalType("transaction");
   setShowModal(true);
 };
-  const handleNewClick = () => {
-    if(!selectedStockRoom) {
-      setModalType("stockRoomPrompt");
+ const handleNewClick = () => {
+
+    // If no stock room selected
+    if (!selectedStockRoom) {
+      setModalType("stockRoomPrompt"); // open Select Stock Room modal
       setShowModal(true);
-    } else {
-      setModalType("newOption");
-      setShowModal(true);
+      return;
     }
+  
+    // If stock room already selected
+    setModalType("newOption"); 
+    setShowModal(true);
   };
   // ================= SUBMIT =================
    const saveTransaction = async () => {
