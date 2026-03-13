@@ -2078,7 +2078,7 @@ if (form.type === "OUT") {
                     value={form.brand} 
                     onChange={e => handleFormChange("brand", e.target.value)} 
                   />
-                  {brandOptions.length > 0 && (
+                  {form.brand && brandOptions.length > 0 && (
                     <div
                       style={{
                         border: "1px solid #d1d5db",
