@@ -705,9 +705,9 @@ export default function App() {
 const handleFormChange = (key, value) => {
 
   // AUTO CAPITALIZE TEXT INPUTS
-  if (typeof value === "string") {
-    value = capitalizeWords(value.trimStart());
-  }
+  if (typeof value === "string" && key !== "type") {
+      value = capitalizeWords(value.trimStart());
+    }
 
   // Update brand suggestions when typing item name
   if (key === "item_name") {
