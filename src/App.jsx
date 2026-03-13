@@ -902,7 +902,7 @@ if (form.type === "OUT") {
       };
       if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
       else await supabase.from("inventory_transactions").insert([txData]);
-      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+      setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
       setShowModal(false);
       setModalType("");
       loadData();
@@ -917,7 +917,20 @@ if (form.type === "OUT") {
         };
       if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
       else {
-        const { data } = await supabase.from("items").insert([itemData]);
+        const { data, error } = await supabase
+            .from("items")
+            insert([itemData]).select()
+            .select();
+        const { data, error } = await supabase
+            .from("items")
+            insert([itemData]).select()
+            .select();
+          
+          if (error) {
+            console.error(error);
+            alert(error.message);
+            return;
+          }
         if(data?.length && modalTypeBeforeItem === "transaction") {
           setForm(prev => ({ ...prev, item_id: data[0].id }));
           setModalType("transaction");
@@ -926,7 +939,7 @@ if (form.type === "OUT") {
           return;
         }
       }
-      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+      setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
       setShowModal(false);
       setModalType("");
       loadData();
