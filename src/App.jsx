@@ -370,7 +370,7 @@ export default function App() {
 
 };
   const [transactions, setTransactions] = useState([]);
-  const [activeTab, setActiveTab] = useState("stock");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [brandOptions, setBrandOptions] = useState([]);
   const [inSearch, setInSearch] = useState("");
