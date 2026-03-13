@@ -2270,4 +2270,3 @@ if (form.type === "OUT") {
     </div>
   </div>
     );
-    }
