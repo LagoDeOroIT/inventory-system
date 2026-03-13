@@ -2067,75 +2067,86 @@ if (form.type === "OUT") {
               {modalType === "item" && (
                 <>
                   <h3>{form.id ? "Edit Item" : "New Item"}</h3>
-                  <input
-                      style={styles.input}
-                      placeholder="Item Name"
-                      value={form.item_name}
-                      onChange={e => {
-                        const value = e.target.value;
-                        handleFormChange("item_name", value);
+                    <div style={{ position: "relative" }}>
+                      <input
+                        style={styles.input}
+                        placeholder="Item Name"
+                        value={form.item_name}
+                        onChange={e => {
+                          const value = e.target.value;
+                          handleFormChange("item_name", value);
                     
-                        const matches = items
-                          .filter(i =>
-                            i.location === selectedStockRoom &&
-                            !i.deleted &&
-                            i.item_name.toLowerCase().includes(value.toLowerCase())
-                          )
-                          .map(i => i.item_name);
+                          const matches = items
+                            .filter(i =>
+                              i.location === selectedStockRoom &&
+                              !i.deleted &&
+                              i.item_name.toLowerCase().includes(value.toLowerCase())
+                            )
+                            .map(i => i.item_name);
                     
-                        setItemOptions([...new Set(matches)]);
-                      }}
-                      onFocus={() => {
-                        const allItems = items
-                          .filter(i => i.location === selectedStockRoom && !i.deleted)
-                          .map(i => i.item_name);
-                    
-                        setItemOptions([...new Set(allItems)]);
-                      }}
-                    />
-                  {itemOptions.length > 0 && (
-                      <div
-                        style={{
-                          border: "1px solid #d1d5db",
-                          borderRadius: 10,
-                          marginTop: 6,
-                          marginBottom: 12,
-                          background: "#ffffff",
-                          boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
-                          maxHeight: 160,
-                          overflowY: "auto"
+                          setItemOptions([...new Set(matches)]);
                         }}
-                      >
-                        {itemOptions.map((name, idx) => (
-                          <div
-                            key={idx}
-                            style={{
-                              padding: "10px 14px",
-                              cursor: "pointer",
-                              fontSize: 14,
-                              fontWeight: 500,
-                              color: "#374151",
-                              borderBottom:
-                                idx !== itemOptions.length - 1
-                                  ? "1px solid #f3f4f6"
-                                  : "none"
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = "#eef2ff";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = "#ffffff";
-                            }}
-                            onClick={() => {
-                              handleFormChange("item_name", name);
-                              setItemOptions([]);
-                            }}
-                          >
-                            {capitalizeWords(name)}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                        onFocus={() => {
+                          const allItems = items
+                            .filter(i => i.location === selectedStockRoom && !i.deleted)
+                            .map(i => i.item_name);
+                    
+                          setItemOptions([...new Set(allItems)]);
+                        }}
+                        onBlur={() => {
+                          setTimeout(() => setItemOptions([]), 150);
+                        }}
+                      />
+                    
+                      {/* FLOATING SELECTOR */}
+                      {itemOptions.length > 0 && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: "100%",
+                            left: 0,
+                            right: 0,
+                            border: "1px solid #d1d5db",
+                            borderRadius: 10,
+                            marginTop: 4,
+                            background: "#ffffff",
+                            boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+                            maxHeight: 160,
+                            overflowY: "auto",
+                            zIndex: 1000
+                          }}
+                        >
+                          {itemOptions.map((name, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                padding: "10px 14px",
+                                cursor: "pointer",
+                                fontSize: 14,
+                                fontWeight: 500,
+                                color: "#374151",
+                                borderBottom:
+                                  idx !== itemOptions.length - 1
+                                    ? "1px solid #f3f4f6"
+                                    : "none"
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#eef2ff";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "#ffffff";
+                              }}
+                              onClick={() => {
+                                handleFormChange("item_name", name);
+                                setItemOptions([]);
+                              }}
+                            >
+                              {capitalizeWords(name)}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                  </div>
                   <input 
                     style={styles.input} 
                     placeholder="Brand" 
