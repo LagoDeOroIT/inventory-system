@@ -2170,7 +2170,7 @@ if (form.type === "OUT") {
                       )}
                   </div>
                   <div style={{ position: "relative" }}>
-
+                    {/* BRAND INPUT */}
                     <input
                       style={styles.input}
                       placeholder="Brand"
@@ -2178,7 +2178,7 @@ if (form.type === "OUT") {
                       onChange={e => {
                         const value = e.target.value;
                         handleFormChange("brand", value);
-                    
+                  
                         const matches = items
                           .filter(i =>
                             i.location === selectedStockRoom &&
@@ -2188,7 +2188,7 @@ if (form.type === "OUT") {
                             i.brand.toLowerCase().includes(value.toLowerCase())
                           )
                           .map(i => i.brand);
-                    
+                  
                         setBrandOptions([...new Set(matches)]);
                       }}
                       onFocus={() => {
@@ -2199,12 +2199,13 @@ if (form.type === "OUT") {
                             i.item_name === form.item_name
                           )
                           .map(i => i.brand);
-                    
+                  
                         setBrandOptions([...new Set(allBrands)]);
                       }}
                       onBlur={() => setTimeout(() => setBrandOptions([]), 150)}
                     />
-                    
+                  
+                    {/* BRAND DROPDOWN */}
                     {brandOptions.length > 0 && (
                       <div style={styles.dropdown}>
                         {brandOptions.map((b, idx) => (
@@ -2221,8 +2222,8 @@ if (form.type === "OUT") {
                         ))}
                       </div>
                     )}
-                    
-                    </div>
+                  
+                  </div>
                   {form.brand && brandOptions.length > 0 && (
                     <div
                       style={{
