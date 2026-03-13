@@ -258,7 +258,7 @@ const styles = {
   table: { width: "100%", borderCollapse: "collapse", marginTop: 16 },
   thtd: { border: "1px solid #e5e7eb", padding: 8, textAlign: "left" },
   emptyRow: { textAlign: "center", padding: 12, color: "#6b7280" },
-  modalOverlay: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 },
+  modalOverlay: {position: "fixed",top: 0,left: 0,width: "100%",height: "100%",background: "rgba(0,0,0,0.4)",display: "flex",alignItems: "center",justifyContent: "center",zIndex: 9999,}
   modalCard: { background: "#fff", padding: 24, borderRadius: 8, width: 400, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" },
   input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
   toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
@@ -425,31 +425,34 @@ export default function App() {
           ...i,
           deleted: i.deleted ?? false
         }));
+      
         const { data: tx } = await supabase
           .from("inventory_transactions")
           .select("*, items(item_name, brand, unit_price, location, category)")
           .order("date", { ascending: false });
+      
         const transactionsWithDeleted = (tx || []).map(t => ({
           ...t,
           deleted: t.deleted ?? false
         }));
+      
         setItems(itemsWithDeleted);
         setTransactions(transactionsWithDeleted);
+      
+        // ✅ Add these lines to populate IN and OUT tables
+        setInTransactions(transactionsWithDeleted.filter(t => t.type === "IN"));
+        setOutTransactions(transactionsWithDeleted.filter(t => t.type === "OUT"));
+      
+        // Category state
         const opened = {};
-          itemsWithDeleted.forEach(i => {
+        itemsWithDeleted.forEach(i => {
           const cat = i.category || "Uncategorized";
-            if (!(cat in opened)) {
-              opened[cat] = true;
-            }
-          });
-          
-          const savedCategories = localStorage.getItem("openCategories");
-          
-            if (!savedCategories) {
-          
-            setOpenCategories(opened);
-            }
-          };
+          if (!(cat in opened)) opened[cat] = true;
+        });
+      
+        const savedCategories = localStorage.getItem("openCategories");
+        if (!savedCategories) setOpenCategories(opened);
+      };
   // ================= FILTERS =================
   const filteredTransactions = transactions
     .filter(t => !t.deleted)
