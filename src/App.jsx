@@ -802,16 +802,15 @@ const handleFormChange = (key, value) => {
 };
  const handleNewClick = () => {
 
-    // If no stock room selected
     if (!selectedStockRoom) {
-      setModalType("stockRoomPrompt"); // open Select Stock Room modal
+      setModalType("stockRoomPrompt");
       setShowModal(true);
       return;
     }
   
-    // If stock room already selected
-    setModalType("newOption"); 
+    setModalType("newOption");
     setShowModal(true);
+  
   };
   // ================= SUBMIT =================
    const saveTransaction = async () => {
