@@ -273,12 +273,16 @@ const styles = {
   modalCard: { background: "#fff", padding: 24, borderRadius: 8, width: 400, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" },
   input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
   toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
-  toggleButton: (active) => ({
+  toggleButton: (active, type) => ({
     flex: 1,
     padding: "8px 0",
     borderRadius: 6,
     border: active ? "none" : "1px solid #d1d5db",
-    background: active ? "#1f2937" : "#fff",
+    background: active
+      ? type === "IN"
+        ? "#16a34a"
+        : "#dc2626"
+      : "#fff",
     color: active ? "#fff" : "#374151",
     cursor: "pointer",
     fontWeight: 600,
@@ -295,7 +299,6 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [userRooms, setUserRooms] = useState([]);
-  const [transactionType, setTransactionType] = useState("IN");
   const loadUserProfile = async (userId) => {
 
   console.log("LOAD PROFILE FOR USER:", userId);
@@ -2144,7 +2147,7 @@ if (form.type === "OUT") {
                  <div style={styles.toggleGroup}>
                     <button
                       type="button"
-                      style={styles.toggleButton(form.type === "IN")}
+                      style={styles.toggleButton(form.type === "IN", "IN")}
                       onClick={() => handleFormChange("type", "IN")}
                     >
                       IN
@@ -2152,7 +2155,7 @@ if (form.type === "OUT") {
                   
                     <button
                       type="button"
-                      style={styles.toggleButton(form.type === "OUT")}
+                      style={styles.toggleButton(form.type === "OUT", "OUT")}
                       onClick={() => handleFormChange("type", "OUT")}
                     >
                       OUT
