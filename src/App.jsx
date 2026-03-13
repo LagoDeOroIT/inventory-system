@@ -858,15 +858,10 @@ const handleFormChange = (key, value) => {
         setShowModal(true);
       };
       const handleSubmit = async () => {
-        if (modalType === "item") {
-          await saveItem();
-          return;
-        }
-        
-        if (modalType === "transaction") {
-          await saveTransaction();
-          return;
-        }
+
+          if (modalType === "item" || modalType === "transaction") {
+            await saveTransaction();
+          }
     
     };
       // ================= SUBMIT =================
