@@ -466,10 +466,29 @@ export default function App() {
       };
   // ================= FILTERS =================
   const filteredTransactions = transactions
-    .filter(t => !t.deleted)
-    .filter(t => !selectedStockRoom || t.location === selectedStockRoom);  
+      .filter(t => !t.deleted)
+      .filter(t => {
+        if (!selectedStockRoom) return true;
+    
+        const txLocation = (t.location || t.items?.location || "")
+          .trim()
+          .toLowerCase();
+    
+        const selected = selectedStockRoom
+          .trim()
+          .toLowerCase();
+    
+        return txLocation === selected;
+      });
   const stockMap = filteredTransactions.reduce((acc, t) => {
   const qty = Number(t.quantity) || 0;
+      
+        if (!acc[t.item_id]) acc[t.item_id] = 0;
+      
+        acc[t.item_id] += t.type === "IN" ? qty : -qty;
+      
+        return acc;
+      }, {});
 
   const txLocation = (t.location || "").trim().toLowerCase();
   const selectedLocation = (selectedStockRoom || "").trim().toLowerCase();
@@ -484,7 +503,9 @@ export default function App() {
         return acc;
       }, {});
   const inTransactions = filteredTransactions.filter(t => t.type === "IN");
-  const outTransactions = filteredTransactions.filter(t => t.type === "OUT");
+  const outTransactions = filteredTransactions.filter(
+      t => (t.type || "").toUpperCase() === "OUT"
+    );
   const stockInventory = items
         .filter(i => !i.deleted)
         .filter(i => {
