@@ -1090,7 +1090,7 @@ if (form.type === "OUT") {
    {/* MAIN AREA */}
       <div style={styles.main}>
       
-          {!selectedStockRoom && !showModal ? (
+          {!selectedStockRoom ? (
             <div style={styles.welcomeScreen}>
           
               <div style={styles.welcomeContainer}>
