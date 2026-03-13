@@ -917,28 +917,26 @@ if (form.type === "OUT") {
         };
       if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
       else {
-        const { data, error } = await supabase
+          const { data, error } = await supabase
             .from("items")
-            insert([itemData]).select()
+            .insert([itemData])
             .select();
-        const { data, error } = await supabase
-            .from("items")
-            insert([itemData]).select()
-            .select();
-          
+        
           if (error) {
             console.error(error);
             alert(error.message);
             return;
           }
-        if(data?.length && modalTypeBeforeItem === "transaction") {
-          setForm(prev => ({ ...prev, item_id: data[0].id }));
-          setModalType("transaction");
-          setShowModal(true);
-          setModalTypeBeforeItem("");
-          return;
+        
+          if (data?.length && modalTypeBeforeItem === "transaction") {
+            setForm(prev => ({ ...prev, item_id: data[0].id }));
+            setModalType("transaction");
+            setShowModal(true);
+            setModalTypeBeforeItem("");
+            return;
+          }
+        
         }
-      }
       setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
       setShowModal(false);
       setModalType("");
