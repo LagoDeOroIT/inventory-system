@@ -280,7 +280,7 @@ const styles = {
         position: "relative",
         zIndex: 10000
       },
-        notification: {
+      notification: {
         position: "fixed",
         top: 20,
         right: 20,
@@ -292,10 +292,10 @@ const styles = {
         boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
         zIndex: 10000,
         animation: "fadeIn 0.3s ease"
-      }
-        input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
-  toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
-  toggleButton: (active, type) => ({
+      },
+    input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
+    toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
+    toggleButton: (active, type) => ({
     flex: 1,
     padding: "8px 0",
     borderRadius: 6,
