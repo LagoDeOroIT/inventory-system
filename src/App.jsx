@@ -983,13 +983,15 @@ if (form.type === "OUT") {
       
       );
   // ================= MAIN APP =================
-      {notification && (
-      <div style={styles.notification}>
-        ⚠ {notification}
-      </div>
-    )}
   return (
     <div style={styles.container}>
+
+      {/* NOTIFICATION */}
+      {notification && (
+        <div style={styles.notification}>
+          ⚠ {notification}
+        </div>
+      )}
      {/* SIDEBAR */}
         <div style={{
           ...styles.sidebar,
