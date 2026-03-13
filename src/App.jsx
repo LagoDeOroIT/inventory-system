@@ -259,17 +259,17 @@ const styles = {
   thtd: { border: "1px solid #e5e7eb", padding: 8, textAlign: "left" },
   emptyRow: { textAlign: "center", padding: 12, color: "#6b7280" },
   modalOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    background: "rgba(0,0,0,0.4)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999,
-  },
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      background: "rgba(0,0,0,0.4)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 9999
+    }
   modalCard: { background: "#fff", padding: 24, borderRadius: 8, width: 400, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" },
   input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
   toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
@@ -1619,7 +1619,7 @@ if (form.type === "OUT") {
                   </td>
           
                   <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                    {capitalizeWords(i.items?.brand)}
+                    {capitalizeWords(i.brand)}
                   </td>
           
                   <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
@@ -1905,29 +1905,39 @@ if (form.type === "OUT") {
             }
         
             return Object.values(
-              monthlyTransactions.reduce((acc, t) => {
-                const key = `${t.items?.item_name}-${t.items?.brand}`;
-                const price = Number(t.unit_price || t.items?.unit_price || 0);
-                const qty = Number(t.quantity || 0);
-        
-                if (!acc[key]) {
-                  acc[key] = {
-                    item: t.items?.item_name,
-                    brand: t.items?.brand,
-                    inQty: 0,
-                    outQty: 0,
-                    price
-                  };
-                }
-        
-                if (t.type === "IN") acc[key].inQty += qty;
-                else acc[key].outQty += qty;
-        
-                return acc;
-              }, {})
-            ).map((row, idx) => {
+                monthlyTransactions.reduce((acc, t) => {
+              
+                  const key = `${t.items?.item_name}-${t.items?.brand}`;
+                  const price = Number(t.unit_price || t.items?.unit_price || 0);
+                  const qty = Number(t.quantity || 0);
+                  const value = qty * price;
+              
+                  if (!acc[key]) {
+                    acc[key] = {
+                      item: t.items?.item_name,
+                      brand: t.items?.brand,
+                      inQty: 0,
+                      outQty: 0,
+                      inValue: 0,
+                      outValue: 0
+                    };
+                  }
+              
+                  if (t.type === "IN") {
+                    acc[key].inQty += qty;
+                    acc[key].inValue += value;
+                  } else {
+                    acc[key].outQty += qty;
+                    acc[key].outValue += value;
+                  }
+              
+                  return acc;
+              
+                }, {})
+              )
+              .map((row, idx) => {
               const netQty = row.inQty - row.outQty;
-              const netValue = netQty * row.price;
+              const netValue = row.inValue - row.outValue;
         
               return (
                 <tr key={idx}>
@@ -1936,7 +1946,9 @@ if (form.type === "OUT") {
                   <td style={styles.thtd}>{formatNumber(row.inQty)}</td>
                   <td style={styles.thtd}>{formatNumber(row.outQty)}</td>
                   <td style={styles.thtd}>{formatNumber(netQty)}</td>
-                  <td style={styles.thtd}>₱{Number(netValue).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                  <td style={styles.thtd}>
+                    ₱{Number(netValue).toLocaleString(undefined,{minimumFractionDigits:2})}
+                  </td>
                 </tr>
               );
             });
@@ -2113,10 +2125,19 @@ if (form.type === "OUT") {
                   <input style={styles.input} type="date" value={form.date} onChange={e => handleFormChange("date", e.target.value)} />
 
                   <select
-                style={styles.input}
-                value={form.item_name}
-                onChange={e => handleFormChange("item_name", e.target.value)}
-              >
+                      style={styles.input}
+                      value={form.item_name}
+                      onChange={e => {
+                        const newItem = e.target.value;
+                    
+                        setForm(prev => ({
+                          ...prev,
+                          item_name: newItem,
+                          brand: "",
+                          item_id: null
+                        }));
+                      }}
+                    >
                 <option value="">Select Item</option>
                 {[
                   ...new Set(
@@ -2133,11 +2154,27 @@ if (form.type === "OUT") {
 
                   {/* 🔹 BRAND SELECTOR (Stock-Room Aware) */}
                   <select
-                    style={styles.input}
-                    value={form.brand}
-                    onChange={e => handleFormChange("brand", e.target.value)}
-                    disabled={!form.item_name} // disabled until an item is selected
-                  >
+                      style={styles.input}
+                      value={form.brand}
+                      onChange={e => {
+                        const selectedBrand = e.target.value;
+                    
+                        const selectedItem = items.find(
+                          i =>
+                            i.item_name === form.item_name &&
+                            i.brand === selectedBrand &&
+                            i.location === selectedStockRoom &&
+                            !i.deleted
+                        );
+                    
+                        setForm(prev => ({
+                          ...prev,
+                          brand: selectedBrand,
+                          item_id: selectedItem?.id || null
+                        }));
+                      }}
+                      disabled={!form.item_name}
+                    >
                     <option value="">Select Brand</option>
                     {items
                       .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom && !i.deleted)
