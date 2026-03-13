@@ -791,8 +791,13 @@ const handleFormChange = (key, value) => {
   const handleSubmit = async () => {
     if(modalType === "transaction") {
       if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
-      const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
-     if(!existingItem) {
+      const existingItem = items.find(i =>
+        i.item_name === form.item_name &&
+        (i.brand || "No Brand") === (form.brand || "No Brand") &&
+        !i.deleted &&
+        i.location === selectedStockRoom
+      );     
+      if(!existingItem) {
   setConfirmAction({
     type: "createItemConfirm",
     data: { ...form }
@@ -800,7 +805,7 @@ const handleFormChange = (key, value) => {
   return;
 }
 if (form.type === "OUT") {
-  const currentStock = stockMap[existingItem.id] || 0;
+  const currentStock = Number(stockMap[existingItem.id] || 0);
   if (Number(form.quantity) > currentStock) {
     alert("Not enough stock.");
     return;
@@ -817,7 +822,16 @@ if (form.type === "OUT") {
       };
       if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
       else await supabase.from("inventory_transactions").insert([txData]);
-      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+      setForm({
+        date:"",
+        item_name:"",
+        brand:"",
+        brandOptions:[],
+        type:"IN",
+        quantity:"",
+        price:"",
+        id:null
+      });
       setShowModal(false);
       setModalType("");
       loadData();
@@ -841,7 +855,16 @@ if (form.type === "OUT") {
           return;
         }
       }
-      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
+      setForm({
+        date:"",
+        item_name:"",
+        brand:"",
+        brandOptions:[],
+        type:"IN",
+        quantity:"",
+        price:"",
+        id:null
+      });
       setShowModal(false);
       setModalType("");
       loadData();
