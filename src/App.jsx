@@ -465,7 +465,7 @@ export default function App() {
         if (!savedCategories) setOpenCategories(opened);
       };
   // ================= FILTERS =================
-  const filteredTransactions = transactions
+    const filteredTransactions = transactions
       .filter(t => !t.deleted)
       .filter(t => {
         if (!selectedStockRoom) return true;
@@ -480,28 +480,17 @@ export default function App() {
     
         return txLocation === selected;
       });
-  const stockMap = filteredTransactions.reduce((acc, t) => {
-  const qty = Number(t.quantity) || 0;
-      
-        if (!acc[t.item_id]) acc[t.item_id] = 0;
-      
-        acc[t.item_id] += t.type === "IN" ? qty : -qty;
-      
-        return acc;
-      }, {});
+    
+    const stockMap = filteredTransactions.reduce((acc, t) => {
+      const qty = Number(t.quantity) || 0;
+    
+      if (!acc[t.item_id]) acc[t.item_id] = 0;
+    
+      acc[t.item_id] += t.type === "IN" ? qty : -qty;
+    
+      return acc;
+    }, {});
 
-  const txLocation = (t.location || "").trim().toLowerCase();
-  const selectedLocation = (selectedStockRoom || "").trim().toLowerCase();
-          if (selectedStockRoom && txLocation !== selectedLocation) {
-          return acc;
-        }
-      
-        if (!acc[t.item_id]) acc[t.item_id] = 0;
-      
-        acc[t.item_id] += t.type === "IN" ? qty : -qty;
-      
-        return acc;
-      }, {});
   const inTransactions = filteredTransactions.filter(t => t.type === "IN");
   const outTransactions = filteredTransactions.filter(
       t => (t.type || "").toUpperCase() === "OUT"
@@ -531,7 +520,7 @@ export default function App() {
           location: i.location
         };
       });
-    const totalTransactions = transactions.filter(t => !t.deleted).length;
+    const totalTransactions = filteredTransactions.length;
     const totalCategories = new Set(
       stockInventory.map(i => i.category || "Uncategorized")
     ).size;
