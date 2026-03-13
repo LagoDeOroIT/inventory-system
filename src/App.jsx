@@ -862,16 +862,6 @@ const handleFormChange = (key, value) => {
         await saveTransaction();
       };
     
-      if (modalType === "item") {
-        await saveItem();
-        return;
-      }
-    
-      if (modalType === "transaction") {
-        await saveTransaction();
-        return;
-      }
-    
     };
       // ================= SUBMIT =================
    const saveTransaction = async () => {
