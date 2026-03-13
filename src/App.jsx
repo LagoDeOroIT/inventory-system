@@ -2145,10 +2145,11 @@ if (form.type === "OUT") {
                   </select>
 
                  <div style={styles.toggleGroup}>
+
                     <button
                       type="button"
                       style={styles.toggleButton(form.type === "IN", "IN")}
-                      onClick={() => handleFormChange("type", "IN")}
+                      onClick={() => handleFormChange("type","IN")}
                     >
                       IN
                     </button>
@@ -2156,10 +2157,11 @@ if (form.type === "OUT") {
                     <button
                       type="button"
                       style={styles.toggleButton(form.type === "OUT", "OUT")}
-                      onClick={() => handleFormChange("type", "OUT")}
+                      onClick={() => handleFormChange("type","OUT")}
                     >
                       OUT
                     </button>
+                  
                   </div>
 
                   <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e => handleFormChange("quantity", e.target.value)} />
