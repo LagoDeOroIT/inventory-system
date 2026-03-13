@@ -838,7 +838,20 @@ const handleFormChange = (key, value) => {
         setModalType("newOption");
         setShowModal(true);
       };
-  // ================= SUBMIT =================
+      const handleSubmit = async () => {
+    
+      if (modalType === "item") {
+        await saveItem();
+        return;
+      }
+    
+      if (modalType === "transaction") {
+        await saveTransaction();
+        return;
+      }
+    
+    };
+      // ================= SUBMIT =================
    const saveTransaction = async () => {
     if(modalType === "transaction") {
       if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
