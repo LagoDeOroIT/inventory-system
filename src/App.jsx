@@ -435,7 +435,7 @@ export default function App() {
       setSession(data.session);
   
       if (data.session) {
-        setActiveTab("stock"); // ⭐ ADD THIS LINE
+        setSelectedStockRoom("");
         loadUserProfile(data.session.user.id);
       }
   
@@ -1135,8 +1135,9 @@ if (form.type === "OUT") {
                   boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
                   transition: "background 0.2s, transform 0.1s"
                 }}
-                onClick={async () => { await supabase.auth.signOut();
-                setActiveTab("stock");
+                onClick={async () => { 
+              await supabase.auth.signOut();
+                setSelectedStockRoom("");
                 setSession(null);
                 }}
                 onMouseEnter={e => { 
