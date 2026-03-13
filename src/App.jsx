@@ -907,12 +907,12 @@ if (form.type === "OUT") {
       setModalType("");
       loadData();
     } else if(modalType === "item") {
-      if(!form.item_name || !form.price) return alert("Fill required fields");
+      if(!form.item_name || !form.unit_price) return alert("Fill required fields");
       const itemData = { 
           item_name: form.item_name, 
           brand: form.brand || "No Brand",
           category: form.category,
-          unit_price: Number(form.price),
+          unit_price: Number(form.unit_price),
           location: form.location || selectedStockRoom
         };
       if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
@@ -1506,7 +1506,7 @@ if (form.type === "OUT") {
                               brand: i.items?.brand,
                               type: i.type,
                               quantity: i.quantity,
-                              price: i.unit_price || i.items?.unit_price,
+                              unit_price: i.unit_price || i.items?.unit_price,
                               brandOptions: [i.items?.brand],
                             });
                             setModalType("transaction");
@@ -1600,7 +1600,7 @@ if (form.type === "OUT") {
                             brand: i.items?.brand,
                             type: i.type,
                             quantity: i.quantity,
-                            price: i.unit_price || i.items?.unit_price,
+                            unit_price: i.unit_price || i.items?.unit_price,
                             brandOptions: [i.items?.brand],
                           });
                           setModalType("transaction");
