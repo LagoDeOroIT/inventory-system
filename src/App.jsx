@@ -1785,7 +1785,7 @@ if (form.type === "OUT") {
                   return (
                     <tr>
                       <td colSpan={7} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                        No deleted transcations
+                        No deleted transactions
                       </td>
                     </tr>
                   );
