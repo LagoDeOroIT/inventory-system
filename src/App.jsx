@@ -2471,23 +2471,38 @@ if (form.type === "OUT") {
                 await supabase.from("items").delete().eq("id", data.id);
               }
 
-              else if (type === "deleteTx") {
-                await supabase.from("inventory_transactions").update({ deleted: true }).eq("id", data.id);
+             else if (type === "deleteTx") {
+                const result = await supabase
+                  .from("inventory_transactions")
+                  .update({ deleted: true })
+                  .eq("id", data.id);
+              
+                if (result.error) throw result.error;
               }
 
               else if (type === "restoreTx") {
-                await supabase.from("inventory_transactions").update({ deleted: false }).eq("id", data.id);
+                const result = await supabase
+                  .from("inventory_transactions")
+                  .update({ deleted: false })
+                  .eq("id", data.id);
+              
+                if (result.error) throw result.error;
               }
 
               else if (type === "permanentDeleteTx") {
-                await supabase.from("inventory_transactions").delete().eq("id", data.id);
+                const result = await supabase
+                  .from("inventory_transactions")
+                  .delete()
+                  .eq("id", data.id);
+              
+                if (result.error) throw result.error;
               }
 
               await loadData();
 
             } catch (error) {
               console.error(error);
-              alert("Something went wrong.");
+              alert(error.message);
             }
 
             setConfirmAction(null);
