@@ -435,7 +435,7 @@ export default function App() {
       setSession(data.session);
   
       if (data.session) {
-        setActiveTab("dashboard"); // ⭐ ADD THIS LINE
+        setActiveTab("inventory"); // ⭐ ADD THIS LINE
         loadUserProfile(data.session.user.id);
       }
   
@@ -1136,7 +1136,7 @@ if (form.type === "OUT") {
                   transition: "background 0.2s, transform 0.1s"
                 }}
                 onClick={async () => { await supabase.auth.signOut();
-                setActiveTab("dashboard");
+                setActiveTab("inventory");
                 setSession(null);
                 }}
                 onMouseEnter={e => { 
