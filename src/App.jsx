@@ -269,7 +269,7 @@ const styles = {
       justifyContent: "center",
       alignItems: "center",
       zIndex: 9999
-    }
+    },
   modalCard: { background: "#fff", padding: 24, borderRadius: 8, width: 400, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" },
   input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
   toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
