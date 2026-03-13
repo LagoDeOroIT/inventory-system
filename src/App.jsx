@@ -685,18 +685,13 @@ const handleFormChange = (key, value) => {
   if (key === "item_name") {
 
     const relatedBrands = items
-          .filter(i =>
-            i.item_name &&
-            i.item_name.toLowerCase().includes(value.toLowerCase()) &&
-            !i.deleted &&
-            (!selectedStockRoom || (i.location || "").toLowerCase() === selectedStockRoom.toLowerCase())
-          )
-          .map(i => i.brand)
-          .filter(Boolean);
-      
-        const uniqueBrands = [...new Set(relatedBrands)];
-        setBrandOptions(uniqueBrands);
-      }
+      .filter(i =>
+        i.item_name &&
+        i.item_name.toLowerCase().includes(value.toLowerCase()) &&
+        !i.deleted
+      )
+      .map(i => i.brand)
+      .filter(Boolean);
 
     const uniqueBrands = [...new Set(relatedBrands)];
 
@@ -726,21 +721,20 @@ const handleFormChange = (key, value) => {
 
     // Auto-fill price when brand is selected
     if (key === "brand") {
-        const selectedItem = items.find(
-          i =>
-            i.item_name &&
-            i.item_name.toLowerCase() === prev.item_name?.toLowerCase() &&
-            i.brand === value &&
-            !i.deleted &&
-            (!selectedStockRoom || (i.location || "").toLowerCase() === selectedStockRoom.toLowerCase()) // ✅ filter by stock room
-        );
-      
-        if (selectedItem) {
-          updated.price = selectedItem.unit_price;
-        } else {
-          updated.price = ""; // reset if no match in this stock room
-        }
+
+      const selectedItem = items.find(
+        i =>
+          i.item_name &&
+          i.item_name.toLowerCase() === prev.item_name?.toLowerCase() &&
+          i.brand === value &&
+          !i.deleted
+      );
+
+      if (selectedItem) {
+        updated.price = selectedItem.unit_price;
       }
+
+    }
 
     return updated;
   });
@@ -791,13 +785,8 @@ const handleFormChange = (key, value) => {
   const handleSubmit = async () => {
     if(modalType === "transaction") {
       if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
-      const existingItem = items.find(i =>
-        i.item_name === form.item_name &&
-        (i.brand || "No Brand") === (form.brand || "No Brand") &&
-        !i.deleted &&
-        i.location === selectedStockRoom
-      );     
-      if(!existingItem) {
+      const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
+     if(!existingItem) {
   setConfirmAction({
     type: "createItemConfirm",
     data: { ...form }
@@ -805,7 +794,7 @@ const handleFormChange = (key, value) => {
   return;
 }
 if (form.type === "OUT") {
-  const currentStock = Number(stockMap[existingItem.id] || 0);
+  const currentStock = stockMap[existingItem.id] || 0;
   if (Number(form.quantity) > currentStock) {
     alert("Not enough stock.");
     return;
@@ -822,16 +811,7 @@ if (form.type === "OUT") {
       };
       if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
       else await supabase.from("inventory_transactions").insert([txData]);
-      setForm({
-        date:"",
-        item_name:"",
-        brand:"",
-        brandOptions:[],
-        type:"IN",
-        quantity:"",
-        price:"",
-        id:null
-      });
+      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
       setShowModal(false);
       setModalType("");
       loadData();
@@ -855,80 +835,97 @@ if (form.type === "OUT") {
           return;
         }
       }
-      setForm({
-        date:"",
-        item_name:"",
-        brand:"",
-        brandOptions:[],
-        type:"IN",
-        quantity:"",
-        price:"",
-        id:null
-      });
+      setForm({ date:"", item_id:"", item_name:"", brand:"", brandOptions:[], type:"IN", quantity:"", price:"", id:null });
       setShowModal(false);
       setModalType("");
       loadData();
     }
   };
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
-      // ================= MAIN RETURN =================
-  return (
-    <>
-      {!session ? (
+  // ================= AUTH SCREEN =================
+      if(!session) return (
+      
         <div style={styles.loginPage}>
+      
           {/* LEFT SIDE BRAND PANEL */}
           <div style={styles.loginLeft}>
-            <div
-              style={{
-                background: "#ffffff",
-                padding: "10px 18px",
-                borderRadius: 12,
-                marginBottom: 25,
-                boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
-              }}
-            >
-              <img src="/logo.jpg" alt="Lago De Oro" style={{ width: 110, display: "block" }} />
+
+            <div style={{
+              background:"#ffffff",
+              padding:"10px 18px",
+              borderRadius:12,
+              marginBottom:25,
+              boxShadow:"0 6px 18px rgba(0,0,0,0.25)"
+            }}>
+              <img 
+                src="/logo.jpg"
+                alt="Lago De Oro"
+                style={{width:110, display:"block"}}
+              />
             </div>
 
-            <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: 1, marginBottom: 6 }}>
+            <div style={{
+              fontSize:40,
+              fontWeight:800,
+              letterSpacing:1,
+              marginBottom:6
+            }}>
               Lago De Oro
             </div>
-
-            <div style={{ fontSize: 15, opacity: 0.85, letterSpacing: 1, textTransform: "uppercase" }}>
+      
+            <div style={{
+              fontSize:15,
+              opacity:0.85,
+              letterSpacing:1,
+              textTransform:"uppercase"
+            }}>
               Inventory Management System
             </div>
+      
           </div>
-
+      
           {/* RIGHT SIDE LOGIN FORM */}
           <div style={styles.loginRight}>
+      
             <div style={styles.loginCard}>
-              <div style={styles.loginTitle}>Login</div>
-              <div style={styles.loginSubtitle}>Authorized Personnel Only</div>
-
+      
+              <div style={styles.loginTitle}>
+                Login
+              </div>
+      
+              <div style={styles.loginSubtitle}>
+                Authorized Personnel Only
+              </div>
+      
               <input
                 style={styles.loginInput}
                 placeholder="Email"
                 value={authEmail}
-                onChange={(e) => setAuthEmail(e.target.value)}
+                onChange={e=>setAuthEmail(e.target.value)}
               />
-
+      
               <input
                 style={styles.loginInput}
                 type="password"
                 placeholder="Password"
                 value={authPassword}
-                onChange={(e) => setAuthPassword(e.target.value)}
+                onChange={e=>setAuthPassword(e.target.value)}
               />
-
+      
               <button style={styles.loginButton} onClick={handleAuth}>
                 Login
               </button>
+      
             </div>
+      
           </div>
+      
         </div>
-      ) : (
-        // ================= MAIN APP =================
-        <div style={styles.container}>
+      
+      );
+  // ================= MAIN APP =================
+  return (
+    <div style={styles.container}>
      {/* SIDEBAR */}
         <div style={{
           ...styles.sidebar,
@@ -2244,3 +2241,4 @@ if (form.type === "OUT") {
     </div>
   </div>
     );
+    }
