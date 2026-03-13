@@ -258,19 +258,28 @@ const styles = {
   table: { width: "100%", borderCollapse: "collapse", marginTop: 16 },
   thtd: { border: "1px solid #e5e7eb", padding: 8, textAlign: "left" },
   emptyRow: { textAlign: "center", padding: 12, color: "#6b7280" },
-  modalOverlay: {
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100vw",
-      height: "100vh",
-      background: "rgba(0,0,0,0.4)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 9999
-    },
-  modalCard: { background: "#fff", padding: 24, borderRadius: 8, width: 400, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" },
+    modalOverlay: {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        background: "rgba(0,0,0,0.4)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 9999
+      },
+      modalCard: {
+        background: "#fff",
+        padding: 24,
+        borderRadius: 12,
+        minWidth: 320,
+        maxWidth: 400,
+        boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+        position: "relative",
+        zIndex: 10000
+      },
   input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
   toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
   toggleButton: (active, type) => ({
@@ -1081,7 +1090,7 @@ if (form.type === "OUT") {
    {/* MAIN AREA */}
       <div style={styles.main}>
       
-          {!selectedStockRoom ? (
+          {!selectedStockRoom && !showModal ? (
             <div style={styles.welcomeScreen}>
           
               <div style={styles.welcomeContainer}>
