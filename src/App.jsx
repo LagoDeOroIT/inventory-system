@@ -2183,6 +2183,7 @@ if (form.type === "OUT") {
                           .filter(i =>
                             i.location === selectedStockRoom &&
                             !i.deleted &&
+                            i.item_name === form.item_name &&
                             i.brand &&
                             i.brand.toLowerCase().includes(value.toLowerCase())
                           )
@@ -2192,7 +2193,11 @@ if (form.type === "OUT") {
                       }}
                       onFocus={() => {
                         const allBrands = items
-                          .filter(i => i.location === selectedStockRoom && !i.deleted)
+                          .filter(i =>
+                            i.location === selectedStockRoom &&
+                            !i.deleted &&
+                            i.item_name === form.item_name
+                          )
                           .map(i => i.brand);
                     
                         setBrandOptions([...new Set(allBrands)]);
