@@ -2207,7 +2207,22 @@ if (form.type === "OUT") {
                   
                     {/* BRAND DROPDOWN */}
                     {brandOptions.length > 0 && (
-                      <div style={styles.dropdown}>
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "100%",
+                          left: 0,
+                          right: 0,
+                          border: "1px solid #d1d5db",
+                          borderRadius: 10,
+                          marginTop: 4,
+                          background: "#ffffff",
+                          boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+                          maxHeight: 160,
+                          overflowY: "auto",
+                          zIndex: 1000
+                        }}
+                      >
                         {brandOptions.map((b, idx) => (
                           <div
                             key={idx}
@@ -2224,49 +2239,6 @@ if (form.type === "OUT") {
                     )}
                   
                   </div>
-                  {form.brand && brandOptions.length > 0 && (
-                    <div
-                      style={{
-                        border: "1px solid #d1d5db",
-                        borderRadius: 10,
-                        marginTop: 6,
-                        marginBottom: 12,
-                        background: "#ffffff",
-                        boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
-                        maxHeight: 160,
-                        overflowY: "auto"
-                      }}
-                    >
-                      {brandOptions.map((b, idx) => (
-                        <div
-                          key={idx}
-                          style={{
-                            padding: "10px 14px",
-                            cursor: "pointer",
-                            fontSize: 14,
-                            fontWeight: 500,
-                            color: "#374151",
-                            borderBottom:
-                              idx !== brandOptions.length - 1
-                                ? "1px solid #f3f4f6"
-                                : "none"
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "#eef2ff";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "#ffffff";
-                          }}
-                          onClick={() => {
-                            handleFormChange("brand", b);
-                            setBrandOptions([]);
-                          }}
-                        >
-                          {b}
-                        </div>
-                      ))}
-                    </div>
-                  )}
 
                   <div style={{ position: "relative" }}>
                     <input
@@ -2300,7 +2272,22 @@ if (form.type === "OUT") {
                     />
                     
                     {categoryOptions.length > 0 && (
-                      <div style={styles.dropdown}>
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "100%",
+                        left: 0,
+                        right: 0,
+                        border: "1px solid #d1d5db",
+                        borderRadius: 10,
+                        marginTop: 4,
+                        background: "#ffffff",
+                        boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+                        maxHeight: 160,
+                        overflowY: "auto",
+                        zIndex: 1000
+                      }}
+                    >
                         {categoryOptions.map((cat, idx) => (
                           <div
                             key={idx}
