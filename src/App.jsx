@@ -412,9 +412,9 @@ export default function App() {
     brandOptions:[],
     type:"IN",
     quantity:"",
-    price:"",
+    unit_price:"",
     id:null
-  });  
+  });
   const categories = [
   ...new Set(items.map(i => i.category).filter(Boolean))
     ];
@@ -2302,12 +2302,12 @@ if (form.type === "OUT") {
                     </div>
                                     
                   <input 
-                      style={styles.input}
-                      type="number"
-                      placeholder="Price"
-                      value={form.price}
-                      onChange={e => handleFormChange("price", e.target.value)}
-                    />
+                    style={styles.input}
+                    type="number"
+                    placeholder="Price"
+                    value={form.unit_price}
+                    onChange={e => handleFormChange("unit_price", e.target.value)}
+                  />
                   <button style={styles.buttonPrimary} onClick={handleSubmit}>
                     {form.id ? "Update" : "Create"}
                   </button>
@@ -2413,7 +2413,7 @@ if (form.type === "OUT") {
                       value={form.quantity}
                       onChange={e => handleFormChange("quantity", e.target.value)}
                     />
-                  <input style={styles.input} type="number" placeholder="Price per unit" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
+                  <input style={styles.input} type="number" placeholder="Price per unit" value={form.unit_price} onChange={e => handleFormChange("unit_price", e.target.value)} />
 
                   <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
                     <button style={styles.buttonPrimary} onClick={handleSubmit}>{form.id ? "Save Changes" : "Submit"}</button>
