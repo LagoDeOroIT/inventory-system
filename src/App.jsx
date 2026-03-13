@@ -1079,8 +1079,7 @@ if (form.type === "OUT") {
    {/* MAIN AREA */}
       <div style={styles.main}>
       
-      {!selectedStockRoom && !showModal ? (
-
+          {!selectedStockRoom ? (
             <div style={styles.welcomeScreen}>
           
               <div style={styles.welcomeContainer}>
@@ -1116,9 +1115,11 @@ if (form.type === "OUT") {
           ) : (
           
           <>
+            {selectedStockRoom && (
             <div style={styles.stockRoomHeader}>
               Stock Room: {selectedStockRoom}
             </div>
+          )}
       
   {/* STOCK INVENTORY TAB WITH SEARCH */}
 {activeTab === "stock" && (
