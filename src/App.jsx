@@ -280,7 +280,20 @@ const styles = {
         position: "relative",
         zIndex: 10000
       },
-  input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
+        notification: {
+        position: "fixed",
+        top: 20,
+        right: 20,
+        background: "#f59e0b",
+        color: "#fff",
+        padding: "12px 18px",
+        borderRadius: 8,
+        fontWeight: 500,
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        zIndex: 10000,
+        animation: "fadeIn 0.3s ease"
+      }
+        input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
   toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
   toggleButton: (active, type) => ({
     flex: 1,
@@ -306,6 +319,7 @@ const styles = {
 // ================= APP COMPONENT =================
 export default function App() {
   const [session, setSession] = useState(null);
+  const [notification, setNotification] = useState("");
   const [items, setItems] = useState([]);
   const [userRooms, setUserRooms] = useState([]);
   const loadUserProfile = async (userId) => {
@@ -809,17 +823,21 @@ const handleFormChange = (key, value) => {
   setModalType("transaction");
   setShowModal(true);
 };
- const handleNewClick = () => {
-
-    if (!selectedStockRoom || selectedStockRoom === "") {
-      setModalType("stockRoomPrompt");
-      setShowModal(true);
-      return;
-    }
-  
-    setModalType("newOption");
-    setShowModal(true);
-  };
+     const handleNewClick = () => {
+      
+        if (!selectedStockRoom) {
+          setNotification("Please select a Stock Room first.");
+          
+          setTimeout(() => {
+            setNotification("");
+          }, 3000);
+      
+          return;
+        }
+      
+        setModalType("newOption");
+        setShowModal(true);
+      };
   // ================= SUBMIT =================
    const saveTransaction = async () => {
     if(modalType === "transaction") {
@@ -965,6 +983,11 @@ if (form.type === "OUT") {
       
       );
   // ================= MAIN APP =================
+      {notification && (
+      <div style={styles.notification}>
+        ⚠ {notification}
+      </div>
+    )}
   return (
     <div style={styles.container}>
      {/* SIDEBAR */}
@@ -2020,20 +2043,6 @@ if (form.type === "OUT") {
                   <h3>What do you want to add?</h3>
                   <button style={{ ...styles.newOptionButton, background:"#1f2937", color:"#fff" }} onClick={openNewItemModal}>Add New Item</button>
                   <button style={{ ...styles.newOptionButton, background:"#e5e7eb", color:"#374151" }} onClick={openNewTransactionModal}>Add New Transaction</button>
-                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-                </>
-              )}
-
-              {/* STOCK ROOM PROMPT */}
-              {modalType === "stockRoomPrompt" && (
-                <>
-                  <h3>Select Stock Room First</h3>
-                  <select style={styles.input} value={selectedStockRoom} onChange={e => { setSelectedStockRoom(e.target.value); setModalType("newOption"); }}>
-                    <option value="">Select Stock Room</option>
-                    {stockRooms
-                      .filter(r => userRooms.includes(r))
-                      .map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
                   <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
                 </>
               )}
