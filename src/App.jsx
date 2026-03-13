@@ -295,6 +295,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
   const [userRooms, setUserRooms] = useState([]);
+  const [transactionType, setTransactionType] = useState("IN");
   const loadUserProfile = async (userId) => {
 
   console.log("LOAD PROFILE FOR USER:", userId);
