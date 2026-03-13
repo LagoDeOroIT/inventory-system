@@ -801,8 +801,8 @@ const handleFormChange = (key, value) => {
   setShowModal(true);
 };
  const handleNewClick = () => {
-  
-    if (!selectedStockRoom) {
+
+    if (!selectedStockRoom || selectedStockRoom === "") {
       setModalType("stockRoomPrompt");
       setShowModal(true);
       return;
@@ -810,7 +810,6 @@ const handleFormChange = (key, value) => {
   
     setModalType("newOption");
     setShowModal(true);
-  
   };
   // ================= SUBMIT =================
    const saveTransaction = async () => {
@@ -979,7 +978,10 @@ if (form.type === "OUT") {
             <select
               style={{ ...styles.sidebarSelect, width: "100%" }}
               value={selectedStockRoom}
-              onChange={e => setSelectedStockRoom(e.target.value)}
+              onChange={e => {
+                  const room = e.target.value;
+                  setSelectedStockRoom(room === "" ? "" : room);
+                }}
             >
               <option value="">Select Stock Room</option>
               {stockRooms
