@@ -321,6 +321,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [notification, setNotification] = useState("");
   const [items, setItems] = useState([]);
+  const [itemOptions, setItemOptions] = useState([]);
   const [userRooms, setUserRooms] = useState([]);
   const loadUserProfile = async (userId) => {
 
@@ -2067,24 +2068,74 @@ if (form.type === "OUT") {
                 <>
                   <h3>{form.id ? "Edit Item" : "New Item"}</h3>
                   <input
-                      list="item-list"
                       style={styles.input}
-                      placeholder="Select or type item name"
+                      placeholder="Item Name"
                       value={form.item_name}
-                      onChange={e => handleFormChange("item_name", e.target.value)}
-                    />
+                      onChange={e => {
+                        const value = e.target.value;
+                        handleFormChange("item_name", value);
                     
-                    <datalist id="item-list">
-                      {Array.from(
-                        new Set(
-                          items
-                            .filter(i => i.location === selectedStockRoom && !i.deleted)
-                            .map(i => i.item_name)
-                        )
-                      ).map((item, idx) => (
-                        <option key={idx} value={item} />
-                      ))}
-                    </datalist>
+                        const matches = items
+                          .filter(i =>
+                            i.location === selectedStockRoom &&
+                            !i.deleted &&
+                            i.item_name.toLowerCase().includes(value.toLowerCase())
+                          )
+                          .map(i => i.item_name);
+                    
+                        setItemOptions([...new Set(matches)]);
+                      }}
+                      onFocus={() => {
+                        const allItems = items
+                          .filter(i => i.location === selectedStockRoom && !i.deleted)
+                          .map(i => i.item_name);
+                    
+                        setItemOptions([...new Set(allItems)]);
+                      }}
+                    />
+                  {itemOptions.length > 0 && (
+                      <div
+                        style={{
+                          border: "1px solid #d1d5db",
+                          borderRadius: 10,
+                          marginTop: 6,
+                          marginBottom: 12,
+                          background: "#ffffff",
+                          boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+                          maxHeight: 160,
+                          overflowY: "auto"
+                        }}
+                      >
+                        {itemOptions.map((name, idx) => (
+                          <div
+                            key={idx}
+                            style={{
+                              padding: "10px 14px",
+                              cursor: "pointer",
+                              fontSize: 14,
+                              fontWeight: 500,
+                              color: "#374151",
+                              borderBottom:
+                                idx !== itemOptions.length - 1
+                                  ? "1px solid #f3f4f6"
+                                  : "none"
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "#eef2ff";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "#ffffff";
+                            }}
+                            onClick={() => {
+                              handleFormChange("item_name", name);
+                              setItemOptions([]);
+                            }}
+                          >
+                            {capitalizeWords(name)}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   <input 
                     style={styles.input} 
                     placeholder="Brand" 
