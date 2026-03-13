@@ -1436,7 +1436,7 @@ if (form.type === "OUT") {
                   return (
                     <tr>
                       <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                        No matching items
+                        No transactions found
                       </td>
                     </tr>
                   );
@@ -1530,7 +1530,7 @@ if (form.type === "OUT") {
                 return (
                   <tr>
                     <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                      No matching items
+                      No transactions found
                     </td>
                   </tr>
                 );
@@ -1753,7 +1753,7 @@ if (form.type === "OUT") {
                   return (
                     <tr>
                       <td colSpan={7} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                        No deleted items
+                        No deleted transcations
                       </td>
                     </tr>
                   );
@@ -2229,7 +2229,14 @@ if (form.type === "OUT") {
                   
                   </div>
 
-                  <input style={styles.input} type="number" placeholder="Quantity" value={form.quantity} onChange={e => handleFormChange("quantity", e.target.value)} />
+                  <input
+                      style={styles.input}
+                      type="number"
+                      min="1"
+                      placeholder="Quantity"
+                      value={form.quantity}
+                      onChange={e => handleFormChange("quantity", e.target.value)}
+                    />
                   <input style={styles.input} type="number" placeholder="Price per unit" value={form.price} onChange={e => handleFormChange("price", e.target.value)} />
 
                   <div style={{ display:"flex", justifyContent:"flex-end", gap:12 }}>
@@ -2255,7 +2262,7 @@ if (form.type === "OUT") {
           {confirmAction.type === "deleteItem" && `delete item "${confirmAction?.data?.item_name}"?`}
           {confirmAction.type === "restoreItem" && "restore this item?"}
           {confirmAction.type === "permanentDeleteItem" && `permanently delete item "${confirmAction?.data?.item_name}"?`}
-          {confirmAction.type === "deleteTx" && "delete this transaction?"}
+          {confirmAction.type === "deleteTx" && `delete transaction on "${confirmAction?.data?.date}"?`}
           {confirmAction.type === "restoreTx" && "restore this transaction?"}
           {confirmAction.type === "permanentDeleteTx" && "permanently delete this transaction?"}
         </b>
