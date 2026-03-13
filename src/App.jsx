@@ -370,7 +370,7 @@ export default function App() {
 
 };
   const [transactions, setTransactions] = useState([]);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [brandOptions, setBrandOptions] = useState([]);
   const [inSearch, setInSearch] = useState("");
@@ -435,7 +435,7 @@ export default function App() {
       setSession(data.session);
   
       if (data.session) {
-        setActiveTab("inventory"); // ⭐ ADD THIS LINE
+        setActiveTab("stock"); // ⭐ ADD THIS LINE
         loadUserProfile(data.session.user.id);
       }
   
@@ -1136,7 +1136,7 @@ if (form.type === "OUT") {
                   transition: "background 0.2s, transform 0.1s"
                 }}
                 onClick={async () => { await supabase.auth.signOut();
-                setActiveTab("inventory");
+                setActiveTab("stock");
                 setSession(null);
                 }}
                 onMouseEnter={e => { 
