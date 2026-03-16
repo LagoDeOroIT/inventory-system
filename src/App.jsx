@@ -1479,48 +1479,58 @@ if (form.type === "OUT") {
                     <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
             
                     <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
-                      <div style={{ display: "flex", gap: 10 }}>
-                          <button
-                            title="Edit"
-                            style={{
-                              border: "none",
-                              background: "transparent",
-                              cursor: "pointer",
-                              fontSize: 16
-                            }}
-                            onClick={() => {
-                            setForm({
-                              id: i.id,
-                              item_id: i.item_id,
-                              date: i.date,
-                              item_name: i.items?.item_name,
-                              brand: i.items?.brand,
-                              type: i.type,
-                              quantity: i.quantity,
-                              unit_price: i.unit_price || i.items?.unit_price,
-                              brandOptions: [i.items?.brand],
-                            });
-                            setModalType("transaction");
-                            setShowModal(true);
-                          }}
-                        >
-                          ✏️
-                        </button>
-                          <button
-                            title="Delete"
-                            style={{
-                              border: "none",
-                              background: "transparent",
-                              cursor: "pointer",
-                              fontSize: 16,
-                              color: "#ef4444"
-                            }}
-                          onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 4
+                      }}
+                    >
+                      <button
+                        title="Edit"
+                        style={{
+                          border: "none",
+                          background: "transparent",
+                          cursor: "pointer",
+                          fontSize: 14,
+                          padding: 4
+                        }}
+                        onClick={() => {
+                          setForm({
+                            id: i.id,
+                            item_id: i.item_id,
+                            date: i.date,
+                            item_name: i.items?.item_name,
+                            brand: i.items?.brand,
+                            type: i.type,
+                            quantity: i.quantity,
+                            unit_price: i.unit_price || i.items?.unit_price,
+                            brandOptions: [i.items?.brand],
+                          });
+                          setModalType("transaction");
+                          setShowModal(true);
+                        }}
+                      >
+                        ✏️
+                      </button>
+                  
+                      <button
+                        title="Delete"
+                        style={{
+                          border: "none",
+                          background: "transparent",
+                          cursor: "pointer",
+                          fontSize: 14,
+                          padding: 4,
+                          color: "#ef4444"
+                        }}
+                        onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </td>
                   </tr>
                 ));
               })()}
@@ -1592,16 +1602,24 @@ if (form.type === "OUT") {
                   <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
           
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
-                    <div style={{ display: "flex", gap: 10 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 4
+                      }}
+                    >
                       <button
-                          title="Edit"
-                          style={{
-                            border: "none",
-                            background: "transparent",
-                            cursor: "pointer",
-                            fontSize: 16
-                          }}
-                          onClick={() => {
+                        title="Edit"
+                        style={{
+                          border: "none",
+                          background: "transparent",
+                          cursor: "pointer",
+                          fontSize: 14,
+                          padding: 4
+                        }}
+                        onClick={() => {
                           setForm({
                             id: i.id,
                             item_id: i.item_id,
@@ -1619,15 +1637,17 @@ if (form.type === "OUT") {
                       >
                         ✏️
                       </button>
-                      <button   
-                          title="Delete"
-                          style={{
-                            border: "none",
-                            background: "transparent",
-                            cursor: "pointer",
-                            fontSize: 16,
-                            color: "#ef4444"
-                          }}
+                  
+                      <button
+                        title="Delete"
+                        style={{
+                          border: "none",
+                          background: "transparent",
+                          cursor: "pointer",
+                          fontSize: 14,
+                          padding: 4,
+                          color: "#ef4444"
+                        }}
                         onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
                       >
                         🗑️
