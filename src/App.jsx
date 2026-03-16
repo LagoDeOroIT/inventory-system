@@ -1620,7 +1620,6 @@ if (form.type === "OUT") {
                         ✏️
                       </button>
                       <button   
-                        <button
                           title="Delete"
                           style={{
                             border: "none",
