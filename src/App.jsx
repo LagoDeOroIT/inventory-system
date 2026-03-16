@@ -1468,7 +1468,9 @@ if (form.type === "OUT") {
                 return filteredIn.map((i) => (
                   <tr key={i.id}>
                     <td>{i.date}</td>
-                    <td>{capitalizeWords(i.items?.item_name)}</td>
+                    <td style={{maxWidth:220, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                      {capitalizeWords(i.items?.item_name)}
+                    </td>
                     <td>{displayBrand(i.items?.brand)}</td>
                     <td>{formatNumber(i.quantity)}</td>
                     <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
@@ -1567,7 +1569,9 @@ if (form.type === "OUT") {
               return filteredOut.map((i) => (
                 <tr key={i.id}>
                   <td>{i.date}</td>
-                  <td>{capitalizeWords(i.items?.item_name)}</td>
+                  <td style={{maxWidth:220, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                    {capitalizeWords(i.items?.item_name)}
+                  </td>
                   <td>{displayBrand(i.items?.brand)}</td>
                   <td>{formatNumber(i.quantity)}</td>
                   <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
