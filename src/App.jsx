@@ -2420,9 +2420,14 @@ if (form.type === "OUT") {
         {/* ================= CONFIRM MODAL ================= */}
 {confirmAction && (
   <div style={styles.modalOverlay}>
-    <div style={styles.modalCard}>
-      <h3>Confirm Action</h3>
 
+   <Draggable handle=".modalHeader">
+      <div style={styles.modalCard}>
+    
+      <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
+        <h3>Confirm Action</h3>
+      </div>
+    
       <p>
         Are you sure you want to{" "}
         <b>
@@ -2505,9 +2510,10 @@ if (form.type === "OUT") {
           Cancel
         </button>
         </div>
-            </div>
-          </div>
-        )}
+      </div>
+   </Draggable>
+ </div>
+)}
     
           <style>
           {`
