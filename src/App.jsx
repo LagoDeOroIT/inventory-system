@@ -1590,9 +1590,8 @@ if (form.type === "OUT") {
                       >
                         Edit
                       </button>
-          
-                      <button
-                      <button   style={{ ...styles.buttonSecondary, padding: "4px 8px", fontSize: 12, background: "#f87171", color: "#fff" }}
+                      <button   
+                        style={{ ...styles.buttonSecondary, padding: "4px 8px", fontSize: 12, background: "#f87171", color: "#fff" }}
                         onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
                       >
                         Delete
