@@ -1422,7 +1422,7 @@ if (form.type === "OUT") {
       boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
       display: "flex",
       flexDirection: "column",
-      maxHeight: "600px", // scrollable height
+      height: "70vh",
     }}>
       <h2>IN Transactions</h2>
       <input
@@ -1516,7 +1516,7 @@ if (form.type === "OUT") {
       boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
       display: "flex",
       flexDirection: "column",
-      maxHeight: "600px", // scrollable height
+      height: "70vh",    
     }}>
       <h2>OUT Transactions</h2>
       <input
