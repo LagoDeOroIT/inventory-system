@@ -1447,7 +1447,7 @@ if (form.type === "OUT") {
               <th style={{width:"90px"}}>Brand</th>
               <th style={{width:"60px"}}>Qty</th>
               <th style={{width:"100px"}}>Total Price</th>
-              <th style={{ width: "70px", textAlign: "center" }}>Actions</th>
+              <th style={{ width: "120px", textAlign: "center" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1487,14 +1487,15 @@ if (form.type === "OUT") {
                         gap: 2
                       }}
                     >
-                      <button
-                        title="Edit"
+                        <button
                         style={{
+                          background: "#3b82f6",
+                          color: "#fff",
                           border: "none",
-                          background: "transparent",
+                          padding: "4px 8px",
+                          borderRadius: 6,
                           cursor: "pointer",
-                          fontSize: 14,
-                          padding: 4
+                          fontSize: 12
                         }}
                         onClick={() => {
                           setForm({
@@ -1512,22 +1513,22 @@ if (form.type === "OUT") {
                           setShowModal(true);
                         }}
                       >
-                        ✏️
+                        Edit
                       </button>
                   
                       <button
-                        title="Delete"
                         style={{
+                          background: "#ef4444",
+                          color: "#fff",
                           border: "none",
-                          background: "transparent",
+                          padding: "4px 8px",
+                          borderRadius: 6,
                           cursor: "pointer",
-                          fontSize: 14,
-                          padding: 4,
-                          color: "#ef4444"
+                          fontSize: 12
                         }}
                         onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
                       >
-                        🗑️
+                        Delete
                       </button>
                     </div>
                   </td>
@@ -1570,7 +1571,7 @@ if (form.type === "OUT") {
               <th style={{width:"90px"}}>Brand</th>
               <th style={{width:"60px"}}>Qty</th>
               <th style={{width:"100px"}}>Total Price</th>
-              <th style={{ width: "70px", textAlign: "center" }}>Actions</th>
+              <th style={{ width: "120px", textAlign: "center" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1611,13 +1612,14 @@ if (form.type === "OUT") {
                       }}
                     >
                       <button
-                        title="Edit"
                         style={{
+                          background: "#3b82f6",
+                          color: "#fff",
                           border: "none",
-                          background: "transparent",
+                          padding: "4px 8px",
+                          borderRadius: 6,
                           cursor: "pointer",
-                          fontSize: 14,
-                          padding: 4
+                          fontSize: 12
                         }}
                         onClick={() => {
                           setForm({
@@ -1635,22 +1637,21 @@ if (form.type === "OUT") {
                           setShowModal(true);
                         }}
                       >
-                        ✏️
+                        Edit
                       </button>
-                  
                       <button
-                        title="Delete"
                         style={{
+                          background: "#ef4444",
+                          color: "#fff",
                           border: "none",
-                          background: "transparent",
+                          padding: "4px 8px",
+                          borderRadius: 6,
                           cursor: "pointer",
-                          fontSize: 14,
-                          padding: 4,
-                          color: "#ef4444"
+                          fontSize: 12
                         }}
                         onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
                       >
-                        🗑️
+                        Delete
                       </button>
                     </div>
                   </td>
