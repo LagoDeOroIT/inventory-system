@@ -453,7 +453,10 @@ export default function App() {
       };
   // ================= LOAD DATA =================
         const loadData = async () => {
-        const { data: itemsData } = await supabase.from("items").select("*");
+        const { data: itemsData } = await supabase
+        .from("items")
+        .select("*")
+        .order("item_name", { ascending: true });
         const itemsWithDeleted = (itemsData || []).map(i => ({
           ...i,
           deleted: i.deleted ?? false
