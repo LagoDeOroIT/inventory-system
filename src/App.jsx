@@ -2411,8 +2411,9 @@ if (form.type === "OUT") {
               )}
 
             </div>
-          </div>
-        )}
+          </Draggable>
+        </div>
+       )}
 
         {/* ================= CONFIRM MODAL ================= */}
 {confirmAction && (
