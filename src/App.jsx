@@ -1417,14 +1417,15 @@ if (form.type === "OUT") {
         height: "100%"
       }}>
     {/* ================= IN TRANSACTIONS ================= */}
-    <div style={{
+     <div style={{
         background: "#fff",
         padding: 20,
         borderRadius: 12,
         boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
         display: "flex",
         flexDirection: "column",
-        minWidth: 0
+        minWidth: 0,
+        height: "520px"
       }}>
       <h2>IN Transactions</h2>
       <input
@@ -1433,7 +1434,11 @@ if (form.type === "OUT") {
         value={inSearch}
         onChange={(e) => setInSearch(e.target.value)}
       />
-      <div>
+      <div style={{
+          flex: 1,
+          overflowY: "auto",
+          marginTop: 10
+        }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
@@ -1476,8 +1481,15 @@ if (form.type === "OUT") {
                     <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
                       <div style={{ display: "flex", gap: 10 }}>
                         <button
-                          style={{ ...styles.buttonSecondary, padding: "4px 8px", fontSize: 12 }}
-                          onClick={() => {
+                          <button
+                            title="Edit"
+                            style={{
+                              border: "none",
+                              background: "transparent",
+                              cursor: "pointer",
+                              fontSize: 16
+                            }}
+                            onClick={() => {
                             setForm({
                               id: i.id,
                               item_id: i.item_id,
@@ -1493,13 +1505,21 @@ if (form.type === "OUT") {
                             setShowModal(true);
                           }}
                         >
-                          Edit
+                          ✏️
                         </button>
                         <button   
-                          style={{ ...styles.buttonSecondary, padding: "4px 8px", fontSize: 12, background: "#f87171", color: "#fff" }}
+                          <button
+                            title="Delete"
+                            style={{
+                              border: "none",
+                              background: "transparent",
+                              cursor: "pointer",
+                              fontSize: 16,
+                              color: "#ef4444"
+                            }}
                           onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
                         >
-                          Delete
+                          🗑️
                         </button>
                       </div>
                     </td>
@@ -1519,7 +1539,8 @@ if (form.type === "OUT") {
         boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
         display: "flex",
         flexDirection: "column",
-        minWidth: 0
+        minWidth: 0,
+        height: "520px"
       }}>
       <h2>OUT Transactions</h2>
       <input
@@ -1528,7 +1549,11 @@ if (form.type === "OUT") {
         value={outSearch}
         onChange={(e) => setOutSearch(e.target.value)}
       />
-      <div>
+      <div style={{
+          flex: 1,
+          overflowY: "auto",
+          marginTop: 10
+        }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
              <tr>
@@ -1571,8 +1596,15 @@ if (form.type === "OUT") {
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
                     <div style={{ display: "flex", gap: 10 }}>
                       <button
-                        style={{ ...styles.buttonSecondary, padding: "4px 8px", fontSize: 12 }}
-                        onClick={() => {
+                        <button
+                          title="Edit"
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            cursor: "pointer",
+                            fontSize: 16
+                          }}
+                          onClick={() => {
                           setForm({
                             id: i.id,
                             item_id: i.item_id,
@@ -1588,13 +1620,21 @@ if (form.type === "OUT") {
                           setShowModal(true);
                         }}
                       >
-                        Edit
+                        ✏️
                       </button>
                       <button   
-                        style={{ ...styles.buttonSecondary, padding: "4px 8px", fontSize: 12, background: "#f87171", color: "#fff" }}
+                        <button
+                          title="Delete"
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            cursor: "pointer",
+                            fontSize: 16,
+                            color: "#ef4444"
+                          }}
                         onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
                       >
-                        Delete
+                        🗑️
                       </button>
                     </div>
                   </td>
