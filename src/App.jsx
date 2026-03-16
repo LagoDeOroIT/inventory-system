@@ -2055,7 +2055,7 @@ if (form.type === "OUT") {
                {/* ================= MODAL ================= */}
         {showModal && (
           <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
-            <Draggable handle=".modalHeader">
+            <Draggable handle=".modalHeader" bounds="parent">
               <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
               {/* NEW OPTION MODAL */}
               {modalType === "newOption" && (
@@ -2421,7 +2421,7 @@ if (form.type === "OUT") {
 {confirmAction && (
   <div style={styles.modalOverlay}>
 
-   <Draggable handle=".modalHeader">
+   <Draggable handle=".modalHeader" bounds="parent">
       <div style={styles.modalCard}>
     
       <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
