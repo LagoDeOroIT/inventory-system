@@ -1431,15 +1431,20 @@ if (form.type === "OUT") {
         value={inSearch}
         onChange={(e) => setInSearch(e.target.value)}
       />
-      <div style={{ overflowY: "auto", flex: 1 }}>
+      <div style={{ 
+          overflowY: "auto", 
+          overflowX: "hidden",
+          flex: 1 
+        }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
-              {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
-                <th key={idx} style={{ padding: "12px 10px", textAlign: "left", fontSize: 14, fontWeight: 600, borderBottom: "1px solid #e5e7eb" }}>
-                  {th}
-                </th>
-              ))}
+              <th style={{width:"110px"}}>Date</th>
+              <th style={{width:"220px"}}>Item</th>
+              <th style={{width:"120px"}}>Brand</th>
+              <th style={{width:"70px"}}>Qty</th>
+              <th style={{width:"120px"}}>Total Price</th>
+              <th style={{width:"120px"}}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1525,15 +1530,20 @@ if (form.type === "OUT") {
         value={outSearch}
         onChange={(e) => setOutSearch(e.target.value)}
       />
-      <div style={{ overflowY: "auto", flex: 1 }}>
+      <div style={{ 
+          overflowY: "auto", 
+          overflowX: "hidden",
+          flex: 1 
+        }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
-              {["Date", "Item", "Brand", "Qty", "Total Price", "Actions"].map((th, idx) => (
-                <th key={idx} style={{ padding: "12px 10px", textAlign: "left", fontSize: 14, fontWeight: 600, borderBottom: "1px solid #e5e7eb" }}>
-                  {th}
-                </th>
-              ))}
+              <th style={{width:"110px"}}>Date</th>
+              <th style={{width:"220px"}}>Item</th>
+              <th style={{width:"120px"}}>Brand</th>
+              <th style={{width:"70px"}}>Qty</th>
+              <th style={{width:"120px"}}>Total Price</th>
+              <th style={{width:"120px"}}>Actions</th>
             </tr>
           </thead>
           <tbody>
