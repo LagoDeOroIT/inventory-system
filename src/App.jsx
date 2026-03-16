@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-
 // ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://mkfhjklomofrvnnwwknh.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZmhqa2xvbW9mcnZubnd3a25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTczNzAsImV4cCI6MjA4ODU5MzM3MH0.6Q8p9ms8mnf2daONf7HTP3jGZD_bQuNQrv6cpy0ZUts";
@@ -33,12 +32,12 @@ const styles = {
     gap:20
   },
   welcomeCard: {
-  background: "#ffffff",
-  padding: "60px 80px",
-  borderRadius: 12,
-  textAlign: "center",
-  boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-  maxWidth: 700
+    background: "#ffffff",
+    padding: "60px 80px",
+    borderRadius: 12,
+    textAlign: "center",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+    maxWidth: 700
   },
   dropdown: {
     position: "absolute",
@@ -63,60 +62,55 @@ const styles = {
     borderBottom: "1px solid #f3f4f6"
   },
   welcomeInstruction: {
-  fontSize: 14,
-  color: "#888",
-  marginTop: 10
+    fontSize: 14,
+    color: "#888",
+    marginTop: 10
   },
   stockRoomHeader: {
-  background: "#f3f4f6",
-  padding: "12px 16px",
-  borderRadius: 8,
-  marginBottom: 16,
-  fontWeight: 600,
-  fontSize: 15
+    background: "#f3f4f6",
+    padding: "12px 16px",
+    borderRadius: 8,
+    marginBottom: 16,
+    fontWeight: 600,
+    fontSize: 15
   },
   welcomeScreen: {
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  height: "100%",
-  width: "100%"
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100%",
+    width: "100%"
   },
-  
   welcomeContainer:{
-  background:"#ffffff",
-  padding:"70px 90px",
-  borderRadius:16,
-  textAlign:"center",
-  boxShadow:"0 20px 60px rgba(0,0,0,0.12)",
-  maxWidth:750
+    background:"#ffffff",
+    padding:"70px 90px",
+    borderRadius:16,
+    textAlign:"center",
+    boxShadow:"0 20px 60px rgba(0,0,0,0.12)",
+    maxWidth:750
   },
-
   welcomeDivider:{
-  width:120,
-  height:4,
-  background:"#d97706",
-  margin:"20px auto",
-  borderRadius:2
+    width:120,
+    height:4,
+    background:"#d97706",
+    margin:"20px auto",
+    borderRadius:2
   },
-
   welcomeLogo: {
-  width: 220,
-  marginBottom: 25
+    width: 220,
+    marginBottom: 25
   },
-
   welcomeTitle: {
-  fontSize: 30,
-  fontWeight: 700,
-  color: "#111827",
-  lineHeight: 1.4,
-  marginBottom: 10
+    fontSize: 30,
+    fontWeight: 700,
+    color: "#111827",
+    lineHeight: 1.4,
+    marginBottom: 10
   },
-
   welcomeSubtitle: {
-  fontSize: 16,
-  color: "#6b7280",
-  marginBottom: 5
+    fontSize: 16,
+    color: "#6b7280",
+    marginBottom: 5
   },
   dashboard:{
     display:"grid",
@@ -167,14 +161,14 @@ const styles = {
   main: { 
     flex: 1, 
     padding: 24, 
-    overflowY: "auto",    // allows scrolling of right side
-    height: "100vh"       // fills vertical space
+    overflowY: "auto",   
+    height: "100vh" 
   },  
   categoryRow:{
-  background:"#f8fafc",
-  borderTop:"1px solid #e5e7eb",
-  borderBottom:"1px solid #e5e7eb",
-  cursor:"pointer"
+    background:"#f8fafc",
+    borderTop:"1px solid #e5e7eb",
+    borderBottom:"1px solid #e5e7eb",
+    cursor:"pointer"
   },
   categoryContainer:{
     display:"flex",
@@ -182,27 +176,24 @@ const styles = {
     alignItems:"center",
     fontWeight:600
   },
-  
   categoryLeft:{
     display:"flex",
     alignItems:"center",
     gap:10,
     fontSize:15
   },
-  
   categoryRight:{
     display:"flex",
     gap:20,
     fontSize:13,
     color:"#6b7280",
     fontWeight:500
-    },
-    loginPage:{
+  },
+  loginPage:{
     display:"flex",
     height:"100vh",
     width:"100%"
   },
-  
   loginLeft:{
     flex:1,
     background:"#111827",
@@ -213,7 +204,6 @@ const styles = {
     alignItems:"center",
     padding:"60px"
   },
-  
   loginRight:{
     flex:1,
     background:"#f9fafb",
@@ -221,7 +211,6 @@ const styles = {
     justifyContent:"center",
     alignItems:"center"
   },
-  
   loginCard:{
     width:380,
     background:"#fff",
@@ -229,19 +218,16 @@ const styles = {
     borderRadius:12,
     boxShadow:"0 20px 40px rgba(0,0,0,0.1)"
   },
-  
   loginTitle:{
     fontSize:24,
     fontWeight:700,
     marginBottom:10
   },
-  
   loginSubtitle:{
     fontSize:14,
     color:"#6b7280",
     marginBottom:25
   },
-  
   loginInput:{
     width:"100%",
     padding:12,
@@ -249,7 +235,6 @@ const styles = {
     border:"1px solid #d1d5db",
     marginBottom:14
   },
-  
   loginButton:{
     width:"100%",
     padding:12,
@@ -260,13 +245,11 @@ const styles = {
     fontWeight:600,
     cursor:"pointer"
   },
-  
   brandTitle:{
     fontSize:36,
     fontWeight:700,
     marginBottom:10
   },
-  
   brandSubtitle:{
     fontSize:16,
     opacity:0.8
@@ -279,44 +262,44 @@ const styles = {
   table: { width: "100%", borderCollapse: "collapse", marginTop: 16 },
   thtd: { border: "1px solid #e5e7eb", padding: 8, textAlign: "left" },
   emptyRow: { textAlign: "center", padding: 12, color: "#6b7280" },
-    modalOverlay: {
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        background: "rgba(0,0,0,0.4)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 9999
-      },
-      modalCard: {
-        background: "#fff",
-        padding: 24,
-        borderRadius: 12,
-        minWidth: 320,
-        maxWidth: 400,
-        boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-        position: "relative",
-        zIndex: 10000
-      },
-      notification: {
-        position: "fixed",
-        top: 20,
-        right: 20,
-        background: "#f59e0b",
-        color: "#fff",
-        padding: "12px 18px",
-        borderRadius: 8,
-        fontWeight: 500,
-        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-        zIndex: 10000,
-        animation: "fadeIn 0.3s ease"
-      },
-    input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
-    toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
-    toggleButton: (active, type) => ({
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
+    background: "rgba(0,0,0,0.4)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999
+  },
+  modalCard: {
+    background: "#fff",
+    padding: 24,
+    borderRadius: 12,
+    minWidth: 320,
+    maxWidth: 400,
+    boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+    position: "relative",
+    zIndex: 10000
+  },
+  notification: {
+    position: "fixed",
+    top: 20,
+    right: 20,
+    background: "#f59e0b",
+    color: "#fff",
+    padding: "12px 18px",
+    borderRadius: 8,
+    fontWeight: 500,
+    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+    zIndex: 10000,
+    animation: "fadeIn 0.3s ease"
+  },   
+  input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
+  toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
+  toggleButton: (active, type) => ({
     flex: 1,
     padding: "8px 0",
     borderRadius: 6,
@@ -336,7 +319,6 @@ const styles = {
     if (num === null || num === undefined) return "";
     return Number(num).toLocaleString();
   };
-
 // ================= APP COMPONENT =================
 export default function App() {
   const [session, setSession] = useState(null);
@@ -346,29 +328,23 @@ export default function App() {
   const [itemOptions, setItemOptions] = useState([]);
   const [userRooms, setUserRooms] = useState([]);
   const loadUserProfile = async (userId) => {
-
-  console.log("LOAD PROFILE FOR USER:", userId);
-
+    console.log("LOAD PROFILE FOR USER:", userId);
   const { data, error } = await supabase
     .from("profiles")
     .select("stock_rooms, role")
     .eq("id", userId)
     .single();
-
-  console.log("PROFILE RESULT:", data);
-
+    console.log("PROFILE RESULT:", data);
   if (error) {
     console.error("Profile error:", error);
     return;
   }
-
   if (data.role === "admin") {
     setUserRooms(stockRooms);
   } else {
     setUserRooms(data.stock_rooms || []);
   }
-
-};
+  };
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
@@ -376,28 +352,23 @@ export default function App() {
   const [inSearch, setInSearch] = useState("");
   const [outSearch, setOutSearch] = useState("");
   const [stockSearch, setStockSearch] = useState("");
-  
   const [openCategories, setOpenCategories] = useState({});
-  useEffect(() => {
-  const savedCategories = localStorage.getItem("openCategories");
-  
-    if (savedCategories) {
-      setOpenCategories(JSON.parse(savedCategories));
-    }
+    useEffect(() => {
+    const savedCategories = localStorage.getItem("openCategories");
+      if (savedCategories) {
+        setOpenCategories(JSON.parse(savedCategories));
+      }
   }, []);
   const toggleCategory = (category) => {
-      setOpenCategories(prev => {
-    
-        const updated = {
-          ...prev,
-          [category]: !prev[category]
-        };
-    
+    setOpenCategories(prev => {
+      const updated = {
+        ...prev,
+        [category]: !prev[category]
+      };
         localStorage.setItem("openCategories", JSON.stringify(updated));
-    
         return updated;
       });
-    };
+  };
   const [deletedItemSearch, setDeletedItemSearch] = useState("");
   const [deletedTxSearch, setDeletedTxSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
