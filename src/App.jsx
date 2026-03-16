@@ -1370,12 +1370,13 @@ if (form.type === "OUT") {
                               style={{ ...styles.buttonSecondary }}
                               onClick={() => {
                                 setForm({
-                                  id: i.id,
-                                  item_name: i.item_name,
-                                  brand: i.brand,
-                                  price: i.unit_price,
-                                  brandOptions: [i.brand],
-                                });
+                                    id: i.id,
+                                    item_name: i.item_name || "",
+                                    brand: i.brand || "",
+                                    category: i.category || "",      
+                                    unit_price: i.unit_price || "", 
+                                    brandOptions: [i.brand],
+                                  });
                                 setModalType("item");
                                 setShowModal(true);
                               }}
