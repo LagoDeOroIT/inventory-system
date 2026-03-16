@@ -1447,7 +1447,7 @@ if (form.type === "OUT") {
               <th style={{width:"90px"}}>Brand</th>
               <th style={{width:"60px"}}>Qty</th>
               <th style={{width:"100px"}}>Total Price</th>
-              <th style={{width:"90px"}}>Actions</th>
+              <th style={{ width: "70px", textAlign: "center" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1478,13 +1478,13 @@ if (form.type === "OUT") {
                     <td>{formatNumber(i.quantity)}</td>
                     <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
             
-                    <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", textAlign: "center" }}>
                     <div
                       style={{
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        gap: 4
+                        gap: 2
                       }}
                     >
                       <button
@@ -1570,7 +1570,7 @@ if (form.type === "OUT") {
               <th style={{width:"90px"}}>Brand</th>
               <th style={{width:"60px"}}>Qty</th>
               <th style={{width:"100px"}}>Total Price</th>
-              <th style={{width:"90px"}}>Actions</th>
+              <th style={{ width: "70px", textAlign: "center" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1601,13 +1601,13 @@ if (form.type === "OUT") {
                   <td>{formatNumber(i.quantity)}</td>
                   <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
           
-                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
+                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", textAlign: "center" }}>
                     <div
                       style={{
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        gap: 4
+                        gap: 2
                       }}
                     >
                       <button
