@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import Draggable from "react-draggable";
 // ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://mkfhjklomofrvnnwwknh.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZmhqa2xvbW9mcnZubnd3a25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTczNzAsImV4cCI6MjA4ODU5MzM3MH0.6Q8p9ms8mnf2daONf7HTP3jGZD_bQuNQrv6cpy0ZUts";
@@ -2054,8 +2055,8 @@ if (form.type === "OUT") {
                {/* ================= MODAL ================= */}
         {showModal && (
           <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
-            <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
-             
+            <Draggable handle=".modalHeader">
+              <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
               {/* NEW OPTION MODAL */}
               {modalType === "newOption" && (
                 <>
@@ -2069,7 +2070,9 @@ if (form.type === "OUT") {
               {/* ADD ITEM MODAL */}
               {modalType === "item" && (
                 <>
-                  <h3>{form.id ? "Edit Item" : "New Item"}</h3>
+                  <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
+                    <h3>{form.id ? "Edit Item" : "New Item"}</h3>
+                  </div>
                     <div style={{ position: "relative" }}>
                       <input
                         style={styles.input}
