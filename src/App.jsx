@@ -2308,7 +2308,9 @@ if (form.type === "OUT") {
               {/* ADD TRANSACTION MODAL */}
               {modalType === "transaction" && (
                 <>
-                  <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
+                  <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
+                    <h3>{form.id ? "Edit Transaction" : "New Transaction"}</h3>
+                  </div>
 
                   <input style={styles.input} type="date" value={form.date} onChange={e => handleFormChange("date", e.target.value)} />
 
