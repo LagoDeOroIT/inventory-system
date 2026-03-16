@@ -1412,19 +1412,22 @@ if (form.type === "OUT") {
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
         gap: 20,
-        width: "100%"
+        width: "100%",
+        alignItems: "stretch",
+        height: "100%"
       }}>
     {/* ================= IN TRANSACTIONS ================= */}
     <div style={{
-      flex: 1,
-      background: "#fff",
-      padding: 20,
-      borderRadius: 12,
-      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-      display: "flex",
-      flexDirection: "column",
-      maxHeight: "600px",
-    }}>
+        flex: 1,
+        background: "#fff",
+        padding: 20,
+        borderRadius: 12,
+        boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+        display: "flex",
+        flexDirection: "column",
+        height: "600px",
+        minWidth: 0
+      }}>
       <h2>IN Transactions</h2>
       <input
         style={{ ...styles.input, marginBottom: 10 }}
@@ -1433,9 +1436,9 @@ if (form.type === "OUT") {
         onChange={(e) => setInSearch(e.target.value)}
       />
       <div style={{ 
-          overflowY: "auto", 
-          overflowX: "hidden",
-          flex: 1 
+          overflow: "auto",
+          flex: 1,
+          minHeight: 0
         }}>
         <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
@@ -1516,16 +1519,17 @@ if (form.type === "OUT") {
     </div>
 
     {/* ================= OUT TRANSACTIONS ================= */}
-    <div style={{
-      flex: 1,
-      background: "#fff",
-      padding: 20,
-      borderRadius: 12,
-      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-      display: "flex",
-      flexDirection: "column",
-      maxHeight: "600px",    
-    }}>
+   <div style={{
+        flex: 1,
+        background: "#fff",
+        padding: 20,
+        borderRadius: 12,
+        boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+        display: "flex",
+        flexDirection: "column",
+        height: "600px",
+        minWidth: 0
+      }}>
       <h2>OUT Transactions</h2>
       <input
         style={{ ...styles.input, marginBottom: 10 }}
@@ -1534,9 +1538,9 @@ if (form.type === "OUT") {
         onChange={(e) => setOutSearch(e.target.value)}
       />
       <div style={{ 
-          overflowY: "auto", 
-          overflowX: "hidden",
-          flex: 1 
+          overflow: "auto",
+          flex: 1,
+          minHeight: 0
         }}>
         <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
