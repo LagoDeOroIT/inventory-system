@@ -2060,7 +2060,9 @@ if (form.type === "OUT") {
               {/* NEW OPTION MODAL */}
               {modalType === "newOption" && (
                 <>
-                  <h3>What do you want to add?</h3>
+                  <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
+                    <h3>What do you want to add?</h3>
+                  </div>
                   <button style={{ ...styles.newOptionButton, background:"#1f2937", color:"#fff" }} onClick={openNewItemModal}>Add New Item</button>
                   <button style={{ ...styles.newOptionButton, background:"#e5e7eb", color:"#374151" }} onClick={openNewTransactionModal}>Add New Transaction</button>
                   <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
