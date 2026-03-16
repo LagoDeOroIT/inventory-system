@@ -1407,12 +1407,13 @@ if (form.type === "OUT") {
 )}
 
 {/* TRANSACTIONS TAB */}
-{activeTab === "transactions" && (
-  <div style={{
-    display: "flex",
-    gap: 20,
-    alignItems: "stretch", // ensures equal height
-  }}>
+  {activeTab === "transactions" && (
+    <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 20,
+        width: "100%"
+      }}>
     {/* ================= IN TRANSACTIONS ================= */}
     <div style={{
       flex: 1,
@@ -1436,7 +1437,7 @@ if (form.type === "OUT") {
           overflowX: "hidden",
           flex: 1 
         }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
               <th style={{width:"110px"}}>Date</th>
@@ -1537,7 +1538,7 @@ if (form.type === "OUT") {
           overflowX: "hidden",
           flex: 1 
         }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
               <th style={{width:"110px"}}>Date</th>
