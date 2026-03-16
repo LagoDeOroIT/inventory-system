@@ -1480,7 +1480,6 @@ if (form.type === "OUT") {
             
                     <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
                       <div style={{ display: "flex", gap: 10 }}>
-                        <button
                           <button
                             title="Edit"
                             style={{
@@ -1507,7 +1506,6 @@ if (form.type === "OUT") {
                         >
                           ✏️
                         </button>
-                        <button   
                           <button
                             title="Delete"
                             style={{
@@ -1596,7 +1594,6 @@ if (form.type === "OUT") {
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
                     <div style={{ display: "flex", gap: 10 }}>
                       <button
-                        <button
                           title="Edit"
                           style={{
                             border: "none",
