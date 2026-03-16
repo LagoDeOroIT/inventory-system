@@ -1418,14 +1418,12 @@ if (form.type === "OUT") {
       }}>
     {/* ================= IN TRANSACTIONS ================= */}
     <div style={{
-        flex: 1,
         background: "#fff",
         padding: 20,
         borderRadius: 12,
         boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
         display: "flex",
         flexDirection: "column",
-        height: "600px",
         minWidth: 0
       }}>
       <h2>IN Transactions</h2>
@@ -1435,20 +1433,16 @@ if (form.type === "OUT") {
         value={inSearch}
         onChange={(e) => setInSearch(e.target.value)}
       />
-      <div style={{ 
-          overflow: "auto",
-          flex: 1,
-          minHeight: 0
-        }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+      <div>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
             <tr>
-              <th style={{width:"110px"}}>Date</th>
-              <th style={{width:"220px"}}>Item</th>
-              <th style={{width:"120px"}}>Brand</th>
-              <th style={{width:"70px"}}>Qty</th>
-              <th style={{width:"120px"}}>Total Price</th>
-              <th style={{width:"120px"}}>Actions</th>
+              <th style={{width:"90px"}}>Date</th>
+              <th style={{width:"160px"}}>Item</th>
+              <th style={{width:"90px"}}>Brand</th>
+              <th style={{width:"60px"}}>Qty</th>
+              <th style={{width:"100px"}}>Total Price</th>
+              <th style={{width:"90px"}}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1472,7 +1466,7 @@ if (form.type === "OUT") {
                 return filteredIn.map((i) => (
                   <tr key={i.id}>
                     <td>{i.date}</td>
-                    <td style={{maxWidth:220, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                    <td style={{maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                       {capitalizeWords(i.items?.item_name)}
                     </td>
                     <td>{displayBrand(i.items?.brand)}</td>
@@ -1482,7 +1476,7 @@ if (form.type === "OUT") {
                     <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
                       <div style={{ display: "flex", gap: 10 }}>
                         <button
-                          style={{ ...styles.buttonSecondary }}
+                          style={{ ...styles.buttonSecondary, padding: "4px 8px", fontSize: 12 }}
                           onClick={() => {
                             setForm({
                               id: i.id,
@@ -1503,7 +1497,7 @@ if (form.type === "OUT") {
                         </button>
             
                         <button
-                          style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                        <button   style={{ ...styles.buttonSecondary, padding: "4px 8px", fontSize: 12, background: "#f87171", color: "#fff" }}
                           onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
                         >
                           Delete
@@ -1520,14 +1514,12 @@ if (form.type === "OUT") {
 
     {/* ================= OUT TRANSACTIONS ================= */}
    <div style={{
-        flex: 1,
         background: "#fff",
         padding: 20,
         borderRadius: 12,
         boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
         display: "flex",
         flexDirection: "column",
-        height: "600px",
         minWidth: 0
       }}>
       <h2>OUT Transactions</h2>
@@ -1537,20 +1529,16 @@ if (form.type === "OUT") {
         value={outSearch}
         onChange={(e) => setOutSearch(e.target.value)}
       />
-      <div style={{ 
-          overflow: "auto",
-          flex: 1,
-          minHeight: 0
-        }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+      <div>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
-            <tr>
-              <th style={{width:"110px"}}>Date</th>
-              <th style={{width:"220px"}}>Item</th>
-              <th style={{width:"120px"}}>Brand</th>
-              <th style={{width:"70px"}}>Qty</th>
-              <th style={{width:"120px"}}>Total Price</th>
-              <th style={{width:"120px"}}>Actions</th>
+             <tr>
+              <th style={{width:"90px"}}>Date</th>
+              <th style={{width:"160px"}}>Item</th>
+              <th style={{width:"90px"}}>Brand</th>
+              <th style={{width:"60px"}}>Qty</th>
+              <th style={{width:"100px"}}>Total Price</th>
+              <th style={{width:"90px"}}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1574,7 +1562,7 @@ if (form.type === "OUT") {
               return filteredOut.map((i) => (
                 <tr key={i.id}>
                   <td>{i.date}</td>
-                  <td style={{maxWidth:220, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                  <td style={{maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
                     {capitalizeWords(i.items?.item_name)}
                   </td>
                   <td>{displayBrand(i.items?.brand)}</td>
@@ -1584,7 +1572,7 @@ if (form.type === "OUT") {
                   <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
                     <div style={{ display: "flex", gap: 10 }}>
                       <button
-                        style={{ ...styles.buttonSecondary }}
+                        style={{ ...styles.buttonSecondary, padding: "4px 8px", fontSize: 12 }}
                         onClick={() => {
                           setForm({
                             id: i.id,
@@ -1605,7 +1593,7 @@ if (form.type === "OUT") {
                       </button>
           
                       <button
-                        style={{ ...styles.buttonSecondary, background: "#f87171", color: "#fff" }}
+                      <button   style={{ ...styles.buttonSecondary, padding: "4px 8px", fontSize: 12, background: "#f87171", color: "#fff" }}
                         onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
                       >
                         Delete
