@@ -2383,11 +2383,9 @@ if (form.type === "OUT") {
               ))}
         </tbody>
       </table>
-    </div>
-
-  </div>
-</div>   {/* reportSection */}
-</div>   {/* scroll container */}
+        </div> {/* flex column */}
+    </div>   {/* reportSection */}
+  </div>     {/* scroll container */}
 )}
 
                {/* ================= MODAL ================= */}
