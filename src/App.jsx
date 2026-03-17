@@ -394,14 +394,13 @@ export default function App() {
   const [confirmAction, setConfirmAction] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuItemStyle = {
-    width: "100%",
-    padding: "8px 12px",
-    background: "none",
-    border: "none",
-    textAlign: "left",
-    cursor: "pointer",
-    fontSize: 14
-  };
+      padding:"8px 12px",
+      textAlign:"left",
+      background:"none",
+      border:"none",
+      cursor:"pointer",
+      borderBottom:"1px solid #f1f5f9"
+    };
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const stockRooms = [
@@ -1390,17 +1389,20 @@ if (form.type === "OUT") {
                         </button>
                         
                         {openMenuId === i.id && (
-                        <div style={{
-                          position:"absolute",
-                          right:0,
-                          top:28,
-                          background:"#fff",
-                          border:"1px solid #e5e7eb",
-                          borderRadius:8,
-                          boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                          zIndex:50,
-                          minWidth:120
-                        }}>
+                          <div style={{
+                            position:"absolute",
+                            right:0,
+                            top:28,
+                            background:"#fff",
+                            border:"1px solid #e5e7eb",
+                            borderRadius:8,
+                            boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                            zIndex:50,
+                            minWidth:120,
+                          
+                            display:"flex",
+                            flexDirection:"column"
+                          }}>
                         
                         <button
                         style={menuItemStyle}
@@ -1544,7 +1546,9 @@ if (form.type === "OUT") {
                       borderRadius:8,
                       boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
                       zIndex:50,
-                      minWidth:120
+                      minWidth:120,
+                      display:"flex",
+                      flexDirection:"column"
                       }}>
                       
                       <button
@@ -1677,7 +1681,9 @@ if (form.type === "OUT") {
                     borderRadius:8,
                     boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
                     zIndex:50,
-                    minWidth:120
+                    minWidth:120,
+                    display:"flex",
+                    flexDirection:"column"
                     }}>
                     
                     <button
