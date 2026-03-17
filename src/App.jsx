@@ -1666,250 +1666,302 @@ if (form.type === "OUT") {
   </div>
 )}
 
-        {/* ================= DELETED HISTORY TAB ================= */}
-       {activeTab==="deleted" && (
-  <div style={{
-    display: "flex",
-    gap: 20,
-    alignItems: "stretch", // ensures equal height
-  }}>
-
-    {/* ================= DELETED INVENTORY ================= */}
-    <div style={{
-      flex: 1,
-      background: "#fff",
-      padding: 20,
-      borderRadius: 12,
-      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-      display: "flex",
-      flexDirection: "column",
-      maxHeight: "600px",          // max height for scroll
-    }}>
-      <h2>Deleted Inventory</h2>
-      <input
-        style={{ ...styles.input, marginBottom: 10 }}
-        placeholder="Search deleted items..."
-        value={deletedItemSearch}
-        onChange={(e) => setDeletedItemSearch(e.target.value)}
-      />
-      <div style={{ overflowY: "auto", flex: 1 }}>
-        <table style={{
-          width: "100%",
-          borderCollapse: "collapse",
-        }}>
-          <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
-            <tr>
-              {["Item Name", "Brand", "Price", "Actions"].map((th, idx) => (
+                        {/* ================= DELETED HISTORY TAB ================= */}
+                {activeTab==="deleted" && (
+                <div style={{
+                  display: "flex",
+                  gap: 20,
+                  alignItems: "stretch",
+                }}>
+                
+                {/* ================= DELETED INVENTORY ================= */}
+                <div style={{
+                  flex: 1,
+                  background: "#fff",
+                  padding: 20,
+                  borderRadius: 12,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                  display: "flex",
+                  flexDirection: "column",
+                  maxHeight: "600px",
+                }}>
+                <h2>Deleted Inventory</h2>
+                
+                <input
+                  style={{ ...styles.input, marginBottom: 10 }}
+                  placeholder="Search deleted items..."
+                  value={deletedItemSearch}
+                  onChange={(e) => setDeletedItemSearch(e.target.value)}
+                />
+                
+                <div style={{ overflowY: "auto", flex: 1 }}>
+                
+                <table style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  tableLayout: "fixed"
+                }}>
+                
+                <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
+                <tr>
+                {["Item Name", "Brand", "Price", "Actions"].map((th, idx) => (
                 <th key={idx} style={{
-                  padding: "12px 10px",
-                  textAlign: "left",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  borderBottom: "1px solid #e5e7eb"
-                }}>{th}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {(() => {
-              const filteredDeleted = deletedItems.filter(
-                (item) =>
-                  (item.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
-                  (item.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
-              );
-          
-              if (filteredDeleted.length === 0) {
-                return (
-                  <tr>
-                    <td colSpan={4} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                      No deleted items
-                    </td>
-                  </tr>
-                );
-              }
-          
-              return filteredDeleted.map((i) => (
-                <tr key={i.id}>
-                  <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                    {capitalizeWords(i.item_name)}
-                  </td>
-          
-                  <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                    {capitalizeWords(i.brand)}
-                  </td>
-          
-                  <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                    ₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}
-                  </td>
-          
-                  <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                    <div style={{ display:"flex", gap:8 }}>
-          
-                      <button
-                        style={{
-                          padding:"6px 10px",
-                          borderRadius:6,
-                          border:"none",
-                          background:"#10b981",
-                          color:"#fff",
-                          cursor:"pointer",
-                          fontSize:13
-                        }}
-                        onClick={() => setConfirmAction({ type:"restoreItem", data:i })}
-                      >
-                        Restore
-                      </button>
-          
-                      <button
-                        style={{
-                          padding:"6px 10px",
-                          borderRadius:6,
-                          border:"none",
-                          background:"#ef4444",
-                          color:"#fff",
-                          cursor:"pointer",
-                          fontSize:13
-                        }}
-                        onClick={() => setConfirmAction({ type:"permanentDeleteItem", data:i })}
-                      >
-                        Delete
-                      </button>
-          
-                    </div>
-                  </td>
+                padding:"12px 10px",
+                textAlign:"left",
+                fontSize:14,
+                fontWeight:600,
+                borderBottom:"1px solid #e5e7eb",
+                whiteSpace:"nowrap"
+                }}>
+                {th}
+                </th>
+                ))}
                 </tr>
-              ));
-            })()}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    {/* ================= DELETED TRANSACTIONS ================= */}
-    <div style={{
-      flex: 1,
-      background: "#fff",
-      padding: 20,
-      borderRadius: 12,
-      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-      display: "flex",
-      flexDirection: "column",
-      maxHeight: "600px",          // max height for scroll
-    }}>
-      <h2>Deleted Transactions</h2>
-      <input
-        style={{ ...styles.input, marginBottom: 10 }}
-        placeholder="Search deleted transactions..."
-        value={deletedTxSearch}
-        onChange={(e) => setDeletedTxSearch(e.target.value)}
-      />
-      <div style={{ overflowY: "auto", flex: 1 }}>
-        <table style={{
-          width: "100%",
-          borderCollapse: "collapse",
-        }}>
-          <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
-            <tr>
-              {["Date", "Item", "Brand", "Type", "Qty", "Total Price", "Actions"].map((th, idx) => (
-                <th key={idx} style={{
-                  padding: "12px 10px",
-                  textAlign: "left",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  borderBottom: "1px solid #e5e7eb"
-                }}>{th}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-              {(() => {
-                const filteredDeleted = deletedTransactions.filter(
-                  (t) =>
-                    (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
-                    (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
+                </thead>
+                
+                <tbody>
+                {(() => {
+                
+                const filteredDeleted = deletedItems.filter(
+                (item) =>
+                (item.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+                (item.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
                 );
-            
+                
                 if (filteredDeleted.length === 0) {
-                  return (
-                    <tr>
-                      <td colSpan={7} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                        No deleted transactions
-                      </td>
-                    </tr>
-                  );
+                return (
+                <tr>
+                <td colSpan={4} style={{ padding:16,textAlign:"center",color:"#9ca3af" }}>
+                No deleted items
+                </td>
+                </tr>
+                );
                 }
-            
+                
                 return filteredDeleted.map((i) => (
-                  <tr key={i.id}>
-                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      {i.date}
-                    </td>
-            
-                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      {capitalizeWords(i.items?.item_name)}
-                    </td>
-            
-                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      {displayBrand(i.items?.brand)}
-                    </td>
-            
-                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      {i.type}
-                    </td>
-            
-                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      {formatNumber(i.quantity)}
-                    </td>
-            
-                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      ₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}
-                    </td>
-            
-                    <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                      <div style={{ display:"flex", gap:8 }}>
-            
-                        <button
-                          style={{
-                            padding:"6px 10px",
-                            borderRadius:6,
-                            border:"none",
-                            background:"#10b981",
-                            color:"#fff",
-                            cursor:"pointer",
-                            fontSize:13
-                          }}
-                          onClick={() => setConfirmAction({ type:"restoreTx", data:i })}
-                        >
-                          Restore
-                        </button>
-            
-                        <button
-                          style={{
-                            padding:"6px 10px",
-                            borderRadius:6,
-                            border:"none",
-                            background:"#ef4444",
-                            color:"#fff",
-                            cursor:"pointer",
-                            fontSize:13
-                          }}
-                          onClick={() => setConfirmAction({ type:"permanentDeleteTx", data:i })}
-                        >
-                          Delete
-                        </button>
-            
-                      </div>
-                    </td>
-                  </tr>
+                <tr key={i.id}>
+                
+                <td style={{
+                padding:"12px 10px",
+                borderBottom:"1px solid #f1f5f9",
+                overflow:"hidden",
+                textOverflow:"ellipsis",
+                whiteSpace:"nowrap"
+                }}>
+                {capitalizeWords(i.item_name)}
+                </td>
+                
+                <td style={{
+                padding:"12px 10px",
+                borderBottom:"1px solid #f1f5f9",
+                overflow:"hidden",
+                textOverflow:"ellipsis",
+                whiteSpace:"nowrap"
+                }}>
+                {capitalizeWords(i.brand)}
+                </td>
+                
+                <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                ₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}
+                </td>
+                
+                <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9", whiteSpace:"nowrap" }}>
+                <div style={{ display:"flex", gap:8 }}>
+                
+                <button
+                style={{
+                padding:"6px 10px",
+                borderRadius:6,
+                border:"none",
+                background:"#10b981",
+                color:"#fff",
+                cursor:"pointer",
+                fontSize:13
+                }}
+                onClick={() => setConfirmAction({ type:"restoreItem", data:i })}
+                >
+                Restore
+                </button>
+                
+                <button
+                style={{
+                padding:"6px 10px",
+                borderRadius:6,
+                border:"none",
+                background:"#ef4444",
+                color:"#fff",
+                cursor:"pointer",
+                fontSize:13
+                }}
+                onClick={() => setConfirmAction({ type:"permanentDeleteItem", data:i })}
+                >
+                Delete
+                </button>
+                
+                </div>
+                </td>
+                
+                </tr>
                 ));
-              })()}
-            </tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
-)}
+                })()}
+                </tbody>
+                
+                </table>
+                </div>
+                </div>
+                
+                
+                {/* ================= DELETED TRANSACTIONS ================= */}
+                <div style={{
+                flex: 1,
+                background: "#fff",
+                padding: 20,
+                borderRadius: 12,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                display: "flex",
+                flexDirection: "column",
+                maxHeight: "600px",
+                }}>
+                
+                <h2>Deleted Transactions</h2>
+                
+                <input
+                style={{ ...styles.input, marginBottom: 10 }}
+                placeholder="Search deleted transactions..."
+                value={deletedTxSearch}
+                onChange={(e) => setDeletedTxSearch(e.target.value)}
+                />
+                
+                <div style={{ overflowY:"auto", flex:1 }}>
+                
+                <table style={{
+                width:"100%",
+                borderCollapse:"collapse",
+                tableLayout:"fixed"
+                }}>
+                
+                <thead style={{ position:"sticky", top:0, background:"#f3f4f6", zIndex:1 }}>
+                <tr>
+                {["Date","Item","Brand","Type","Qty","Total Price","Actions"].map((th, idx) => (
+                <th key={idx} style={{
+                padding:"12px 10px",
+                textAlign:"left",
+                fontSize:14,
+                fontWeight:600,
+                borderBottom:"1px solid #e5e7eb",
+                whiteSpace:"nowrap"
+                }}>
+                {th}
+                </th>
+                ))}
+                </tr>
+                </thead>
+                
+                <tbody>
+                {(() => {
+                
+                const filteredDeleted = deletedTransactions.filter(
+                (t) =>
+                (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
+                (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
+                );
+                
+                if (filteredDeleted.length === 0) {
+                return (
+                <tr>
+                <td colSpan={7} style={{ padding:16,textAlign:"center",color:"#9ca3af" }}>
+                No deleted transactions
+                </td>
+                </tr>
+                );
+                }
+                
+                return filteredDeleted.map((i) => (
+                <tr key={i.id}>
+                
+                <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                {i.date}
+                </td>
+                
+                <td style={{
+                padding:"12px 10px",
+                borderBottom:"1px solid #f1f5f9",
+                overflow:"hidden",
+                textOverflow:"ellipsis",
+                whiteSpace:"nowrap"
+                }}>
+                {capitalizeWords(i.items?.item_name)}
+                </td>
+                
+                <td style={{
+                padding:"12px 10px",
+                borderBottom:"1px solid #f1f5f9",
+                overflow:"hidden",
+                textOverflow:"ellipsis",
+                whiteSpace:"nowrap"
+                }}>
+                {displayBrand(i.items?.brand)}
+                </td>
+                
+                <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                {i.type}
+                </td>
+                
+                <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                {formatNumber(i.quantity)}
+                </td>
+                
+                <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
+                ₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}
+                </td>
+                
+                <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9", whiteSpace:"nowrap" }}>
+                <div style={{ display:"flex", gap:8 }}>
+                
+                <button
+                style={{
+                padding:"6px 10px",
+                borderRadius:6,
+                border:"none",
+                background:"#10b981",
+                color:"#fff",
+                cursor:"pointer",
+                fontSize:13
+                }}
+                onClick={() => setConfirmAction({ type:"restoreTx", data:i })}
+                >
+                Restore
+                </button>
+                
+                <button
+                style={{
+                padding:"6px 10px",
+                borderRadius:6,
+                border:"none",
+                background:"#ef4444",
+                color:"#fff",
+                cursor:"pointer",
+                fontSize:13
+                }}
+                onClick={() => setConfirmAction({ type:"permanentDeleteTx", data:i })}
+                >
+                Delete
+                </button>
+                
+                </div>
+                </td>
+                
+                </tr>
+                ));
+                })()}
+                </tbody>
+                
+                </table>
+                </div>
+                </div>
+                
+                </div>
+                )}
 
         {/* ================= PROFESSIONAL MONTHLY REPORT ================= */}
 {activeTab === "report" && (
