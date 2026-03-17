@@ -2369,9 +2369,9 @@ if (form.type === "OUT") {
           </table>
         </div>
 
-      </div> {/* flex column */}
-    </div> {/* reportSection */}
-  </div> {/* scroll container */}
+   </div> {/* flex column */}
+</div> {/* reportSection */}
+</div> {/* scroll container */}
 )}
                {/* ================= MODAL ================= */}
         {showModal && (
