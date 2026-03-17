@@ -1507,7 +1507,7 @@ if (form.type === "OUT") {
         display: "flex",
         flexDirection: "column",
         minWidth: 0,
-        height: "auto"
+        height: "520px"
       }}>
       <h2>IN Transactions</h2>
       <input
@@ -1648,7 +1648,7 @@ if (form.type === "OUT") {
         display: "flex",
         flexDirection: "column",
         minWidth: 0,
-        height: "auto"
+        height: "520px"
       }}>
       <h2>OUT Transactions</h2>
       <input
