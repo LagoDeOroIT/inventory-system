@@ -1552,9 +1552,9 @@ if (form.type === "OUT") {
             
                     <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
 
-                      <div className="action-menu">
+                      <div className="action-menu"
                         ref={(el) => (menuRefs.current["in-" + i.id] = el)}
-                      
+                      >
                       <button
                       onClick={(e) => {
                           e.stopPropagation();
@@ -1695,9 +1695,9 @@ if (form.type === "OUT") {
           
                   <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
 
-                  <div className="action-menu">
+                  <div className="action-menu"
                     ref={(el) => (menuRefs.current["out-" + i.id] = el)}
-
+                    >
                     <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -1916,8 +1916,9 @@ if (form.type === "OUT") {
                 position:"relative",
                 textAlign:"center"
                 }}>
-                  <div className="action-menu">
+                  <div className="action-menu"
                     ref={(el) => (menuRefs.current["delitem-" + i.id] = el)}
+                    >
                   <button
                   onClick={(e) => {
                       e.stopPropagation();
@@ -2093,9 +2094,9 @@ if (form.type === "OUT") {
                   position:"relative",
                   textAlign:"center"
                   }}>
-                  <div className="action-menu">
+                  <div className="action-menu"
                     ref={(el) => (menuRefs.current["deltx-" + i.id] = el)}
-                  
+                  >
                   <button
                   onClick={(e) => {
                     e.stopPropagation();
