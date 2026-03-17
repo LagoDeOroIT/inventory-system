@@ -1860,7 +1860,9 @@ if (form.type === "OUT") {
                   borderRadius:8,
                   boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
                   zIndex:10,
-                  minWidth:120
+                  minWidth:120,
+                  display:"flex",
+                  flexDirection:"column"
                   }}>
                   
                   <button
@@ -2030,7 +2032,9 @@ if (form.type === "OUT") {
                   borderRadius:8,
                   boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
                   zIndex:10,
-                  minWidth:120
+                  minWidth:120,
+                  display:"flex",
+                  flexDirection:"column"
                   }}>
                   
                   <button
