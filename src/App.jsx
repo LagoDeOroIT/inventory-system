@@ -151,10 +151,9 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    height: "100vh",     // full viewport height
-    position: "sticky",  // keep it fixed
-    top: 0
-  },  
+    height: "100%",      // ✅ fix
+    position: "relative" // ✅ fix
+  },
   sidebarHeader: { fontSize: 20, fontWeight: 700, marginBottom: 24 },
   sidebarSelect: { marginBottom: 24, padding: 8, borderRadius: 6, border: "none", width: "100%" },
   sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
@@ -1160,9 +1159,7 @@ if (form.type === "OUT") {
 
    {/* MAIN AREA */}
       <div style={styles.main}>
-          <div style={{ padding: 24, height: "100%", overflow: "auto" }}>
 
-      
           {!selectedStockRoom ? (
             <div style={styles.welcomeScreen}>
           
@@ -2869,7 +2866,6 @@ if (form.type === "OUT") {
 
       </>
       )}
-      </div>
     </div>
   </div>
     );
