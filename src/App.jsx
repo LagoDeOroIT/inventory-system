@@ -1395,7 +1395,7 @@ if (form.type === "OUT") {
                         <td style={{ ...styles.thtd, position:"relative" }}>
 
                         <button
-                          onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}
+                          onClick={() => setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id)}
                           style={{
                             background:"none",
                             border:"none",
@@ -1406,7 +1406,7 @@ if (form.type === "OUT") {
                         ⋮
                         </button>
                         
-                        {openMenuId === i.id && (
+                        {openMenuId === "stock-"+i.id && (
                         <div
                         style={{
                         position:"absolute",
@@ -1545,7 +1545,7 @@ if (form.type === "OUT") {
                     <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
 
                       <button
-                      onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}
+                      onClick={() => setOpenMenuId(openMenuId === "in-"+i.id ? null : "in-"+i.id)}
                       style={{
                       background:"none",
                       border:"none",
@@ -1556,7 +1556,7 @@ if (form.type === "OUT") {
                       ⋮
                       </button>
                       
-                      {openMenuId === i.id && (
+                      {openMenuId === "in-"+i.id && (
                       <div style={{
                       position:"absolute",
                       right:0,
@@ -1680,7 +1680,7 @@ if (form.type === "OUT") {
                   <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
 
                     <button
-                    onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}
+                    <button onClick={() => setOpenMenuId(openMenuId === "out-"+i.id ? null : "out-"+i.id)}
                     style={{
                     background:"none",
                     border:"none",
@@ -1691,7 +1691,7 @@ if (form.type === "OUT") {
                     ⋮
                     </button>
                     
-                    {openMenuId === i.id && (
+                    {openMenuId === "out-"+i.id && (
                     <div style={{
                     position:"absolute",
                     right:0,
@@ -1893,7 +1893,7 @@ if (form.type === "OUT") {
                 }}>
                   
                   <button
-                  onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}
+                  <button onClick={() => setOpenMenuId(openMenuId === "delitem-"+i.id ? null : "delitem-"+i.id)}
                   style={{
                   background:"none",
                   border:"none",
@@ -1906,7 +1906,7 @@ if (form.type === "OUT") {
                   ⋮
                   </button>
                   
-                  {openMenuId === i.id && (
+                  {openMenuId === "delitem-"+i.id && (
                   <div style={{
                   position:"absolute",
                   right:0,
@@ -2064,7 +2064,7 @@ if (form.type === "OUT") {
                   }}>
                   
                   <button
-                  onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}
+                  onClick={() => setOpenMenuId(openMenuId === "deltx-"+i.id ? null : "deltx-"+i.id)}
                   style={{
                   background:"none",
                   border:"none",
@@ -2077,7 +2077,7 @@ if (form.type === "OUT") {
                   ⋮
                   </button>
                   
-                  {openMenuId === i.id && (
+                  {openMenuId === "deltx-"+i.id && (
                   <div style={{
                   position:"absolute",
                   right:0,
