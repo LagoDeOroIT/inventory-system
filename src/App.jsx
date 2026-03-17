@@ -161,8 +161,10 @@ const styles = {
   tabButton: (active) => ({ padding: 10, borderRadius: 6, background: active ? "#1f2937" : "transparent", border: "none", color: "#fff", cursor: "pointer", textAlign: "left" }),
   main: { 
     flex: 1, 
-    padding: 24, 
-    overflow: "hidden"   // 🔥 THIS FIXES EVERYTHING
+    padding: 24,
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden" // keep this
   },
   categoryRow:{
     background:"#f8fafc",
@@ -2182,7 +2184,11 @@ if (form.type === "OUT") {
 
         {/* ================= PROFESSIONAL MONTHLY REPORT ================= */}
 {activeTab === "report" && (
-<div id="reportSection">
+    <div style={{
+      flex: 1,
+      overflowY: "auto"
+    }}>
+      <div id="reportSection">
   <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
     {/* HEADER */}
@@ -2381,6 +2387,9 @@ if (form.type === "OUT") {
 
   </div>
 </div>
+</div>
+</div>
+)}
 )}
 
                {/* ================= MODAL ================= */}
