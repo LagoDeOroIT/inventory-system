@@ -159,12 +159,12 @@ const styles = {
   sidebarSelect: { marginBottom: 24, padding: 8, borderRadius: 6, border: "none", width: "100%" },
   sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
   tabButton: (active) => ({ padding: 10, borderRadius: 6, background: active ? "#1f2937" : "transparent", border: "none", color: "#fff", cursor: "pointer", textAlign: "left" }),
-  main: { 
+   main: { 
     flex: 1, 
-    padding: 24,
     display: "flex",
     flexDirection: "column",
-    overflow: "hidden" // keep this
+    overflow: "hidden",
+    minHeight: 0
   },
   categoryRow:{
     background:"#f8fafc",
@@ -1160,6 +1160,8 @@ if (form.type === "OUT") {
 
    {/* MAIN AREA */}
       <div style={styles.main}>
+          <div style={{ padding: 24, height: "100%", overflow: "auto" }}>
+
       
           {!selectedStockRoom ? (
             <div style={styles.welcomeScreen}>
@@ -2867,7 +2869,7 @@ if (form.type === "OUT") {
 
       </>
       )}
-
+      </div>
     </div>
   </div>
     );
