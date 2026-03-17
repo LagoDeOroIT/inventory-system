@@ -401,22 +401,22 @@ export default function App() {
       cursor:"pointer",
       borderBottom:"1px solid #f1f5f9"
     };
-  const menuRef = useRef(null);
+  const tableAreaRef = useRef(null);
   useEffect(() => {
 
-  const handleClickOutside = (event) => {
-    if (menuRef.current && !menuRef.current.contains(event.target)) {
-      setOpenMenuId(null);
-    }
-  };
-
-  document.addEventListener("mousedown", handleClickOutside);
-
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-
-}, []);
+    const handleClickOutside = (event) => {
+      if (tableAreaRef.current && !tableAreaRef.current.contains(event.target)) {
+        setOpenMenuId(null);
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+  
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  
+  }, []);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const stockRooms = [
@@ -1201,7 +1201,9 @@ if (form.type === "OUT") {
       
   {/* STOCK INVENTORY TAB WITH SEARCH */}
 {activeTab === "stock" && (
-  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+  <div
+  ref={tableAreaRef}
+  style={{ display: "flex", flexDirection: "column", gap: 16 }}>
     {/* Search Bar */}
     <div style={{ display: "flex", justifyContent: "flex-end" }}>
       <input
@@ -1406,7 +1408,6 @@ if (form.type === "OUT") {
                         
                         {openMenuId === i.id && (
                         <div
-                        ref={menuRef}
                         style={{
                         position:"absolute",
                         right:0,
@@ -1469,14 +1470,16 @@ if (form.type === "OUT") {
 
 {/* TRANSACTIONS TAB */}
   {activeTab === "transactions" && (
-    <div style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: 20,
-        width: "100%",
-        alignItems: "stretch",
-        height: "100%"
-      }}>
+  <div
+  ref={tableAreaRef}
+  style={{
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 20,
+      width: "100%",
+      alignItems: "stretch",
+      height: "100%"
+    }}>
     {/* ================= IN TRANSACTIONS ================= */}
      <div style={{
         background: "#fff",
@@ -1752,13 +1755,15 @@ if (form.type === "OUT") {
 
       {/* ================= DELETED HISTORY TAB ================= */}
                 {activeTab==="deleted" && (
-                <div style={{
+                <div
+                ref={tableAreaRef}
+                style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 2fr",
                   gap: 20,
                   width: "100%"
                 }}>
-                
+                                
                 {/* ================= DELETED INVENTORY ================= */}
                 <div style={{
                   flex: 1,
