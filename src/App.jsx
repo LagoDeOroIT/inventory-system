@@ -1778,7 +1778,9 @@ if (form.type === "OUT") {
   </div>
 )}
 
-      {/* ================= DELETED HISTORY TAB ================= */}
+      
+
+ {/* ================= DELETED HISTORY TAB ================= */}
                 {activeTab==="deleted" && (
                 <div style={{
                     display: "grid",
@@ -1797,7 +1799,7 @@ if (form.type === "OUT") {
                   display: "flex",
                   flexDirection: "column",
                   minWidth: 0,
-                  height: "auto",
+                  height: "520px",
                 }}>
                 <h2>Deleted Inventory</h2>
                 
@@ -1808,18 +1810,18 @@ if (form.type === "OUT") {
                   onChange={(e) => setDeletedItemSearch(e.target.value)}
                 />
                 
-                <div style={{ flex: 1, marginTop: 10 }}>
+                <div style={{ flex: 1, overflowY: "auto", marginTop: 10 }}>
                 
                 <table style={{
                   width:"100%",
-                  borderCollapse:"collapse",
-                  tableLayout: "fixed"
+                  borderCollapse:"collapse"
                 }}>
                 
                 <thead style={{ position:"sticky", top:0, background:"#f3f4f6", zIndex:1 }}>
                 <tr>
                 
                 <th style={{
+                minWidth:"160px",
                 padding:"12px 10px",
                 textAlign:"left",
                 fontWeight:600,
@@ -1829,6 +1831,7 @@ if (form.type === "OUT") {
                 </th>
                 
                 <th style={{
+                minWidth:"120px",
                 padding:"12px 10px",
                 textAlign:"left",
                 fontWeight:600,
@@ -1838,6 +1841,7 @@ if (form.type === "OUT") {
                 </th>
                 
                 <th style={{
+                minWidth:"100px",
                 padding:"12px 10px",
                 textAlign:"left",
                 fontWeight:600,
@@ -1995,7 +1999,7 @@ if (form.type === "OUT") {
                 display: "flex",
                 flexDirection: "column",
                 minWidth: 0,
-                height: "auto",
+                height: "520px",
                 }}>
                 
                 <h2>Deleted Transactions</h2>
@@ -2007,12 +2011,11 @@ if (form.type === "OUT") {
                 onChange={(e) => setDeletedTxSearch(e.target.value)}
                 />
                 
-                <div style={{ flex: 1, marginTop: 10 }}>
+                <div style={{ flex: 1, overflowY: "auto", marginTop: 10 }}>
                 
                 <table style={{
                   width:"100%",
-                  borderCollapse:"collapse",
-                  tableLayout: "fixed"
+                  borderCollapse:"collapse"
                 }}>
                 
                 <thead style={{ position:"sticky", top:0, background:"#f3f4f6", zIndex:1 }}>
