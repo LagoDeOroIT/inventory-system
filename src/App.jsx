@@ -1496,9 +1496,8 @@ if (form.type === "OUT") {
         gridTemplateColumns: "1fr 1fr",
         gap: 20,
         width: "100%",
-        alignItems: "stretch",
-        height: "100%"
-      }}>
+        alignItems: "stretch"
+    }}>
     {/* ================= IN TRANSACTIONS ================= */}
      <div style={{
         background: "#fff",
