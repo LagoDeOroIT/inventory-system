@@ -1233,7 +1233,8 @@ if (form.type === "OUT") {
         boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
         display: "flex",
         flexDirection: "column",
-        overflowX: "auto",
+        overflowY: "auto",
+        scrollBehavior: "smooth"
       }}
     >
       <h2>Available Stocks</h2>
@@ -1263,7 +1264,17 @@ if (form.type === "OUT") {
         </div>
         
         </div>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <div
+        style={{
+          maxHeight: "400px",   // 🔥 controls table height
+          overflowY: "auto",
+          overflowX: "hidden",
+          border: "1px solid #e5e7eb",
+          borderRadius: 8
+        }}
+      >
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          </div>
         <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
           <tr>
             {["Qty", "Item Name", "Brand", "Price", "Total Value", "Actions"].map((th, idx) => (
