@@ -2362,16 +2362,15 @@ if (form.type === "OUT") {
                         <td style={styles.thtd}>{formatNumber(t.quantity)}</td>
                         <td style={styles.thtd}>
                           ₱{Number((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </td>
-                      </tr>
-                    ))}
-            </tbody>
-          </table>
-        </div>
+                         </td>
+                </tr>
+              ))}
+        </tbody>
+      </table>
+    </div>
 
-   </div> {/* flex column */}
-</div> {/* reportSection */}
-</div> {/* scroll container */}
+  </div>
+</div>
 )}
                {/* ================= MODAL ================= */}
         {showModal && (
