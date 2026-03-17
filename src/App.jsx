@@ -2386,10 +2386,8 @@ if (form.type === "OUT") {
     </div>
 
   </div>
-</div>
-</div>
-</div>
-)}
+</div>   {/* reportSection */}
+</div>   {/* scroll container */}
 )}
 
                {/* ================= MODAL ================= */}
