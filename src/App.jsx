@@ -1680,7 +1680,7 @@ if (form.type === "OUT") {
                   <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
 
                     <button
-                    <button onClick={() => setOpenMenuId(openMenuId === "out-"+i.id ? null : "out-"+i.id)}
+                    onClick={() => setOpenMenuId(openMenuId === "out-"+i.id ? null : "out-"+i.id)}
                     style={{
                     background:"none",
                     border:"none",
@@ -1893,7 +1893,7 @@ if (form.type === "OUT") {
                 }}>
                   
                   <button
-                  <button onClick={() => setOpenMenuId(openMenuId === "delitem-"+i.id ? null : "delitem-"+i.id)}
+                  onClick={() => setOpenMenuId(openMenuId === "delitem-"+i.id ? null : "delitem-"+i.id)}
                   style={{
                   background:"none",
                   border:"none",
