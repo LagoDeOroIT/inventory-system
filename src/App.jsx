@@ -2182,7 +2182,7 @@ if (form.type === "OUT") {
                 </div>
                 )}
 
-       {/* ================= PROFESSIONAL MONTHLY REPORT ================= */}
+      {/* ================= PROFESSIONAL MONTHLY REPORT ================= */}
 {activeTab === "report" && (
   <div style={{ flex: 1, overflowY: "auto" }}>
     <div id="reportSection">
@@ -2203,7 +2203,7 @@ if (form.type === "OUT") {
         </div>
 
         {/* FILTERS */}
-        <div style={{ display: "flex", gap: 12, alignItems:"center" }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <select
             style={styles.input}
             value={reportMonth}
@@ -2222,14 +2222,16 @@ if (form.type === "OUT") {
             value={reportYear}
             onChange={e => setReportYear(Number(e.target.value))}
           />
+
           <button
             style={styles.buttonPrimary}
             onClick={() => window.print()}
           >
             🖨 Print Report
           </button>
+
           <button
-            style={{ ...styles.buttonPrimary, background:"#16a34a" }}
+            style={{ ...styles.buttonPrimary, background: "#16a34a" }}
             onClick={exportMonthlyReport}
           >
             📊 Export Excel
@@ -2362,15 +2364,17 @@ if (form.type === "OUT") {
                         <td style={styles.thtd}>{formatNumber(t.quantity)}</td>
                         <td style={styles.thtd}>
                           ₱{Number((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                         </td>
-                </tr>
-              ))}
-        </tbody>
-      </table>
-    </div>
+                        </td>
+                      </tr>
+                    ))
+              }
+            </tbody>
+          </table>
+        </div>
 
-  </div>
-</div>
+      </div> {/* end flex column */}
+    </div> {/* end reportSection */}
+  </div> {/* end scroll container */}
 )}
                {/* ================= MODAL ================= */}
         {showModal && (
