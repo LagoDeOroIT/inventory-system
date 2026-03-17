@@ -1158,7 +1158,7 @@ if (form.type === "OUT") {
         </div>
 
    {/* MAIN AREA */}
-      <div ref={tableAreaRef} style={styles.main}>
+      <div style={styles.main}>
       
           {!selectedStockRoom ? (
             <div style={styles.welcomeScreen}>
@@ -1395,10 +1395,16 @@ if (form.type === "OUT") {
                         <td style={styles.thtd}>₱{Number(i.stock * Number(i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                         <td style={{ ...styles.thtd, position:"relative" }}>
 
-                        <div className="action-menu">
+                        <div
+                            className="action-menu"
+                            ref={(el) => (menuRefs.current["stock-" + i.id] = el)}
+                          >
                         
                         <button
-                          onClick={() => setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id)}
+                          onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id);
+                            }}
                           style={{
                             background:"none",
                             border:"none",
@@ -1411,7 +1417,8 @@ if (form.type === "OUT") {
                         
                         {openMenuId === "stock-"+i.id && (
                         <div
-                        style={{
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
                         position:"absolute",
                         right:0,
                         top:30,
@@ -1546,9 +1553,13 @@ if (form.type === "OUT") {
                     <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
 
                       <div className="action-menu">
+                        ref={(el) => (menuRefs.current["in-" + i.id] = el)}
                       
                       <button
-                      onClick={() => setOpenMenuId(openMenuId === "in-"+i.id ? null : "in-"+i.id)}
+                      onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(openMenuId === "in-"+i.id ? null : "in-"+i.id);
+                        }}
                       style={{
                       background:"none",
                       border:"none",
@@ -1560,8 +1571,10 @@ if (form.type === "OUT") {
                       </button>
                       
                       {openMenuId === "in-"+i.id && (
-                      <div style={{
-                      position:"absolute",
+                      <div
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        position:"absolute",
                       right:0,
                       top:28,
                       background:"#fff",
@@ -1683,9 +1696,13 @@ if (form.type === "OUT") {
                   <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
 
                   <div className="action-menu">
+                    ref={(el) => (menuRefs.current["out-" + i.id] = el)}
 
                     <button
-                    onClick={() => setOpenMenuId(openMenuId === "out-"+i.id ? null : "out-"+i.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === "out-"+i.id ? null : "out-"+i.id);
+                    }}
                     style={{
                     background:"none",
                     border:"none",
@@ -1697,8 +1714,10 @@ if (form.type === "OUT") {
                     </button>
                     
                     {openMenuId === "out-"+i.id && (
-                    <div style={{
-                    position:"absolute",
+                    <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      position:"absolute",
                     right:0,
                     top:28,
                     background:"#fff",
@@ -1898,8 +1917,12 @@ if (form.type === "OUT") {
                 textAlign:"center"
                 }}>
                   <div className="action-menu">
+                    ref={(el) => (menuRefs.current["delitem-" + i.id] = el)}
                   <button
-                  onClick={() => setOpenMenuId(openMenuId === "delitem-"+i.id ? null : "delitem-"+i.id)}
+                  onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === "delitem-"+i.id ? null : "delitem-"+i.id);
+                    }}
                   style={{
                   background:"none",
                   border:"none",
@@ -1913,8 +1936,10 @@ if (form.type === "OUT") {
                   </button>
                   
                   {openMenuId === "delitem-"+i.id && (
-                  <div style={{
-                  position:"absolute",
+                  <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    position:"absolute",
                   right:0,
                   top:30,
                   background:"#fff",
@@ -2069,9 +2094,13 @@ if (form.type === "OUT") {
                   textAlign:"center"
                   }}>
                   <div className="action-menu">
+                    ref={(el) => (menuRefs.current["deltx-" + i.id] = el)}
                   
                   <button
-                  onClick={() => setOpenMenuId(openMenuId === "deltx-"+i.id ? null : "deltx-"+i.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenMenuId(openMenuId === "deltx-"+i.id ? null : "deltx-"+i.id);
+                  }}
                   style={{
                   background:"none",
                   border:"none",
@@ -2085,8 +2114,10 @@ if (form.type === "OUT") {
                   </button>
                   
                   {openMenuId === "deltx-"+i.id && (
-                  <div style={{
-                  position:"absolute",
+                  <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    position:"absolute",
                   right:0,
                   top:30,
                   background:"#fff",
