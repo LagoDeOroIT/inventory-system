@@ -1375,33 +1375,65 @@ if (form.type === "OUT") {
                         <td style={styles.thtd}>{displayBrand(i.brand)}</td>
                         <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                         <td style={styles.thtd}>₱{Number(i.stock * Number(i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-                        <td style={styles.thtd}>
-                          <div style={{ display:"flex", gap:10 }}>
-                            <button
-                              style={{ ...styles.buttonSecondary }}
-                              onClick={() => {
-                                setForm({
-                                    id: i.id,
-                                    item_name: i.item_name || "",
-                                    brand: i.brand || "",
-                                    category: i.category || "",      
-                                    unit_price: i.unit_price || "", 
-                                    brandOptions: [i.brand],
-                                  });
-                                setModalType("item");
-                                setShowModal(true);
-                              }}
-                            >
-                              Edit
-                            </button>
+                        <td style={{ ...styles.thtd, position:"relative" }}>
+
+                        <button
+                          onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}
+                          style={{
+                            background:"none",
+                            border:"none",
+                            fontSize:20,
+                            cursor:"pointer"
+                          }}
+                        >
+                        ⋮
+                        </button>
                         
-                            <button
-                              style={{ ...styles.buttonSecondary, background:"#f87171", color:"#fff" }}
-                              onClick={() => setConfirmAction({ type:"deleteItem", data:i })}
-                            >
-                              Delete
-                            </button>
-                          </div>
+                        {openMenuId === i.id && (
+                        <div style={{
+                          position:"absolute",
+                          right:0,
+                          top:28,
+                          background:"#fff",
+                          border:"1px solid #e5e7eb",
+                          borderRadius:8,
+                          boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                          zIndex:50,
+                          minWidth:120
+                        }}>
+                        
+                        <button
+                        style={menuItemStyle}
+                        onClick={()=>{
+                        setForm({
+                          id: i.id,
+                          item_name: i.item_name || "",
+                          brand: i.brand || "",
+                          category: i.category || "",
+                          unit_price: i.unit_price || "",
+                          brandOptions:[i.brand],
+                        });
+                        setModalType("item");
+                        setShowModal(true);
+                        setOpenMenuId(null);
+                        }}
+                        >
+                        Edit
+                        </button>
+                        
+                        <button
+                        style={{...menuItemStyle,color:"#ef4444"}}
+                        onClick={()=>{
+                        setConfirmAction({ type:"deleteItem", data:i });
+                        setOpenMenuId(null);
+                        }}
+                        >
+                        Delete
+                        </button>
+                        
+                        </div>
+                        )}
+                        
                         </td>
                       </tr>
                     ))}
@@ -1488,60 +1520,69 @@ if (form.type === "OUT") {
                     <td>{formatNumber(i.quantity)}</td>
                     <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
             
-                    <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", textAlign: "center" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 2
-                      }}
-                    >
-                        <button
-                        style={{
-                          background: "#3b82f6",
-                          color: "#fff",
-                          border: "none",
-                          padding: "4px 8px",
-                          borderRadius: 6,
-                          cursor: "pointer",
-                          fontSize: 12
-                        }}
-                        onClick={() => {
-                          setForm({
-                            id: i.id,
-                            item_id: i.item_id,
-                            date: i.date,
-                            item_name: i.items?.item_name,
-                            brand: i.items?.brand,
-                            type: i.type,
-                            quantity: i.quantity,
-                            unit_price: i.unit_price || i.items?.unit_price,
-                            brandOptions: [i.items?.brand],
-                          });
-                          setModalType("transaction");
-                          setShowModal(true);
-                        }}
-                      >
-                        Edit
-                      </button>
-                  
+                    <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
+
                       <button
-                        style={{
-                          background: "#ef4444",
-                          color: "#fff",
-                          border: "none",
-                          padding: "4px 8px",
-                          borderRadius: 6,
-                          cursor: "pointer",
-                          fontSize: 12
-                        }}
-                        onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
+                      onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}
+                      style={{
+                      background:"none",
+                      border:"none",
+                      fontSize:20,
+                      cursor:"pointer"
+                      }}
                       >
-                        Delete
+                      ⋮
                       </button>
-                    </div>
-                  </td>
+                      
+                      {openMenuId === i.id && (
+                      <div style={{
+                      position:"absolute",
+                      right:0,
+                      top:28,
+                      background:"#fff",
+                      border:"1px solid #e5e7eb",
+                      borderRadius:8,
+                      boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                      zIndex:50,
+                      minWidth:120
+                      }}>
+                      
+                      <button
+                      style={menuItemStyle}
+                      onClick={()=>{
+                      setForm({
+                      id:i.id,
+                      item_id:i.item_id,
+                      date:i.date,
+                      item_name:i.items?.item_name,
+                      brand:i.items?.brand,
+                      type:i.type,
+                      quantity:i.quantity,
+                      unit_price:i.unit_price || i.items?.unit_price,
+                      brandOptions:[i.items?.brand],
+                      });
+                      setModalType("transaction");
+                      setShowModal(true);
+                      setOpenMenuId(null);
+                      }}
+                      >
+                      Edit
+                      </button>
+                      
+                      <button
+                      style={{...menuItemStyle,color:"#ef4444"}}
+                      onClick={()=>{
+                      setConfirmAction({ type:"deleteTx", data:i });
+                      setOpenMenuId(null);
+                      }}
+                      >
+                      Delete
+                      </button>
+                      
+                      </div>
+                      )}
+                      
+                      </td>
                   </tr>
                 ));
               })()}
@@ -1612,59 +1653,69 @@ if (form.type === "OUT") {
                   <td>{formatNumber(i.quantity)}</td>
                   <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
           
-                  <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9", textAlign: "center" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 2
-                      }}
+                  <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
+
+                    <button
+                    onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}
+                    style={{
+                    background:"none",
+                    border:"none",
+                    fontSize:20,
+                    cursor:"pointer"
+                    }}
                     >
-                      <button
-                        style={{
-                          background: "#3b82f6",
-                          color: "#fff",
-                          border: "none",
-                          padding: "4px 8px",
-                          borderRadius: 6,
-                          cursor: "pointer",
-                          fontSize: 12
-                        }}
-                        onClick={() => {
-                          setForm({
-                            id: i.id,
-                            item_id: i.item_id,
-                            date: i.date,
-                            item_name: i.items?.item_name,
-                            brand: i.items?.brand,
-                            type: i.type,
-                            quantity: i.quantity,
-                            unit_price: i.unit_price || i.items?.unit_price,
-                            brandOptions: [i.items?.brand],
-                          });
-                          setModalType("transaction");
-                          setShowModal(true);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        style={{
-                          background: "#ef4444",
-                          color: "#fff",
-                          border: "none",
-                          padding: "4px 8px",
-                          borderRadius: 6,
-                          cursor: "pointer",
-                          fontSize: 12
-                        }}
-                        onClick={() => setConfirmAction({ type: "deleteTx", data: i })}
-                      >
-                        Delete
-                      </button>
+                    ⋮
+                    </button>
+                    
+                    {openMenuId === i.id && (
+                    <div style={{
+                    position:"absolute",
+                    right:0,
+                    top:28,
+                    background:"#fff",
+                    border:"1px solid #e5e7eb",
+                    borderRadius:8,
+                    boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                    zIndex:50,
+                    minWidth:120
+                    }}>
+                    
+                    <button
+                    style={menuItemStyle}
+                    onClick={()=>{
+                    setForm({
+                    id:i.id,
+                    item_id:i.item_id,
+                    date:i.date,
+                    item_name:i.items?.item_name,
+                    brand:i.items?.brand,
+                    type:i.type,
+                    quantity:i.quantity,
+                    unit_price:i.unit_price || i.items?.unit_price,
+                    brandOptions:[i.items?.brand],
+                    });
+                    setModalType("transaction");
+                    setShowModal(true);
+                    setOpenMenuId(null);
+                    }}
+                    >
+                    Edit
+                    </button>
+                    
+                    <button
+                    style={{...menuItemStyle,color:"#ef4444"}}
+                    onClick={()=>{
+                    setConfirmAction({ type:"deleteTx", data:i });
+                    setOpenMenuId(null);
+                    }}
+                    >
+                    Delete
+                    </button>
+                    
                     </div>
-                  </td>
+                    )}
+                    
+                    </td>
                 </tr>
               ));
             })()}
