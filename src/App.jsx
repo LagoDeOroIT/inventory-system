@@ -1155,7 +1155,7 @@ if (form.type === "OUT") {
         </div>
 
    {/* MAIN AREA */}
-      <div style={styles.main}>
+      <div ref={tableAreaRef} style={styles.main}>
       
           {!selectedStockRoom ? (
             <div style={styles.welcomeScreen}>
@@ -1201,9 +1201,7 @@ if (form.type === "OUT") {
       
   {/* STOCK INVENTORY TAB WITH SEARCH */}
 {activeTab === "stock" && (
-  <div
-  ref={tableAreaRef}
-  style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+  <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
     {/* Search Bar */}
     <div style={{ display: "flex", justifyContent: "flex-end" }}>
       <input
@@ -1470,9 +1468,7 @@ if (form.type === "OUT") {
 
 {/* TRANSACTIONS TAB */}
   {activeTab === "transactions" && (
-  <div
-  ref={tableAreaRef}
-  style={{
+  <div style={{
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
       gap: 20,
@@ -1756,7 +1752,6 @@ if (form.type === "OUT") {
       {/* ================= DELETED HISTORY TAB ================= */}
                 {activeTab==="deleted" && (
                 <div
-                ref={tableAreaRef}
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 2fr",
