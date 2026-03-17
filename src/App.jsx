@@ -401,22 +401,25 @@ export default function App() {
       cursor:"pointer",
       borderBottom:"1px solid #f1f5f9"
     };
-  const tableAreaRef = useRef(null);
+  const menuRefs = useRef({});
   useEffect(() => {
+  const handleClickOutside = (event) => {
 
-    const handleClickOutside = (event) => {
-      if (tableAreaRef.current && !tableAreaRef.current.contains(event.target)) {
-        setOpenMenuId(null);
-      }
-    };
-  
-    document.addEventListener("mousedown", handleClickOutside);
-  
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  
-  }, []);
+    const isInsideMenu = Object.values(menuRefs.current).some(
+      (ref) => ref && ref.contains(event.target)
+    );
+
+    if (!isInsideMenu) {
+      setOpenMenuId(null);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);  
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const stockRooms = [
@@ -1786,20 +1789,19 @@ if (form.type === "OUT") {
                   onChange={(e) => setDeletedItemSearch(e.target.value)}
                 />
                 
-                <div style={{ overflowY: "auto", flex: 1 }}>
+                <div style={{ overflowX: "auto", overflowY: "auto", flex: 1 }}>
                 
                 <table style={{
-                width:"100%",
-                borderCollapse:"collapse",
-                tableLayout:"fixed",
-                minWidth:"100%"
-                }}>
+                    width:"100%",
+                    borderCollapse:"collapse",
+                    tableLayout:"auto"
+                  }}>
                 
                 <thead style={{ position:"sticky", top:0, background:"#f3f4f6", zIndex:1 }}>
                 <tr>
                 
                 <th style={{
-                width:"40%",
+                minWidth:"160px",
                 padding:"12px 10px",
                 textAlign:"left",
                 fontWeight:600,
@@ -1809,7 +1811,7 @@ if (form.type === "OUT") {
                 </th>
                 
                 <th style={{
-                width:"25%",
+                minWidth:"120px",
                 padding:"12px 10px",
                 textAlign:"left",
                 fontWeight:600,
@@ -1819,7 +1821,7 @@ if (form.type === "OUT") {
                 </th>
                 
                 <th style={{
-                width:"20%",
+                minWidth:"100px",
                 padding:"12px 10px",
                 textAlign:"left",
                 fontWeight:600,
@@ -1829,7 +1831,7 @@ if (form.type === "OUT") {
                 </th>
                 
                 <th style={{
-                width:"15%",
+                minWidth:"80px",
                 padding:"12px 10px",
                 textAlign:"center",
                 fontWeight:600,
@@ -1868,7 +1870,8 @@ if (form.type === "OUT") {
                 borderBottom:"1px solid #f1f5f9",
                 overflow:"hidden",
                 textOverflow:"ellipsis",
-                whiteSpace:"nowrap"
+                whiteSpace:"normal",
+                wordBreak:"break-word"
                 }}>
                 {capitalizeWords(i.item_name)}
                 </td>
@@ -1878,7 +1881,8 @@ if (form.type === "OUT") {
                 borderBottom:"1px solid #f1f5f9",
                 overflow:"hidden",
                 textOverflow:"ellipsis",
-                whiteSpace:"nowrap"
+                whiteSpace:"normal",
+                wordBreak:"break-word"
                 }}>
                 {capitalizeWords(i.brand)}
                 </td>
@@ -1983,10 +1987,9 @@ if (form.type === "OUT") {
                 <div style={{ overflowY:"auto", flex:1 }}>
                 
                 <table style={{
-                width:"100%",
-                borderCollapse:"collapse",
-                tableLayout:"fixed",
-                minWidth:"100%"
+                  width:"100%",
+                  borderCollapse:"collapse",
+                  tableLayout:"auto"
                 }}>
                 
                 <thead style={{ position:"sticky", top:0, background:"#f3f4f6", zIndex:1 }}>
