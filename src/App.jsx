@@ -1790,13 +1790,13 @@ if (form.type === "OUT") {
                   }}>  
                 {/* ================= DELETED INVENTORY ================= */}
                 <div style={{
-                  flex: 1,
                   background: "#fff",
                   padding: 20,
                   borderRadius: 12,
                   boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
                   display: "flex",
                   flexDirection: "column",
+                  minWidth: 0,
                   height: "520px",
                 }}>
                 <h2>Deleted Inventory</h2>
@@ -1808,13 +1808,12 @@ if (form.type === "OUT") {
                   onChange={(e) => setDeletedItemSearch(e.target.value)}
                 />
                 
-                <div style={{ overflowX: "auto", overflowY: "auto", flex: 1 }}>
+                <div style={{ flex: 1, overflowY: "auto", marginTop: 10 }}>
                 
                 <table style={{
-                    width:"100%",
-                    borderCollapse:"collapse",
-                    tableLayout:"auto"
-                  }}>
+                  width:"100%",
+                  borderCollapse:"collapse"
+                }}>
                 
                 <thead style={{ position:"sticky", top:0, background:"#f3f4f6", zIndex:1 }}>
                 <tr>
@@ -1885,23 +1884,23 @@ if (form.type === "OUT") {
                 <tr key={i.id}>
                 
                 <td style={{
-                padding:"12px 10px",
-                borderBottom:"1px solid #f1f5f9",
-                overflow:"hidden",
-                textOverflow:"ellipsis",
-                whiteSpace:"normal",
-                wordBreak:"break-word"
+                  padding:"12px 10px",
+                  borderBottom:"1px solid #f1f5f9",
+                  maxWidth:160,
+                  overflow:"hidden",
+                  textOverflow:"ellipsis",
+                  whiteSpace:"nowrap"
                 }}>
                 {capitalizeWords(i.item_name)}
                 </td>
                 
                 <td style={{
-                padding:"12px 10px",
-                borderBottom:"1px solid #f1f5f9",
-                overflow:"hidden",
-                textOverflow:"ellipsis",
-                whiteSpace:"normal",
-                wordBreak:"break-word"
+                  padding:"12px 10px",
+                  borderBottom:"1px solid #f1f5f9",
+                  maxWidth:160,
+                  overflow:"hidden",
+                  textOverflow:"ellipsis",
+                  whiteSpace:"nowrap"
                 }}>
                 {capitalizeWords(i.brand)}
                 </td>
@@ -1991,13 +1990,13 @@ if (form.type === "OUT") {
                 
                 {/* ================= DELETED TRANSACTIONS ================= */}
                 <div style={{
-                flex: 1,
                 background: "#fff",
                 padding: 20,
                 borderRadius: 12,
                 boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
                 display: "flex",
                 flexDirection: "column",
+                minWidth: 0,
                 height: "520px",
                 }}>
                 
@@ -2010,19 +2009,18 @@ if (form.type === "OUT") {
                 onChange={(e) => setDeletedTxSearch(e.target.value)}
                 />
                 
-                <div style={{ overflowX:"auto", overflowY:"auto", flex:1 }}>
+                <div style={{ flex: 1, overflowY: "auto", marginTop: 10 }}>
                 
                 <table style={{
                   width:"100%",
-                  borderCollapse:"collapse",
-                  tableLayout:"fixed"
+                  borderCollapse:"collapse"
                 }}>
                 
                 <thead style={{ position:"sticky", top:0, background:"#f3f4f6", zIndex:1 }}>
                 <tr>
                 <th style={{width:"90px"}}>Date</th>
-                <th style={{minWidth:"140px"}}>Item</th>
-                <th style={{width:"120px"}}>Brand</th>
+                <th style={{width:"160px"}}>Item</th>
+                <th style={{width:"90px"}}>Brand</th>
                 <th style={{width:"80px"}}>Type</th>
                 <th style={{width:"70px"}}>Qty</th>
                 <th style={{width:"120px"}}>Total Price</th>
@@ -2057,22 +2055,23 @@ if (form.type === "OUT") {
                 </td>
                 
                 <td style={{
-                padding:"12px 10px",
-                borderBottom:"1px solid #f1f5f9",
-                overflow:"hidden",
-                textOverflow:"ellipsis",
-                whiteSpace:"normal",
-                wordBreak:"break-word"
+                  padding:"12px 10px",
+                  borderBottom:"1px solid #f1f5f9",
+                  maxWidth:160,
+                  overflow:"hidden",
+                  textOverflow:"ellipsis",
+                  whiteSpace:"nowrap"
                 }}>
                 {capitalizeWords(i.items?.item_name)}
                 </td>
                 
-                <td style={{
-                padding:"12px 10px",
-                borderBottom:"1px solid #f1f5f9",
-                overflow:"hidden",
-                textOverflow:"ellipsis",
-                whiteSpace:"nowrap"
+               <td style={{
+                  padding:"12px 10px",
+                  borderBottom:"1px solid #f1f5f9",
+                  maxWidth:160,
+                  overflow:"hidden",
+                  textOverflow:"ellipsis",
+                  whiteSpace:"nowrap"
                 }}>
                 {displayBrand(i.items?.brand)}
                 </td>
