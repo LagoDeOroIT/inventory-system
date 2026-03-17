@@ -1491,14 +1491,13 @@ if (form.type === "OUT") {
 
 {/* TRANSACTIONS TAB */}
   {activeTab === "transactions" && (
-  <div style={{
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 20,
-      width: "100%",
-      alignItems: "stretch",
-      height: "100%"
-    }}>
+    <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 20,
+        width: "100%",
+        alignItems: "stretch"
+      }}>
     {/* ================= IN TRANSACTIONS ================= */}
      <div style={{
         background: "#fff",
@@ -1508,7 +1507,7 @@ if (form.type === "OUT") {
         display: "flex",
         flexDirection: "column",
         minWidth: 0,
-        height: "520px"
+        height: "auto"
       }}>
       <h2>IN Transactions</h2>
       <input
@@ -1518,8 +1517,6 @@ if (form.type === "OUT") {
         onChange={(e) => setInSearch(e.target.value)}
       />
       <div style={{
-          flex: 1,
-          overflowY: "auto",
           marginTop: 10
         }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -1651,7 +1648,7 @@ if (form.type === "OUT") {
         display: "flex",
         flexDirection: "column",
         minWidth: 0,
-        height: "520px"
+        height: "auto"
       }}>
       <h2>OUT Transactions</h2>
       <input
@@ -1661,8 +1658,6 @@ if (form.type === "OUT") {
         onChange={(e) => setOutSearch(e.target.value)}
       />
       <div style={{
-          flex: 1,
-          overflowY: "auto",
           marginTop: 10
         }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
