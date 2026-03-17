@@ -1733,7 +1733,7 @@ if (form.type === "OUT") {
   </div>
 )}
 
-                        {/* ================= DELETED HISTORY TAB ================= */}
+      {/* ================= DELETED HISTORY TAB ================= */}
                 {activeTab==="deleted" && (
                 <div style={{
                   display: "flex",
@@ -1750,7 +1750,7 @@ if (form.type === "OUT") {
                   boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
                   display: "flex",
                   flexDirection: "column",
-                  maxHeight: "600px",
+                  height: "520px",
                 }}>
                 <h2>Deleted Inventory</h2>
                 
@@ -1764,9 +1764,10 @@ if (form.type === "OUT") {
                 <div style={{ overflowY: "auto", flex: 1 }}>
                 
                 <table style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  tableLayout: "fixed"
+                width:"100%",
+                borderCollapse:"collapse",
+                tableLayout:"fixed",
+                minWidth:"100%"
                 }}>
                 
                 <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
@@ -1844,7 +1845,9 @@ if (form.type === "OUT") {
                   background:"none",
                   border:"none",
                   fontSize:20,
-                  cursor:"pointer"
+                  cursor:"pointer",
+                  padding:"4px 8px",
+                  borderRadius:6
                   }}
                   >
                   ⋮
@@ -1909,7 +1912,7 @@ if (form.type === "OUT") {
                 boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
                 display: "flex",
                 flexDirection: "column",
-                maxHeight: "600px",
+                height: "520px",
                 }}>
                 
                 <h2>Deleted Transactions</h2>
@@ -1926,23 +1929,19 @@ if (form.type === "OUT") {
                 <table style={{
                 width:"100%",
                 borderCollapse:"collapse",
-                tableLayout:"fixed"
+                tableLayout:"fixed",
+                minWidth:"100%"
                 }}>
                 
                 <thead style={{ position:"sticky", top:0, background:"#f3f4f6", zIndex:1 }}>
                 <tr>
-                {["Date","Item","Brand","Type","Qty","Total Price","Actions"].map((th, idx) => (
-                <th key={idx} style={{
-                padding:"12px 10px",
-                textAlign:"left",
-                fontSize:14,
-                fontWeight:600,
-                borderBottom:"1px solid #e5e7eb",
-                whiteSpace:"nowrap"
-                }}>
-                {th}
-                </th>
-                ))}
+                <th style={{width:"90px"}}>Date</th>
+                <th style={{width:"160px"}}>Item</th>
+                <th style={{width:"120px"}}>Brand</th>
+                <th style={{width:"80px"}}>Type</th>
+                <th style={{width:"70px"}}>Qty</th>
+                <th style={{width:"120px"}}>Total Price</th>
+                <th style={{width:"80px", textAlign:"center"}}>Actions</th>
                 </tr>
                 </thead>
                 
@@ -2016,7 +2015,9 @@ if (form.type === "OUT") {
                   background:"none",
                   border:"none",
                   fontSize:20,
-                  cursor:"pointer"
+                  cursor:"pointer",
+                  padding:"4px 8px",
+                  borderRadius:6
                   }}
                   >
                   ⋮
