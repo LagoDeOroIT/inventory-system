@@ -1274,7 +1274,6 @@ if (form.type === "OUT") {
         }}
       >
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          </div>
         <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
           <tr>
             {["Qty", "Item Name", "Brand", "Price", "Total Value", "Actions"].map((th, idx) => (
@@ -1485,6 +1484,7 @@ if (form.type === "OUT") {
             })()}
           </tbody>
       </table>
+    </div>
     </div>
   </div>
 )}
