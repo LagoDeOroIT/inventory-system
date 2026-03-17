@@ -650,7 +650,7 @@ export default function App() {
       
         // ================= KPI SUMMARY =================
         rows.push(["SUMMARY"]);
-        rows.push(["Total IN Quantity", monthlySummary?.totalOutQty || 0]);
+        rows.push(["Total IN Quantity", monthlySummary?.totalInQty || 0]);
         rows.push(["Total IN Value", monthlySummary.totalInValue]);
         rows.push(["Total OUT Quantity", monthlySummary.totalOutQty]);
         rows.push(["Total OUT Value", (monthlySummary?.totalOutValue || 0)]);
