@@ -1392,6 +1392,8 @@ if (form.type === "OUT") {
                         <td style={styles.thtd}>₱{Number(i.stock * Number(i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                         <td style={{ ...styles.thtd, position:"relative" }}>
 
+                        <div className="action-menu">
+                        
                         <button
                           onClick={() => setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id)}
                           style={{
@@ -1451,7 +1453,7 @@ if (form.type === "OUT") {
                         
                         </div>
                         )}
-                        
+                        </div>
                         </td>
                       </tr>
                     ))}
@@ -1540,6 +1542,8 @@ if (form.type === "OUT") {
             
                     <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
 
+                      <div className="action-menu">
+                      
                       <button
                       onClick={() => setOpenMenuId(openMenuId === "in-"+i.id ? null : "in-"+i.id)}
                       style={{
@@ -1601,7 +1605,7 @@ if (form.type === "OUT") {
                       
                       </div>
                       )}
-                      
+                      </div>
                       </td>
                   </tr>
                 ));
@@ -1675,6 +1679,8 @@ if (form.type === "OUT") {
           
                   <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
 
+                  <div className="action-menu">
+
                     <button
                     onClick={() => setOpenMenuId(openMenuId === "out-"+i.id ? null : "out-"+i.id)}
                     style={{
@@ -1736,7 +1742,8 @@ if (form.type === "OUT") {
                     
                     </div>
                     )}
-                    
+                    </div>
+
                     </td>
                 </tr>
               ));
@@ -1886,7 +1893,7 @@ if (form.type === "OUT") {
                 position:"relative",
                 textAlign:"center"
                 }}>
-                  
+                  <div className="action-menu">
                   <button
                   onClick={() => setOpenMenuId(openMenuId === "delitem-"+i.id ? null : "delitem-"+i.id)}
                   style={{
@@ -1938,7 +1945,8 @@ if (form.type === "OUT") {
                   
                   </div>
                   )}
-                  
+                  </div>
+
                   </td>
                 
                 </tr>
@@ -2057,6 +2065,7 @@ if (form.type === "OUT") {
                   position:"relative",
                   textAlign:"center"
                   }}>
+                  <div className="action-menu">
                   
                   <button
                   onClick={() => setOpenMenuId(openMenuId === "deltx-"+i.id ? null : "deltx-"+i.id)}
@@ -2109,7 +2118,8 @@ if (form.type === "OUT") {
                   
                   </div>
                   )}
-                  
+                  </div>
+
                   </td>
                 
                 </tr>
