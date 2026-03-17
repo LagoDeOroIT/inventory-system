@@ -1780,14 +1780,14 @@ if (form.type === "OUT") {
 
       {/* ================= DELETED HISTORY TAB ================= */}
                 {activeTab==="deleted" && (
-                <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 2fr",
-                  gap: 20,
-                  width: "100%"
-                }}>
-                                
+                <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 20,
+                    width: "100%",
+                    maxWidth: "100%",
+                    overflow: "hidden"
+                  }}>  
                 {/* ================= DELETED INVENTORY ================= */}
                 <div style={{
                   flex: 1,
@@ -2010,18 +2010,18 @@ if (form.type === "OUT") {
                 onChange={(e) => setDeletedTxSearch(e.target.value)}
                 />
                 
-                <div style={{ overflowY:"auto", flex:1 }}>
+                <div style={{ overflowX:"auto", overflowY:"auto", flex:1 }}>
                 
                 <table style={{
                   width:"100%",
                   borderCollapse:"collapse",
-                  tableLayout:"auto"
+                  tableLayout:"fixed"
                 }}>
                 
                 <thead style={{ position:"sticky", top:0, background:"#f3f4f6", zIndex:1 }}>
                 <tr>
                 <th style={{width:"90px"}}>Date</th>
-                <th style={{width:"160px"}}>Item</th>
+                <th style={{minWidth:"140px"}}>Item</th>
                 <th style={{width:"120px"}}>Brand</th>
                 <th style={{width:"80px"}}>Type</th>
                 <th style={{width:"70px"}}>Qty</th>
@@ -2061,7 +2061,8 @@ if (form.type === "OUT") {
                 borderBottom:"1px solid #f1f5f9",
                 overflow:"hidden",
                 textOverflow:"ellipsis",
-                whiteSpace:"nowrap"
+                whiteSpace:"normal",
+                wordBreak:"break-word"
                 }}>
                 {capitalizeWords(i.items?.item_name)}
                 </td>
