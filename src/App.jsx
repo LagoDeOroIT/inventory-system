@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Draggable from "react-draggable";
 // ================= SUPABASE CONFIG =================
@@ -401,6 +401,22 @@ export default function App() {
       cursor:"pointer",
       borderBottom:"1px solid #f1f5f9"
     };
+  const menuRef = useRef(null);
+  useEffect(() => {
+
+  const handleClickOutside = (event) => {
+    if (menuRef.current && !menuRef.current.contains(event.target)) {
+      setOpenMenuId(null);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+
+}, []);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const stockRooms = [
@@ -1389,20 +1405,21 @@ if (form.type === "OUT") {
                         </button>
                         
                         {openMenuId === i.id && (
-                          <div style={{
-                            position:"absolute",
-                            right:0,
-                            top:28,
-                            background:"#fff",
-                            border:"1px solid #e5e7eb",
-                            borderRadius:8,
-                            boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                            zIndex:50,
-                            minWidth:120,
-                          
-                            display:"flex",
-                            flexDirection:"column"
-                          }}>
+                        <div
+                        ref={menuRef}
+                        style={{
+                        position:"absolute",
+                        right:0,
+                        top:30,
+                        background:"#fff",
+                        border:"1px solid #e5e7eb",
+                        borderRadius:8,
+                        boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                        zIndex:10,
+                        minWidth:120,
+                        display:"flex",
+                        flexDirection:"column"
+                        }}>
                         
                         <button
                         style={menuItemStyle}
@@ -1736,9 +1753,10 @@ if (form.type === "OUT") {
       {/* ================= DELETED HISTORY TAB ================= */}
                 {activeTab==="deleted" && (
                 <div style={{
-                  display: "flex",
+                  display: "grid",
+                  gridTemplateColumns: "1fr 2fr",
                   gap: 20,
-                  alignItems: "stretch",
+                  width: "100%"
                 }}>
                 
                 {/* ================= DELETED INVENTORY ================= */}
@@ -1770,20 +1788,49 @@ if (form.type === "OUT") {
                 minWidth:"100%"
                 }}>
                 
-                <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
+                <thead style={{ position:"sticky", top:0, background:"#f3f4f6", zIndex:1 }}>
                 <tr>
-                {["Item Name", "Brand", "Price", "Actions"].map((th, idx) => (
-                <th key={idx} style={{
+                
+                <th style={{
+                width:"40%",
                 padding:"12px 10px",
                 textAlign:"left",
-                fontSize:14,
                 fontWeight:600,
-                borderBottom:"1px solid #e5e7eb",
-                whiteSpace:"nowrap"
+                borderBottom:"1px solid #e5e7eb"
                 }}>
-                {th}
+                Item Name
                 </th>
-                ))}
+                
+                <th style={{
+                width:"25%",
+                padding:"12px 10px",
+                textAlign:"left",
+                fontWeight:600,
+                borderBottom:"1px solid #e5e7eb"
+                }}>
+                Brand
+                </th>
+                
+                <th style={{
+                width:"20%",
+                padding:"12px 10px",
+                textAlign:"left",
+                fontWeight:600,
+                borderBottom:"1px solid #e5e7eb"
+                }}>
+                Price
+                </th>
+                
+                <th style={{
+                width:"15%",
+                padding:"12px 10px",
+                textAlign:"center",
+                fontWeight:600,
+                borderBottom:"1px solid #e5e7eb"
+                }}>
+                Actions
+                </th>
+                
                 </tr>
                 </thead>
                 
@@ -1834,10 +1881,11 @@ if (form.type === "OUT") {
                 </td>
                 
                 <td style={{
-                  padding:"12px 10px",
-                  borderBottom:"1px solid #f1f5f9",
-                  position:"relative"
-                  }}>
+                padding:"12px 10px",
+                borderBottom:"1px solid #f1f5f9",
+                position:"relative",
+                textAlign:"center"
+                }}>
                   
                   <button
                   onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}
@@ -2006,7 +2054,8 @@ if (form.type === "OUT") {
                 <td style={{
                   padding:"12px 10px",
                   borderBottom:"1px solid #f1f5f9",
-                  position:"relative"
+                  position:"relative",
+                  textAlign:"center"
                   }}>
                   
                   <button
