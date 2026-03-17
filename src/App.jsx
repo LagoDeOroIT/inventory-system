@@ -143,7 +143,7 @@ const styles = {
     background: "#f3f4f6", 
     overflow: "hidden"  // prevent body scroll, scroll only in main
   },
-  sidebar: {
+   sidebar: {
     width: 220,
     background: "#111827",
     color: "#fff",
@@ -151,8 +151,9 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    height: "100%",      // ✅ fix
-    position: "relative" // ✅ fix
+    height: "100vh",     // ❌ causes overflow
+    position: "sticky",  // ❌ unnecessary here
+    top: 0
   },
   sidebarHeader: { fontSize: 20, fontWeight: 700, marginBottom: 24 },
   sidebarSelect: { marginBottom: 24, padding: 8, borderRadius: 6, border: "none", width: "100%" },
