@@ -162,9 +162,8 @@ const styles = {
   main: { 
     flex: 1, 
     padding: 24, 
-    overflowY: "auto",   
-    height: "100vh" 
-  },  
+    overflow: "hidden"   // 🔥 THIS FIXES EVERYTHING
+  }
   categoryRow:{
     background:"#f8fafc",
     borderTop:"1px solid #e5e7eb",
