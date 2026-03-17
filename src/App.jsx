@@ -392,6 +392,16 @@ export default function App() {
     ];
   // ================= DASHBOARD DATA =================
   const [confirmAction, setConfirmAction] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const menuItemStyle = {
+    width: "100%",
+    padding: "8px 12px",
+    background: "none",
+    border: "none",
+    textAlign: "left",
+    cursor: "pointer",
+    fontSize: 14
+  };
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const stockRooms = [
@@ -1765,41 +1775,61 @@ if (form.type === "OUT") {
                 ₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}
                 </td>
                 
-                <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9", whiteSpace:"nowrap" }}>
-                <div style={{ display:"flex", gap:8 }}>
-                
-                <button
-                style={{
-                padding:"6px 10px",
-                borderRadius:6,
-                border:"none",
-                background:"#10b981",
-                color:"#fff",
-                cursor:"pointer",
-                fontSize:13
-                }}
-                onClick={() => setConfirmAction({ type:"restoreItem", data:i })}
-                >
-                Restore
-                </button>
-                
-                <button
-                style={{
-                padding:"6px 10px",
-                borderRadius:6,
-                border:"none",
-                background:"#ef4444",
-                color:"#fff",
-                cursor:"pointer",
-                fontSize:13
-                }}
-                onClick={() => setConfirmAction({ type:"permanentDeleteItem", data:i })}
-                >
-                Delete
-                </button>
-                
-                </div>
-                </td>
+                <td style={{
+                  padding:"12px 10px",
+                  borderBottom:"1px solid #f1f5f9",
+                  position:"relative"
+                  }}>
+                  
+                  <button
+                  onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}
+                  style={{
+                  background:"none",
+                  border:"none",
+                  fontSize:20,
+                  cursor:"pointer"
+                  }}
+                  >
+                  ⋮
+                  </button>
+                  
+                  {openMenuId === i.id && (
+                  <div style={{
+                  position:"absolute",
+                  right:0,
+                  top:30,
+                  background:"#fff",
+                  border:"1px solid #e5e7eb",
+                  borderRadius:8,
+                  boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                  zIndex:10,
+                  minWidth:120
+                  }}>
+                  
+                  <button
+                  style={menuItemStyle}
+                  onClick={()=>{
+                  setConfirmAction({ type:"restoreItem", data:i });
+                  setOpenMenuId(null);
+                  }}
+                  >
+                  Restore
+                  </button>
+                  
+                  <button
+                  style={{...menuItemStyle,color:"#ef4444"}}
+                  onClick={()=>{
+                  setConfirmAction({ type:"permanentDeleteItem", data:i });
+                  setOpenMenuId(null);
+                  }}
+                  >
+                  Delete
+                  </button>
+                  
+                  </div>
+                  )}
+                  
+                  </td>
                 
                 </tr>
                 ));
@@ -1915,41 +1945,61 @@ if (form.type === "OUT") {
                 ₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}
                 </td>
                 
-                <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9", whiteSpace:"nowrap" }}>
-                <div style={{ display:"flex", gap:8 }}>
-                
-                <button
-                style={{
-                padding:"6px 10px",
-                borderRadius:6,
-                border:"none",
-                background:"#10b981",
-                color:"#fff",
-                cursor:"pointer",
-                fontSize:13
-                }}
-                onClick={() => setConfirmAction({ type:"restoreTx", data:i })}
-                >
-                Restore
-                </button>
-                
-                <button
-                style={{
-                padding:"6px 10px",
-                borderRadius:6,
-                border:"none",
-                background:"#ef4444",
-                color:"#fff",
-                cursor:"pointer",
-                fontSize:13
-                }}
-                onClick={() => setConfirmAction({ type:"permanentDeleteTx", data:i })}
-                >
-                Delete
-                </button>
-                
-                </div>
-                </td>
+                <td style={{
+                  padding:"12px 10px",
+                  borderBottom:"1px solid #f1f5f9",
+                  position:"relative"
+                  }}>
+                  
+                  <button
+                  onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}
+                  style={{
+                  background:"none",
+                  border:"none",
+                  fontSize:20,
+                  cursor:"pointer"
+                  }}
+                  >
+                  ⋮
+                  </button>
+                  
+                  {openMenuId === i.id && (
+                  <div style={{
+                  position:"absolute",
+                  right:0,
+                  top:30,
+                  background:"#fff",
+                  border:"1px solid #e5e7eb",
+                  borderRadius:8,
+                  boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                  zIndex:10,
+                  minWidth:120
+                  }}>
+                  
+                  <button
+                  style={menuItemStyle}
+                  onClick={()=>{
+                  setConfirmAction({ type:"restoreTx", data:i });
+                  setOpenMenuId(null);
+                  }}
+                  >
+                  Restore
+                  </button>
+                  
+                  <button
+                  style={{...menuItemStyle,color:"#ef4444"}}
+                  onClick={()=>{
+                  setConfirmAction({ type:"permanentDeleteTx", data:i });
+                  setOpenMenuId(null);
+                  }}
+                  >
+                  Delete
+                  </button>
+                  
+                  </div>
+                  )}
+                  
+                  </td>
                 
                 </tr>
                 ));
