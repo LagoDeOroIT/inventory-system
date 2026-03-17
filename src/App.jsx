@@ -2372,11 +2372,11 @@ if (form.type === "OUT") {
           </table>
         </div>
 
-      </div> {/* end flex column */}
-    </div> {/* end reportSection */}
-  </div> {/* end scroll container */}
+      </div> 
+    </div> 
+  </div> 
 )}
-},
+
                {/* ================= MODAL ================= */}
         {showModal && (
           <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
