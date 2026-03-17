@@ -2376,6 +2376,7 @@ if (form.type === "OUT") {
     </div> {/* end reportSection */}
   </div> {/* end scroll container */}
 )}
+},
                {/* ================= MODAL ================= */}
         {showModal && (
           <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
