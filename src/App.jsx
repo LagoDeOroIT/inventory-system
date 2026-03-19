@@ -1857,7 +1857,7 @@ if (form.type === "OUT") {
                     gap: 20,
                     width: "100%",
                     maxWidth: "100%",
-                    overflow: "hidden"
+                    overflow: "auto"
                   }}>  
                 {/* ================= DELETED INVENTORY ================= */}
                 <div style={{
