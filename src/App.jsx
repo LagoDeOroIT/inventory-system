@@ -321,6 +321,16 @@ const styles = {
     if (num === null || num === undefined) return "";
     return Number(num).toLocaleString();
   };
+  const normalizeDate = (date) => {
+  const parsed = new Date(date);
+  return isNaN(parsed) ? new Date(0) : parsed;
+  };
+  
+  const sortByLatest = (array, key = "date") => {
+    return [...array].sort(
+      (a, b) => normalizeDate(b[key]) - normalizeDate(a[key])
+    );
+  };
 // ================= APP COMPONENT =================
 export default function App() {
   const [session, setSession] = useState(null);
@@ -542,13 +552,15 @@ export default function App() {
       return acc;
     }, {});
 
-  const inTransactions = filteredTransactions
-  .filter(t => t.type === "IN")
-  .sort((a, b) => new Date(b.date) - new Date(a.date));
+  const inTransactions = sortByLatest(
+    transactions.filter(t => t.type === "IN"),
+    "date"
+  );
   
-  const outTransactions = filteredTransactions
-  .filter(t => (t.type || "").toUpperCase() === "OUT")
-  .sort((a, b) => new Date(b.date) - new Date(a.date));
+  const outTransactions = sortByLatest(
+    transactions.filter(t => t.type === "OUT"),
+    "date"
+  );
   
   const stockInventory = items
         .filter(i => !i.deleted)
@@ -584,25 +596,32 @@ export default function App() {
     (sum, i) => sum + (i.stock * (i.unit_price || 0)),
     0
   );
-    const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
-    const deletedItems = items
-      .filter(i =>
-        i.deleted &&
-        (!selectedStockRoom || i.location === selectedStockRoom || !i.location)
-      )
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    const deletedTransactions = transactions
+  const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
+  
+  const deletedItemsSorted = sortByLatest(
+    items.filter(i =>
+      i.deleted &&
+      (!selectedStockRoom || i.location === selectedStockRoom || !i.location)
+    ),
+    "created_at"
+  );
+  
+  const deletedTransactionsSorted = sortByLatest(
+    transactions
       .filter(t => t.deleted)
-      .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
-      .sort((a, b) => new Date(b.date) - new Date(a.date));
-    const filteredDeletedItems = deletedItems.filter(i =>
+      .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom),
+    "date"
+  );
+  
+  const filteredDeletedItems = deletedItemsSorted.filter(i =>
     (i.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
     (i.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
   );
-    const filteredDeletedTransactions = deletedTransactions.filter(t =>
-      t.items?.item_name?.toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
-      t.items?.brand?.toLowerCase().includes(deletedTxSearch.toLowerCase())
-    );
+  
+  const filteredDeletedTransactions = deletedTransactionsSorted.filter(t =>
+    t.items?.item_name?.toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
+    t.items?.brand?.toLowerCase().includes(deletedTxSearch.toLowerCase())
+  );
   // ================= MONTHLY REPORT STATE =================
     const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
     const [reportYear, setReportYear] = useState(new Date().getFullYear());
