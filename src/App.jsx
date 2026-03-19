@@ -542,10 +542,14 @@ export default function App() {
       return acc;
     }, {});
 
-  const inTransactions = filteredTransactions.filter(t => t.type === "IN");
-  const outTransactions = filteredTransactions.filter(
-      t => (t.type || "").toUpperCase() === "OUT"
-    );
+  const inTransactions = filteredTransactions
+  .filter(t => t.type === "IN")
+  .sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  const outTransactions = filteredTransactions
+  .filter(t => (t.type || "").toUpperCase() === "OUT")
+  .sort((a, b) => new Date(b.date) - new Date(a.date));
+  
   const stockInventory = items
         .filter(i => !i.deleted)
         .filter(i => {
@@ -581,8 +585,16 @@ export default function App() {
     0
   );
     const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
-    const deletedItems = items.filter(i => i.deleted).filter(i => !selectedStockRoom || i.location === selectedStockRoom || !i.location);
-    const deletedTransactions = transactions.filter(t => t.deleted).filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom);
+    const deletedItems = items
+      .filter(i =>
+        i.deleted &&
+        (!selectedStockRoom || i.location === selectedStockRoom || !i.location)
+      )
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const deletedTransactions = transactions
+      .filter(t => t.deleted)
+      .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
     const filteredDeletedItems = deletedItems.filter(i =>
     (i.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
     (i.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
@@ -2354,8 +2366,9 @@ if (form.type === "OUT") {
               {monthlyTransactions.length === 0
                 ? emptyRowComponent(6, "No transactions")
                 : monthlyTransactions
-                    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
-                    .map(t => (
+                  .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
+                  .sort((a, b) => new Date(b.date) - new Date(a.date))
+                  .map(t => (
                       <tr key={t.id}>
                         <td style={styles.thtd}>{t.date}</td>
                         <td style={styles.thtd}>{capitalizeWords(t.items?.item_name)}</td>
