@@ -151,8 +151,6 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    height: "100vh",     // ❌ causes overflow
-    position: "sticky",  // ❌ unnecessary here
     top: 0
   },
   sidebarHeader: { fontSize: 20, fontWeight: 700, marginBottom: 24 },
