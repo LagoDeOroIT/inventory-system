@@ -136,12 +136,13 @@ const styles = {
     fontWeight:700,
     color:"#111827"
   },
-  container: {
-    display: "flex",
+  container: { 
+    display: "flex", 
+    fontFamily: "Inter, Arial, sans-serif", 
     height: "100vh",
-    padding: "12px",
-    gap: "12px",
-    background: "#f3f4f6"
+    background: "#f3f4f6",
+    overflow: "hidden",
+    gap: "16px" // ✅ adds space between sidebar and main
   },
    sidebar: {
     width: 220,
