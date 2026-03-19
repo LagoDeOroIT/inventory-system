@@ -139,11 +139,12 @@ const styles = {
   container: {
     display: "flex",
     height: "100vh",
-    fontFamily: "Inter, Arial, sans-serif", 
     padding: "12px",
     gap: "12px",
-    background: "#f3f4f6"
-  },
+    background: "#f3f4f6",
+    boxSizing: "border-box", // ✅ REQUIRED
+    overflow: "hidden"       // ✅ REQUIRED
+  }
    sidebar: {
     width: 220,
     background: "#111827",
