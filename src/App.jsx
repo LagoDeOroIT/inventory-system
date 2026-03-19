@@ -515,7 +515,6 @@ export default function App() {
         const savedCategories = localStorage.getItem("openCategories");
         if (!savedCategories) setOpenCategories(opened);
       };
- import { useMemo } from "react";
 
 // ================= FILTERS =================
 const filteredTransactions = useMemo(() => {
