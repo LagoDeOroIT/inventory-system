@@ -495,7 +495,7 @@ export default function App() {
         const { data: tx } = await supabase
           .from("inventory_transactions")
           .select("*, items(item_name, brand, unit_price, location, category)")
-          .order("date", { ascending: false });
+          .order("created_at", { ascending: false });
       
         const transactionsWithDeleted = (tx || []).map(t => ({
           ...t,
@@ -544,11 +544,11 @@ export default function App() {
 
   const inTransactions = filteredTransactions
   .filter(t => t.type === "IN")
-  .sort((a, b) => new Date(b.date) - new Date(a.date));
-  
-  const outTransactions = filteredTransactions
-  .filter(t => (t.type || "").toUpperCase() === "OUT")
-  .sort((a, b) => new Date(b.date) - new Date(a.date));
+  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+const outTransactions = filteredTransactions
+  .filter(t => t.type === "OUT")
+  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   
   const stockInventory = items
         .filter(i => !i.deleted)
@@ -905,14 +905,15 @@ if (form.type === "OUT") {
   }
 }
       const txData = {
-        date: form.date,
-        item_id: existingItem.id,
-        brand: form.brand || existingItem.brand || "No Brand",
-        type: form.type,
-        quantity: Number(form.quantity),
-        unit_price: Number(form.price || existingItem.unit_price || 0),
-        location: form.location || selectedStockRoom  // ✅ add this line
-      };
+          date: form.date, // keep this for reporting
+          created_at: new Date().toISOString(), // ✅ ensures ordering
+          item_id: existingItem.id,
+          brand: form.brand || existingItem.brand || "No Brand",
+          type: form.type,
+          quantity: Number(form.quantity),
+          unit_price: Number(form.price || existingItem.unit_price || 0),
+          location: form.location || selectedStockRoom
+        };
       if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
       else await supabase.from("inventory_transactions").insert([txData]);
       setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
@@ -1550,11 +1551,11 @@ if (form.type === "OUT") {
           <tbody>
               {(() => {
                 const filteredIn = inTransactions
-                  .filter((item) =>
+                  .filter(item =>
                     (item.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
                     (item.items?.brand || "").toLowerCase().includes(inSearch.toLowerCase())
                   )
-                  .sort((a, b) => new Date(b.date) - new Date(a.date));
+                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             
                 if (filteredIn.length === 0) {
                   return (
@@ -1694,11 +1695,11 @@ if (form.type === "OUT") {
           <tbody>
             {(() => {
               const filteredOut = outTransactions
-                  .filter((item) =>
-                    (item.items?.item_name || "").toLowerCase().includes(outSearch.toLowerCase()) ||
-                    (item.items?.brand || "").toLowerCase().includes(outSearch.toLowerCase())
-                  )
-                  .sort((a, b) => new Date(b.date) - new Date(a.date));
+                .filter(item =>
+                  (item.items?.item_name || "").toLowerCase().includes(outSearch.toLowerCase()) ||
+                  (item.items?.brand || "").toLowerCase().includes(outSearch.toLowerCase())
+                )
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
           
               if (filteredOut.length === 0) {
                 return (
