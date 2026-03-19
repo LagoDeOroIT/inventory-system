@@ -1889,11 +1889,13 @@ if (form.type === "OUT") {
                 <tbody>
                 {(() => {
                 
-                const filteredDeleted = deletedItems.filter(
-                (item) =>
-                (item.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
-                (item.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
-                );
+                const filteredDeleted = deletedItems
+                  .filter(
+                    (item) =>
+                      (item.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+                      (item.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
+                  )
+                  .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
                 
                 if (filteredDeleted.length === 0) {
                 return (
@@ -2056,23 +2058,25 @@ if (form.type === "OUT") {
                 <tbody>
                 {(() => {
                 
-                const filteredDeleted = deletedTransactions.filter(
-                (t) =>
-                (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
-                (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
-                );
+                const filteredDeletedTx = deletedTransactions
+                .filter(
+                  (t) =>
+                    (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
+                    (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
+                )
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
                 
-                if (filteredDeleted.length === 0) {
-                return (
-                <tr>
-                <td colSpan={7} style={{ padding:16,textAlign:"center",color:"#9ca3af" }}>
-                No deleted transactions
-                </td>
-                </tr>
-                );
+                if (filteredDeletedTx.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={7} style={{ padding:16,textAlign:"center",color:"#9ca3af" }}>
+                        No deleted transactions
+                      </td>
+                    </tr>
+                  );
                 }
                 
-                return filteredDeleted.map((i) => (
+                return filteredDeletedTx.map((i) => (
                 <tr key={i.id}>
                 
                 <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
