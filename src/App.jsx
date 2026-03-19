@@ -1850,24 +1850,25 @@ if (form.type === "OUT") {
  {/* ================= DELETED HISTORY TAB ================= */}
                 {activeTab==="deleted" && (
                 <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 20,
-                    width: "100%",
-                    maxWidth: "100%",
-                    overflow: "hidden"
-                  }}>  
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 20,
+                  width: "100%",
+                  minWidth: 0   // ✅ allow shrinking
+                }}>  
                 {/* ================= DELETED INVENTORY ================= */}
                 <div style={{
-                  background: "#fff",
-                  padding: 20,
-                  borderRadius: 12,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-                  display: "flex",
-                  flexDirection: "column",
-                  minWidth: 0,
-                  height: "520px",
-                }}>
+                    background: "#fff",
+                    padding: 20,
+                    borderRadius: 12,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                    display: "flex",
+                    flexDirection: "column",
+                    minWidth: 0,
+                    width: "100%",        // ✅ ADD THIS
+                    overflow: "hidden",   // ✅ keep content inside
+                    height: "520px",
+                  }}>
                 <h2>Deleted Inventory</h2>
                 
                 <input
@@ -1877,12 +1878,18 @@ if (form.type === "OUT") {
                   onChange={(e) => setDeletedItemSearch(e.target.value)}
                 />
                 
-                <div style={{ flex: 1, overflowY: "auto", marginTop: 10 }}>
+                <div style={{
+                  flex: 1,
+                  overflowX: "auto",   // ✅ allow horizontal scroll
+                  overflowY: "auto",
+                  marginTop: 10
+                }}>
                 
                 <table style={{
-                  width:"100%",
-                  borderCollapse:"collapse"
-                }}>
+                    width: "100%",
+                    minWidth: "600px",   // ✅ ensures table doesn't shrink too much
+                    borderCollapse: "collapse"
+                  }}>
                 
                 <thead style={{ position:"sticky", top:0, background:"#f3f4f6", zIndex:1 }}>
                 <tr>
@@ -2061,14 +2068,16 @@ if (form.type === "OUT") {
                 
                 {/* ================= DELETED TRANSACTIONS ================= */}
                 <div style={{
-                background: "#fff",
-                padding: 20,
-                borderRadius: 12,
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-                display: "flex",
-                flexDirection: "column",
-                minWidth: 0,
-                height: "520px",
+                  background: "#fff",
+                  padding: 20,
+                  borderRadius: 12,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                  display: "flex",
+                  flexDirection: "column",
+                  minWidth: 0,
+                  width: "100%",        // ✅ ADD THIS
+                  overflow: "hidden",   // ✅ keep content inside
+                  height: "520px",
                 }}>
                 
                 <h2>Deleted Transactions</h2>
@@ -2080,11 +2089,17 @@ if (form.type === "OUT") {
                 onChange={(e) => setDeletedTxSearch(e.target.value)}
                 />
                 
-                <div style={{ flex: 1, overflowY: "auto", marginTop: 10 }}>
+                <div style={{
+                  flex: 1,
+                  overflowX: "auto",   // ✅ allow horizontal scroll
+                  overflowY: "auto",
+                  marginTop: 10
+                }}>
                 
                 <table style={{
-                  width:"100%",
-                  borderCollapse:"collapse"
+                  width: "100%",
+                  minWidth: "600px",   // ✅ ensures table doesn't shrink too much
+                  borderCollapse: "collapse"
                 }}>
                 
                 <thead style={{ position:"sticky", top:0, background:"#f3f4f6", zIndex:1 }}>
