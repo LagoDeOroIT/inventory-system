@@ -138,6 +138,7 @@ const styles = {
   },
   container: {
     display: "flex",
+    fontFamily: "Inter, Arial, sans-serif", 
     height: "100vh",
     padding: "12px",
     gap: "12px",
