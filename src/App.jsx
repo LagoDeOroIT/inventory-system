@@ -138,14 +138,13 @@ const styles = {
   },
   container: {
     display: "flex",
-    minHeight: "100vh",
+    height: "100vh",
     fontFamily: "Inter, Arial, sans-serif", 
-    padding: "24px",
+    padding: "12px",
     gap: "12px",
-    boxSizing: "border-box",
     background: "#f3f4f6"
   },
-  sidebar: {
+   sidebar: {
     width: 220,
     background: "#111827",
     color: "#fff",
@@ -153,20 +152,19 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    height: "calc(100vh - 48px)", // ✅ important
+    top: 0
   },
   sidebarHeader: { fontSize: 20, fontWeight: 700, marginBottom: 24 },
   sidebarSelect: { marginBottom: 24, padding: 8, borderRadius: 6, border: "none", width: "100%" },
   sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
   tabButton: (active) => ({ padding: 10, borderRadius: 6, background: active ? "#1f2937" : "transparent", border: "none", color: "#fff", cursor: "pointer", textAlign: "left" }),
-  main: {
-    flex: 1,
+  main: { 
+    flex: 1, 
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
     minHeight: 0,
-    padding: "16px",
-    paddingBottom: "24px"
+    padding: "16px" // ✅ adds inner spacing
   },
   categoryRow:{
     background:"#f8fafc",
@@ -1851,14 +1849,13 @@ if (form.type === "OUT") {
 
  {/* ================= DELETED HISTORY TAB ================= */}
                 {activeTab==="deleted" && (
-               <div style={{
+                <div style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
                   gap: 20,
                   width: "100%",
-                  minWidth: 0,
-                  paddingBottom: 20
-                }}> 
+                  minWidth: 0   // ✅ allow shrinking
+                }}>  
                 {/* ================= DELETED INVENTORY ================= */}
                 <div style={{
                     background: "#fff",
@@ -1870,8 +1867,7 @@ if (form.type === "OUT") {
                     minWidth: 0,
                     width: "100%",        // ✅ ADD THIS
                     overflow: "hidden",   // ✅ keep content inside
-                    height: "100%",
-                    minHeight: "520px"
+                    height: "520px",
                   }}>
                 <h2>Deleted Inventory</h2>
                 
@@ -2081,8 +2077,7 @@ if (form.type === "OUT") {
                   minWidth: 0,
                   width: "100%",        // ✅ ADD THIS
                   overflow: "hidden",   // ✅ keep content inside
-                  height: "100%",
-                  minHeight: "520px"
+                  height: "520px",
                 }}>
                 
                 <h2>Deleted Transactions</h2>
@@ -2264,7 +2259,7 @@ if (form.type === "OUT") {
 
       {/* ================= PROFESSIONAL MONTHLY REPORT ================= */}
 {activeTab === "report" && (
-  <div style={{ flex: 1, overflowY: "auto", paddingBottom: 20 }}>
+  <div style={{ flex: 1, overflowY: "auto" }}>
     <div id="reportSection">
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
