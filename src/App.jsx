@@ -144,7 +144,7 @@ const styles = {
     background: "#f3f4f6",
     boxSizing: "border-box", // ✅ REQUIRED
     overflow: "hidden"       // ✅ REQUIRED
-  }
+  },
    sidebar: {
     width: 220,
     background: "#111827",
@@ -165,7 +165,8 @@ const styles = {
     flexDirection: "column",
     overflow: "hidden",
     minHeight: 0,
-    padding: "16px" // ✅ adds inner spacing
+    padding: "16px",
+    boxSizing: "border-box" // ✅ ADD THIS
   },
   categoryRow:{
     background:"#f8fafc",
