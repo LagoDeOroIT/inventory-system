@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Draggable from "react-draggable";
 // ================= SUPABASE CONFIG =================
@@ -136,14 +136,12 @@ const styles = {
     fontWeight:700,
     color:"#111827"
   },
-  container: {
-    display: "flex",
-    height: "100vh",
-    padding: "12px",
-    gap: "12px",
-    background: "#f3f4f6",
-    boxSizing: "border-box", // ✅ REQUIRED
-    overflow: "hidden"       // ✅ REQUIRED
+  container: { 
+    display: "flex", 
+    fontFamily: "Inter, Arial, sans-serif", 
+    height: "100vh",    // full viewport height
+    background: "#f3f4f6", 
+    overflow: "hidden"  // prevent body scroll, scroll only in main
   },
    sidebar: {
     width: 220,
@@ -153,20 +151,20 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
+    height: "100vh",     // ❌ causes overflow
+    position: "sticky",  // ❌ unnecessary here
     top: 0
   },
   sidebarHeader: { fontSize: 20, fontWeight: 700, marginBottom: 24 },
   sidebarSelect: { marginBottom: 24, padding: 8, borderRadius: 6, border: "none", width: "100%" },
   sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
   tabButton: (active) => ({ padding: 10, borderRadius: 6, background: active ? "#1f2937" : "transparent", border: "none", color: "#fff", cursor: "pointer", textAlign: "left" }),
-  main: { 
+   main: { 
     flex: 1, 
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
-    minHeight: 0,
-    padding: "16px",
-    boxSizing: "border-box" // ✅ ADD THIS
+    minHeight: 0
   },
   categoryRow:{
     background:"#f8fafc",
@@ -497,7 +495,7 @@ export default function App() {
         const { data: tx } = await supabase
           .from("inventory_transactions")
           .select("*, items(item_name, brand, unit_price, location, category)")
-          .order("created_at", { ascending: false });
+          .order("date", { ascending: false });
       
         const transactionsWithDeleted = (tx || []).map(t => ({
           ...t,
@@ -517,138 +515,97 @@ export default function App() {
         const savedCategories = localStorage.getItem("openCategories");
         if (!savedCategories) setOpenCategories(opened);
       };
+  // ================= FILTERS =================
+    const filteredTransactions = transactions
+      .filter(t => !t.deleted)
+      .filter(t => {
+        if (!selectedStockRoom) return true;
+    
+        const txLocation = (t.location || t.items?.location || "")
+          .trim()
+          .toLowerCase();
+    
+        const selected = selectedStockRoom
+          .trim()
+          .toLowerCase();
+    
+        return txLocation === selected;
+      });
+    
+    const stockMap = filteredTransactions.reduce((acc, t) => {
+      const qty = Number(t.quantity) || 0;
+    
+      if (!acc[t.item_id]) acc[t.item_id] = 0;
+    
+      acc[t.item_id] += t.type === "IN" ? qty : -qty;
+    
+      return acc;
+    }, {});
 
-// ================= FILTERS =================
-const filteredTransactions = useMemo(() => {
-  return transactions
-    .filter(t => !t.deleted)
-    .filter(t => {
-      if (!selectedStockRoom) return true;
+  const inTransactions = filteredTransactions
+  .filter(t => t.type === "IN")
+  .sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  const outTransactions = filteredTransactions
+  .filter(t => (t.type || "").toUpperCase() === "OUT")
+  .sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  const stockInventory = items
+        .filter(i => !i.deleted)
+        .filter(i => {
+         if (!selectedStockRoom) return true;
 
-      const txLocation = (t.location || t.items?.location || "")
-        .trim()
-        .toLowerCase();
-
-      const selected = selectedStockRoom
-        .trim()
-        .toLowerCase();
-
-      return txLocation === selected;
-    });
-}, [transactions, selectedStockRoom]);
-
-const stockMap = useMemo(() => {
-  return filteredTransactions.reduce((acc, t) => {
-    const qty = Number(t.quantity) || 0;
-
-    if (!acc[t.item_id]) acc[t.item_id] = 0;
-
-    acc[t.item_id] += t.type === "IN" ? qty : -qty;
-
-    return acc;
-  }, {});
-}, [filteredTransactions]);
-
-const inTransactions = useMemo(() => {
-  return filteredTransactions
-    .filter(t => t.type === "IN")
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-}, [filteredTransactions]);
-
-const outTransactions = useMemo(() => {
-  return filteredTransactions
-    .filter(t => t.type === "OUT")
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-}, [filteredTransactions]);
-
-const stockInventory = useMemo(() => {
-  return items
-    .filter(i => !i.deleted)
-    .filter(i => {
-      if (!selectedStockRoom) return true;
-
-      const selected = selectedStockRoom.replace(/\s+/g, " ").trim().toLowerCase();
-      const itemLocation = (i.location || "")
-        .replace(/\s+/g, " ")
-        .trim()
-        .toLowerCase();
-
-      return itemLocation === selected;
-    })
-    .map(i => {
-      const stock = stockMap[i.id] || 0;
-
-      return {
-        id: i.id,
-        item_name: i.item_name,
-        brand: i.brand,
-        category: i.category,
-        unit_price: i.unit_price,
-        stock: stock,
-        location: i.location
-      };
-    });
-}, [items, selectedStockRoom, stockMap]);
-
-const totalTransactions = useMemo(() => filteredTransactions.length, [filteredTransactions]);
-
-const totalCategories = useMemo(() => {
-  return new Set(
-    stockInventory.map(i => i.category || "Uncategorized")
-  ).size;
-}, [stockInventory]);
-
-const totalItems = useMemo(() => stockInventory.length, [stockInventory]);
-
-const totalInventoryValue = useMemo(() => {
-  return stockInventory.reduce(
+            const selected = selectedStockRoom.replace(/\s+/g," ").trim().toLowerCase();
+            const itemLocation = (i.location || "")
+              .replace(/\s+/g," ")
+              .trim()
+              .toLowerCase();
+            
+            return itemLocation === selected;
+          })
+      .map(i => {
+   const stock = stockMap[i.id] || 0;
+        return {
+          id: i.id,
+          item_name: i.item_name,
+          brand: i.brand,
+          category: i.category,
+          unit_price: i.unit_price,
+          stock: stock,
+          location: i.location
+        };
+      });
+    const totalTransactions = filteredTransactions.length;
+    const totalCategories = new Set(
+      stockInventory.map(i => i.category || "Uncategorized")
+    ).size;
+    const totalItems = stockInventory.length;
+    const totalInventoryValue = stockInventory.reduce(
     (sum, i) => sum + (i.stock * (i.unit_price || 0)),
     0
   );
-}, [stockInventory]);
-
-const lowStockItems = useMemo(() => {
-  return stockInventory.filter(i => i.stock <= 5).length;
-}, [stockInventory]);
-
-const deletedItems = useMemo(() => {
-  return items
-    .filter(i =>
-      i.deleted &&
-      (!selectedStockRoom || i.location === selectedStockRoom || !i.location)
-    )
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-}, [items, selectedStockRoom]);
-
-const deletedTransactions = useMemo(() => {
-  return transactions
-    .filter(t => t.deleted)
-    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
-    .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
-}, [transactions, selectedStockRoom]);
-
-const filteredDeletedItems = useMemo(() => {
-  const search = deletedItemSearch.toLowerCase();
-
-  return deletedItems.filter(i =>
-    (i.item_name || "").toLowerCase().includes(search) ||
-    (i.brand || "").toLowerCase().includes(search)
+    const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
+    const deletedItems = items
+      .filter(i =>
+        i.deleted &&
+        (!selectedStockRoom || i.location === selectedStockRoom || !i.location)
+      )
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const deletedTransactions = transactions
+      .filter(t => t.deleted)
+      .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+    const filteredDeletedItems = deletedItems.filter(i =>
+    (i.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+    (i.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
   );
-}, [deletedItems, deletedItemSearch]);
-
-const filteredDeletedTransactions = useMemo(() => {
-  const search = deletedTxSearch.toLowerCase();
-
-  return deletedTransactions.filter(t =>
-    t.items?.item_name?.toLowerCase().includes(search) ||
-    t.items?.brand?.toLowerCase().includes(search)
-  );
-}, [deletedTransactions, deletedTxSearch]);
-  
+    const filteredDeletedTransactions = deletedTransactions.filter(t =>
+      t.items?.item_name?.toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
+      t.items?.brand?.toLowerCase().includes(deletedTxSearch.toLowerCase())
+    );
   // ================= MONTHLY REPORT STATE =================
     const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
     const [reportYear, setReportYear] = useState(new Date().getFullYear());
-  
     // ================= MONTHLY REPORT LOGIC =================
     const monthlyTransactions = filteredTransactions.filter(t => {
       if (!t.date) return false;
@@ -946,15 +903,14 @@ if (form.type === "OUT") {
   }
 }
       const txData = {
-          date: form.date, // keep this for reporting
-          created_at: new Date().toISOString(), // ✅ ensures ordering
-          item_id: existingItem.id,
-          brand: form.brand || existingItem.brand || "No Brand",
-          type: form.type,
-          quantity: Number(form.quantity),
-          unit_price: Number(form.price || existingItem.unit_price || 0),
-          location: form.location || selectedStockRoom
-        };
+        date: form.date,
+        item_id: existingItem.id,
+        brand: form.brand || existingItem.brand || "No Brand",
+        type: form.type,
+        quantity: Number(form.quantity),
+        unit_price: Number(form.price || existingItem.unit_price || 0),
+        location: form.location || selectedStockRoom  // ✅ add this line
+      };
       if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
       else await supabase.from("inventory_transactions").insert([txData]);
       setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
@@ -1591,12 +1547,11 @@ if (form.type === "OUT") {
           </thead>
           <tbody>
               {(() => {
-                const filteredIn = inTransactions
-                  .filter(item =>
+                const filteredIn = inTransactions.filter(
+                  (item) =>
                     (item.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
                     (item.items?.brand || "").toLowerCase().includes(inSearch.toLowerCase())
-                  )
-                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                );
             
                 if (filteredIn.length === 0) {
                   return (
@@ -1735,12 +1690,11 @@ if (form.type === "OUT") {
           </thead>
           <tbody>
             {(() => {
-              const filteredOut = outTransactions
-                .filter(item =>
+              const filteredOut = outTransactions.filter(
+                (item) =>
                   (item.items?.item_name || "").toLowerCase().includes(outSearch.toLowerCase()) ||
                   (item.items?.brand || "").toLowerCase().includes(outSearch.toLowerCase())
-                )
-                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+              );
           
               if (filteredOut.length === 0) {
                 return (
@@ -1935,13 +1889,11 @@ if (form.type === "OUT") {
                 <tbody>
                 {(() => {
                 
-                const filteredDeleted = deletedItems
-                  .filter(
-                    (item) =>
-                      (item.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
-                      (item.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
-                  )
-                  .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
+                const filteredDeleted = deletedItems.filter(
+                (item) =>
+                (item.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+                (item.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
+                );
                 
                 if (filteredDeleted.length === 0) {
                 return (
@@ -2104,25 +2056,23 @@ if (form.type === "OUT") {
                 <tbody>
                 {(() => {
                 
-                const filteredDeletedTx = deletedTransactions
-                  .filter(
-                    (t) =>
-                      (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
-                      (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
-                  )
-                  .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
+                const filteredDeleted = deletedTransactions.filter(
+                (t) =>
+                (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
+                (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
+                );
                 
-                if (filteredDeletedTx.length === 0) {
-                  return (
-                    <tr>
-                      <td colSpan={7} style={{ padding:16,textAlign:"center",color:"#9ca3af" }}>
-                        No deleted transactions
-                      </td>
-                    </tr>
-                  );
+                if (filteredDeleted.length === 0) {
+                return (
+                <tr>
+                <td colSpan={7} style={{ padding:16,textAlign:"center",color:"#9ca3af" }}>
+                No deleted transactions
+                </td>
+                </tr>
+                );
                 }
                 
-                return filteredDeletedTx.map((i) => (
+                return filteredDeleted.map((i) => (
                 <tr key={i.id}>
                 
                 <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
@@ -2839,27 +2789,13 @@ if (form.type === "OUT") {
             try {
 
               if (type === "deleteItem") {
-                await supabase.from("items").update({ 
-                  deleted: true,
-                  deleted_at: new Date().toISOString() // ✅ add this
-                }).eq("id", data.id);
-              
-                await supabase.from("inventory_transactions").update({ 
-                  deleted: true,
-                  deleted_at: new Date().toISOString() // optional but consistent
-                }).eq("item_id", data.id);
+                await supabase.from("items").update({ deleted: true }).eq("id", data.id);
+                await supabase.from("inventory_transactions").update({ deleted: true }).eq("item_id", data.id);
               }
 
               else if (type === "restoreItem") {
-                await supabase.from("items").update({ 
-                  deleted: false,
-                  deleted_at: null
-                }).eq("id", data.id);
-              
-                await supabase.from("inventory_transactions").update({ 
-                  deleted: false,
-                  deleted_at: null
-                }).eq("item_id", data.id);
+                await supabase.from("items").update({ deleted: false }).eq("id", data.id);
+                await supabase.from("inventory_transactions").update({ deleted: false }).eq("item_id", data.id);
               }
 
               else if (type === "permanentDeleteItem") {
@@ -2870,26 +2806,20 @@ if (form.type === "OUT") {
              else if (type === "deleteTx") {
                 const result = await supabase
                   .from("inventory_transactions")
-                  .update({ 
-                    deleted: true,
-                    deleted_at: new Date().toISOString() // ✅ add this
-                  })
+                  .update({ deleted: true })
                   .eq("id", data.id);
               
                 if (result.error) throw result.error;
               }
 
               else if (type === "restoreTx") {
-                  const result = await supabase
-                    .from("inventory_transactions")
-                    .update({ 
-                      deleted: false,
-                      deleted_at: null
-                    })
-                    .eq("id", data.id);
-                
-                  if (result.error) throw result.error;
-                }
+                const result = await supabase
+                  .from("inventory_transactions")
+                  .update({ deleted: false })
+                  .eq("id", data.id);
+              
+                if (result.error) throw result.error;
+              }
 
               else if (type === "permanentDeleteTx") {
                 const result = await supabase
