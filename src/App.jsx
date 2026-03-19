@@ -1,1083 +1,231 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Draggable from "react-draggable";
+
 // ================= SUPABASE CONFIG =================
 const supabaseUrl = "https://mkfhjklomofrvnnwwknh.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZmhqa2xvbW9mcnZubnd3a25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTczNzAsImV4cCI6MjA4ODU5MzM3MH0.6Q8p9ms8mnf2daONf7HTP3jGZD_bQuNQrv6cpy0ZUts";
+const supabaseKey = "YOUR_KEY";
 const supabase = createClient(supabaseUrl, supabaseKey);
-// ================= STYLES =================
-const styles = {
-  container:{},
-  sidebar:{},
-  main:{},
-  thtd:{
-    padding:"10px"
-  },
-  buttonSecondary:{
-    padding:"6px 12px"
-  },
-  categoryRow:{
-    background:"#f8fafc",
-    cursor:"pointer"
-  },
-  categoryContainer:{
-    display:"flex",
-    justifyContent:"space-between"
-  },
-  categoryLeft:{
-    display:"flex",
-    gap:10
-  },
-  categoryRight:{
-    display:"flex",
-    gap:20
-  },
-  welcomeCard: {
-    background: "#ffffff",
-    padding: "60px 80px",
-    borderRadius: 12,
-    textAlign: "center",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-    maxWidth: 700
-  },
-  dropdown: {
-    position: "absolute",
-    top: "100%",
-    left: 0,
-    right: 0,
-    border: "1px solid #d1d5db",
-    borderRadius: 10,
-    marginTop: 4,
-    background: "#ffffff",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
-    maxHeight: 160,
-    overflowY: "auto",
-    zIndex: 1000
-  },
-  dropdownItem: {
-    padding: "10px 14px",
-    cursor: "pointer",
-    fontSize: 14,
-    fontWeight: 500,
-    color: "#374151",
-    borderBottom: "1px solid #f3f4f6"
-  },
-  welcomeInstruction: {
-    fontSize: 14,
-    color: "#888",
-    marginTop: 10
-  },
-  stockRoomHeader: {
-    background: "#f3f4f6",
-    padding: "12px 16px",
-    borderRadius: 8,
-    marginBottom: 16,
-    fontWeight: 600,
-    fontSize: 15
-  },
-  welcomeScreen: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100%",
-    width: "100%"
-  },
-  welcomeContainer:{
-    background:"#ffffff",
-    padding:"70px 90px",
-    borderRadius:16,
-    textAlign:"center",
-    boxShadow:"0 20px 60px rgba(0,0,0,0.12)",
-    maxWidth:750
-  },
-  welcomeDivider:{
-    width:120,
-    height:4,
-    background:"#d97706",
-    margin:"20px auto",
-    borderRadius:2
-  },
-  welcomeLogo: {
-    width: 220,
-    marginBottom: 25
-  },
-  welcomeTitle: {
-    fontSize: 30,
-    fontWeight: 700,
-    color: "#111827",
-    lineHeight: 1.4,
-    marginBottom: 10
-  },
-  welcomeSubtitle: {
-    fontSize: 16,
-    color: "#6b7280",
-    marginBottom: 5
-  },
-  dashboard:{
-    display:"grid",
-    gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",
-    gap:20,
-    marginBottom:20
-  },
-  dashboardCard:{
-    background:"#fff",
-    border:"1px solid #e5e7eb",
-    borderRadius:10,
-    padding:"18px",
-    boxShadow:"0 2px 6px rgba(0,0,0,0.05)"
-  },
-  dashboardTitle:{
-    fontSize:13,
-    color:"#6b7280",
-    marginBottom:6
-  },
-  dashboardValue:{
-    fontSize:22,
-    fontWeight:700,
-    color:"#111827"
-  },
-  container: { 
-    display: "flex", 
-    fontFamily: "Inter, Arial, sans-serif", 
-    height: "100vh",    // full viewport height
-    background: "#f3f4f6", 
-    overflow: "hidden"  // prevent body scroll, scroll only in main
-  },
-   sidebar: {
-    width: 220,
-    background: "#111827",
-    color: "#fff",
-    padding: 20,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    height: "100vh",     // ❌ causes overflow
-    position: "sticky",  // ❌ unnecessary here
-    top: 0
-  },
-  sidebarHeader: { fontSize: 20, fontWeight: 700, marginBottom: 24 },
-  sidebarSelect: { marginBottom: 24, padding: 8, borderRadius: 6, border: "none", width: "100%" },
-  sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
-  tabButton: (active) => ({ padding: 10, borderRadius: 6, background: active ? "#1f2937" : "transparent", border: "none", color: "#fff", cursor: "pointer", textAlign: "left" }),
-   main: { 
-    flex: 1, 
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-    minHeight: 0
-  },
-  categoryRow:{
-    background:"#f8fafc",
-    borderTop:"1px solid #e5e7eb",
-    borderBottom:"1px solid #e5e7eb",
-    cursor:"pointer"
-  },
-  categoryContainer:{
-    display:"flex",
-    justifyContent:"space-between",
-    alignItems:"center",
-    fontWeight:600
-  },
-  categoryLeft:{
-    display:"flex",
-    alignItems:"center",
-    gap:10,
-    fontSize:15
-  },
-  categoryRight:{
-    display:"flex",
-    gap:20,
-    fontSize:13,
-    color:"#6b7280",
-    fontWeight:500
-  },
-  loginPage:{
-    display:"flex",
-    height:"100vh",
-    width:"100%"
-  },
-  loginLeft:{
-    flex:1,
-    background:"#111827",
-    color:"#fff",
-    display:"flex",
-    flexDirection:"column",
-    justifyContent:"center",
-    alignItems:"center",
-    padding:"60px"
-  },
-  loginRight:{
-    flex:1,
-    background:"#f9fafb",
-    display:"flex",
-    justifyContent:"center",
-    alignItems:"center"
-  },
-  loginCard:{
-    width:380,
-    background:"#fff",
-    padding:"40px",
-    borderRadius:12,
-    boxShadow:"0 20px 40px rgba(0,0,0,0.1)"
-  },
-  loginTitle:{
-    fontSize:24,
-    fontWeight:700,
-    marginBottom:10
-  },
-  loginSubtitle:{
-    fontSize:14,
-    color:"#6b7280",
-    marginBottom:25
-  },
-  loginInput:{
-    width:"100%",
-    padding:12,
-    borderRadius:6,
-    border:"1px solid #d1d5db",
-    marginBottom:14
-  },
-  loginButton:{
-    width:"100%",
-    padding:12,
-    background:"#111827",
-    color:"#fff",
-    border:"none",
-    borderRadius:6,
-    fontWeight:600,
-    cursor:"pointer"
-  },
-  brandTitle:{
-    fontSize:36,
-    fontWeight:700,
-    marginBottom:10
-  },
-  brandSubtitle:{
-    fontSize:16,
-    opacity:0.8
-  },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
-  title: { fontSize: 28, fontWeight: 700, color: "#111827" },
-  buttonPrimary: { background: "#1f2937", color: "#fff", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
-  buttonSecondary: { background: "#e5e7eb", color: "#374151", padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" },
-  card: { background: "#fff", padding: 16, borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
-  table: { width: "100%", borderCollapse: "collapse", marginTop: 16 },
-  thtd: { border: "1px solid #e5e7eb", padding: 8, textAlign: "left" },
-  emptyRow: { textAlign: "center", padding: 12, color: "#6b7280" },
-  modalOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100vw",
-    height: "100vh",
-    background: "rgba(0,0,0,0.4)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 9999
-  },
-  modalCard: {
-    background: "#fff",
-    padding: 24,
-    borderRadius: 12,
-    minWidth: 320,
-    maxWidth: 400,
-    boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-    position: "relative",
-    zIndex: 10000
-  },
-  notification: {
-    position: "fixed",
-    top: 20,
-    right: 20,
-    background: "#f59e0b",
-    color: "#fff",
-    padding: "12px 18px",
-    borderRadius: 8,
-    fontWeight: 500,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-    zIndex: 10000,
-    animation: "fadeIn 0.3s ease"
-  },   
-  input: { width: "100%", padding: 8, marginBottom: 12, borderRadius: 6, border: "1px solid #d1d5db" },
-  toggleGroup: { display: "flex", gap: 12, marginBottom: 12 },
-  toggleButton: (active, type) => ({
-    flex: 1,
-    padding: "8px 0",
-    borderRadius: 6,
-    border: active ? "none" : "1px solid #d1d5db",
-    background: active
-      ? type === "IN"
-        ? "#16a34a"
-        : "#dc2626"
-      : "#fff",
-    color: active ? "#fff" : "#374151",
-    cursor: "pointer",
-    fontWeight: 600,
-  }),
-  newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
-  };
-  const formatNumber = (num) => {
-    if (num === null || num === undefined) return "";
-    return Number(num).toLocaleString();
-  };
-// ================= APP COMPONENT =================
+
+// ================= CONSTANTS (MOVED OUTSIDE COMPONENT) =================
+const stockRooms = [
+  "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
+  "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
+];
+
+// ================= UTIL =================
+const formatNumber = (num) => {
+  if (num === null || num === undefined) return "";
+  return Number(num).toLocaleString();
+};
+
+const normalize = (str) => (str || "").replace(/\s+/g, " ").trim().toLowerCase();
+
+const capitalizeWords = (text) => {
+  if (!text) return text;
+  return text.toLowerCase().split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+};
+
+// ================= APP =================
 export default function App() {
+
+  // ================= STATE =================
   const [session, setSession] = useState(null);
-  const [notification, setNotification] = useState("");
-  const [categoryOptions, setCategoryOptions] = useState([]);
   const [items, setItems] = useState([]);
-  const [itemOptions, setItemOptions] = useState([]);
-  const [userRooms, setUserRooms] = useState([]);
-  const loadUserProfile = async (userId) => {
-    console.log("LOAD PROFILE FOR USER:", userId);
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("stock_rooms, role")
-    .eq("id", userId)
-    .single();
-    console.log("PROFILE RESULT:", data);
-  if (error) {
-    console.error("Profile error:", error);
-    return;
-  }
-  if (data.role === "admin") {
-    setUserRooms(stockRooms);
-  } else {
-    setUserRooms(data.stock_rooms || []);
-  }
-  };
   const [transactions, setTransactions] = useState([]);
-  const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
-  const [brandOptions, setBrandOptions] = useState([]);
-  const [inSearch, setInSearch] = useState("");
-  const [outSearch, setOutSearch] = useState("");
-  const [stockSearch, setStockSearch] = useState("");
   const [openCategories, setOpenCategories] = useState({});
-    useEffect(() => {
-    const savedCategories = localStorage.getItem("openCategories");
-      if (savedCategories) {
-        setOpenCategories(JSON.parse(savedCategories));
-      }
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+
+  // ================= AUTH =================
+  useEffect(() => {
+    const initAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+    };
+
+    initAuth();
+
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+    });
+
+    return () => data.subscription.unsubscribe();
   }, []);
-  const toggleCategory = (category) => {
-    setOpenCategories(prev => {
-      const updated = {
-        ...prev,
-        [category]: !prev[category]
-      };
-        localStorage.setItem("openCategories", JSON.stringify(updated));
-        return updated;
-      });
-  };
-  const [deletedItemSearch, setDeletedItemSearch] = useState("");
-  const [deletedTxSearch, setDeletedTxSearch] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState("");
-  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
+
+  // ================= LOAD DATA =================
+  const loadData = useCallback(async () => {
+    const { data: itemsData } = await supabase.from("items").select("*");
+    const { data: tx } = await supabase
+      .from("inventory_transactions")
+      .select("*, items(item_name, brand, unit_price, location, category)")
+      .order("created_at", { ascending: false });
+
+    setItems(itemsData || []);
+    setTransactions(tx || []);
+  }, []);
+
+  useEffect(() => {
+    if (session) loadData();
+  }, [session, loadData]);
+
+  // ================= FILTERED DATA =================
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(t => {
+      if (t.deleted) return false;
+      if (!selectedStockRoom) return true;
+
+      const txLocation = normalize(t.location || t.items?.location);
+      const selected = normalize(selectedStockRoom);
+
+      return txLocation === selected;
+    });
+  }, [transactions, selectedStockRoom]);
+
+  const stockMap = useMemo(() => {
+    const acc = {};
+    filteredTransactions.forEach(t => {
+      const qty = Number(t.quantity) || 0;
+      if (!acc[t.item_id]) acc[t.item_id] = 0;
+      acc[t.item_id] += t.type === "IN" ? qty : -qty;
+    });
+    return acc;
+  }, [filteredTransactions]);
+
+  const stockInventory = useMemo(() => {
+    return items
+      .filter(i => !i.deleted)
+      .filter(i => {
+        if (!selectedStockRoom) return true;
+        return normalize(i.location) === normalize(selectedStockRoom);
+      })
+      .map(i => ({
+        ...i,
+        stock: stockMap[i.id] || 0
+      }));
+  }, [items, selectedStockRoom, stockMap]);
+
+  const totalInventoryValue = useMemo(() => {
+    return stockInventory.reduce((sum, i) => sum + (i.stock * (i.unit_price || 0)), 0);
+  }, [stockInventory]);
+
+  // ================= HANDLERS (MEMOIZED) =================
+  const handleAuth = useCallback(async () => {
+    if (!authEmail || !authPassword) return alert("Enter email and password");
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: authEmail,
+      password: authPassword
+    });
+
+    if (error) alert(error.message);
+  }, [authEmail, authPassword]);
+
+  const handleFormChange = useCallback((key, value) => {
+    setForm(prev => {
+      let updatedValue = value;
+
+      if (typeof value === "string" && key !== "type") {
+        updatedValue = capitalizeWords(value.trimStart());
+      }
+
+      return { ...prev, [key]: updatedValue };
+    });
+  }, []);
+
+  // ================= FORM =================
   const [form, setForm] = useState({
     date:"",
-    item_id:"",
     item_name:"",
     brand:"",
-    category:"",
-    brandOptions:[],
     type:"IN",
     quantity:"",
     unit_price:"",
     id:null
   });
-  const categories = [
-  ...new Set(items.map(i => i.category).filter(Boolean))
-    ];
-  // ================= DASHBOARD DATA =================
-  const [confirmAction, setConfirmAction] = useState(null);
-  const [openMenuId, setOpenMenuId] = useState(null);
-  const menuItemStyle = {
-      padding:"8px 12px",
-      textAlign:"left",
-      background:"none",
-      border:"none",
-      cursor:"pointer",
-      borderBottom:"1px solid #f1f5f9"
-    };
-  const menuRefs = useRef({});
-  useEffect(() => {
-  const handleClickOutside = (event) => {
 
-    const isInsideMenu = Object.values(menuRefs.current).some(
-      (ref) => ref && ref.contains(event.target)
+  const saveTransaction = useCallback(async () => {
+    if (!form.item_name || !form.quantity) return alert("Fill required fields");
+
+    const existingItem = items.find(
+      i =>
+        i.item_name === form.item_name &&
+        i.brand === form.brand &&
+        !i.deleted &&
+        normalize(i.location) === normalize(selectedStockRoom)
     );
 
-    if (!isInsideMenu) {
-      setOpenMenuId(null);
-    }
-  };
+    if (!existingItem) return alert("Item not found");
 
-  document.addEventListener("mousedown", handleClickOutside);
-
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, []);  
-  const [authEmail, setAuthEmail] = useState("");
-  const [authPassword, setAuthPassword] = useState("");
-  const stockRooms = [
-    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
-    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
-  ];
-  // ================= AUTH =================
-   useEffect(() => {
-  
-    const initAuth = async () => {
-  
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-  
-      if (data.session) {
-        setSelectedStockRoom("");
-        loadUserProfile(data.session.user.id);
-      }
-  
+    const txData = {
+      date: form.date,
+      created_at: new Date().toISOString(),
+      item_id: existingItem.id,
+      brand: form.brand,
+      type: form.type,
+      quantity: Number(form.quantity),
+      unit_price: Number(form.unit_price || existingItem.unit_price || 0),
+      location: selectedStockRoom
     };
-  
-    initAuth();
-  
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => {
-  
-      setSession(s);
-  
-      if (s) {
-        loadUserProfile(s.user.id);
-      }
-  
-    });
-  
-    return () => data.subscription.unsubscribe();
-  
-  }, []);
-  
-  useEffect(() => {
-    if (session) {
-      loadUserProfile(session.user.id);   // ← load assigned rooms
-      loadData();
-    }
-  }, [session]);
-        const handleAuth = async () => {
-      
-        if (!authEmail || !authPassword) {
-          alert("Enter email and password");
-          return;
-        }
-      
-        const { error } = await supabase.auth.signInWithPassword({
-          email: authEmail,
-          password: authPassword
-        });
-      
-        if (error) {
-          alert(error.message);
-        }
-      
-      };
-  // ================= LOAD DATA =================
-        const loadData = async () => {
-        const { data: itemsData } = await supabase
-        .from("items")
-        .select("*")
-        .order("item_name", { ascending: true });
-        const itemsWithDeleted = (itemsData || []).map(i => ({
-          ...i,
-          deleted: i.deleted ?? false
-        }));
-      
-        const { data: tx } = await supabase
-          .from("inventory_transactions")
-          .select("*, items(item_name, brand, unit_price, location, category)")
-          .order("created_at", { ascending: false });
-      
-        const transactionsWithDeleted = (tx || []).map(t => ({
-          ...t,
-          deleted: t.deleted ?? false
-        }));
-      
-        setItems(itemsWithDeleted);
-        setTransactions(transactionsWithDeleted);
-      
-        // Category state
-        const opened = {};
-        itemsWithDeleted.forEach(i => {
-          const cat = i.category || "Uncategorized";
-          if (!(cat in opened)) opened[cat] = true;
-        });
-      
-        const savedCategories = localStorage.getItem("openCategories");
-        if (!savedCategories) setOpenCategories(opened);
-      };
 
-// ================= FILTERS =================
-const filteredTransactions = useMemo(() => {
-  return transactions
-    .filter(t => !t.deleted)
-    .filter(t => {
-      if (!selectedStockRoom) return true;
+    if (form.id) {
+      const { data } = await supabase
+        .from("inventory_transactions")
+        .update(txData)
+        .eq("id", form.id)
+        .select();
 
-      const txLocation = (t.location || t.items?.location || "")
-        .trim()
-        .toLowerCase();
-
-      const selected = selectedStockRoom
-        .trim()
-        .toLowerCase();
-
-      return txLocation === selected;
-    });
-}, [transactions, selectedStockRoom]);
-
-const stockMap = useMemo(() => {
-  return filteredTransactions.reduce((acc, t) => {
-    const qty = Number(t.quantity) || 0;
-
-    if (!acc[t.item_id]) acc[t.item_id] = 0;
-
-    acc[t.item_id] += t.type === "IN" ? qty : -qty;
-
-    return acc;
-  }, {});
-}, [filteredTransactions]);
-
-const inTransactions = useMemo(() => {
-  return filteredTransactions
-    .filter(t => t.type === "IN")
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-}, [filteredTransactions]);
-
-const outTransactions = useMemo(() => {
-  return filteredTransactions
-    .filter(t => t.type === "OUT")
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-}, [filteredTransactions]);
-
-const stockInventory = useMemo(() => {
-  return items
-    .filter(i => !i.deleted)
-    .filter(i => {
-      if (!selectedStockRoom) return true;
-
-      const selected = selectedStockRoom.replace(/\s+/g, " ").trim().toLowerCase();
-      const itemLocation = (i.location || "")
-        .replace(/\s+/g, " ")
-        .trim()
-        .toLowerCase();
-
-      return itemLocation === selected;
-    })
-    .map(i => {
-      const stock = stockMap[i.id] || 0;
-
-      return {
-        id: i.id,
-        item_name: i.item_name,
-        brand: i.brand,
-        category: i.category,
-        unit_price: i.unit_price,
-        stock: stock,
-        location: i.location
-      };
-    });
-}, [items, selectedStockRoom, stockMap]);
-
-const totalTransactions = useMemo(() => filteredTransactions.length, [filteredTransactions]);
-
-const totalCategories = useMemo(() => {
-  return new Set(
-    stockInventory.map(i => i.category || "Uncategorized")
-  ).size;
-}, [stockInventory]);
-
-const totalItems = useMemo(() => stockInventory.length, [stockInventory]);
-
-const totalInventoryValue = useMemo(() => {
-  return stockInventory.reduce(
-    (sum, i) => sum + (i.stock * (i.unit_price || 0)),
-    0
-  );
-}, [stockInventory]);
-
-const lowStockItems = useMemo(() => {
-  return stockInventory.filter(i => i.stock <= 5).length;
-}, [stockInventory]);
-
-const deletedItems = useMemo(() => {
-  return items
-    .filter(i =>
-      i.deleted &&
-      (!selectedStockRoom || i.location === selectedStockRoom || !i.location)
-    )
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-}, [items, selectedStockRoom]);
-
-const deletedTransactions = useMemo(() => {
-  return transactions
-    .filter(t => t.deleted)
-    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
-    .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
-}, [transactions, selectedStockRoom]);
-
-const filteredDeletedItems = useMemo(() => {
-  const search = deletedItemSearch.toLowerCase();
-
-  return deletedItems.filter(i =>
-    (i.item_name || "").toLowerCase().includes(search) ||
-    (i.brand || "").toLowerCase().includes(search)
-  );
-}, [deletedItems, deletedItemSearch]);
-
-const filteredDeletedTransactions = useMemo(() => {
-  const search = deletedTxSearch.toLowerCase();
-
-  return deletedTransactions.filter(t =>
-    t.items?.item_name?.toLowerCase().includes(search) ||
-    t.items?.brand?.toLowerCase().includes(search)
-  );
-}, [deletedTransactions, deletedTxSearch]);
-  
-  // ================= MONTHLY REPORT STATE =================
-    const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
-    const [reportYear, setReportYear] = useState(new Date().getFullYear());
-  
-    // ================= MONTHLY REPORT LOGIC =================
-    const monthlyTransactions = filteredTransactions.filter(t => {
-      if (!t.date) return false;
-    
-      const txDate = new Date(t.date);
-    
-      return (
-        txDate.getMonth() + 1 === Number(reportMonth) &&
-        txDate.getFullYear() === Number(reportYear)
+      setTransactions(prev =>
+        prev.map(t => (t.id === data?.[0]?.id ? data[0] : t))
       );
-    });
-    
-    const monthlySummary = monthlyTransactions.reduce((acc, t) => {
-    
-      const price = Number(t.unit_price || t.items?.unit_price || 0);
-      const qty = Number(t.quantity || 0);
-      const total = price * qty;
-    
-      if (t.type === "IN") {
-        acc.totalInQty += qty;
-        acc.totalInValue += total;
-      } else {
-        acc.totalOutQty += qty;
-        acc.totalOutValue += total;
-      }
-    
-      return acc;
-    
-    }, {
-      totalInQty: 0,
-      totalOutQty: 0,
-      totalInValue: 0,
-      totalOutValue: 0
-    });
-    
-    const netValue =
-      (monthlySummary?.totalInValue || 0) -
-      (monthlySummary?.totalOutValue || 0);
-  // ================= EXPORT EXCEL =================
-    const exportMonthlyReport = () => {
-      
-        if (monthlyTransactions.length === 0) {
-          alert("No data to export.");
-          return;
-        }
-      
-        const rows = [];
-      
-        // ================= REPORT HEADER =================
-        rows.push(["Lago De Oro Inventory Monthly Report"]);
-        rows.push([
-          `${new Date(0, reportMonth - 1).toLocaleString("default",{month:"long"})} ${reportYear}`
-        ]);
-        rows.push([]);
-      
-        // ================= KPI SUMMARY =================
-        rows.push(["SUMMARY"]);
-        rows.push(["Total IN Quantity", monthlySummary?.totalInQty || 0]);
-        rows.push(["Total IN Value", monthlySummary.totalInValue]);
-        rows.push(["Total OUT Quantity", monthlySummary.totalOutQty]);
-        rows.push(["Total OUT Value", (monthlySummary?.totalOutValue || 0)]);
-        rows.push(["Net Movement Value", netValue]);
-        rows.push([]);
-      
-        // ================= PER ITEM SUMMARY =================
-        rows.push(["PER ITEM SUMMARY"]);
-        rows.push(["Item","Brand","Total IN","Total OUT","Net Qty","Net Value"]);
-      
-        const perItem = Object.values(
-          monthlyTransactions.reduce((acc,t)=>{
-      
-            const key = `${t.items?.item_name}-${t.items?.brand}`;
-            const price = Number(t.unit_price || t.items?.unit_price || 0);
-            const qty = Number(t.quantity || 0);
-      
-            if(!acc[key]){
-              acc[key] = {
-                item:t.items?.item_name,
-                brand:t.items?.brand,
-                inQty:0,
-                outQty:0,
-                price
-              };
-            }
-      
-            if(t.type === "IN") acc[key].inQty += qty;
-            else acc[key].outQty += qty;
-      
-            return acc;
-      
-          },{})
-        );
-      
-        perItem.forEach(row=>{
-          const netQty = row.inQty - row.outQty;
-          const value = netQty * row.price;
-      
-          rows.push([
-            row.item,
-            row.brand,
-            row.inQty,
-            row.outQty,
-            netQty,
-            value
-          ]);
-        });
-      
-        rows.push([]);
-      
-        // ================= DETAILED TRANSACTIONS =================
-        rows.push(["DETAILED TRANSACTIONS"]);
-        rows.push(["Date","Item","Brand","Type","Qty","Total"]);
-      
-        monthlyTransactions.forEach(t=>{
-      
-          const price = Number(t.unit_price || t.items?.unit_price || 0);
-      
-          rows.push([
-            t.date,
-            t.items?.item_name,
-            t.items?.brand,
-            t.type,
-            t.quantity,
-            t.quantity * price
-          ]);
-      
-        });
-      
-        // ================= CREATE EXCEL =================
-        const worksheet = XLSX.utils.aoa_to_sheet(rows);
-        const workbook = XLSX.utils.book_new();
-      
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Report");
-      
-        XLSX.writeFile(
-          workbook,
-          `inventory_report_${reportYear}_${reportMonth}.xlsx`
-        );
-      };
-  // ================= CAPITALIZE WORDS =================
-  const displayBrand = (brand) => {
-  if (!brand || brand.trim() === "") return "No Brand";
-  return capitalizeWords(brand);
-  };
-  const capitalizeWords = (text) => {
-  if (!text) return text;
+    } else {
+      const { data } = await supabase
+        .from("inventory_transactions")
+        .insert([txData])
+        .select();
 
-  return text
-    .toLowerCase()
-    .split(" ")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
-
-        // ================= FORM HANDLER =================  
-const handleFormChange = (key, value) => {
-
-  // AUTO CAPITALIZE TEXT INPUTS
-  if (typeof value === "string" && key !== "type") {
-      value = capitalizeWords(value.trimStart());
+      setTransactions(prev => [data[0], ...prev]);
     }
+  }, [form, items, selectedStockRoom]);
 
-  // Update brand suggestions when typing item name
-  if (key === "item_name") {
-
-    const relatedBrands = items
-      .filter(i =>
-        i.item_name &&
-        i.item_name.toLowerCase().includes(value.toLowerCase()) &&
-        !i.deleted
-      )
-      .map(i => i.brand)
-      .filter(Boolean);
-
-    const uniqueBrands = [...new Set(relatedBrands)];
-
-    setBrandOptions(uniqueBrands);
-  }
-
-  setForm(prev => {
-    const updated = { ...prev, [key]: value };
-
-    // Reset brand when item name changes
-    if (key === "item_name") {
-
-      updated.brand = "";
-
-      const exactMatchBrands = items
-        .filter(i =>
-          i.item_name &&
-          i.item_name.toLowerCase() === value.toLowerCase() &&
-          !i.deleted
-        )
-        .map(i => i.brand);
-
-      if (exactMatchBrands.length === 1) {
-        updated.brand = exactMatchBrands[0];
-      }
-    }
-
-    // Auto-fill price when brand is selected
-    if (key === "brand") {
-
-      const selectedItem = items.find(
-        i =>
-          i.item_name &&
-          i.item_name.toLowerCase() === prev.item_name?.toLowerCase() &&
-          i.brand === value &&
-          !i.deleted
-      );
-
-      if (selectedItem) {
-        updated.price = selectedItem.unit_price;
-      }
-
-    }
-
-    return updated;
-  });
-
-};
-  const openNewItemModal = () => {
-  setForm({ 
-    date:"", 
-    item_id:"", 
-    item_name:"", 
-    brand:"", 
-    brandOptions:[], 
-    type:"IN", 
-    quantity:"", 
-    price:"", 
-    id:null,
-    location: selectedStockRoom  // ✅ add this
-  });
-  setModalType("item");
-  setShowModal(true);
-};
-  const openNewTransactionModal = () => {
-  setForm({ 
-    date:"", 
-    item_id:"", 
-    item_name:"", 
-    brand:"", 
-    brandOptions:[], 
-    type:"IN", 
-    quantity:"", 
-    price:"", 
-    id:null,
-    location: selectedStockRoom // ✅ add this
-  });
-  setModalType("transaction");
-  setShowModal(true);
-};
-     const handleNewClick = () => {
-      
-        if (!selectedStockRoom) {
-          setNotification("Please select a Stock Room first.");
-          
-          setTimeout(() => {
-            setNotification("");
-          }, 3000);
-      
-          return;
-        }
-      
-        setModalType("newOption");
-        setShowModal(true);
-      };
-      const handleSubmit = async () => {
-
-          if (modalType === "item" || modalType === "transaction") {
-            await saveTransaction();
-          }
-    
-    };
-      // ================= SUBMIT =================
-   const saveTransaction = async () => {
-    if(modalType === "transaction") {
-      if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
-      const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
-     if(!existingItem) {
-  setConfirmAction({
-    type: "createItemConfirm",
-    data: { ...form }
-  });
-  return;
-}
-if (form.type === "OUT") {
-  const currentStock = stockMap[existingItem.id] || 0;
-  const requestedQty = Number(form.quantity) || 0;
-
-  if (requestedQty > currentStock) {
-    alert(`Not enough stock.\n\nAvailable: ${currentStock}`);
-    return;
-  }
-}
-      const txData = {
-          date: form.date, // keep this for reporting
-          created_at: new Date().toISOString(), // ✅ ensures ordering
-          item_id: existingItem.id,
-          brand: form.brand || existingItem.brand || "No Brand",
-          type: form.type,
-          quantity: Number(form.quantity),
-          unit_price: Number(form.price || existingItem.unit_price || 0),
-          location: form.location || selectedStockRoom
-        };
-      if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
-      else await supabase.from("inventory_transactions").insert([txData]);
-      setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
-      setShowModal(false);
-      setModalType("");
-      loadData();
-    } else if(modalType === "item") {
-      if(!form.item_name || !form.unit_price) return alert("Fill required fields");
-      const itemData = { 
-          item_name: form.item_name, 
-          brand: form.brand || "No Brand",
-          category: form.category,
-          unit_price: Number(form.unit_price),
-          location: form.location || selectedStockRoom
-        };
-      if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
-      else {
-          const { data, error } = await supabase
-            .from("items")
-            .insert([itemData])
-            .select();
-        
-          if (error) {
-            console.error(error);
-            alert(error.message);
-            return;
-          }
-        
-          if (data?.length && modalTypeBeforeItem === "transaction") {
-            setForm(prev => ({ ...prev, item_id: data[0].id }));
-            setModalType("transaction");
-            setShowModal(true);
-            setModalTypeBeforeItem("");
-            return;
-          }
-        
-        }
-      setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
-      setShowModal(false);
-      setModalType("");
-      loadData();
-    }
-  };
-  const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
   // ================= AUTH SCREEN =================
-      if(!session) return (
-      
-        <div style={styles.loginPage}>
-      
-          {/* LEFT SIDE BRAND PANEL */}
-          <div style={styles.loginLeft}>
-
-            <div style={{
-              background:"#ffffff",
-              padding:"10px 18px",
-              borderRadius:12,
-              marginBottom:25,
-              boxShadow:"0 6px 18px rgba(0,0,0,0.25)"
-            }}>
-              <img 
-                src="/logo.jpg"
-                alt="Lago De Oro"
-                style={{width:110, display:"block"}}
-              />
-            </div>
-
-            <div style={{
-              fontSize:40,
-              fontWeight:800,
-              letterSpacing:1,
-              marginBottom:6
-            }}>
-              Lago De Oro
-            </div>
-      
-            <div style={{
-              fontSize:15,
-              opacity:0.85,
-              letterSpacing:1,
-              textTransform:"uppercase"
-            }}>
-              Inventory Management System
-            </div>
-      
-          </div>
-      
-          {/* RIGHT SIDE LOGIN FORM */}
-          <div style={styles.loginRight}>
-      
-            <div style={styles.loginCard}>
-      
-              <div style={styles.loginTitle}>
-                Login
-              </div>
-      
-              <div style={styles.loginSubtitle}>
-                Authorized Personnel Only
-              </div>
-      
-              <input
-                style={styles.loginInput}
-                placeholder="Email"
-                value={authEmail}
-                onChange={e=>setAuthEmail(e.target.value)}
-              />
-      
-              <input
-                style={styles.loginInput}
-                type="password"
-                placeholder="Password"
-                value={authPassword}
-                onChange={e=>setAuthPassword(e.target.value)}
-              />
-      
-              <button style={styles.loginButton} onClick={handleAuth}>
-                Login
-              </button>
-      
-            </div>
-      
-          </div>
-      
+  if (!session) {
+    return (
+      <div style={{ display: "flex", height: "100vh" }}>
+        <div style={{ flex: 1, background: "#111827", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <h1>Lago De Oro</h1>
         </div>
-      
-      );
+
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div>
+            <h2>Login</h2>
+            <input value={authEmail} onChange={e => setAuthEmail(e.target.value)} placeholder="Email" />
+            <input type="password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} placeholder="Password" />
+            <button onClick={handleAuth}>Login</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ================= MAIN UI =================
+  return (
+    <div style={{ display: "flex", height: "100vh" }}>
+      <div style={{ width: 220, background: "#111827", color: "#fff" }}>
+        <h3>Stock Rooms</h3>
+        <select onChange={e => setSelectedStockRoom(e.target.value)}>
+          <option value="">All</option>
+          {stockRooms.map(r => <option key={r}>{r}</option>)}
+        </select>
+      </div>
+
+      <div style={{ flex: 1, padding: 20 }}>
+        <h2>Inventory Value: {formatNumber(totalInventoryValue)}</h2>
+      </div>
+    </div>
+  );
+}
   // ================= MAIN APP =================
   return (
     <div style={styles.container}>
