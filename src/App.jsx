@@ -139,10 +139,9 @@ const styles = {
   container: { 
     display: "flex", 
     fontFamily: "Inter, Arial, sans-serif", 
-    height: "100vh",
-    background: "#f3f4f6",
-    overflow: "hidden",
-    gap: "16px" // ✅ adds space between sidebar and main
+    height: "100vh",    // full viewport height
+    background: "#f3f4f6", 
+    overflow: "hidden"  // prevent body scroll, scroll only in main
   },
    sidebar: {
     width: 220,
@@ -158,13 +157,12 @@ const styles = {
   sidebarSelect: { marginBottom: 24, padding: 8, borderRadius: 6, border: "none", width: "100%" },
   sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
   tabButton: (active) => ({ padding: 10, borderRadius: 6, background: active ? "#1f2937" : "transparent", border: "none", color: "#fff", cursor: "pointer", textAlign: "left" }),
-  main: { 
+   main: { 
     flex: 1, 
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
-    minHeight: 0,
-    padding: "16px" // ✅ adds inner spacing
+    minHeight: 0
   },
   categoryRow:{
     background:"#f8fafc",
