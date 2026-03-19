@@ -139,11 +139,10 @@ const styles = {
   container: {
     display: "flex",
     height: "100vh",
+    fontFamily: "Inter, Arial, sans-serif", 
     padding: "12px",
     gap: "12px",
-    background: "#f3f4f6",
-    boxSizing: "border-box", // ✅ REQUIRED
-    overflow: "hidden"       // ✅ REQUIRED
+    background: "#f3f4f6"
   },
    sidebar: {
     width: 220,
@@ -165,8 +164,7 @@ const styles = {
     flexDirection: "column",
     overflow: "hidden",
     minHeight: 0,
-    padding: "16px",
-    boxSizing: "border-box" // ✅ ADD THIS
+    padding: "16px" // ✅ adds inner spacing
   },
   categoryRow:{
     background:"#f8fafc",
@@ -1857,7 +1855,7 @@ if (form.type === "OUT") {
                     gap: 20,
                     width: "100%",
                     maxWidth: "100%",
-                    overflow: "auto"
+                    overflow: "hidden"
                   }}>  
                 {/* ================= DELETED INVENTORY ================= */}
                 <div style={{
