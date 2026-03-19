@@ -591,10 +591,12 @@ export default function App() {
         (!selectedStockRoom || i.location === selectedStockRoom || !i.location)
       )
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  
     const deletedTransactions = transactions
       .filter(t => t.deleted)
       .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
       .sort((a, b) => new Date(b.date) - new Date(a.date));
+  
     const filteredDeletedItems = deletedItems.filter(i =>
     (i.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
     (i.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
@@ -1547,11 +1549,12 @@ if (form.type === "OUT") {
           </thead>
           <tbody>
               {(() => {
-                const filteredIn = inTransactions.filter(
-                  (item) =>
+                const filteredIn = inTransactions
+                  .filter((item) =>
                     (item.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
                     (item.items?.brand || "").toLowerCase().includes(inSearch.toLowerCase())
-                );
+                  )
+                  .sort((a, b) => new Date(b.date) - new Date(a.date));
             
                 if (filteredIn.length === 0) {
                   return (
@@ -1690,11 +1693,12 @@ if (form.type === "OUT") {
           </thead>
           <tbody>
             {(() => {
-              const filteredOut = outTransactions.filter(
-                (item) =>
-                  (item.items?.item_name || "").toLowerCase().includes(outSearch.toLowerCase()) ||
-                  (item.items?.brand || "").toLowerCase().includes(outSearch.toLowerCase())
-              );
+              const filteredOut = outTransactions
+                  .filter((item) =>
+                    (item.items?.item_name || "").toLowerCase().includes(outSearch.toLowerCase()) ||
+                    (item.items?.brand || "").toLowerCase().includes(outSearch.toLowerCase())
+                  )
+                  .sort((a, b) => new Date(b.date) - new Date(a.date));
           
               if (filteredOut.length === 0) {
                 return (
