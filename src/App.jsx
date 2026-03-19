@@ -595,7 +595,7 @@ const outTransactions = filteredTransactions
     const deletedTransactions = transactions
       .filter(t => t.deleted)
       .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
-      .sort((a, b) => new Date(b.date) - new Date(a.date));
+      .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
   
     const filteredDeletedItems = deletedItems.filter(i =>
     (i.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
@@ -2064,12 +2064,12 @@ if (form.type === "OUT") {
                 {(() => {
                 
                 const filteredDeletedTx = deletedTransactions
-                .filter(
-                  (t) =>
-                    (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
-                    (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
-                )
-                .sort((a, b) => new Date(b.date) - new Date(a.date));
+                  .filter(
+                    (t) =>
+                      (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
+                      (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
+                  )
+                  .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
                 
                 if (filteredDeletedTx.length === 0) {
                   return (
@@ -2798,13 +2798,27 @@ if (form.type === "OUT") {
             try {
 
               if (type === "deleteItem") {
-                await supabase.from("items").update({ deleted: true }).eq("id", data.id);
-                await supabase.from("inventory_transactions").update({ deleted: true }).eq("item_id", data.id);
+                await supabase.from("items").update({ 
+                  deleted: true,
+                  deleted_at: new Date().toISOString() // ✅ add this
+                }).eq("id", data.id);
+              
+                await supabase.from("inventory_transactions").update({ 
+                  deleted: true,
+                  deleted_at: new Date().toISOString() // optional but consistent
+                }).eq("item_id", data.id);
               }
 
               else if (type === "restoreItem") {
-                await supabase.from("items").update({ deleted: false }).eq("id", data.id);
-                await supabase.from("inventory_transactions").update({ deleted: false }).eq("item_id", data.id);
+                await supabase.from("items").update({ 
+                  deleted: false,
+                  deleted_at: null
+                }).eq("id", data.id);
+              
+                await supabase.from("inventory_transactions").update({ 
+                  deleted: false,
+                  deleted_at: null
+                }).eq("item_id", data.id);
               }
 
               else if (type === "permanentDeleteItem") {
@@ -2815,20 +2829,26 @@ if (form.type === "OUT") {
              else if (type === "deleteTx") {
                 const result = await supabase
                   .from("inventory_transactions")
-                  .update({ deleted: true })
+                  .update({ 
+                    deleted: true,
+                    deleted_at: new Date().toISOString() // ✅ add this
+                  })
                   .eq("id", data.id);
               
                 if (result.error) throw result.error;
               }
 
               else if (type === "restoreTx") {
-                const result = await supabase
-                  .from("inventory_transactions")
-                  .update({ deleted: false })
-                  .eq("id", data.id);
-              
-                if (result.error) throw result.error;
-              }
+                  const result = await supabase
+                    .from("inventory_transactions")
+                    .update({ 
+                      deleted: false,
+                      deleted_at: null
+                    })
+                    .eq("id", data.id);
+                
+                  if (result.error) throw result.error;
+                }
 
               else if (type === "permanentDeleteTx") {
                 const result = await supabase
