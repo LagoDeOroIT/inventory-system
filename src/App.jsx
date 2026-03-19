@@ -142,7 +142,7 @@ const styles = {
     padding: "12px",
     gap: "12px",
     background: "#f3f4f6"
-  }
+  },
    sidebar: {
     width: 220,
     background: "#111827",
