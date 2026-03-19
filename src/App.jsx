@@ -331,29 +331,21 @@ export default function App() {
   const [userRooms, setUserRooms] = useState([]);
   const loadUserProfile = async (userId) => {
     console.log("LOAD PROFILE FOR USER:", userId);
-  
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("stock_rooms, role")
-      .eq("id", userId)
-      .single();
-  
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("stock_rooms, role")
+    .eq("id", userId)
+    .single();
     console.log("PROFILE RESULT:", data);
-  
-    if (error) {
-      console.error("Profile error:", error);
-      return;
-    }
-  
-    const rooms = data.role === "admin"
-      ? (data.stock_rooms || stockRooms)
-      : (data.stock_rooms || []);
-  
-    setUserRooms(rooms);
-  
-    if (rooms.length > 0) {
-      setSelectedStockRoom(rooms[0]);
-    }
+  if (error) {
+    console.error("Profile error:", error);
+    return;
+  }
+  if (data.role === "admin") {
+    setUserRooms(stockRooms);
+  } else {
+    setUserRooms(data.stock_rooms || []);
+  }
   };
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
