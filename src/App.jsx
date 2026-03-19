@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Draggable from "react-draggable";
 // ================= SUPABASE CONFIG =================
-const supabaseUrl = "https://ksqdtaeajczxyptazmtr.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzcWR0YWVhamN6eHlwdGF6bXRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MDAzODcsImV4cCI6MjA4OTQ3NjM4N30.QNls7uULhk_0-m7ahhvOMAgmCF2ibQ3_TAUt7YD6JuA";
+const supabaseUrl = "https://mkfhjklomofrvnnwwknh.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZmhqa2xvbW9mcnZubnd3a25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTczNzAsImV4cCI6MjA4ODU5MzM3MH0.6Q8p9ms8mnf2daONf7HTP3jGZD_bQuNQrv6cpy0ZUts";
 const supabase = createClient(supabaseUrl, supabaseKey);
 // ================= STYLES =================
 const styles = {
@@ -136,12 +136,13 @@ const styles = {
     fontWeight:700,
     color:"#111827"
   },
-  container: { 
-    display: "flex", 
+  container: {
+    display: "flex",
+    height: "100vh",
     fontFamily: "Inter, Arial, sans-serif", 
-    height: "100vh",    // full viewport height
-    background: "#f3f4f6", 
-    overflow: "hidden"  // prevent body scroll, scroll only in main
+    padding: "12px",
+    gap: "12px",
+    background: "#f3f4f6"
   },
    sidebar: {
     width: 220,
@@ -151,20 +152,19 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    height: "100vh",     // ❌ causes overflow
-    position: "sticky",  // ❌ unnecessary here
     top: 0
   },
   sidebarHeader: { fontSize: 20, fontWeight: 700, marginBottom: 24 },
   sidebarSelect: { marginBottom: 24, padding: 8, borderRadius: 6, border: "none", width: "100%" },
   sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
   tabButton: (active) => ({ padding: 10, borderRadius: 6, background: active ? "#1f2937" : "transparent", border: "none", color: "#fff", cursor: "pointer", textAlign: "left" }),
-   main: { 
+  main: { 
     flex: 1, 
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
-    minHeight: 0
+    minHeight: 0,
+    padding: "16px" // ✅ adds inner spacing
   },
   categoryRow:{
     background:"#f8fafc",
@@ -515,99 +515,138 @@ export default function App() {
         const savedCategories = localStorage.getItem("openCategories");
         if (!savedCategories) setOpenCategories(opened);
       };
-  // ================= FILTERS =================
-    const filteredTransactions = transactions
-      .filter(t => !t.deleted)
-      .filter(t => {
-        if (!selectedStockRoom) return true;
-    
-        const txLocation = (t.location || t.items?.location || "")
-          .trim()
-          .toLowerCase();
-    
-        const selected = selectedStockRoom
-          .trim()
-          .toLowerCase();
-    
-        return txLocation === selected;
-      });
-    
-    const stockMap = filteredTransactions.reduce((acc, t) => {
-      const qty = Number(t.quantity) || 0;
-    
-      if (!acc[t.item_id]) acc[t.item_id] = 0;
-    
-      acc[t.item_id] += t.type === "IN" ? qty : -qty;
-    
-      return acc;
-    }, {});
 
-  const inTransactions = filteredTransactions
-  .filter(t => t.type === "IN")
-  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+// ================= FILTERS =================
+const filteredTransactions = useMemo(() => {
+  return transactions
+    .filter(t => !t.deleted)
+    .filter(t => {
+      if (!selectedStockRoom) return true;
 
-const outTransactions = filteredTransactions
-  .filter(t => t.type === "OUT")
-  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  
-  const stockInventory = items
-        .filter(i => !i.deleted)
-        .filter(i => {
-         if (!selectedStockRoom) return true;
+      const txLocation = (t.location || t.items?.location || "")
+        .trim()
+        .toLowerCase();
 
-            const selected = selectedStockRoom.replace(/\s+/g," ").trim().toLowerCase();
-            const itemLocation = (i.location || "")
-              .replace(/\s+/g," ")
-              .trim()
-              .toLowerCase();
-            
-            return itemLocation === selected;
-          })
-      .map(i => {
-   const stock = stockMap[i.id] || 0;
-        return {
-          id: i.id,
-          item_name: i.item_name,
-          brand: i.brand,
-          category: i.category,
-          unit_price: i.unit_price,
-          stock: stock,
-          location: i.location
-        };
-      });
-    const totalTransactions = filteredTransactions.length;
-    const totalCategories = new Set(
-      stockInventory.map(i => i.category || "Uncategorized")
-    ).size;
-    const totalItems = stockInventory.length;
-    const totalInventoryValue = stockInventory.reduce(
+      const selected = selectedStockRoom
+        .trim()
+        .toLowerCase();
+
+      return txLocation === selected;
+    });
+}, [transactions, selectedStockRoom]);
+
+const stockMap = useMemo(() => {
+  return filteredTransactions.reduce((acc, t) => {
+    const qty = Number(t.quantity) || 0;
+
+    if (!acc[t.item_id]) acc[t.item_id] = 0;
+
+    acc[t.item_id] += t.type === "IN" ? qty : -qty;
+
+    return acc;
+  }, {});
+}, [filteredTransactions]);
+
+const inTransactions = useMemo(() => {
+  return filteredTransactions
+    .filter(t => t.type === "IN")
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+}, [filteredTransactions]);
+
+const outTransactions = useMemo(() => {
+  return filteredTransactions
+    .filter(t => t.type === "OUT")
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+}, [filteredTransactions]);
+
+const stockInventory = useMemo(() => {
+  return items
+    .filter(i => !i.deleted)
+    .filter(i => {
+      if (!selectedStockRoom) return true;
+
+      const selected = selectedStockRoom.replace(/\s+/g, " ").trim().toLowerCase();
+      const itemLocation = (i.location || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+
+      return itemLocation === selected;
+    })
+    .map(i => {
+      const stock = stockMap[i.id] || 0;
+
+      return {
+        id: i.id,
+        item_name: i.item_name,
+        brand: i.brand,
+        category: i.category,
+        unit_price: i.unit_price,
+        stock: stock,
+        location: i.location
+      };
+    });
+}, [items, selectedStockRoom, stockMap]);
+
+const totalTransactions = useMemo(() => filteredTransactions.length, [filteredTransactions]);
+
+const totalCategories = useMemo(() => {
+  return new Set(
+    stockInventory.map(i => i.category || "Uncategorized")
+  ).size;
+}, [stockInventory]);
+
+const totalItems = useMemo(() => stockInventory.length, [stockInventory]);
+
+const totalInventoryValue = useMemo(() => {
+  return stockInventory.reduce(
     (sum, i) => sum + (i.stock * (i.unit_price || 0)),
     0
   );
-    const lowStockItems = stockInventory.filter(i => i.stock <= 5).length;
-    const deletedItems = items
-      .filter(i =>
-        i.deleted &&
-        (!selectedStockRoom || i.location === selectedStockRoom || !i.location)
-      )
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  
-    const deletedTransactions = transactions
-      .filter(t => t.deleted)
-      .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
-      .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
-  
-    const filteredDeletedItems = deletedItems.filter(i =>
-    (i.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
-    (i.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
+}, [stockInventory]);
+
+const lowStockItems = useMemo(() => {
+  return stockInventory.filter(i => i.stock <= 5).length;
+}, [stockInventory]);
+
+const deletedItems = useMemo(() => {
+  return items
+    .filter(i =>
+      i.deleted &&
+      (!selectedStockRoom || i.location === selectedStockRoom || !i.location)
+    )
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+}, [items, selectedStockRoom]);
+
+const deletedTransactions = useMemo(() => {
+  return transactions
+    .filter(t => t.deleted)
+    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
+    .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
+}, [transactions, selectedStockRoom]);
+
+const filteredDeletedItems = useMemo(() => {
+  const search = deletedItemSearch.toLowerCase();
+
+  return deletedItems.filter(i =>
+    (i.item_name || "").toLowerCase().includes(search) ||
+    (i.brand || "").toLowerCase().includes(search)
   );
-    const filteredDeletedTransactions = deletedTransactions.filter(t =>
-      t.items?.item_name?.toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
-      t.items?.brand?.toLowerCase().includes(deletedTxSearch.toLowerCase())
-    );
+}, [deletedItems, deletedItemSearch]);
+
+const filteredDeletedTransactions = useMemo(() => {
+  const search = deletedTxSearch.toLowerCase();
+
+  return deletedTransactions.filter(t =>
+    t.items?.item_name?.toLowerCase().includes(search) ||
+    t.items?.brand?.toLowerCase().includes(search)
+  );
+}, [deletedTransactions, deletedTxSearch]);
+  
   // ================= MONTHLY REPORT STATE =================
     const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
     const [reportYear, setReportYear] = useState(new Date().getFullYear());
+  
     // ================= MONTHLY REPORT LOGIC =================
     const monthlyTransactions = filteredTransactions.filter(t => {
       if (!t.date) return false;
