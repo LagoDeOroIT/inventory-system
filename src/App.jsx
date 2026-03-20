@@ -315,10 +315,7 @@ const styles = {
   }),
   newOptionButton: { padding: "12px 0", marginBottom: 12, borderRadius: 8, border: "none", width: "100%", cursor: "pointer", fontWeight: 600, fontSize: 16 },
   };
-  const formatNumber = (num) => {
-    if (num === null || num === undefined) return "";
-    return Number(num).toLocaleString();
-  };
+  
 // ================= APP COMPONENT =================
 export default function App() {
   const [session, setSession] = useState(null);
@@ -784,20 +781,6 @@ const filteredDeletedTransactions = useMemo(() => {
           `inventory_report_${reportYear}_${reportMonth}.xlsx`
         );
       };
-  // ================= CAPITALIZE WORDS =================
-  const displayBrand = (brand) => {
-  if (!brand || brand.trim() === "") return "No Brand";
-  return capitalizeWords(brand);
-  };
-  const capitalizeWords = (text) => {
-  if (!text) return text;
-
-  return text
-    .toLowerCase()
-    .split(" ")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
 
         // ================= FORM HANDLER =================  
 const handleFormChange = (key, value) => {
