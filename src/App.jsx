@@ -4,6 +4,7 @@ import { supabase } from "./services/supabaseClient";
 import Draggable from "react-draggable";
 import { formatNumber, capitalizeWords, displayBrand } from "./utils/helpers";
 import Sidebar from "./components/layout/Sidebar";
+import StockInventory from "./StockInventory";
   
 // ================= STYLES =================
 const styles = {
