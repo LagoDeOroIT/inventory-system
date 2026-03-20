@@ -1213,7 +1213,11 @@ if (form.type === "OUT") {
         </div>
 
    {/* MAIN AREA */}
-      <div style={styles.main}>
+      <div style={{
+          ...styles.main,
+          height: "100%",
+          minHeight: 0
+        }}>
 
           {!selectedStockRoom ? (
             <div style={styles.welcomeScreen}>
@@ -1850,13 +1854,13 @@ if (form.type === "OUT") {
  {/* ================= DELETED HISTORY TAB ================= */}
                 {activeTab==="deleted" && (
                 <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 20,
-                    width: "100%",
-                    maxWidth: "100%",
-                    overflow: "hidden"
-                  }}>  
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 20,
+                  width: "100%",
+                  height: "100%",
+                  minHeight: 0
+                }}>
                 {/* ================= DELETED INVENTORY ================= */}
                 <div style={{
                   background: "#fff",
@@ -1866,7 +1870,8 @@ if (form.type === "OUT") {
                   display: "flex",
                   flexDirection: "column",
                   minWidth: 0,
-                  height: "520px",
+                  flex: 1,
+                  minHeight: 0,
                 }}>
                 <h2>Deleted Inventory</h2>
                 
@@ -1877,8 +1882,13 @@ if (form.type === "OUT") {
                   onChange={(e) => setDeletedItemSearch(e.target.value)}
                 />
                 
-                <div style={{ flex: 1, overflowY: "auto", marginTop: 10 }}>
-                
+                <div style={{ 
+                  flex: 1, 
+                  minHeight: 0,
+                  overflowY: "auto", 
+                  marginTop: 10 
+                }}>
+                                
                 <table style={{
                   width:"100%",
                   borderCollapse:"collapse"
@@ -2068,7 +2078,8 @@ if (form.type === "OUT") {
                 display: "flex",
                 flexDirection: "column",
                 minWidth: 0,
-                height: "520px",
+                flex: 1,
+                minHeight: 0,
                 }}>
                 
                 <h2>Deleted Transactions</h2>
@@ -2080,7 +2091,12 @@ if (form.type === "OUT") {
                 onChange={(e) => setDeletedTxSearch(e.target.value)}
                 />
                 
-                <div style={{ flex: 1, overflowY: "auto", marginTop: 10 }}>
+                <div style={{ 
+                  flex: 1, 
+                  minHeight: 0,
+                  overflowY: "auto", 
+                  marginTop: 10 
+                }}>
                 
                 <table style={{
                   width:"100%",
