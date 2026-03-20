@@ -1,4 +1,3 @@
-import React from "react";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Draggable from "react-draggable";
