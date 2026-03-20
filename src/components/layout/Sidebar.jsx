@@ -1,4 +1,5 @@
 export default function Sidebar({
+  styles,
   stockRooms,
   userRooms,
   selectedStockRoom,
