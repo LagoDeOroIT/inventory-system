@@ -8,7 +8,8 @@ import Transactions from "./components/transactions/Transactions";
 import DeletedHistory from "./components/deleted/DeletedHistory";
 import MonthlyReport from "./components/report/MonthlyReport";
 import styles from "./styles/styles";
-  
+
+
 // ================= APP COMPONENT =================
 export default function App() {
   const [session, setSession] = useState(null);
@@ -763,17 +764,18 @@ if (form.type === "OUT") {
         </div>
       )}
        <Sidebar
-          stockRooms={stockRooms}
-          userRooms={userRooms}
-          selectedStockRoom={selectedStockRoom}
-          setSelectedStockRoom={setSelectedStockRoom}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          handleNewClick={handleNewClick}
-          session={session}
-          supabase={supabase}
-          setSession={setSession}
-        />
+        styles={styles}
+        stockRooms={stockRooms}
+        userRooms={userRooms}
+        selectedStockRoom={selectedStockRoom}
+        setSelectedStockRoom={setSelectedStockRoom}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        handleNewClick={handleNewClick}
+        session={session}
+        supabase={supabase}
+        setSession={setSession}
+      />
 
    {/* MAIN AREA */}
       <div style={styles.main}>
