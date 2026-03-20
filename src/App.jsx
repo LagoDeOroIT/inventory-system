@@ -4,7 +4,7 @@ import { supabase } from "./services/supabaseClient";
 import Draggable from "react-draggable";
 import { formatNumber, capitalizeWords, displayBrand } from "./utils/helpers";
 import Sidebar from "./components/layout/Sidebar";
-import StockInventory from "./StockInventory";
+import StockInventory from "./components/stockinventory/StockInventory";
 import Transactions from "./components/transactions/Transactions";
 import DeletedHistory from "./components/deleted/DeletedHistory";
   
@@ -1150,6 +1150,7 @@ if (form.type === "OUT") {
     openMenuId={openMenuId}
     setOpenMenuId={setOpenMenuId}
     menuRefs={menuRefs}
+    menuItemStyle={menuItemStyle}
     setForm={setForm}
     setModalType={setModalType}
     setShowModal={setShowModal}
