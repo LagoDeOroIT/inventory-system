@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { supabase } from "./services/supabaseClient";
 import Draggable from "react-draggable";
+import { formatNumber, capitalizeWords, displayBrand } from "./utils/helpers";
   
 // ================= STYLES =================
 const styles = {
