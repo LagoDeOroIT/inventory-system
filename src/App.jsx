@@ -140,7 +140,6 @@ const styles = {
     display: "flex",
     height: "100vh",
     fontFamily: "Inter, Arial, sans-serif", 
-    padding: "12px",
     gap: "12px",
     background: "#f3f4f6"
   },
