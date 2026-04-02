@@ -163,7 +163,6 @@ const styles = {
     flexDirection: "column",
     overflow: "hidden",
     minHeight: 0,
-    padding: "16px" // ✅ adds inner spacing
   },
   categoryRow:{
     background:"#f8fafc",
