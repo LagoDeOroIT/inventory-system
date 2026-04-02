@@ -1371,7 +1371,6 @@ if (form.type === "OUT") {
                   <tr>
                     <td colSpan={6}>
                       <div style={{
-                        height: "300px", // 👈 adjust if needed
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
