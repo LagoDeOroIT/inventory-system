@@ -1325,7 +1325,8 @@ if (form.type === "OUT") {
         </div>
       <div
         style={{
-          maxHeight: "400px",   // 🔥 controls table height
+          flex: 1,                
+          minHeight: 0,           
           overflowY: "auto",
           overflowX: "hidden",
           border: "1px solid #e5e7eb",
@@ -1370,8 +1371,16 @@ if (form.type === "OUT") {
               if (Object.keys(groupedStock).length === 0) {
                 return (
                   <tr>
-                    <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                      No matching items
+                    <td colSpan={6}>
+                      <div style={{
+                        height: "300px", // 👈 adjust if needed
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#9ca3af"
+                      }}>
+                        No matching items
+                      </div>
                     </td>
                   </tr>
                 );
