@@ -1292,7 +1292,7 @@ if (form.type === "OUT") {
         boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
         display: "flex",
         flexDirection: "column",
-        overflowY: "auto",
+        minHeight: 0,
         scrollBehavior: "smooth"
       }}
     >
