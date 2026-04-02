@@ -1843,8 +1843,8 @@ if (form.type === "OUT") {
                 
                 <div style={{ 
                   flex: 1, 
-                  minHeight: 0,
-                  overflowY: "auto", 
+                  height: "520px",    
+                  overflowY: "auto",  
                   marginTop: 10 
                 }}>
                                 
@@ -2052,8 +2052,8 @@ if (form.type === "OUT") {
                 
                 <div style={{ 
                   flex: 1, 
-                  minHeight: 0,
-                  overflowY: "auto", 
+                  height: "520px",    
+                  overflowY: "auto",  
                   marginTop: 10 
                 }}>
                 
