@@ -2,8 +2,8 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Draggable from "react-draggable";
 // ================= SUPABASE CONFIG =================
-const supabaseUrl = "https://ksqdtaeajczxyptazmtr.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzcWR0YWVhamN6eHlwdGF6bXRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MDAzODcsImV4cCI6MjA4OTQ3NjM4N30.QNls7uULhk_0-m7ahhvOMAgmCF2ibQ3_TAUt7YD6JuA";
+const supabaseUrl = "https://zchhskjbbqzkfeiyklsd.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjaGhza2piYnF6a2ZlaXlrbHNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5OTY3ODUsImV4cCI6MjA5MDU3Mjc4NX0.F1uIGnMAyw3fhct2UN1Z9jPn6Lmdd1nVc0AhhQUa9QU";
 const supabase = createClient(supabaseUrl, supabaseKey);
 // ================= STYLES =================
 const styles = {
