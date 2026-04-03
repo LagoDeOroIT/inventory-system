@@ -1351,182 +1351,216 @@ if (form.type === "OUT") {
           </tr>
         </thead>
         <tbody>
-            {(() => {
-              // 1️⃣ Filtered items
-              const filteredItems = stockInventory.filter(
-                (item) =>
-                  (item.item_name || "").toLowerCase().includes(stockSearch.toLowerCase()) ||
-                  (item.brand || "").toLowerCase().includes(stockSearch.toLowerCase())
-              );
-          
-              // 2️⃣ Pagination
-              const totalPages = Math.ceil(filteredItems.length / rowsPerPage);
-              const paginatedItems = filteredItems.slice(
-                (stockPage - 1) * rowsPerPage,
-                stockPage * rowsPerPage
-              );
-          
-              // 3️⃣ Group paginated items by category
-              const groupedStock = paginatedItems.reduce((acc, item) => {
-                const cat = item.category || "Uncategorized";
-                if (!acc[cat]) acc[cat] = [];
-                acc[cat].push(item);
-                return acc;
-              }, {});
-          
-              if (Object.keys(groupedStock).length === 0) {
-                return (
-                  <tr>
-                    <td colSpan={6}>
-                      <div style={{ display: "flex", justifyContent: "center", color:"#9ca3af" }}>
-                        No matching items
-                      </div>
-                    </td>
-                  </tr>
+              {(() => {
+              
+                // 1️⃣ FILTER
+                const filteredItems = stockInventory.filter(
+                  (item) =>
+                    (item.item_name || "").toLowerCase().includes(stockSearch.toLowerCase()) ||
+                    (item.brand || "").toLowerCase().includes(stockSearch.toLowerCase())
                 );
-              }
-          
-              return (
-                <>
-                  {Object.entries(groupedStock).map(([category, items]) => {
-                    const isOpen = openCategories[category] === true;
-                    const totalValue = items.reduce((sum, i) => sum + (i.stock * i.unit_price), 0);
-          
-                    return (
-                      <React.Fragment key={category}>
-                        {/* CATEGORY HEADER */}
-                        <tr
-                          style={styles.categoryRow}
-                          onClick={(e)=>{
-                            if(e.target.tagName !== "BUTTON") toggleCategory(category);
-                          }}
-                        >
-                          <td colSpan={6} style={{padding:"12px 14px"}}>
-                            <div style={styles.categoryContainer}>
-                              <div style={styles.categoryLeft}>
-                                <span style={{color:"#6b7280"}}>{isOpen ? "▾" : "▸"}</span>
-                                <span>
-                                  {category}
-                                  {(() => {
-                                    const lowStockCount = items.filter(i => i.stock <= 5).length;
-                                    if (lowStockCount === 0) return null;
-                                    return (
-                                      <span style={{
-                                        marginLeft:8,
-                                        background:"#fee2e2",
-                                        color:"#b91c1c",
-                                        fontSize:11,
-                                        padding:"2px 6px",
-                                        borderRadius:6,
-                                        fontWeight:600
-                                      }}>
-                                        ⚠ {lowStockCount} Low Stock
-                                      </span>
-                                    );
-                                  })()}
-                                </span>
-                              </div>
-                              <div style={styles.categoryRight}>
-                                <span>{items.length} item{items.length !== 1 ? "s" : ""}</span>
-                                <span style={{fontWeight:600,color:"#111827"}}>
-                                  ₱{totalValue.toLocaleString(undefined,{minimumFractionDigits:2})}
-                                </span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-          
-                        {/* ITEMS */}
-                        {isOpen && items.map(i => (
-                          <tr key={i.id} style={{ background: i.stock <= 5 ? "#fee2e2" : "transparent" }}>
-                            <td style={styles.thtd}>{formatNumber(i.stock)}</td>
-                            <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
-                            <td style={styles.thtd}>{displayBrand(i.brand)}</td>
-                            <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-                            <td style={styles.thtd}>₱{Number(i.stock * (i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-                            <td style={{ ...styles.thtd, position:"relative" }}>
-                              <div className="action-menu" ref={(el) => (menuRefs.current["stock-" + i.id] = el)}>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id);
-                                  }}
-                                  style={{ background:"none", border:"none", fontSize:20, cursor:"pointer" }}
-                                >⋮</button>
-          
-                                {openMenuId === "stock-"+i.id && (
-                                  <div
-                                    onClick={(e) => e.stopPropagation()}
-                                    style={{
-                                      position:"absolute",
-                                      right:0,
-                                      top:30,
-                                      background:"#fff",
-                                      border:"1px solid #e5e7eb",
-                                      borderRadius:8,
-                                      boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                                      zIndex:10,
-                                      minWidth:120,
-                                      display:"flex",
-                                      flexDirection:"column"
-                                    }}
-                                  >
-                                    <button style={menuItemStyle} onClick={()=>{
-                                      setForm({
-                                        id: i.id,
-                                        item_name: i.item_name || "",
-                                        brand: i.brand || "",
-                                        category: i.category || "",
-                                        unit_price: i.unit_price || "",
-                                        brandOptions:[i.brand],
-                                      });
-                                      setModalType("item");
-                                      setShowModal(true);
-                                      setOpenMenuId(null);
-                                    }}>Edit</button>
-          
-                                    <button style={{...menuItemStyle,color:"#ef4444"}} onClick={()=>{
-                                      setConfirmAction({ type:"deleteItem", data:i });
-                                      setOpenMenuId(null);
-                                    }}>Delete</button>
-                                  </div>
-                                )}
+              
+                // 2️⃣ GROUP ALL ITEMS FIRST ✅
+                const groupedStock = filteredItems.reduce((acc, item) => {
+                  const cat = item.category || "Uncategorized";
+                  if (!acc[cat]) acc[cat] = [];
+                  acc[cat].push(item);
+                  return acc;
+                }, {});
+              
+                const categories = Object.keys(groupedStock);
+              
+                // 3️⃣ PAGINATE BY CATEGORY (NOT ITEMS) ✅
+                const totalPages = Math.ceil(categories.length / 5); // 5 categories per page
+                const paginatedCategories = categories.slice(
+                  (stockPage - 1) * 5,
+                  stockPage * 5
+                );
+              
+                if (categories.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: "center", color:"#9ca3af", padding: 16 }}>
+                        No matching items
+                      </td>
+                    </tr>
+                  );
+                }
+              
+                return (
+                  <>
+                    {paginatedCategories.map(category => {
+                      const items = groupedStock[category];
+                      const isOpen = openCategories[category] === true;
+              
+                      const totalValue = items.reduce(
+                        (sum, i) => sum + (i.stock * (i.unit_price || 0)),
+                        0
+                      );
+              
+                      return (
+                        <React.Fragment key={category}>
+              
+                          {/* CATEGORY HEADER */}
+                          <tr
+                            style={styles.categoryRow}
+                            onClick={(e)=>{
+                              if(e.target.tagName !== "BUTTON") toggleCategory(category);
+                            }}
+                          >
+                            <td colSpan={6} style={{padding:"12px 14px"}}>
+                              <div style={styles.categoryContainer}>
+              
+                                <div style={styles.categoryLeft}>
+                                  <span style={{color:"#6b7280"}}>
+                                    {isOpen ? "▾" : "▸"}
+                                  </span>
+              
+                                  <span>
+                                    {category}
+              
+                                    {/* LOW STOCK BADGE */}
+                                    {(() => {
+                                      const lowStockCount = items.filter(i => i.stock <= 5).length;
+                                      if (!lowStockCount) return null;
+              
+                                      return (
+                                        <span style={{
+                                          marginLeft:8,
+                                          background:"#fee2e2",
+                                          color:"#b91c1c",
+                                          fontSize:11,
+                                          padding:"2px 6px",
+                                          borderRadius:6,
+                                          fontWeight:600
+                                        }}>
+                                          ⚠ {lowStockCount} Low Stock
+                                        </span>
+                                      );
+                                    })()}
+                                  </span>
+                                </div>
+              
+                                <div style={styles.categoryRight}>
+                                  <span>{items.length} item{items.length !== 1 ? "s" : ""}</span>
+                                  <span style={{fontWeight:600,color:"#111827"}}>
+                                    ₱{totalValue.toLocaleString(undefined,{minimumFractionDigits:2})}
+                                  </span>
+                                </div>
+              
                               </div>
                             </td>
                           </tr>
-                        ))}
-                      </React.Fragment>
-                    );
-                  })}
-          
-                  {/* ✅ PAGINATION CONTROLS */}
-                  <tr>
-                    <td colSpan={6} style={{ padding: 12, textAlign: "center" }}>
-                      <button
-                        onClick={() => setStockPage(p => Math.max(p - 1, 1))}
-                        disabled={stockPage === 1}
-                        style={{ marginRight: 10 }}
-                      >
-                        Prev
-                      </button>
-          
-                      <span>
-                        Page {stockPage} of {totalPages}
-                      </span>
-          
-                      <button
-                        onClick={() => setStockPage(p => Math.min(p + 1, totalPages))}
-                        disabled={stockPage === totalPages}
-                        style={{ marginLeft: 10 }}
-                      >
-                        Next
-                      </button>
-                    </td>
-                  </tr>
-                </>
-              );
-            })()}
-          </tbody>
+              
+                          {/* ITEMS */}
+                          {isOpen && items.map(i => (
+                            <tr key={i.id} style={{
+                              background: i.stock <= 5 ? "#fee2e2" : "transparent"
+                            }}>
+                              <td style={styles.thtd}>{formatNumber(i.stock)}</td>
+                              <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
+                              <td style={styles.thtd}>{displayBrand(i.brand)}</td>
+                              <td style={styles.thtd}>
+                                ₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}
+                              </td>
+                              <td style={styles.thtd}>
+                                ₱{Number(i.stock * (i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}
+                              </td>
+                              <td style={{ ...styles.thtd, position:"relative" }}>
+                                <div className="action-menu" ref={(el) => (menuRefs.current["stock-" + i.id] = el)}>
+                                  
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id);
+                                    }}
+                                    style={{ background:"none", border:"none", fontSize:20, cursor:"pointer" }}
+                                  >
+                                    ⋮
+                                  </button>
+              
+                                  {openMenuId === "stock-"+i.id && (
+                                    <div
+                                      onClick={(e) => e.stopPropagation()}
+                                      style={{
+                                        position:"absolute",
+                                        right:0,
+                                        top:30,
+                                        background:"#fff",
+                                        border:"1px solid #e5e7eb",
+                                        borderRadius:8,
+                                        boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                                        zIndex:10,
+                                        minWidth:120,
+                                        display:"flex",
+                                        flexDirection:"column"
+                                      }}
+                                    >
+                                      <button style={menuItemStyle} onClick={()=>{
+                                        setForm({
+                                          id: i.id,
+                                          item_name: i.item_name || "",
+                                          brand: i.brand || "",
+                                          category: i.category || "",
+                                          unit_price: i.unit_price || "",
+                                          brandOptions:[i.brand],
+                                        });
+                                        setModalType("item");
+                                        setShowModal(true);
+                                        setOpenMenuId(null);
+                                      }}>
+                                        Edit
+                                      </button>
+              
+                                      <button
+                                        style={{...menuItemStyle,color:"#ef4444"}}
+                                        onClick={()=>{
+                                          setConfirmAction({ type:"deleteItem", data:i });
+                                          setOpenMenuId(null);
+                                        }}
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  )}
+              
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+              
+                        </React.Fragment>
+                      );
+                    })}
+              
+                    {/* PAGINATION */}
+                    <tr>
+                      <td colSpan={6} style={{ textAlign:"center", padding:12 }}>
+                        <button
+                          onClick={() => setStockPage(p => Math.max(p - 1, 1))}
+                          disabled={stockPage === 1}
+                        >
+                          Prev
+                        </button>
+              
+                        <span style={{ margin:"0 10px" }}>
+                          Page {stockPage} of {totalPages}
+                        </span>
+              
+                        <button
+                          onClick={() => setStockPage(p => Math.min(p + 1, totalPages))}
+                          disabled={stockPage === totalPages}
+                        >
+                          Next
+                        </button>
+                      </td>
+                    </tr>
+              
+                  </>
+                );
+              
+              })()}
+              </tbody>
       </table>
     </div>
     </div>
@@ -2440,257 +2474,197 @@ if (form.type === "OUT") {
 )}
 
                {/* ================= MODAL ================= */}
-        {showModal && (
-          <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
-            <Draggable handle=".modalHeader" bounds="parent">
-              <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
-              {/* NEW OPTION MODAL */}
-              {modalType === "newOption" && (
-                <>
-                  <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
-                    <h3>What do you want to add?</h3>
-                  </div>
-                  <button style={{ ...styles.newOptionButton, background:"#1f2937", color:"#fff" }} onClick={openNewItemModal}>Add New Item</button>
-                  <button style={{ ...styles.newOptionButton, background:"#e5e7eb", color:"#374151" }} onClick={openNewTransactionModal}>Add New Transaction</button>
-                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-                </>
-              )}
+{showModal && (
+  <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
+    <Draggable handle=".modalHeader" bounds="parent">
+      <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
+        {/* NEW OPTION MODAL */}
+        {modalType === "newOption" && (
+          <>
+            <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
+              <h3>What do you want to add?</h3>
+            </div>
+            <button style={{ ...styles.newOptionButton, background:"#1f2937", color:"#fff" }} onClick={openNewItemModal}>Add New Item</button>
+            <button style={{ ...styles.newOptionButton, background:"#e5e7eb", color:"#374151" }} onClick={openNewTransactionModal}>Add New Transaction</button>
+            <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+          </>
+        )}
 
-              {/* ADD ITEM MODAL */}
-              {modalType === "item" && (
-                <>
-                  <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
-                    <h3>{form.id ? "Edit Item" : "New Item"}</h3>
-                  </div>
-                    <div style={{ position: "relative" }}>
-                      <input
-                        style={styles.input}
-                        placeholder="Item Name"
-                        value={form.item_name}
-                        onChange={e => {
-                          const value = e.target.value;
-                          handleFormChange("item_name", value);
-                    
-                          const matches = items
-                            .filter(i =>
-                              i.location === selectedStockRoom &&
-                              !i.deleted &&
-                              i.item_name.toLowerCase().includes(value.toLowerCase())
-                            )
-                            .map(i => i.item_name);
-                    
-                          setItemOptions([...new Set(matches)]);
-                        }}
-                        onFocus={() => {
-                          const allItems = items
-                            .filter(i => i.location === selectedStockRoom && !i.deleted)
-                            .map(i => i.item_name);
-                    
-                          setItemOptions([...new Set(allItems)]);
-                        }}
-                        onBlur={() => {
-                          setTimeout(() => setItemOptions([]), 150);
-                        }}
-                      />
-                    
-                      {/* FLOATING SELECTOR */}
-                      {itemOptions.length > 0 && (
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "100%",
-                            left: 0,
-                            right: 0,
-                            border: "1px solid #d1d5db",
-                            borderRadius: 10,
-                            marginTop: 4,
-                            background: "#ffffff",
-                            boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
-                            maxHeight: 160,
-                            overflowY: "auto",
-                            zIndex: 1000
-                          }}
-                        >
-                          {itemOptions.map((name, idx) => (
-                            <div
-                              key={idx}
-                              style={{
-                                padding: "10px 14px",
-                                cursor: "pointer",
-                                fontSize: 14,
-                                fontWeight: 500,
-                                color: "#374151",
-                                borderBottom:
-                                  idx !== itemOptions.length - 1
-                                    ? "1px solid #f3f4f6"
-                                    : "none"
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.background = "#eef2ff";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.background = "#ffffff";
-                              }}
-                              onClick={() => {
-                                handleFormChange("item_name", name);
-                                setItemOptions([]);
-                              }}
-                            >
-                              {capitalizeWords(name)}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                  </div>
-                  <div style={{ position: "relative" }}>
-                    {/* BRAND INPUT */}
-                    <input
-                      style={styles.input}
-                      placeholder="Brand"
-                      value={form.brand}
-                      onChange={e => {
-                        const value = e.target.value;
-                        handleFormChange("brand", value);
-                  
-                        const matches = items
-                          .filter(i =>
-                            i.location === selectedStockRoom &&
-                            !i.deleted &&
-                            i.item_name === form.item_name &&
-                            i.brand &&
-                            i.brand.toLowerCase().includes(value.toLowerCase())
-                          )
-                          .map(i => i.brand);
-                  
-                        setBrandOptions([...new Set(matches)]);
-                      }}
-                      onFocus={() => {
-                        const allBrands = items
-                          .filter(i =>
-                            i.location === selectedStockRoom &&
-                            !i.deleted &&
-                            i.item_name === form.item_name
-                          )
-                          .map(i => i.brand);
-                  
-                        setBrandOptions([...new Set(allBrands)]);
-                      }}
-                      onBlur={() => setTimeout(() => setBrandOptions([]), 150)}
-                    />
-                  
-                    {/* BRAND DROPDOWN */}
-                    {brandOptions.length > 0 && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "100%",
-                          left: 0,
-                          right: 0,
-                          border: "1px solid #d1d5db",
-                          borderRadius: 10,
-                          marginTop: 4,
-                          background: "#ffffff",
-                          boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
-                          maxHeight: 160,
-                          overflowY: "auto",
-                          zIndex: 1000
-                        }}
-                      >
-                        {brandOptions.map((b, idx) => (
-                          <div
-                            key={idx}
-                            style={styles.dropdownItem}
-                            onClick={() => {
-                              handleFormChange("brand", b);
-                              setBrandOptions([]);
-                            }}
-                          >
-                            {capitalizeWords(b)}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  
-                  </div>
+        {/* ADD ITEM MODAL */}
+        {modalType === "item" && (
+          <>
+            <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
+              <h3>{form.id ? "Edit Item" : "New Item"}</h3>
+            </div>
 
-                  <div style={{ position: "relative" }}>
-                    <input
-                      style={styles.input}
-                      placeholder="Category"
-                      value={form.category || ""}
-                      onChange={e => {
-                        const value = e.target.value;
-                        handleFormChange("category", value);
-                    
-                        const matches = items
-                          .filter(i =>
-                            i.location === selectedStockRoom &&
-                            !i.deleted &&
-                            i.category &&
-                            i.category.toLowerCase().includes(value.toLowerCase())
-                          )
-                          .map(i => i.category);
-                    
-                        setCategoryOptions([...new Set(matches)]);
-                      }}
-                      onFocus={() => {
-                        const allCategories = items
-                          .filter(i => i.location === selectedStockRoom && !i.deleted)
-                          .map(i => i.category)
-                          .filter(Boolean);
-                    
-                        setCategoryOptions([...new Set(allCategories)]);
-                      }}
-                      onBlur={() => setTimeout(() => setCategoryOptions([]), 150)}
-                    />
-                    
-                    {categoryOptions.length > 0 && (
+            {/* ITEM NAME */}
+            <div style={{ position: "relative" }}>
+              <input
+                style={styles.input}
+                placeholder="Item Name"
+                value={form.item_name}
+                onChange={e => {
+                  const value = e.target.value;
+                  handleFormChange("item_name", value);
+
+                  const matches = items
+                    .filter(i =>
+                      i.location === selectedStockRoom &&
+                      !i.deleted &&
+                      i.item_name.toLowerCase().includes(value.toLowerCase())
+                    )
+                    .map(i => i.item_name);
+
+                  setItemOptions([...new Set(matches)]);
+                }}
+                onFocus={() => {
+                  const allItems = items
+                    .filter(i => i.location === selectedStockRoom && !i.deleted)
+                    .map(i => i.item_name);
+
+                  setItemOptions([...new Set(allItems)]);
+                }}
+                onBlur={() => setTimeout(() => setItemOptions([]), 150)}
+              />
+
+              {/* ITEM DROPDOWN */}
+              {itemOptions.length > 0 && (
+                <div style={styles.dropdown}>
+                  {itemOptions.map((name, idx) => (
                     <div
-                      style={{
-                        position: "absolute",
-                        top: "100%",
-                        left: 0,
-                        right: 0,
-                        border: "1px solid #d1d5db",
-                        borderRadius: 10,
-                        marginTop: 4,
-                        background: "#ffffff",
-                        boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
-                        maxHeight: 160,
-                        overflowY: "auto",
-                        zIndex: 1000
+                      key={idx}
+                      style={styles.dropdownItem}
+                      onClick={() => {
+                        handleFormChange("item_name", name);
+                        setItemOptions([]);
                       }}
                     >
-                        {categoryOptions.map((cat, idx) => (
-                          <div
-                            key={idx}
-                            style={styles.dropdownItem}
-                            onClick={() => {
-                              handleFormChange("category", cat);
-                              setCategoryOptions([]);
-                            }}
-                          >
-                            {capitalizeWords(cat)}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
+                      {capitalizeWords(name)}
                     </div>
-                                    
-                  <input 
-                    style={styles.input}
-                    type="number"
-                    placeholder="Price"
-                    value={form.unit_price}
-                    onChange={e => handleFormChange("unit_price", e.target.value)}
-                  />
-                  <button style={styles.buttonPrimary} onClick={handleSubmit}>
-                    {form.id ? "Update" : "Create"}
-                  </button>
-                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-                </>
+                  ))}
+                </div>
               )}
+            </div>
+
+            {/* BRAND INPUT */}
+            <div style={{ position: "relative" }}>
+              <input
+                style={styles.input}
+                placeholder="Brand"
+                value={form.brand}
+                onChange={e => {
+                  const value = e.target.value;
+                  handleFormChange("brand", value);
+
+                  const matches = items
+                    .filter(i =>
+                      i.location === selectedStockRoom &&
+                      !i.deleted &&
+                      i.item_name === form.item_name &&
+                      i.brand &&
+                      i.brand.toLowerCase().includes(value.toLowerCase())
+                    )
+                    .map(i => i.brand);
+
+                  setBrandOptions([...new Set(matches)]);
+                }}
+                onFocus={() => {
+                  const allBrands = items
+                    .filter(i =>
+                      i.location === selectedStockRoom &&
+                      !i.deleted &&
+                      i.item_name === form.item_name
+                    )
+                    .map(i => i.brand);
+
+                  setBrandOptions([...new Set(allBrands)]);
+                }}
+                onBlur={() => setTimeout(() => setBrandOptions([]), 150)}
+              />
+
+              {brandOptions.length > 0 && (
+                <div style={styles.dropdown}>
+                  {brandOptions.map((b, idx) => (
+                    <div
+                      key={idx}
+                      style={styles.dropdownItem}
+                      onClick={() => {
+                        handleFormChange("brand", b);
+                        setBrandOptions([]);
+                      }}
+                    >
+                      {capitalizeWords(b)}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* CATEGORY INPUT */}
+            <div style={{ position: "relative" }}>
+              <input
+                style={styles.input}
+                placeholder="Category"
+                value={form.category || ""}
+                onChange={e => {
+                  const value = e.target.value;
+                  handleFormChange("category", value);
+
+                  const matches = items
+                    .filter(i =>
+                      i.location === selectedStockRoom &&
+                      !i.deleted &&
+                      i.category &&
+                      i.category.toLowerCase().includes(value.toLowerCase())
+                    )
+                    .map(i => i.category);
+
+                  setCategoryOptions([...new Set(matches)]);
+                }}
+                onFocus={() => {
+                  const allCategories = items
+                    .filter(i => i.location === selectedStockRoom && !i.deleted)
+                    .map(i => i.category)
+                    .filter(Boolean);
+
+                  setCategoryOptions([...new Set(allCategories)]);
+                }}
+                onBlur={() => setTimeout(() => setCategoryOptions([]), 150)}
+              />
+
+              {categoryOptions.length > 0 && (
+                <div style={styles.dropdown}>
+                  {categoryOptions.map((cat, idx) => (
+                    <div
+                      key={idx}
+                      style={styles.dropdownItem}
+                      onClick={() => {
+                        handleFormChange("category", cat);
+                        setCategoryOptions([]);
+                      }}
+                    >
+                      {capitalizeWords(cat)}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* PRICE */}
+            <input 
+              style={styles.input}
+              type="number"
+              placeholder="Price"
+              value={form.unit_price}
+              onChange={e => handleFormChange("unit_price", e.target.value)}
+            />
+
+            <button style={styles.buttonPrimary} onClick={handleSubmit}>
+              {form.id ? "Update" : "Create"}
+            </button>
+            <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+          </>
+        )}
 
               {/* ADD TRANSACTION MODAL */}
               {modalType === "transaction" && (
