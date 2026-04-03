@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Draggable from "react-draggable";
 // ================= SUPABASE CONFIG =================
@@ -7,9 +7,6 @@ const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 // ================= STYLES =================
 const styles = {
-  container:{},
-  sidebar:{},
-  main:{},
   thtd:{
     padding:"10px"
   },
@@ -321,6 +318,8 @@ const styles = {
   };
 // ================= APP COMPONENT =================
 export default function App() {
+  const normalize = (val) =>
+  (val || "").replace(/\s+/g, " ").trim().toLowerCase();
   const [session, setSession] = useState(null);
   const [stockPage, setStockPage] = useState(1); 
   const rowsPerPage = 50; 
@@ -329,24 +328,36 @@ export default function App() {
   const [items, setItems] = useState([]);
   const [itemOptions, setItemOptions] = useState([]);
   const [userRooms, setUserRooms] = useState([]);
-  const loadUserProfile = async (userId) => {
-    console.log("LOAD PROFILE FOR USER:", userId);
+  const stockRooms = [
+    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
+    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room"
+  ];
+  const loadUserProfile = useCallback(async (userId) => {
+  console.log("LOAD PROFILE FOR USER:", userId);
+
   const { data, error } = await supabase
     .from("profiles")
     .select("stock_rooms, role")
     .eq("id", userId)
     .single();
-    console.log("PROFILE RESULT:", data);
+
+  console.log("PROFILE RESULT:", data);
+
   if (error) {
     console.error("Profile error:", error);
     return;
   }
+
+  if (!data) return;
+
   if (data.role === "admin") {
     setUserRooms(stockRooms);
   } else {
     setUserRooms(data.stock_rooms || []);
   }
-  };
+
+}, [stockRooms]); 
+  
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
@@ -423,10 +434,7 @@ export default function App() {
 }, []);  
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
-  const stockRooms = [
-    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
-    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room"
-  ];
+    
   // ================= AUTH =================
    useEffect(() => {
   
@@ -482,39 +490,53 @@ export default function App() {
       
       };
   // ================= LOAD DATA =================
-        const loadData = async () => {
-        const { data: itemsData } = await supabase
-        .from("items")
-        .select("*")
-        .order("item_name", { ascending: true });
-        const itemsWithDeleted = (itemsData || []).map(i => ({
-          ...i,
-          deleted: i.deleted ?? false
-        }));
-      
-        const { data: tx } = await supabase
-          .from("inventory_transactions")
-          .select("*, items(item_name, brand, unit_price, location, category)")
-          .order("created_at", { ascending: false });
-      
-        const transactionsWithDeleted = (tx || []).map(t => ({
-          ...t,
-          deleted: t.deleted ?? false
-        }));
-      
-        setItems(itemsWithDeleted);
-        setTransactions(transactionsWithDeleted);
-      
-        // Category state
-        const opened = {};
-        itemsWithDeleted.forEach(i => {
-          const cat = i.category || "Uncategorized";
-          if (!(cat in opened)) opened[cat] = true;
-        });
-      
-        const savedCategories = localStorage.getItem("openCategories");
-        if (!savedCategories) setOpenCategories(opened);
-      };
+        const loadData = useCallback(async () => {
+
+          const { data: itemsData, error: itemsError } = await supabase
+            .from("items")
+            .select("*")
+            .order("item_name", { ascending: true });
+        
+          if (itemsError) {
+            console.error("Items error:", itemsError);
+            return;
+          }
+        
+          const itemsWithDeleted = (itemsData || []).map(i => ({
+            ...i,
+            deleted: i.deleted ?? false
+          }));
+        
+          const { data: tx, error: txError } = await supabase
+            .from("inventory_transactions")
+            .select("*, items(item_name, brand, unit_price, location, category)")
+            .order("created_at", { ascending: false });
+        
+          if (txError) {
+            console.error("Transactions error:", txError);
+            return;
+          }
+        
+          const transactionsWithDeleted = (tx || []).map(t => ({
+            ...t,
+            deleted: t.deleted ?? false
+          }));
+        
+          setItems(itemsWithDeleted);
+          setTransactions(transactionsWithDeleted);
+        
+        }, []); // 👈 important
+        
+          // Category state
+          const opened = {};
+          itemsWithDeleted.forEach(i => {
+            const cat = i.category || "Uncategorized";
+            if (!(cat in opened)) opened[cat] = true;
+          });
+        
+          const savedCategories = localStorage.getItem("openCategories");
+          if (!savedCategories) setOpenCategories(opened);
+        };
 
 // ================= FILTERS =================
 const filteredTransactions = useMemo(() => {
@@ -531,7 +553,7 @@ const filteredTransactions = useMemo(() => {
         .trim()
         .toLowerCase();
 
-      return txLocation === selected;
+      return normalize(txLocation) === normalize(selectedStockRoom);
     });
 }, [transactions, selectedStockRoom]);
 
@@ -571,7 +593,7 @@ const stockInventory = useMemo(() => {
         .trim()
         .toLowerCase();
 
-      return itemLocation === selected;
+      return normalize(itemLocation) === normalize(selectedStockRoom);
     })
     .map(i => {
       const stock = stockMap[i.id] || 0;
@@ -742,7 +764,7 @@ const filteredDeletedTransactions = useMemo(() => {
       
         perItem.forEach(row=>{
           const netQty = row.inQty - row.outQty;
-          const value = netQty * row.price;
+          const value = netQty * row.unit_price;
       
           rows.push([
             row.item,
@@ -859,7 +881,7 @@ const handleFormChange = (key, value) => {
       );
 
       if (selectedItem) {
-        updated.price = selectedItem.unit_price;
+        updated.unit_price = selectedItem.unit_price;
       }
 
     }
@@ -877,7 +899,7 @@ const handleFormChange = (key, value) => {
     brandOptions:[], 
     type:"IN", 
     quantity:"", 
-    price:"", 
+    unit_price:"", 
     id:null,
     location: selectedStockRoom  // ✅ add this
   });
@@ -893,7 +915,7 @@ const handleFormChange = (key, value) => {
     brandOptions:[], 
     type:"IN", 
     quantity:"", 
-    price:"", 
+    unit_price:"", 
     id:null,
     location: selectedStockRoom // ✅ add this
   });
@@ -950,7 +972,7 @@ if (form.type === "OUT") {
           brand: form.brand || existingItem.brand || "No Brand",
           type: form.type,
           quantity: Number(form.quantity),
-          unit_price: Number(form.price || existingItem.unit_price || 0),
+          unit_price: Number(form.unit_price || existingItem.unit_price || 0),
           location: form.location || selectedStockRoom
         };
       if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
@@ -1270,7 +1292,7 @@ if (form.type === "OUT") {
         type="text"
         placeholder="Search by Item Name or Brand..."
         value={stockSearch}
-        onChange={(e) => setStockSearch(e.target.value)}
+        onChange={(e) => {   setStockSearch(e.target.value);   setStockPage(1); }}
         style={{
           padding: "8px 12px",
           borderRadius: 8,
