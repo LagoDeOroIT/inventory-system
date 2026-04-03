@@ -7,28 +7,6 @@ const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 // ================= STYLES =================
 const styles = {
-  thtd:{
-    padding:"10px"
-  },
-  buttonSecondary:{
-    padding:"6px 12px"
-  },
-  categoryRow:{
-    background:"#f8fafc",
-    cursor:"pointer"
-  },
-  categoryContainer:{
-    display:"flex",
-    justifyContent:"space-between"
-  },
-  categoryLeft:{
-    display:"flex",
-    gap:10
-  },
-  categoryRight:{
-    display:"flex",
-    gap:20
-  },
   welcomeCard: {
     background: "#ffffff",
     padding: "60px 80px",
@@ -524,10 +502,7 @@ export default function App() {
         
           setItems(itemsWithDeleted);
           setTransactions(transactionsWithDeleted);
-        
-        }, []); // 👈 important
-        
-          // Category state
+                  // Category state
           const opened = {};
           itemsWithDeleted.forEach(i => {
             const cat = i.category || "Uncategorized";
@@ -536,8 +511,9 @@ export default function App() {
         
           const savedCategories = localStorage.getItem("openCategories");
           if (!savedCategories) setOpenCategories(opened);
-        };
 
+        }, []); // 👈 important
+        
 // ================= FILTERS =================
 const filteredTransactions = useMemo(() => {
   return transactions
@@ -1384,7 +1360,6 @@ if (form.type === "OUT") {
                 );
             
                 // 2️⃣ Pagination
-                const rowsPerPage = 50;
                 const totalPages = Math.ceil(filteredItems.length / rowsPerPage);
                 const paginatedItems = filteredItems.slice(
                   (stockPage - 1) * rowsPerPage,
