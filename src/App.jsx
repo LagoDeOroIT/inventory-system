@@ -529,7 +529,7 @@ const filteredTransactions = useMemo(() => {
         .trim()
         .toLowerCase();
 
-      return normalize(txLocation) === normalize(selectedStockRoom);
+      return normalize(txLocation) === selected;
     });
 }, [transactions, selectedStockRoom]);
 
@@ -740,7 +740,7 @@ const filteredDeletedTransactions = useMemo(() => {
       
         perItem.forEach(row=>{
           const netQty = row.inQty - row.outQty;
-          const value = netQty * row.unit_price;
+          const value = netQty * row.price;
       
           rows.push([
             row.item,
@@ -933,11 +933,20 @@ const handleFormChange = (key, value) => {
   return;
 }
 if (form.type === "OUT") {
+
   const currentStock = stockMap[existingItem.id] || 0;
   const requestedQty = Number(form.quantity) || 0;
 
-  if (requestedQty > currentStock) {
-    alert(`Not enough stock.\n\nAvailable: ${currentStock}`);
+  // ✅ Get original quantity if editing
+  const originalQty = form.id
+    ? (transactions.find(t => t.id === form.id)?.quantity || 0)
+    : 0;
+
+  // ✅ Adjust stock when editing
+  const adjustedStock = currentStock + originalQty;
+
+  if (requestedQty > adjustedStock) {
+    alert(`Not enough stock.\n\nAvailable: ${adjustedStock}`);
     return;
   }
 }
