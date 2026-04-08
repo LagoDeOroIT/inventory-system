@@ -558,33 +558,11 @@ const outTransactions = useMemo(() => {
 }, [filteredTransactions]);
 
 const stockInventory = useMemo(() => {
-  return items
-    .filter(i => !i.deleted)
-    .filter(i => {
-      if (!selectedStockRoom) return true;
-
-      const selected = selectedStockRoom.replace(/\s+/g, " ").trim().toLowerCase();
-      const itemLocation = (i.location || "")
-        .replace(/\s+/g, " ")
-        .trim()
-        .toLowerCase();
-
-      return normalize(itemLocation) === normalize(selectedStockRoom);
-    })
-    .map(i => {
-      const stock = stockMap[i.id] || 0;
-
-      return {
-        id: i.id,
-        item_name: i.item_name,
-        brand: i.brand,
-        category: i.category,
-        unit_price: i.unit_price,
-        stock: stock,
-        location: i.location
-      };
-    });
-}, [items, selectedStockRoom, stockMap]);
+  const selected = selectedStockRoom?.trim().toLowerCase() || "";
+  return items.filter(i => 
+    !i.deleted && (!selected || i.location?.trim().toLowerCase() === selected)
+  );
+}, [items, selectedStockRoom]);
 
 const totalTransactions = useMemo(() => filteredTransactions.length, [filteredTransactions]);
 
@@ -680,9 +658,7 @@ const filteredDeletedTransactions = useMemo(() => {
       totalOutValue: 0
     });
     
-    const netValue =
-      (monthlySummary?.totalInValue || 0) -
-      (monthlySummary?.totalOutValue || 0);
+    const netValue = (monthlySummary?.totalInValue || 0) - (monthlySummary?.totalOutValue || 0);
   // ================= EXPORT EXCEL =================
     const exportMonthlyReport = () => {
       
@@ -913,88 +889,101 @@ const handleFormChange = (key, value) => {
         setModalType("newOption");
         setShowModal(true);
       };
-      const handleSubmit = async () => {
+     const handleSubmit = async () => {
+  // ================= VALIDATIONS =================
+  if (!form.item_name) return alert("Please enter an item name.");
+  if (modalType === "item" && (!form.unit_price || Number(form.unit_price) <= 0)) return alert("Please enter a valid price.");
 
-          if (modalType === "item" || modalType === "transaction") {
-            await saveTransaction();
-          }
-    
-    };
-      // ================= SUBMIT =================
-   const saveTransaction = async () => {
-    if(modalType === "transaction") {
-      if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
-      const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
-     if(!existingItem) {
-  setConfirmAction({
-    type: "createItemConfirm",
-    data: { ...form }
-  });
-  return;
-}
-if (form.type === "OUT") {
-  const currentStock = stockMap[existingItem.id] || 0;
-  const requestedQty = Number(form.quantity) || 0;
+  // For transactions
+  if (modalType === "transaction") {
+    if (!form.brand) return alert("Please select a brand.");
+    if (!form.type || !["IN", "OUT"].includes(form.type)) return alert("Select transaction type (IN/OUT).");
+    if (!form.quantity || Number(form.quantity) <= 0) return alert("Quantity must be greater than zero.");
+    if (!form.unit_price || Number(form.unit_price) < 0) return alert("Price must be zero or greater.");
+    if (!form.date) return alert("Select a date for the transaction.");
 
-  if (requestedQty > currentStock) {
-    alert(`Not enough stock.\n\nAvailable: ${currentStock}`);
-    return;
-  }
-}
-      const txData = {
-          date: form.date, // keep this for reporting
-          created_at: new Date().toISOString(), // ✅ ensures ordering
-          item_id: existingItem.id,
-          brand: form.brand || existingItem.brand || "No Brand",
-          type: form.type,
-          quantity: Number(form.quantity),
-          unit_price: Number(form.unit_price || existingItem.unit_price || 0),
-          location: form.location || selectedStockRoom
-        };
-      if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
-      else await supabase.from("inventory_transactions").insert([txData]);
-      setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
-      setShowModal(false);
-      setModalType("");
-      loadData();
-    } else if(modalType === "item") {
-      if(!form.item_name || !form.unit_price) return alert("Fill required fields");
-      const itemData = { 
-          item_name: form.item_name, 
-          brand: form.brand || "No Brand",
-          category: form.category,
-          unit_price: Number(form.unit_price),
-          location: form.location || selectedStockRoom
-        };
-      if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
-      else {
-          const { data, error } = await supabase
-            .from("items")
-            .insert([itemData])
-            .select();
-        
-          if (error) {
-            console.error(error);
-            alert(error.message);
-            return;
-          }
-        
-          if (data?.length && modalTypeBeforeItem === "transaction") {
-            setForm(prev => ({ ...prev, item_id: data[0].id }));
-            setModalType("transaction");
-            setShowModal(true);
-            setModalTypeBeforeItem("");
-            return;
-          }
-        
-        }
-      setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
-      setShowModal(false);
-      setModalType("");
-      loadData();
+    // Check if item exists
+    const existingItem = items.find(
+      i => i.item_name === form.item_name &&
+           i.brand === form.brand &&
+           !i.deleted &&
+           i.location === selectedStockRoom
+    );
+
+    if (!existingItem) {
+      // If item does not exist, trigger create confirmation modal
+      return setConfirmAction({ type: "createItemConfirm", data: { ...form } });
     }
-  };
-  const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
+
+    // Check stock for OUT transactions
+    if (form.type === "OUT") {
+      const currentStock = stockMap[existingItem.id] || 0;
+      if (Number(form.quantity) > currentStock) {
+        return alert(`Not enough stock. Available: ${currentStock}`);
+      }
+    }
+
+    // Prepare transaction data
+    const txData = {
+      item_id: existingItem.id,
+      type: form.type,
+      quantity: Number(form.quantity),
+      unit_price: Number(form.unit_price || existingItem.unit_price || 0),
+      date: form.date,
+      location: form.location || selectedStockRoom,
+      created_at: new Date().toISOString()
+    };
+
+    // Insert or update transaction
+    try {
+      if (form.id) {
+        await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
+      } else {
+        await supabase.from("inventory_transactions").insert([txData]);
+      }
+    } catch (error) {
+      console.error(error);
+      return alert(error.message || "Transaction failed.");
+    }
+
+  } else if (modalType === "item") {
+    // Prepare item data
+    const itemData = {
+      item_name: form.item_name,
+      brand: form.brand || "No Brand",
+      category: form.category || null,
+      unit_price: Number(form.unit_price),
+      location: form.location || selectedStockRoom
+    };
+
+    try {
+      if (form.id) {
+        await supabase.from("items").update(itemData).eq("id", form.id);
+      } else {
+        await supabase.from("items").insert([itemData]);
+      }
+    } catch (error) {
+      console.error(error);
+      return alert(error.message || "Item save failed.");
+    }
+  }
+
+  // ================= CLEANUP =================
+  setForm({
+    date: "",
+    item_id: "",
+    item_name: "",
+    brand: "",
+    category: "",
+    type: "IN",
+    quantity: "",
+    unit_price: "",
+    id: null
+  });
+  setShowModal(false);
+  setModalType("");
+  loadData();
+};
   // ================= AUTH SCREEN =================
       if(!session) return (
       
@@ -2443,13 +2432,13 @@ if (form.type === "OUT") {
                           handleFormChange("item_name", value);
                     
                           const matches = items
-                            .filter(i =>
-                              i.location === selectedStockRoom &&
+                            .filter(i => 
                               !i.deleted &&
+                              i.location === selectedStockRoom &&
                               i.item_name.toLowerCase().includes(value.toLowerCase())
                             )
                             .map(i => i.item_name);
-                    
+                          
                           setItemOptions([...new Set(matches)]);
                         }}
                         onFocus={() => {
@@ -2523,16 +2512,15 @@ if (form.type === "OUT") {
                         const value = e.target.value;
                         handleFormChange("brand", value);
                   
+                        // BRAND
                         const matches = items
                           .filter(i =>
-                            i.location === selectedStockRoom &&
                             !i.deleted &&
-                            i.item_name === form.item_name &&
-                            i.brand &&
-                            i.brand.toLowerCase().includes(value.toLowerCase())
+                            i.location === selectedStockRoom &&
+                            i.item_name?.toLowerCase() === form.item_name?.toLowerCase() &&
+                            i.brand?.toLowerCase().includes(value.toLowerCase())
                           )
                           .map(i => i.brand);
-                  
                         setBrandOptions([...new Set(matches)]);
                       }}
                       onFocus={() => {
@@ -2593,16 +2581,15 @@ if (form.type === "OUT") {
                         const value = e.target.value;
                         handleFormChange("category", value);
                     
-                        const matches = items
-                          .filter(i =>
-                            i.location === selectedStockRoom &&
-                            !i.deleted &&
-                            i.category &&
-                            i.category.toLowerCase().includes(value.toLowerCase())
-                          )
-                          .map(i => i.category);
-                    
-                        setCategoryOptions([...new Set(matches)]);
+                        // CATEGORY
+                      const matches = items
+                        .filter(i =>
+                          !i.deleted &&
+                          i.location === selectedStockRoom &&
+                          i.category?.toLowerCase().includes(value.toLowerCase())
+                        )
+                        .map(i => i.category);
+                      setCategoryOptions([...new Set(matches)]);
                       }}
                       onFocus={() => {
                         const allCategories = items
@@ -2777,142 +2764,83 @@ if (form.type === "OUT") {
         </div>
        )}
 
-        {/* ================= CONFIRM MODAL ================= */}
-{confirmAction && (
+        {confirmAction && (
   <div style={styles.modalOverlay}>
-
-   <Draggable handle=".modalHeader" bounds="parent">
+    <Draggable handle=".modalHeader" bounds="parent">
       <div style={styles.modalCard}>
-    
-      <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
-        <h3>Confirm Action</h3>
-      </div>
-    
-      <p>
-        Are you sure you want to{" "}
-        <b>
-          {confirmAction.type === "deleteItem" && `delete item "${confirmAction?.data?.item_name}"?`}
-          {confirmAction.type === "restoreItem" && "restore this item?"}
-          {confirmAction.type === "permanentDeleteItem" && `permanently delete item "${confirmAction?.data?.item_name}"?`}
-          {confirmAction.type === "deleteTx" && `delete transaction on "${confirmAction?.data?.date}"?`}
-          {confirmAction.type === "restoreTx" && "restore this transaction?"}
-          {confirmAction.type === "permanentDeleteTx" && "permanently delete this transaction?"}
-        </b>
-      </p>
+        <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
+          <h3>Confirm Action</h3>
+        </div>
 
-      <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-        <button
-          style={styles.buttonPrimary}
-          onClick={async () => {
-            const { type, data } = confirmAction;
+        <p>
+          Are you sure you want to{" "}
+          <b>
+            {confirmAction.type === "deleteItem" && `delete item "${confirmAction?.data?.item_name}"?`}
+            {confirmAction.type === "restoreItem" && "restore this item?"}
+            {confirmAction.type === "permanentDeleteItem" && `permanently delete item "${confirmAction?.data?.item_name}"?`}
+            {confirmAction.type === "deleteTx" && `delete transaction on "${confirmAction?.data?.date}"?`}
+            {confirmAction.type === "restoreTx" && "restore this transaction?"}
+            {confirmAction.type === "permanentDeleteTx" && "permanently delete this transaction?"}
+          </b>
+        </p>
 
-            try {
+        <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+          <button
+            style={styles.buttonPrimary}
+            onClick={async () => {
+              const { type, data } = confirmAction;
 
-              if (type === "deleteItem") {
-                await supabase.from("items").update({ 
-                  deleted: true,
-                  deleted_at: new Date().toISOString() // ✅ add this
-                }).eq("id", data.id);
-              
-                await supabase.from("inventory_transactions").update({ 
-                  deleted: true,
-                  deleted_at: new Date().toISOString() // optional but consistent
-                }).eq("item_id", data.id);
-              }
-
-              else if (type === "restoreItem") {
-                await supabase.from("items").update({ 
-                  deleted: false,
-                  deleted_at: null
-                }).eq("id", data.id);
-              
-                await supabase.from("inventory_transactions").update({ 
-                  deleted: false,
-                  deleted_at: null
-                }).eq("item_id", data.id);
-              }
-
-              else if (type === "permanentDeleteItem") {
-                await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
-                await supabase.from("items").delete().eq("id", data.id);
-              }
-
-             else if (type === "deleteTx") {
-                const result = await supabase
-                  .from("inventory_transactions")
-                  .update({ 
-                    deleted: true,
-                    deleted_at: new Date().toISOString() // ✅ add this
-                  })
-                  .eq("id", data.id);
-              
-                if (result.error) throw result.error;
-              }
-
-              else if (type === "restoreTx") {
-                  const result = await supabase
-                    .from("inventory_transactions")
-                    .update({ 
-                      deleted: false,
-                      deleted_at: null
-                    })
-                    .eq("id", data.id);
-                
-                  if (result.error) throw result.error;
+              try {
+                if (type === "deleteItem") {
+                  await supabase.from("items").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", data.id);
+                  await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("item_id", data.id);
+                }
+                else if (type === "restoreItem") {
+                  await supabase.from("items").update({ deleted: false, deleted_at: null }).eq("id", data.id);
+                  await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("item_id", data.id);
+                }
+                else if (type === "permanentDeleteItem") {
+                  await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
+                  await supabase.from("items").delete().eq("id", data.id);
+                }
+                else if (type === "deleteTx") {
+                  await supabase.from("inventory_transactions").update({ deleted: true, deleted_at: new Date().toISOString() }).eq("id", data.id);
+                }
+                else if (type === "restoreTx") {
+                  await supabase.from("inventory_transactions").update({ deleted: false, deleted_at: null }).eq("id", data.id);
+                }
+                else if (type === "permanentDeleteTx") {
+                  await supabase.from("inventory_transactions").delete().eq("id", data.id);
                 }
 
-              else if (type === "permanentDeleteTx") {
-                const result = await supabase
-                  .from("inventory_transactions")
-                  .delete()
-                  .eq("id", data.id);
-              
-                if (result.error) throw result.error;
+                await loadData();
+              } catch (error) {
+                console.error(error);
+                alert(error.message || "Something went wrong.");
               }
 
-              await loadData();
+              setConfirmAction(null);
+            }}
+          >
+            Confirm
+          </button>
 
-            } catch (error) {
-              console.error(error);
-              alert(error.message);
-            }
-
-            setConfirmAction(null);
-          }}
-        >
-          Confirm
-        </button>
-
-        <button
-          style={styles.buttonSecondary}
-          onClick={() => setConfirmAction(null)}
-        >
-          Cancel
-        </button>
+          <button style={styles.buttonSecondary} onClick={() => setConfirmAction(null)}>
+            Cancel
+          </button>
         </div>
       </div>
-   </Draggable>
- </div>
+    </Draggable>
+  </div>
 )}
     
           <style>
           {`
-          @media print {
-          
-            body * {
-              visibility: hidden;
-            }
-          
-            #reportSection, #reportSection * {
-              visibility: visible;
-            }
-          
-            #reportSection {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-            }
+         @media print {
+            body * { display: none !important; }
+            #reportSection, #reportSection * { display: block !important; }
+            #reportSection { position: absolute; left: 0; top: 0; width: 100%; }
+          }
           
           }
           `}
