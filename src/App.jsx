@@ -529,7 +529,7 @@ const filteredTransactions = useMemo(() => {
         .trim()
         .toLowerCase();
 
-      return normalize(txLocation) === selected;
+      return normalize(txLocation) === normalize(selectedStockRoom);
     });
 }, [transactions, selectedStockRoom]);
 
@@ -545,81 +545,46 @@ const stockMap = useMemo(() => {
   }, {});
 }, [filteredTransactions]);
 
-const filteredInTransactions = useMemo(() => {
+const inTransactions = useMemo(() => {
   return filteredTransactions
     .filter(t => t.type === "IN")
-    .filter(t =>
-      (t.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
-      (t.items?.brand || "").toLowerCase().includes(inSearch.toLowerCase())
-    )
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-}, [filteredTransactions, inSearch]);
+}, [filteredTransactions]);
 
-const filteredOutTransactions = useMemo(() => {
+const outTransactions = useMemo(() => {
   return filteredTransactions
     .filter(t => t.type === "OUT")
-    .filter(t =>
-      (t.items?.item_name || "").toLowerCase().includes(outSearch.toLowerCase()) ||
-      (t.items?.brand || "").toLowerCase().includes(outSearch.toLowerCase())
-    )
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-}, [filteredTransactions, outSearch]);
+}, [filteredTransactions]);
 
-  const filteredDeletedItemsMemo = useMemo(() => {
-  return deletedItems
-    .filter(i =>
-      (i.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
-      (i.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
-    )
-    .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
-}, [deletedItems, deletedItemSearch]);
-  
-  const filteredDeletedTxMemo = useMemo(() => {
-  return deletedTransactions
-    .filter(t =>
-      (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
-      (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
-    )
-    .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
-}, [deletedTransactions, deletedTxSearch]);
-
-const filteredStockItems = useMemo(() => {
+const stockInventory = useMemo(() => {
   return items
     .filter(i => !i.deleted)
     .filter(i => {
       if (!selectedStockRoom) return true;
 
-      const selected = normalize(selectedStockRoom);
-      const itemLocation = normalize(i.location || "");
+      const selected = selectedStockRoom.replace(/\s+/g, " ").trim().toLowerCase();
+      const itemLocation = (i.location || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
 
-      return itemLocation === selected;
+      return normalize(itemLocation) === normalize(selectedStockRoom);
     })
-    .filter(i => {
-      if (!stockSearch) return true;
-      return (
-        (i.item_name || "").toLowerCase().includes(stockSearch.toLowerCase()) ||
-        (i.brand || "").toLowerCase().includes(stockSearch.toLowerCase())
-      );
-    })
-    .map(i => ({
-      id: i.id,
-      item_name: i.item_name,
-      brand: i.brand,
-      category: i.category,
-      unit_price: i.unit_price,
-      stock: stockMap[i.id] || 0,
-      location: i.location
-    }));
-}, [items, selectedStockRoom, stockMap, stockSearch]);
+    .map(i => {
+      const stock = stockMap[i.id] || 0;
 
-  const groupedStock = useMemo(() => {
-  return filteredStockItems.reduce((acc, item) => {
-    const cat = item.category || "Uncategorized";
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(item);
-    return acc;
-  }, {});
-}, [filteredStockItems]);
+      return {
+        id: i.id,
+        item_name: i.item_name,
+        brand: i.brand,
+        category: i.category,
+        unit_price: i.unit_price,
+        stock: stock,
+        location: i.location
+      };
+    });
+}, [items, selectedStockRoom, stockMap]);
 
 const totalTransactions = useMemo(() => filteredTransactions.length, [filteredTransactions]);
 
@@ -775,7 +740,7 @@ const filteredDeletedTransactions = useMemo(() => {
       
         perItem.forEach(row=>{
           const netQty = row.inQty - row.outQty;
-          const value = netQty * row.price;
+          const value = netQty * row.unit_price;
       
           rows.push([
             row.item,
@@ -968,24 +933,11 @@ const handleFormChange = (key, value) => {
   return;
 }
 if (form.type === "OUT") {
-
   const currentStock = stockMap[existingItem.id] || 0;
   const requestedQty = Number(form.quantity) || 0;
 
- const originalTx = transactions.find(t => t.id === form.id);
-
-if (form.id && !originalTx) {
-  alert("Original transaction not found. Please refresh.");
-  return;
-}
-
-const originalQty = originalTx ? Number(originalTx.quantity || 0) : 0;
-
-  // ✅ Adjust stock when editing
-  const adjustedStock = currentStock + originalQty;
-
-  if (requestedQty > adjustedStock) {
-    alert(`Not enough stock.\n\nAvailable: ${adjustedStock}`);
+  if (requestedQty > currentStock) {
+    alert(`Not enough stock.\n\nAvailable: ${currentStock}`);
     return;
   }
 }
@@ -1400,208 +1352,152 @@ const originalQty = originalTx ? Number(originalTx.quantity || 0) : 0;
         </thead>
         <tbody>
               {(() => {
-              
-                // 2️⃣ GROUP ALL ITEMS FIRST ✅
-                const groupedStock = filteredItems.reduce((acc, item) => {
+                // 1️⃣ Filtered items
+                const filteredItems = stockInventory.filter(
+                  (item) =>
+                    (item.item_name || "").toLowerCase().includes(stockSearch.toLowerCase()) ||
+                    (item.brand || "").toLowerCase().includes(stockSearch.toLowerCase())
+                );
+            
+                // 2️⃣ Pagination
+                const totalPages = Math.ceil(filteredItems.length / rowsPerPage);
+                const paginatedItems = filteredItems.slice(
+                  (stockPage - 1) * rowsPerPage,
+                  stockPage * rowsPerPage
+                );
+            
+                // 3️⃣ Group paginated items by category
+                const groupedStock = paginatedItems.reduce((acc, item) => {
                   const cat = item.category || "Uncategorized";
                   if (!acc[cat]) acc[cat] = [];
                   acc[cat].push(item);
                   return acc;
                 }, {});
-              
-                const categories = Object.keys(groupedStock);
-              
-                // 3️⃣ PAGINATE BY CATEGORY (NOT ITEMS) ✅
-                const totalPages = Math.ceil(categories.length / 5); // 5 categories per page
-                const paginatedCategories = categories.slice(
-                  (stockPage - 1) * 5,
-                  stockPage * 5
-                );
-              
-                if (categories.length === 0) {
+            
+                if (Object.keys(groupedStock).length === 0) {
                   return (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: "center", color:"#9ca3af", padding: 16 }}>
-                        No matching items
+                      <td colSpan={6}>
+                        <div style={{ display: "flex", justifyContent: "center", color:"#9ca3af" }}>
+                          No matching items
+                        </div>
                       </td>
                     </tr>
                   );
                 }
-              
-                return (
-                  <>
-                    {paginatedCategories.map(category => {
-                      const items = groupedStock[category];
-                      const isOpen = openCategories[category] === true;
-              
-                      const totalValue = items.reduce(
-                        (sum, i) => sum + (i.stock * (i.unit_price || 0)),
-                        0
-                      );
-              
-                      return (
-                        <React.Fragment key={category}>
-              
-                          {/* CATEGORY HEADER */}
-                          <tr
-                            style={styles.categoryRow}
-                            onClick={(e)=>{
-                              if(e.target.tagName !== "BUTTON") toggleCategory(category);
-                            }}
-                          >
-                            <td colSpan={6} style={{padding:"12px 14px"}}>
-                              <div style={styles.categoryContainer}>
-              
-                                <div style={styles.categoryLeft}>
-                                  <span style={{color:"#6b7280"}}>
-                                    {isOpen ? "▾" : "▸"}
-                                  </span>
-              
-                                  <span>
-                                    {category}
-              
-                                    {/* LOW STOCK BADGE */}
-                                    {(() => {
-                                      const lowStockCount = items.filter(i => i.stock <= 5).length;
-                                      if (!lowStockCount) return null;
-              
-                                      return (
-                                        <span style={{
-                                          marginLeft:8,
-                                          background:"#fee2e2",
-                                          color:"#b91c1c",
-                                          fontSize:11,
-                                          padding:"2px 6px",
-                                          borderRadius:6,
-                                          fontWeight:600
-                                        }}>
-                                          ⚠ {lowStockCount} Low Stock
-                                        </span>
-                                      );
-                                    })()}
-                                  </span>
+            
+                return Object.entries(groupedStock).map(([category, items]) => {
+                  const isOpen = openCategories[category] === true;
+                  const totalValue = items.reduce((sum, i) => sum + (i.stock * i.unit_price), 0);
+            
+                  return (
+                    <React.Fragment key={category}>
+                      {/* CATEGORY HEADER */}
+                      <tr
+                        style={styles.categoryRow}
+                        onClick={(e)=>{
+                          if(e.target.tagName !== "BUTTON") toggleCategory(category);
+                        }}
+                      >
+                        <td colSpan={6} style={{padding:"12px 14px"}}>
+                          <div style={styles.categoryContainer}>
+                            <div style={styles.categoryLeft}>
+                              <span style={{color:"#6b7280"}}>{isOpen ? "▾" : "▸"}</span>
+                              <span>
+                                {category}
+                                {(() => {
+                                  const lowStockCount = items.filter(i => i.stock <= 5).length;
+                                  if (lowStockCount === 0) return null;
+                                  return (
+                                    <span style={{
+                                      marginLeft:8,
+                                      background:"#fee2e2",
+                                      color:"#b91c1c",
+                                      fontSize:11,
+                                      padding:"2px 6px",
+                                      borderRadius:6,
+                                      fontWeight:600
+                                    }}>
+                                      ⚠ {lowStockCount} Low Stock
+                                    </span>
+                                  );
+                                })()}
+                              </span>
+                            </div>
+                            <div style={styles.categoryRight}>
+                              <span>{items.length} item{items.length !== 1 ? "s" : ""}</span>
+                              <span style={{fontWeight:600,color:"#111827"}}>
+                                ₱{totalValue.toLocaleString(undefined,{minimumFractionDigits:2})}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+            
+                      {/* ITEMS */}
+                      {isOpen && items.map(i => (
+                        <tr key={i.id} style={{ background: i.stock <= 5 ? "#fee2e2" : "transparent" }}>
+                          <td style={styles.thtd}>{formatNumber(i.stock)}</td>
+                          <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
+                          <td style={styles.thtd}>{displayBrand(i.brand)}</td>
+                          <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                          <td style={styles.thtd}>₱{Number(i.stock * (i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                          <td style={{ ...styles.thtd, position:"relative" }}>
+                            <div className="action-menu" ref={(el) => (menuRefs.current["stock-" + i.id] = el)}>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id);
+                                }}
+                                style={{ background:"none", border:"none", fontSize:20, cursor:"pointer" }}
+                              >⋮</button>
+            
+                              {openMenuId === "stock-"+i.id && (
+                                <div
+                                  onClick={(e) => e.stopPropagation()}
+                                  style={{
+                                    position:"absolute",
+                                    right:0,
+                                    top:30,
+                                    background:"#fff",
+                                    border:"1px solid #e5e7eb",
+                                    borderRadius:8,
+                                    boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                                    zIndex:10,
+                                    minWidth:120,
+                                    display:"flex",
+                                    flexDirection:"column"
+                                  }}
+                                >
+                                  <button style={menuItemStyle} onClick={()=>{
+                                    setForm({
+                                      id: i.id,
+                                      item_name: i.item_name || "",
+                                      brand: i.brand || "",
+                                      category: i.category || "",
+                                      unit_price: i.unit_price || "",
+                                      brandOptions:[i.brand],
+                                    });
+                                    setModalType("item");
+                                    setShowModal(true);
+                                    setOpenMenuId(null);
+                                  }}>Edit</button>
+            
+                                  <button style={{...menuItemStyle,color:"#ef4444"}} onClick={()=>{
+                                    setConfirmAction({ type:"deleteItem", data:i });
+                                    setOpenMenuId(null);
+                                  }}>Delete</button>
                                 </div>
-              
-                                <div style={styles.categoryRight}>
-                                  <span>{items.length} item{items.length !== 1 ? "s" : ""}</span>
-                                  <span style={{fontWeight:600,color:"#111827"}}>
-                                    ₱{totalValue.toLocaleString(undefined,{minimumFractionDigits:2})}
-                                  </span>
-                                </div>
-              
-                              </div>
-                            </td>
-                          </tr>
-              
-                          {/* ITEMS */}
-                          {isOpen && items.map(i => (
-                            <tr key={i.id} style={{
-                              background: i.stock <= 5 ? "#fee2e2" : "transparent"
-                            }}>
-                              <td style={styles.thtd}>{formatNumber(i.stock)}</td>
-                              <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
-                              <td style={styles.thtd}>{displayBrand(i.brand)}</td>
-                              <td style={styles.thtd}>
-                                ₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}
-                              </td>
-                              <td style={styles.thtd}>
-                                ₱{Number(i.stock * (i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}
-                              </td>
-                              <td style={{ ...styles.thtd, position:"relative" }}>
-                                <div className="action-menu" ref={(el) => (menuRefs.current["stock-" + i.id] = el)}>
-                                  
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id);
-                                    }}
-                                    style={{ background:"none", border:"none", fontSize:20, cursor:"pointer" }}
-                                  >
-                                    ⋮
-                                  </button>
-              
-                                  {openMenuId === "stock-"+i.id && (
-                                    <div
-                                      onClick={(e) => e.stopPropagation()}
-                                      style={{
-                                        position:"absolute",
-                                        right:0,
-                                        top:30,
-                                        background:"#fff",
-                                        border:"1px solid #e5e7eb",
-                                        borderRadius:8,
-                                        boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                                        zIndex:10,
-                                        minWidth:120,
-                                        display:"flex",
-                                        flexDirection:"column"
-                                      }}
-                                    >
-                                      <button style={menuItemStyle} onClick={()=>{
-                                        setForm({
-                                          id: i.id,
-                                          item_name: i.item_name || "",
-                                          brand: i.brand || "",
-                                          category: i.category || "",
-                                          unit_price: i.unit_price || "",
-                                          brandOptions:[i.brand],
-                                        });
-                                        setModalType("item");
-                                        setShowModal(true);
-                                        setOpenMenuId(null);
-                                      }}>
-                                        Edit
-                                      </button>
-              
-                                      <button
-                                        style={{...menuItemStyle,color:"#ef4444"}}
-                                        onClick={()=>{
-                                          setConfirmAction({ type:"deleteItem", data:i });
-                                          setOpenMenuId(null);
-                                        }}
-                                      >
-                                        Delete
-                                      </button>
-                                    </div>
-                                  )}
-              
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-              
-                        </React.Fragment>
-                      );
-                    })}
-              
-                    {/* PAGINATION */}
-                    <tr>
-                      <td colSpan={6} style={{ textAlign:"center", padding:12 }}>
-                        <button
-                          onClick={() => setStockPage(p => Math.max(p - 1, 1))}
-                          disabled={stockPage === 1}
-                        >
-                          Prev
-                        </button>
-              
-                        <span style={{ margin:"0 10px" }}>
-                          Page {stockPage} of {totalPages}
-                        </span>
-              
-                        <button
-                          onClick={() => setStockPage(p => Math.min(p + 1, totalPages))}
-                          disabled={stockPage === totalPages}
-                        >
-                          Next
-                        </button>
-                      </td>
-                    </tr>
-              
-                  </>
-                );
-              
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  );
+                });
               })()}
-              </tbody>
+            </tbody>
       </table>
     </div>
     </div>
@@ -1652,93 +1548,110 @@ const originalQty = originalTx ? Number(originalTx.quantity || 0) : 0;
             </tr>
           </thead>
           <tbody>
-              {filteredInTransactions.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                      No transactions found
-                    </td>
-                  </tr>
-                ) : (
-                  filteredInTransactions.map((i) => (
-                    <tr key={i.id}>
-                      <td>{i.date}</td>
-                      <td style={{maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                        {capitalizeWords(i.items?.item_name)}
-                      </td>
-                      <td>{displayBrand(i.items?.brand)}</td>
-                      <td>{formatNumber(i.quantity)}</td>
-                      <td>
-                        ₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0))
-                          .toLocaleString(undefined,{minimumFractionDigits:2})}
-                      </td>
-                
-                      {/* KEEP YOUR ACTION MENU EXACTLY THE SAME */}
-                      <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
-                        <div className="action-menu"
-                          ref={(el) => (menuRefs.current["in-" + i.id] = el)}
-                        >
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenMenuId(openMenuId === "in-"+i.id ? null : "in-"+i.id);
-                            }}
-                            style={{ background:"none", border:"none", fontSize:20, cursor:"pointer" }}
-                          >
-                            ⋮
-                          </button>
-                
-                          {openMenuId === "in-"+i.id && (
-                            <div style={{
-                              position:"absolute",
-                              right:0,
-                              top:28,
-                              background:"#fff",
-                              border:"1px solid #e5e7eb",
-                              borderRadius:8,
-                              boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                              zIndex:50,
-                              minWidth:120,
-                              display:"flex",
-                              flexDirection:"column"
-                            }}>
-                              <button
-                                style={menuItemStyle}
-                                onClick={()=>{
-                                  setForm({
-                                    id:i.id,
-                                    item_id:i.item_id,
-                                    date:i.date,
-                                    item_name:i.items?.item_name,
-                                    brand:i.items?.brand,
-                                    type:i.type,
-                                    quantity:i.quantity,
-                                    unit_price:i.unit_price || i.items?.unit_price,
-                                    brandOptions:[i.items?.brand],
-                                  });
-                                  setModalType("transaction");
-                                  setShowModal(true);
-                                  setOpenMenuId(null);
-                                }}
-                              >
-                                Edit
-                              </button>
-                
-                              <button
-                                style={{...menuItemStyle,color:"#ef4444"}}
-                                onClick={()=>{
-                                  setConfirmAction({ type:"deleteTx", data:i });
-                                  setOpenMenuId(null);
-                                }}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </div>
+              {(() => {
+                const filteredIn = inTransactions
+                  .filter(item =>
+                    (item.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
+                    (item.items?.brand || "").toLowerCase().includes(inSearch.toLowerCase())
+                  )
+                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+                if (filteredIn.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                        No transactions found
                       </td>
                     </tr>
-                  ))
-                )}
+                  );
+                }
+            
+                return filteredIn.map((i) => (
+                  <tr key={i.id}>
+                    <td>{i.date}</td>
+                    <td style={{maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                      {capitalizeWords(i.items?.item_name)}
+                    </td>
+                    <td>{displayBrand(i.items?.brand)}</td>
+                    <td>{formatNumber(i.quantity)}</td>
+                    <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+            
+                    <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
+
+                      <div className="action-menu"
+                        ref={(el) => (menuRefs.current["in-" + i.id] = el)}
+                      >
+                      <button
+                      onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(openMenuId === "in-"+i.id ? null : "in-"+i.id);
+                        }}
+                      style={{
+                      background:"none",
+                      border:"none",
+                      fontSize:20,
+                      cursor:"pointer"
+                      }}
+                      >
+                      ⋮
+                      </button>
+                      
+                      {openMenuId === "in-"+i.id && (
+                      <div
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        position:"absolute",
+                      right:0,
+                      top:28,
+                      background:"#fff",
+                      border:"1px solid #e5e7eb",
+                      borderRadius:8,
+                      boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                      zIndex:50,
+                      minWidth:120,
+                      display:"flex",
+                      flexDirection:"column"
+                      }}>
+                      
+                      <button
+                      style={menuItemStyle}
+                      onClick={()=>{
+                      setForm({
+                      id:i.id,
+                      item_id:i.item_id,
+                      date:i.date,
+                      item_name:i.items?.item_name,
+                      brand:i.items?.brand,
+                      type:i.type,
+                      quantity:i.quantity,
+                      unit_price:i.unit_price || i.items?.unit_price,
+                      brandOptions:[i.items?.brand],
+                      });
+                      setModalType("transaction");
+                      setShowModal(true);
+                      setOpenMenuId(null);
+                      }}
+                      >
+                      Edit
+                      </button>
+                      
+                      <button
+                      style={{...menuItemStyle,color:"#ef4444"}}
+                      onClick={()=>{
+                      setConfirmAction({ type:"deleteTx", data:i });
+                      setOpenMenuId(null);
+                      }}
+                      >
+                      Delete
+                      </button>
+                      
+                      </div>
+                      )}
+                      </div>
+                      </td>
+                  </tr>
+                ));
+              })()}
             </tbody>
         </table>
       </div>
@@ -1779,14 +1692,25 @@ const originalQty = originalTx ? Number(originalTx.quantity || 0) : 0;
             </tr>
           </thead>
           <tbody>
-            {filteredOutTransactions.length === 0 ? (
-              <tr>
-                <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                  No transactions found
-                </td>
-              </tr>
-            ) : (
-              filteredOutTransactions.map((i) => (
+            {(() => {
+              const filteredOut = outTransactions
+                .filter(item =>
+                  (item.items?.item_name || "").toLowerCase().includes(outSearch.toLowerCase()) ||
+                  (item.items?.brand || "").toLowerCase().includes(outSearch.toLowerCase())
+                )
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          
+              if (filteredOut.length === 0) {
+                return (
+                  <tr>
+                    <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                      No transactions found
+                    </td>
+                  </tr>
+                );
+              }
+          
+              return filteredOut.map((i) => (
                 <tr key={i.id}>
                   <td>{i.date}</td>
                   <td style={{maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
@@ -1794,18 +1718,85 @@ const originalQty = originalTx ? Number(originalTx.quantity || 0) : 0;
                   </td>
                   <td>{displayBrand(i.items?.brand)}</td>
                   <td>{formatNumber(i.quantity)}</td>
-                  <td>
-                    ₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0))
-                      .toLocaleString(undefined,{minimumFractionDigits:2})}
-                  </td>
-            
-                  {/* KEEP YOUR ACTION MENU SAME */}
+                  <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+          
                   <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
-                    {/* your existing menu code */}
-                  </td>
+
+                  <div className="action-menu"
+                    ref={(el) => (menuRefs.current["out-" + i.id] = el)}
+                    >
+                    <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === "out-"+i.id ? null : "out-"+i.id);
+                    }}
+                    style={{
+                    background:"none",
+                    border:"none",
+                    fontSize:20,
+                    cursor:"pointer"
+                    }}
+                    >
+                    ⋮
+                    </button>
+                    
+                    {openMenuId === "out-"+i.id && (
+                    <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      position:"absolute",
+                    right:0,
+                    top:28,
+                    background:"#fff",
+                    border:"1px solid #e5e7eb",
+                    borderRadius:8,
+                    boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                    zIndex:50,
+                    minWidth:120,
+                    display:"flex",
+                    flexDirection:"column"
+                    }}>
+                    
+                    <button
+                    style={menuItemStyle}
+                    onClick={()=>{
+                    setForm({
+                    id:i.id,
+                    item_id:i.item_id,
+                    date:i.date,
+                    item_name:i.items?.item_name,
+                    brand:i.items?.brand,
+                    type:i.type,
+                    quantity:i.quantity,
+                    unit_price:i.unit_price || i.items?.unit_price,
+                    brandOptions:[i.items?.brand],
+                    });
+                    setModalType("transaction");
+                    setShowModal(true);
+                    setOpenMenuId(null);
+                    }}
+                    >
+                    Edit
+                    </button>
+                    
+                    <button
+                    style={{...menuItemStyle,color:"#ef4444"}}
+                    onClick={()=>{
+                    setConfirmAction({ type:"deleteTx", data:i });
+                    setOpenMenuId(null);
+                    }}
+                    >
+                    Delete
+                    </button>
+                    
+                    </div>
+                    )}
+                    </div>
+
+                    </td>
                 </tr>
-              ))
-            )}
+              ));
+            })()}
           </tbody>
         </table>
       </div>
@@ -2420,197 +2411,257 @@ const originalQty = originalTx ? Number(originalTx.quantity || 0) : 0;
 )}
 
                {/* ================= MODAL ================= */}
-{showModal && (
-  <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
-    <Draggable handle=".modalHeader" bounds="parent">
-      <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
-        {/* NEW OPTION MODAL */}
-        {modalType === "newOption" && (
-          <>
-            <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
-              <h3>What do you want to add?</h3>
-            </div>
-            <button style={{ ...styles.newOptionButton, background:"#1f2937", color:"#fff" }} onClick={openNewItemModal}>Add New Item</button>
-            <button style={{ ...styles.newOptionButton, background:"#e5e7eb", color:"#374151" }} onClick={openNewTransactionModal}>Add New Transaction</button>
-            <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-          </>
-        )}
+        {showModal && (
+          <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
+            <Draggable handle=".modalHeader" bounds="parent">
+              <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
+              {/* NEW OPTION MODAL */}
+              {modalType === "newOption" && (
+                <>
+                  <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
+                    <h3>What do you want to add?</h3>
+                  </div>
+                  <button style={{ ...styles.newOptionButton, background:"#1f2937", color:"#fff" }} onClick={openNewItemModal}>Add New Item</button>
+                  <button style={{ ...styles.newOptionButton, background:"#e5e7eb", color:"#374151" }} onClick={openNewTransactionModal}>Add New Transaction</button>
+                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+                </>
+              )}
 
-        {/* ADD ITEM MODAL */}
-        {modalType === "item" && (
-          <>
-            <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
-              <h3>{form.id ? "Edit Item" : "New Item"}</h3>
-            </div>
+              {/* ADD ITEM MODAL */}
+              {modalType === "item" && (
+                <>
+                  <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
+                    <h3>{form.id ? "Edit Item" : "New Item"}</h3>
+                  </div>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        style={styles.input}
+                        placeholder="Item Name"
+                        value={form.item_name}
+                        onChange={e => {
+                          const value = e.target.value;
+                          handleFormChange("item_name", value);
+                    
+                          const matches = items
+                            .filter(i =>
+                              i.location === selectedStockRoom &&
+                              !i.deleted &&
+                              i.item_name.toLowerCase().includes(value.toLowerCase())
+                            )
+                            .map(i => i.item_name);
+                    
+                          setItemOptions([...new Set(matches)]);
+                        }}
+                        onFocus={() => {
+                          const allItems = items
+                            .filter(i => i.location === selectedStockRoom && !i.deleted)
+                            .map(i => i.item_name);
+                    
+                          setItemOptions([...new Set(allItems)]);
+                        }}
+                        onBlur={() => {
+                          setTimeout(() => setItemOptions([]), 150);
+                        }}
+                      />
+                    
+                      {/* FLOATING SELECTOR */}
+                      {itemOptions.length > 0 && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: "100%",
+                            left: 0,
+                            right: 0,
+                            border: "1px solid #d1d5db",
+                            borderRadius: 10,
+                            marginTop: 4,
+                            background: "#ffffff",
+                            boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+                            maxHeight: 160,
+                            overflowY: "auto",
+                            zIndex: 1000
+                          }}
+                        >
+                          {itemOptions.map((name, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                padding: "10px 14px",
+                                cursor: "pointer",
+                                fontSize: 14,
+                                fontWeight: 500,
+                                color: "#374151",
+                                borderBottom:
+                                  idx !== itemOptions.length - 1
+                                    ? "1px solid #f3f4f6"
+                                    : "none"
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#eef2ff";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "#ffffff";
+                              }}
+                              onClick={() => {
+                                handleFormChange("item_name", name);
+                                setItemOptions([]);
+                              }}
+                            >
+                              {capitalizeWords(name)}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                  </div>
+                  <div style={{ position: "relative" }}>
+                    {/* BRAND INPUT */}
+                    <input
+                      style={styles.input}
+                      placeholder="Brand"
+                      value={form.brand}
+                      onChange={e => {
+                        const value = e.target.value;
+                        handleFormChange("brand", value);
+                  
+                        const matches = items
+                          .filter(i =>
+                            i.location === selectedStockRoom &&
+                            !i.deleted &&
+                            i.item_name === form.item_name &&
+                            i.brand &&
+                            i.brand.toLowerCase().includes(value.toLowerCase())
+                          )
+                          .map(i => i.brand);
+                  
+                        setBrandOptions([...new Set(matches)]);
+                      }}
+                      onFocus={() => {
+                        const allBrands = items
+                          .filter(i =>
+                            i.location === selectedStockRoom &&
+                            !i.deleted &&
+                            i.item_name === form.item_name
+                          )
+                          .map(i => i.brand);
+                  
+                        setBrandOptions([...new Set(allBrands)]);
+                      }}
+                      onBlur={() => setTimeout(() => setBrandOptions([]), 150)}
+                    />
+                  
+                    {/* BRAND DROPDOWN */}
+                    {brandOptions.length > 0 && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "100%",
+                          left: 0,
+                          right: 0,
+                          border: "1px solid #d1d5db",
+                          borderRadius: 10,
+                          marginTop: 4,
+                          background: "#ffffff",
+                          boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+                          maxHeight: 160,
+                          overflowY: "auto",
+                          zIndex: 1000
+                        }}
+                      >
+                        {brandOptions.map((b, idx) => (
+                          <div
+                            key={idx}
+                            style={styles.dropdownItem}
+                            onClick={() => {
+                              handleFormChange("brand", b);
+                              setBrandOptions([]);
+                            }}
+                          >
+                            {capitalizeWords(b)}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  
+                  </div>
 
-            {/* ITEM NAME */}
-            <div style={{ position: "relative" }}>
-              <input
-                style={styles.input}
-                placeholder="Item Name"
-                value={form.item_name}
-                onChange={e => {
-                  const value = e.target.value;
-                  handleFormChange("item_name", value);
-
-                  const matches = items
-                    .filter(i =>
-                      i.location === selectedStockRoom &&
-                      !i.deleted &&
-                      i.item_name.toLowerCase().includes(value.toLowerCase())
-                    )
-                    .map(i => i.item_name);
-
-                  setItemOptions([...new Set(matches)]);
-                }}
-                onFocus={() => {
-                  const allItems = items
-                    .filter(i => i.location === selectedStockRoom && !i.deleted)
-                    .map(i => i.item_name);
-
-                  setItemOptions([...new Set(allItems)]);
-                }}
-                onBlur={() => setTimeout(() => setItemOptions([]), 150)}
-              />
-
-              {/* ITEM DROPDOWN */}
-              {itemOptions.length > 0 && (
-                <div style={styles.dropdown}>
-                  {itemOptions.map((name, idx) => (
+                  <div style={{ position: "relative" }}>
+                    <input
+                      style={styles.input}
+                      placeholder="Category"
+                      value={form.category || ""}
+                      onChange={e => {
+                        const value = e.target.value;
+                        handleFormChange("category", value);
+                    
+                        const matches = items
+                          .filter(i =>
+                            i.location === selectedStockRoom &&
+                            !i.deleted &&
+                            i.category &&
+                            i.category.toLowerCase().includes(value.toLowerCase())
+                          )
+                          .map(i => i.category);
+                    
+                        setCategoryOptions([...new Set(matches)]);
+                      }}
+                      onFocus={() => {
+                        const allCategories = items
+                          .filter(i => i.location === selectedStockRoom && !i.deleted)
+                          .map(i => i.category)
+                          .filter(Boolean);
+                    
+                        setCategoryOptions([...new Set(allCategories)]);
+                      }}
+                      onBlur={() => setTimeout(() => setCategoryOptions([]), 150)}
+                    />
+                    
+                    {categoryOptions.length > 0 && (
                     <div
-                      key={idx}
-                      style={styles.dropdownItem}
-                      onClick={() => {
-                        handleFormChange("item_name", name);
-                        setItemOptions([]);
+                      style={{
+                        position: "absolute",
+                        top: "100%",
+                        left: 0,
+                        right: 0,
+                        border: "1px solid #d1d5db",
+                        borderRadius: 10,
+                        marginTop: 4,
+                        background: "#ffffff",
+                        boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+                        maxHeight: 160,
+                        overflowY: "auto",
+                        zIndex: 1000
                       }}
                     >
-                      {capitalizeWords(name)}
+                        {categoryOptions.map((cat, idx) => (
+                          <div
+                            key={idx}
+                            style={styles.dropdownItem}
+                            onClick={() => {
+                              handleFormChange("category", cat);
+                              setCategoryOptions([]);
+                            }}
+                          >
+                            {capitalizeWords(cat)}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
                     </div>
-                  ))}
-                </div>
+                                    
+                  <input 
+                    style={styles.input}
+                    type="number"
+                    placeholder="Price"
+                    value={form.unit_price}
+                    onChange={e => handleFormChange("unit_price", e.target.value)}
+                  />
+                  <button style={styles.buttonPrimary} onClick={handleSubmit}>
+                    {form.id ? "Update" : "Create"}
+                  </button>
+                  <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
+                </>
               )}
-            </div>
-
-            {/* BRAND INPUT */}
-            <div style={{ position: "relative" }}>
-              <input
-                style={styles.input}
-                placeholder="Brand"
-                value={form.brand}
-                onChange={e => {
-                  const value = e.target.value;
-                  handleFormChange("brand", value);
-
-                  const matches = items
-                    .filter(i =>
-                      i.location === selectedStockRoom &&
-                      !i.deleted &&
-                      i.item_name === form.item_name &&
-                      i.brand &&
-                      i.brand.toLowerCase().includes(value.toLowerCase())
-                    )
-                    .map(i => i.brand);
-
-                  setBrandOptions([...new Set(matches)]);
-                }}
-                onFocus={() => {
-                  const allBrands = items
-                    .filter(i =>
-                      i.location === selectedStockRoom &&
-                      !i.deleted &&
-                      i.item_name === form.item_name
-                    )
-                    .map(i => i.brand);
-
-                  setBrandOptions([...new Set(allBrands)]);
-                }}
-                onBlur={() => setTimeout(() => setBrandOptions([]), 150)}
-              />
-
-              {brandOptions.length > 0 && (
-                <div style={styles.dropdown}>
-                  {brandOptions.map((b, idx) => (
-                    <div
-                      key={idx}
-                      style={styles.dropdownItem}
-                      onClick={() => {
-                        handleFormChange("brand", b);
-                        setBrandOptions([]);
-                      }}
-                    >
-                      {capitalizeWords(b)}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* CATEGORY INPUT */}
-            <div style={{ position: "relative" }}>
-              <input
-                style={styles.input}
-                placeholder="Category"
-                value={form.category || ""}
-                onChange={e => {
-                  const value = e.target.value;
-                  handleFormChange("category", value);
-
-                  const matches = items
-                    .filter(i =>
-                      i.location === selectedStockRoom &&
-                      !i.deleted &&
-                      i.category &&
-                      i.category.toLowerCase().includes(value.toLowerCase())
-                    )
-                    .map(i => i.category);
-
-                  setCategoryOptions([...new Set(matches)]);
-                }}
-                onFocus={() => {
-                  const allCategories = items
-                    .filter(i => i.location === selectedStockRoom && !i.deleted)
-                    .map(i => i.category)
-                    .filter(Boolean);
-
-                  setCategoryOptions([...new Set(allCategories)]);
-                }}
-                onBlur={() => setTimeout(() => setCategoryOptions([]), 150)}
-              />
-
-              {categoryOptions.length > 0 && (
-                <div style={styles.dropdown}>
-                  {categoryOptions.map((cat, idx) => (
-                    <div
-                      key={idx}
-                      style={styles.dropdownItem}
-                      onClick={() => {
-                        handleFormChange("category", cat);
-                        setCategoryOptions([]);
-                      }}
-                    >
-                      {capitalizeWords(cat)}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* PRICE */}
-            <input 
-              style={styles.input}
-              type="number"
-              placeholder="Price"
-              value={form.unit_price}
-              onChange={e => handleFormChange("unit_price", e.target.value)}
-            />
-
-            <button style={styles.buttonPrimary} onClick={handleSubmit}>
-              {form.id ? "Update" : "Create"}
-            </button>
-            <button style={styles.buttonSecondary} onClick={() => setShowModal(false)}>Cancel</button>
-          </>
-        )}
 
               {/* ADD TRANSACTION MODAL */}
               {modalType === "transaction" && (
