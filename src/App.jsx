@@ -1332,7 +1332,13 @@ if (form.type === "OUT") {
         }}
       >
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
+        <thead style={{ 
+              position: "sticky", 
+              top: 0, 
+              background: "#f3f4f6", 
+              zIndex: 3, 
+              boxShadow: "0 2px 2px -1px rgba(0,0,0,0.1)" // optional shadow for clarity
+          }}>
           <tr>
             {["Qty", "Item Name", "Brand", "Price", "Total Value", "Actions"].map((th, idx) => (
               <th
@@ -1394,11 +1400,16 @@ if (form.type === "OUT") {
                     <React.Fragment key={category}>
                       {/* CATEGORY HEADER */}
                       <tr
-                        style={styles.categoryRow}
-                        onClick={(e)=>{
-                          if(e.target.tagName !== "BUTTON") toggleCategory(category);
-                        }}
-                      >
+                          style={{
+                            ...styles.categoryRow,
+                            position: "sticky",
+                            top: 40, // header height
+                            background: "#f9fafb",
+                            zIndex: 2,
+                            cursor: "pointer"
+                          }}
+                          onClick={(e)=>{ if(e.target.tagName !== "BUTTON") toggleCategory(category); }}
+                        >
                         <td colSpan={6} style={{padding:"12px 14px"}}>
                           <div style={styles.categoryContainer}>
                             <div style={styles.categoryLeft}>
@@ -1500,6 +1511,31 @@ if (form.type === "OUT") {
             </tbody>
       </table>
     </div>
+      {/* PAGINATION BUTTONS */}
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: 8
+        }}>
+          <button
+            disabled={stockPage <= 1}
+            onClick={() => setStockPage(prev => prev - 1)}
+            style={paginationButtonStyle}
+          >
+            Previous
+          </button>
+        
+          <span>Page {stockPage} of {totalPages}</span>
+        
+          <button
+            disabled={stockPage >= totalPages}
+            onClick={() => setStockPage(prev => prev + 1)}
+            style={paginationButtonStyle}
+          >
+            Next
+          </button>
+        </div>
     </div>
   </div>
 )}
