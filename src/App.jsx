@@ -565,34 +565,61 @@ const filteredOutTransactions = useMemo(() => {
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }, [filteredTransactions, outSearch]);
 
-const stockInventory = useMemo(() => {
+  const filteredDeletedItemsMemo = useMemo(() => {
+  return deletedItems
+    .filter(i =>
+      (i.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
+      (i.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
+    )
+    .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
+}, [deletedItems, deletedItemSearch]);
+  
+  const filteredDeletedTxMemo = useMemo(() => {
+  return deletedTransactions
+    .filter(t =>
+      (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
+      (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
+    )
+    .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
+}, [deletedTransactions, deletedTxSearch]);
+
+const filteredStockItems = useMemo(() => {
   return items
     .filter(i => !i.deleted)
     .filter(i => {
       if (!selectedStockRoom) return true;
 
-      const selected = selectedStockRoom.replace(/\s+/g, " ").trim().toLowerCase();
-      const itemLocation = (i.location || "")
-        .replace(/\s+/g, " ")
-        .trim()
-        .toLowerCase();
+      const selected = normalize(selectedStockRoom);
+      const itemLocation = normalize(i.location || "");
 
-      return normalize(itemLocation) === normalize(selectedStockRoom);
+      return itemLocation === selected;
     })
-    .map(i => {
-      const stock = stockMap[i.id] || 0;
+    .filter(i => {
+      if (!stockSearch) return true;
+      return (
+        (i.item_name || "").toLowerCase().includes(stockSearch.toLowerCase()) ||
+        (i.brand || "").toLowerCase().includes(stockSearch.toLowerCase())
+      );
+    })
+    .map(i => ({
+      id: i.id,
+      item_name: i.item_name,
+      brand: i.brand,
+      category: i.category,
+      unit_price: i.unit_price,
+      stock: stockMap[i.id] || 0,
+      location: i.location
+    }));
+}, [items, selectedStockRoom, stockMap, stockSearch]);
 
-      return {
-        id: i.id,
-        item_name: i.item_name,
-        brand: i.brand,
-        category: i.category,
-        unit_price: i.unit_price,
-        stock: stock,
-        location: i.location
-      };
-    });
-}, [items, selectedStockRoom, stockMap]);
+  const groupedStock = useMemo(() => {
+  return filteredStockItems.reduce((acc, item) => {
+    const cat = item.category || "Uncategorized";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(item);
+    return acc;
+  }, {});
+}, [filteredStockItems]);
 
 const totalTransactions = useMemo(() => filteredTransactions.length, [filteredTransactions]);
 
@@ -945,10 +972,14 @@ if (form.type === "OUT") {
   const currentStock = stockMap[existingItem.id] || 0;
   const requestedQty = Number(form.quantity) || 0;
 
-  // ✅ Get original quantity if editing
-  const originalQty = form.id
-    ? (transactions.find(t => t.id === form.id)?.quantity || 0)
-    : 0;
+ const originalTx = transactions.find(t => t.id === form.id);
+
+if (form.id && !originalTx) {
+  alert("Original transaction not found. Please refresh.");
+  return;
+}
+
+const originalQty = originalTx ? Number(originalTx.quantity || 0) : 0;
 
   // ✅ Adjust stock when editing
   const adjustedStock = currentStock + originalQty;
@@ -1369,13 +1400,6 @@ if (form.type === "OUT") {
         </thead>
         <tbody>
               {(() => {
-              
-                // 1️⃣ FILTER
-                const filteredItems = stockInventory.filter(
-                  (item) =>
-                    (item.item_name || "").toLowerCase().includes(stockSearch.toLowerCase()) ||
-                    (item.brand || "").toLowerCase().includes(stockSearch.toLowerCase())
-                );
               
                 // 2️⃣ GROUP ALL ITEMS FIRST ✅
                 const groupedStock = filteredItems.reduce((acc, item) => {
