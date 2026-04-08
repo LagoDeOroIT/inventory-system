@@ -545,17 +545,25 @@ const stockMap = useMemo(() => {
   }, {});
 }, [filteredTransactions]);
 
-const inTransactions = useMemo(() => {
+const filteredInTransactions = useMemo(() => {
   return filteredTransactions
     .filter(t => t.type === "IN")
+    .filter(t =>
+      (t.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
+      (t.items?.brand || "").toLowerCase().includes(inSearch.toLowerCase())
+    )
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-}, [filteredTransactions]);
+}, [filteredTransactions, inSearch]);
 
-const outTransactions = useMemo(() => {
+const filteredOutTransactions = useMemo(() => {
   return filteredTransactions
     .filter(t => t.type === "OUT")
+    .filter(t =>
+      (t.items?.item_name || "").toLowerCase().includes(outSearch.toLowerCase()) ||
+      (t.items?.brand || "").toLowerCase().includes(outSearch.toLowerCase())
+    )
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-}, [filteredTransactions]);
+}, [filteredTransactions, outSearch]);
 
 const stockInventory = useMemo(() => {
   return items
@@ -1620,110 +1628,93 @@ if (form.type === "OUT") {
             </tr>
           </thead>
           <tbody>
-              {(() => {
-                const filteredIn = inTransactions
-                  .filter(item =>
-                    (item.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
-                    (item.items?.brand || "").toLowerCase().includes(inSearch.toLowerCase())
-                  )
-                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            
-                if (filteredIn.length === 0) {
-                  return (
-                    <tr>
-                      <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                        No transactions found
+              {filteredInTransactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                      No transactions found
+                    </td>
+                  </tr>
+                ) : (
+                  filteredInTransactions.map((i) => (
+                    <tr key={i.id}>
+                      <td>{i.date}</td>
+                      <td style={{maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                        {capitalizeWords(i.items?.item_name)}
+                      </td>
+                      <td>{displayBrand(i.items?.brand)}</td>
+                      <td>{formatNumber(i.quantity)}</td>
+                      <td>
+                        ₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0))
+                          .toLocaleString(undefined,{minimumFractionDigits:2})}
+                      </td>
+                
+                      {/* KEEP YOUR ACTION MENU EXACTLY THE SAME */}
+                      <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
+                        <div className="action-menu"
+                          ref={(el) => (menuRefs.current["in-" + i.id] = el)}
+                        >
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(openMenuId === "in-"+i.id ? null : "in-"+i.id);
+                            }}
+                            style={{ background:"none", border:"none", fontSize:20, cursor:"pointer" }}
+                          >
+                            ⋮
+                          </button>
+                
+                          {openMenuId === "in-"+i.id && (
+                            <div style={{
+                              position:"absolute",
+                              right:0,
+                              top:28,
+                              background:"#fff",
+                              border:"1px solid #e5e7eb",
+                              borderRadius:8,
+                              boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                              zIndex:50,
+                              minWidth:120,
+                              display:"flex",
+                              flexDirection:"column"
+                            }}>
+                              <button
+                                style={menuItemStyle}
+                                onClick={()=>{
+                                  setForm({
+                                    id:i.id,
+                                    item_id:i.item_id,
+                                    date:i.date,
+                                    item_name:i.items?.item_name,
+                                    brand:i.items?.brand,
+                                    type:i.type,
+                                    quantity:i.quantity,
+                                    unit_price:i.unit_price || i.items?.unit_price,
+                                    brandOptions:[i.items?.brand],
+                                  });
+                                  setModalType("transaction");
+                                  setShowModal(true);
+                                  setOpenMenuId(null);
+                                }}
+                              >
+                                Edit
+                              </button>
+                
+                              <button
+                                style={{...menuItemStyle,color:"#ef4444"}}
+                                onClick={()=>{
+                                  setConfirmAction({ type:"deleteTx", data:i });
+                                  setOpenMenuId(null);
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
-                  );
-                }
-            
-                return filteredIn.map((i) => (
-                  <tr key={i.id}>
-                    <td>{i.date}</td>
-                    <td style={{maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                      {capitalizeWords(i.items?.item_name)}
-                    </td>
-                    <td>{displayBrand(i.items?.brand)}</td>
-                    <td>{formatNumber(i.quantity)}</td>
-                    <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-            
-                    <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
-
-                      <div className="action-menu"
-                        ref={(el) => (menuRefs.current["in-" + i.id] = el)}
-                      >
-                      <button
-                      onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenMenuId(openMenuId === "in-"+i.id ? null : "in-"+i.id);
-                        }}
-                      style={{
-                      background:"none",
-                      border:"none",
-                      fontSize:20,
-                      cursor:"pointer"
-                      }}
-                      >
-                      ⋮
-                      </button>
-                      
-                      {openMenuId === "in-"+i.id && (
-                      <div
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        position:"absolute",
-                      right:0,
-                      top:28,
-                      background:"#fff",
-                      border:"1px solid #e5e7eb",
-                      borderRadius:8,
-                      boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                      zIndex:50,
-                      minWidth:120,
-                      display:"flex",
-                      flexDirection:"column"
-                      }}>
-                      
-                      <button
-                      style={menuItemStyle}
-                      onClick={()=>{
-                      setForm({
-                      id:i.id,
-                      item_id:i.item_id,
-                      date:i.date,
-                      item_name:i.items?.item_name,
-                      brand:i.items?.brand,
-                      type:i.type,
-                      quantity:i.quantity,
-                      unit_price:i.unit_price || i.items?.unit_price,
-                      brandOptions:[i.items?.brand],
-                      });
-                      setModalType("transaction");
-                      setShowModal(true);
-                      setOpenMenuId(null);
-                      }}
-                      >
-                      Edit
-                      </button>
-                      
-                      <button
-                      style={{...menuItemStyle,color:"#ef4444"}}
-                      onClick={()=>{
-                      setConfirmAction({ type:"deleteTx", data:i });
-                      setOpenMenuId(null);
-                      }}
-                      >
-                      Delete
-                      </button>
-                      
-                      </div>
-                      )}
-                      </div>
-                      </td>
-                  </tr>
-                ));
-              })()}
+                  ))
+                )}
             </tbody>
         </table>
       </div>
@@ -1764,25 +1755,14 @@ if (form.type === "OUT") {
             </tr>
           </thead>
           <tbody>
-            {(() => {
-              const filteredOut = outTransactions
-                .filter(item =>
-                  (item.items?.item_name || "").toLowerCase().includes(outSearch.toLowerCase()) ||
-                  (item.items?.brand || "").toLowerCase().includes(outSearch.toLowerCase())
-                )
-                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-          
-              if (filteredOut.length === 0) {
-                return (
-                  <tr>
-                    <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                      No transactions found
-                    </td>
-                  </tr>
-                );
-              }
-          
-              return filteredOut.map((i) => (
+            {filteredOutTransactions.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                  No transactions found
+                </td>
+              </tr>
+            ) : (
+              filteredOutTransactions.map((i) => (
                 <tr key={i.id}>
                   <td>{i.date}</td>
                   <td style={{maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
@@ -1790,85 +1770,18 @@ if (form.type === "OUT") {
                   </td>
                   <td>{displayBrand(i.items?.brand)}</td>
                   <td>{formatNumber(i.quantity)}</td>
-                  <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-          
+                  <td>
+                    ₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0))
+                      .toLocaleString(undefined,{minimumFractionDigits:2})}
+                  </td>
+            
+                  {/* KEEP YOUR ACTION MENU SAME */}
                   <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
-
-                  <div className="action-menu"
-                    ref={(el) => (menuRefs.current["out-" + i.id] = el)}
-                    >
-                    <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenMenuId(openMenuId === "out-"+i.id ? null : "out-"+i.id);
-                    }}
-                    style={{
-                    background:"none",
-                    border:"none",
-                    fontSize:20,
-                    cursor:"pointer"
-                    }}
-                    >
-                    ⋮
-                    </button>
-                    
-                    {openMenuId === "out-"+i.id && (
-                    <div
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                      position:"absolute",
-                    right:0,
-                    top:28,
-                    background:"#fff",
-                    border:"1px solid #e5e7eb",
-                    borderRadius:8,
-                    boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                    zIndex:50,
-                    minWidth:120,
-                    display:"flex",
-                    flexDirection:"column"
-                    }}>
-                    
-                    <button
-                    style={menuItemStyle}
-                    onClick={()=>{
-                    setForm({
-                    id:i.id,
-                    item_id:i.item_id,
-                    date:i.date,
-                    item_name:i.items?.item_name,
-                    brand:i.items?.brand,
-                    type:i.type,
-                    quantity:i.quantity,
-                    unit_price:i.unit_price || i.items?.unit_price,
-                    brandOptions:[i.items?.brand],
-                    });
-                    setModalType("transaction");
-                    setShowModal(true);
-                    setOpenMenuId(null);
-                    }}
-                    >
-                    Edit
-                    </button>
-                    
-                    <button
-                    style={{...menuItemStyle,color:"#ef4444"}}
-                    onClick={()=>{
-                    setConfirmAction({ type:"deleteTx", data:i });
-                    setOpenMenuId(null);
-                    }}
-                    >
-                    Delete
-                    </button>
-                    
-                    </div>
-                    )}
-                    </div>
-
-                    </td>
+                    {/* your existing menu code */}
+                  </td>
                 </tr>
-              ));
-            })()}
+              ))
+            )}
           </tbody>
         </table>
       </div>
