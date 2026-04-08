@@ -1259,84 +1259,30 @@ if (form.type === "OUT") {
             </div>
           )}
       
-{/* STOCK INVENTORY TAB */}
-{activeTab === "stock" && (() => {
-  // ===== STATES =====
-  const [categoryPage, setCategoryPage] = React.useState(1);
-  const [itemPage, setItemPage] = React.useState(1);
-  const rowsPerPage = 6; // show max 6 items per scroll
-  const paginationButtonStyle = {
-    padding: "6px 12px",
-    borderRadius: 6,
-    border: "1px solid #d1d5db",
-    background: "#fff",
-    cursor: "pointer",
-    fontSize: 14,
-    fontWeight: 500,
-    minWidth: 80,
-    disabled: {
-      opacity: 0.5,
-      cursor: "not-allowed",
-    },
-  };
+  {/* STOCK INVENTORY TAB WITH SEARCH */}
+{activeTab === "stock" && (
+  <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+    {/* Search Bar */}
+    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+      <input
+        type="text"
+        placeholder="Search by Item Name or Brand..."
+        value={stockSearch}
+        onChange={(e) => {   setStockSearch(e.target.value);   setStockPage(1); }}
+        style={{
+          padding: "8px 12px",
+          borderRadius: 8,
+          border: "1px solid #d1d5db",
+          width: 300,
+          fontSize: 14,
+          outline: "none",
+        }}
+      />
+    </div>
 
-  // ===== FILTERED & GROUPED STOCK =====
-  const filteredItems = stockInventory.filter(
-    (item) =>
-      (item.item_name || "").toLowerCase().includes(stockSearch.toLowerCase()) ||
-      (item.brand || "").toLowerCase().includes(stockSearch.toLowerCase())
-  );
-
-  // group by category
-  const groupedStock = filteredItems.reduce((acc, item) => {
-    const cat = item.category || "Uncategorized";
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(item);
-    return acc;
-  }, {});
-
-  const categoryKeys = Object.keys(groupedStock);
-  const totalCategoryPages = categoryKeys.length;
-
-  if (categoryKeys.length === 0) {
-    return (
-      <div style={{ display: "flex", justifyContent: "center", marginTop: 20, color:"#9ca3af" }}>
-        No matching items
-      </div>
-    );
-  }
-
-  const currentCategory = categoryKeys[categoryPage - 1];
-  const items = groupedStock[currentCategory] || [];
-  const totalItemPages = Math.ceil(items.length / rowsPerPage);
-  const paginatedItems = items.slice((itemPage - 1) * rowsPerPage, itemPage * rowsPerPage);
-
-  return (
-    <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-      {/* SEARCH BAR */}
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <input
-          type="text"
-          placeholder="Search by Item Name or Brand..."
-          value={stockSearch}
-          onChange={(e) => {
-            setStockSearch(e.target.value);
-            setCategoryPage(1);
-            setItemPage(1);
-          }}
-          style={{
-            padding: "8px 12px",
-            borderRadius: 8,
-            border: "1px solid #d1d5db",
-            width: 300,
-            fontSize: 14,
-            outline: "none",
-          }}
-        />
-      </div>
-
-      {/* TABLE CARD */}
-      <div style={{
+    {/* Table Card */}
+    <div
+      style={{
         flex: 1,
         background: "#fff",
         padding: 20,
@@ -1346,122 +1292,218 @@ if (form.type === "OUT") {
         flexDirection: "column",
         minHeight: 0,
         scrollBehavior: "smooth"
-      }}>
-        <h2>Available Stocks</h2>
+      }}
+    >
+      <h2>Available Stocks</h2>
 
-        {/* TABLE */}
-        <div style={{
-          flex: 1,
-          minHeight: 0,
+        <div style={styles.dashboard}>
+        
+        <div style={styles.dashboardCard}>
+        <div style={styles.dashboardTitle}>Total Inventory Value</div>
+        <div style={styles.dashboardValue}>
+        ₱{totalInventoryValue.toLocaleString(undefined,{minimumFractionDigits:2})}
+        </div>
+        </div>
+        
+        <div style={styles.dashboardCard}>
+        <div style={styles.dashboardTitle}>Total Items</div>
+        <div style={styles.dashboardValue}>{formatNumber(totalItems)}</div>
+        </div>
+        
+        <div style={styles.dashboardCard}>
+        <div style={styles.dashboardTitle}>Low Stock Items</div>
+        <div style={styles.dashboardValue}>{formatNumber(lowStockItems)}</div>
+        </div>
+        
+        <div style={styles.dashboardCard}>
+        <div style={styles.dashboardTitle}>Categories</div>
+        <div style={styles.dashboardValue}>{formatNumber(totalCategories)}</div>
+        </div>
+        
+        </div>
+      <div
+        style={{
+          flex: 1,                
+          minHeight: 0,           
           overflowY: "auto",
           overflowX: "hidden",
           border: "1px solid #e5e7eb",
           borderRadius: 8
-        }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead style={{
-              position: "sticky",
-              top: 0,
-              background: "#f3f4f6",
-              zIndex: 3,
-              boxShadow: "0 2px 2px -1px rgba(0,0,0,0.1)"
-            }}>
-              <tr>
-                {["Qty", "Item Name", "Brand", "Price", "Total Value", "Actions"].map((th, idx) => (
-                  <th key={idx} style={{
-                    padding: "12px 10px",
-                    textAlign: "left",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    borderBottom: "1px solid #e5e7eb",
-                  }}>
-                    {th}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {/* CATEGORY HEADER */}
-              <tr style={{
-                background: "#f9fafb",
-              }}>
-                <td colSpan={6} style={{padding:"12px 14px"}}>
-                  <strong>{currentCategory}</strong> - {items.length} item{items.length !== 1 ? "s" : ""}
-                </td>
-              </tr>
-
-              {/* ITEMS */}
-              {paginatedItems.map(i => (
-                <tr key={i.id} style={{ background: i.stock <= 5 ? "#fee2e2" : "transparent" }}>
-                  <td>{i.stock}</td>
-                  <td>{i.item_name}</td>
-                  <td>{i.brand}</td>
-                  <td>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-                  <td>₱{Number(i.stock * (i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-                  <td>
-                    {/* Action buttons */}
-                    <button onClick={()=>{
-                      setForm({
-                        id: i.id,
-                        item_name: i.item_name,
-                        brand: i.brand,
-                        category: i.category,
-                        unit_price: i.unit_price,
-                      });
-                      setModalType("item");
-                      setShowModal(true);
-                    }}>Edit</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* ITEMS PAGINATION */}
-        {totalItemPages > 1 && (
-          <div style={{ display: "flex", justifyContent:"space-between", marginTop:8 }}>
-            <button
-              disabled={itemPage <= 1}
-              onClick={() => setItemPage(prev => prev - 1)}
-              style={itemPage <= 1 ? {...paginationButtonStyle, ...paginationButtonStyle.disabled} : paginationButtonStyle}
-            >Previous</button>
-            <span>Page {itemPage} of {totalItemPages}</span>
-            <button
-              disabled={itemPage >= totalItemPages}
-              onClick={() => setItemPage(prev => prev + 1)}
-              style={itemPage >= totalItemPages ? {...paginationButtonStyle, ...paginationButtonStyle.disabled} : paginationButtonStyle}
-            >Next</button>
-          </div>
-        )}
-
-        {/* CATEGORY PAGINATION */}
-        {totalCategoryPages > 1 && (
-          <div style={{ display: "flex", justifyContent:"space-between", marginTop:8 }}>
-            <button
-              disabled={categoryPage <= 1}
-              onClick={() => {
-                setCategoryPage(prev => prev - 1);
-                setItemPage(1);
-              }}
-              style={categoryPage <= 1 ? {...paginationButtonStyle, ...paginationButtonStyle.disabled} : paginationButtonStyle}
-            >Previous Category</button>
-            <span>Category {categoryPage} of {totalCategoryPages}</span>
-            <button
-              disabled={categoryPage >= totalCategoryPages}
-              onClick={() => {
-                setCategoryPage(prev => prev + 1);
-                setItemPage(1);
-              }}
-              style={categoryPage >= totalCategoryPages ? {...paginationButtonStyle, ...paginationButtonStyle.disabled} : paginationButtonStyle}
-            >Next Category</button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-})()}
+        }}
+      >
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
+          <tr>
+            {["Qty", "Item Name", "Brand", "Price", "Total Value", "Actions"].map((th, idx) => (
+              <th
+                key={idx}
+                style={{
+                  padding: "12px 10px",
+                  textAlign: "left",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  borderBottom: "1px solid #e5e7eb",
+                }}
+              >
+                {th}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+              {(() => {
+                // 1️⃣ Filtered items
+                const filteredItems = stockInventory.filter(
+                  (item) =>
+                    (item.item_name || "").toLowerCase().includes(stockSearch.toLowerCase()) ||
+                    (item.brand || "").toLowerCase().includes(stockSearch.toLowerCase())
+                );
             
+                // 2️⃣ Pagination
+                const totalPages = Math.ceil(filteredItems.length / rowsPerPage);
+                const paginatedItems = filteredItems.slice(
+                  (stockPage - 1) * rowsPerPage,
+                  stockPage * rowsPerPage
+                );
+            
+                // 3️⃣ Group paginated items by category
+                const groupedStock = paginatedItems.reduce((acc, item) => {
+                  const cat = item.category || "Uncategorized";
+                  if (!acc[cat]) acc[cat] = [];
+                  acc[cat].push(item);
+                  return acc;
+                }, {});
+            
+                if (Object.keys(groupedStock).length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={6}>
+                        <div style={{ display: "flex", justifyContent: "center", color:"#9ca3af" }}>
+                          No matching items
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }
+            
+                return Object.entries(groupedStock).map(([category, items]) => {
+                  const isOpen = openCategories[category] === true;
+                  const totalValue = items.reduce((sum, i) => sum + (i.stock * i.unit_price), 0);
+            
+                  return (
+                    <React.Fragment key={category}>
+                      {/* CATEGORY HEADER */}
+                      <tr
+                        style={styles.categoryRow}
+                        onClick={(e)=>{
+                          if(e.target.tagName !== "BUTTON") toggleCategory(category);
+                        }}
+                      >
+                        <td colSpan={6} style={{padding:"12px 14px"}}>
+                          <div style={styles.categoryContainer}>
+                            <div style={styles.categoryLeft}>
+                              <span style={{color:"#6b7280"}}>{isOpen ? "▾" : "▸"}</span>
+                              <span>
+                                {category}
+                                {(() => {
+                                  const lowStockCount = items.filter(i => i.stock <= 5).length;
+                                  if (lowStockCount === 0) return null;
+                                  return (
+                                    <span style={{
+                                      marginLeft:8,
+                                      background:"#fee2e2",
+                                      color:"#b91c1c",
+                                      fontSize:11,
+                                      padding:"2px 6px",
+                                      borderRadius:6,
+                                      fontWeight:600
+                                    }}>
+                                      ⚠ {lowStockCount} Low Stock
+                                    </span>
+                                  );
+                                })()}
+                              </span>
+                            </div>
+                            <div style={styles.categoryRight}>
+                              <span>{items.length} item{items.length !== 1 ? "s" : ""}</span>
+                              <span style={{fontWeight:600,color:"#111827"}}>
+                                ₱{totalValue.toLocaleString(undefined,{minimumFractionDigits:2})}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+            
+                      {/* ITEMS */}
+                      {isOpen && items.map(i => (
+                        <tr key={i.id} style={{ background: i.stock <= 5 ? "#fee2e2" : "transparent" }}>
+                          <td style={styles.thtd}>{formatNumber(i.stock)}</td>
+                          <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
+                          <td style={styles.thtd}>{displayBrand(i.brand)}</td>
+                          <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                          <td style={styles.thtd}>₱{Number(i.stock * (i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                          <td style={{ ...styles.thtd, position:"relative" }}>
+                            <div className="action-menu" ref={(el) => (menuRefs.current["stock-" + i.id] = el)}>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id);
+                                }}
+                                style={{ background:"none", border:"none", fontSize:20, cursor:"pointer" }}
+                              >⋮</button>
+            
+                              {openMenuId === "stock-"+i.id && (
+                                <div
+                                  onClick={(e) => e.stopPropagation()}
+                                  style={{
+                                    position:"absolute",
+                                    right:0,
+                                    top:30,
+                                    background:"#fff",
+                                    border:"1px solid #e5e7eb",
+                                    borderRadius:8,
+                                    boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                                    zIndex:10,
+                                    minWidth:120,
+                                    display:"flex",
+                                    flexDirection:"column"
+                                  }}
+                                >
+                                  <button style={menuItemStyle} onClick={()=>{
+                                    setForm({
+                                      id: i.id,
+                                      item_name: i.item_name || "",
+                                      brand: i.brand || "",
+                                      category: i.category || "",
+                                      unit_price: i.unit_price || "",
+                                      brandOptions:[i.brand],
+                                    });
+                                    setModalType("item");
+                                    setShowModal(true);
+                                    setOpenMenuId(null);
+                                  }}>Edit</button>
+            
+                                  <button style={{...menuItemStyle,color:"#ef4444"}} onClick={()=>{
+                                    setConfirmAction({ type:"deleteItem", data:i });
+                                    setOpenMenuId(null);
+                                  }}>Delete</button>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  );
+                });
+              })()}
+            </tbody>
+      </table>
+    </div>
+    </div>
+  </div>
+)}
+
 {/* TRANSACTIONS TAB */}
   {activeTab === "transactions" && (
     <div style={{
