@@ -294,6 +294,11 @@ const styles = {
     if (num === null || num === undefined) return "";
     return Number(num).toLocaleString();
   };
+const getTotal = (t) => {
+  const price = t.unit_price ?? t.items?.unit_price ?? 0;
+  const qty = t.quantity ?? 0;
+  return Number(qty) * Number(price);
+};
 // ================= APP COMPONENT =================
 export default function App() {
   const normalize = (val) =>
@@ -696,7 +701,7 @@ const filteredDeletedTransactions = useMemo(() => {
         // ================= REPORT HEADER =================
         rows.push(["Lago De Oro Inventory Monthly Report"]);
         rows.push([
-          `${new Date(0, reportMonth - 1).toLocaleString("default",{month:"long"})} ${reportYear}`
+          `${new Date(reportYear, reportMonth - 1).toLocaleString("default",{month:"long"})} ${reportYear}`
         ]);
         rows.push([]);
       
@@ -951,8 +956,23 @@ if (form.type === "OUT") {
           unit_price: Number(form.unit_price || existingItem.unit_price || 0),
           location: form.location || selectedStockRoom
         };
-      if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
-      else await supabase.from("inventory_transactions").insert([txData]);
+      if(form.id) const { error } = await supabase
+        .from("inventory_transactions")
+        .update(txData)
+        .eq("id", form.id);
+      
+      if (error) {
+        alert(error.message);
+        return;
+      }
+      else const { error } = await supabase
+        .from("inventory_transactions")
+        .insert([txData]);
+      
+      if (error) {
+        alert(error.message);
+        return;
+      }
       setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
       setShowModal(false);
       setModalType("");
@@ -966,7 +986,17 @@ if (form.type === "OUT") {
           unit_price: Number(form.unit_price),
           location: form.location || selectedStockRoom
         };
-      if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
+      if(form.id) 
+      const { error } = await supabase
+        .from("items")
+        .update(itemData)
+        .eq("id", form.id);
+      
+      if (error) {
+        console.error(error);
+        alert(error.message);
+        return; // stop if failed
+      }
       else {
           const { data, error } = await supabase
             .from("items")
@@ -1549,12 +1579,14 @@ if (form.type === "OUT") {
           </thead>
           <tbody>
               {(() => {
-                const filteredIn = inTransactions
-                  .filter(item =>
-                    (item.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
-                    (item.items?.brand || "").toLowerCase().includes(inSearch.toLowerCase())
-                  )
-                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                const filteredIn = useMemo(() => {
+                  return inTransactions
+                    .filter(item =>
+                      (item.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
+                      (item.items?.brand || "").toLowerCase().includes(inSearch.toLowerCase())
+                    )
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                }, [inTransactions, inSearch]);
             
                 if (filteredIn.length === 0) {
                   return (
@@ -1574,7 +1606,7 @@ if (form.type === "OUT") {
                     </td>
                     <td>{displayBrand(i.items?.brand)}</td>
                     <td>{formatNumber(i.quantity)}</td>
-                    <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                    <td>₱{getTotal(i).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
             
                     <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
 
@@ -1718,7 +1750,7 @@ if (form.type === "OUT") {
                   </td>
                   <td>{displayBrand(i.items?.brand)}</td>
                   <td>{formatNumber(i.quantity)}</td>
-                  <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                  <td>₱{getTotal(i).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
           
                   <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
 
@@ -2130,7 +2162,7 @@ if (form.type === "OUT") {
                 </td>
                 
                 <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                ₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}
+                ₱{getTotal(i).toLocaleString(undefined,{minimumFractionDigits:2})}
                 </td>
                 
                 <td style={{
@@ -2229,7 +2261,7 @@ if (form.type === "OUT") {
         }}>
           <h2 style={{ margin: 0 }}>Lago De Oro Inventory Monthly Report</h2>
           <p style={{ margin: "4px 0 0 0", opacity: 0.8 }}>
-            {new Date(0, reportMonth - 1).toLocaleString("default", { month: "long" })} {reportYear}
+            {new Date(reportYear, reportMonth - 1).toLocaleString("default", { month: "long" })} {reportYear}
             {selectedStockRoom && ` — ${selectedStockRoom}`}
           </p>
         </div>
@@ -2777,122 +2809,167 @@ if (form.type === "OUT") {
         </div>
        )}
 
-        {/* ================= CONFIRM MODAL ================= */}
+       {/* ================= CONFIRM MODAL ================= */}
 {confirmAction && (
   <div style={styles.modalOverlay}>
 
-   <Draggable handle=".modalHeader" bounds="parent">
+    <Draggable handle=".modalHeader" bounds="parent">
       <div style={styles.modalCard}>
-    
-      <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
-        <h3>Confirm Action</h3>
-      </div>
-    
-      <p>
-        Are you sure you want to{" "}
-        <b>
-          {confirmAction.type === "deleteItem" && `delete item "${confirmAction?.data?.item_name}"?`}
-          {confirmAction.type === "restoreItem" && "restore this item?"}
-          {confirmAction.type === "permanentDeleteItem" && `permanently delete item "${confirmAction?.data?.item_name}"?`}
-          {confirmAction.type === "deleteTx" && `delete transaction on "${confirmAction?.data?.date}"?`}
-          {confirmAction.type === "restoreTx" && "restore this transaction?"}
-          {confirmAction.type === "permanentDeleteTx" && "permanently delete this transaction?"}
-        </b>
-      </p>
 
-      <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-        <button
-          style={styles.buttonPrimary}
-          onClick={async () => {
-            const { type, data } = confirmAction;
+        <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
+          <h3>Confirm Action</h3>
+        </div>
 
-            try {
+        <p>
+          Are you sure you want to{" "}
+          <b>
+            {confirmAction.type === "deleteItem" && `delete item "${confirmAction?.data?.item_name}"?`}
+            {confirmAction.type === "restoreItem" && "restore this item?"}
+            {confirmAction.type === "permanentDeleteItem" && `permanently delete item "${confirmAction?.data?.item_name}"?`}
+            {confirmAction.type === "deleteTx" && `delete transaction on "${confirmAction?.data?.date}"?`}
+            {confirmAction.type === "restoreTx" && "restore this transaction?"}
+            {confirmAction.type === "permanentDeleteTx" && "permanently delete this transaction?"}
+          </b>
+        </p>
 
-              if (type === "deleteItem") {
-                await supabase.from("items").update({ 
-                  deleted: true,
-                  deleted_at: new Date().toISOString() // ✅ add this
-                }).eq("id", data.id);
-              
-                await supabase.from("inventory_transactions").update({ 
-                  deleted: true,
-                  deleted_at: new Date().toISOString() // optional but consistent
-                }).eq("item_id", data.id);
-              }
+        <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+          <button
+            style={styles.buttonPrimary}
+            onClick={async () => {
+              const { type, data } = confirmAction;
 
-              else if (type === "restoreItem") {
-                await supabase.from("items").update({ 
-                  deleted: false,
-                  deleted_at: null
-                }).eq("id", data.id);
-              
-                await supabase.from("inventory_transactions").update({ 
-                  deleted: false,
-                  deleted_at: null
-                }).eq("item_id", data.id);
-              }
+              try {
 
-              else if (type === "permanentDeleteItem") {
-                await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
-                await supabase.from("items").delete().eq("id", data.id);
-              }
+                // ✅ DELETE ITEM (soft delete)
+                if (type === "deleteItem") {
 
-             else if (type === "deleteTx") {
-                const result = await supabase
-                  .from("inventory_transactions")
-                  .update({ 
-                    deleted: true,
-                    deleted_at: new Date().toISOString() // ✅ add this
-                  })
-                  .eq("id", data.id);
-              
-                if (result.error) throw result.error;
-              }
+                  const { error: itemError } = await supabase
+                    .from("items")
+                    .update({
+                      deleted: true,
+                      deleted_at: new Date().toISOString()
+                    })
+                    .eq("id", data.id);
 
-              else if (type === "restoreTx") {
-                  const result = await supabase
+                  if (itemError) throw itemError;
+
+                  const { error: txError } = await supabase
                     .from("inventory_transactions")
-                    .update({ 
+                    .update({
+                      deleted: true,
+                      deleted_at: new Date().toISOString()
+                    })
+                    .eq("item_id", data.id);
+
+                  if (txError) throw txError;
+                }
+
+                // ✅ RESTORE ITEM
+                else if (type === "restoreItem") {
+
+                  const { error: itemError } = await supabase
+                    .from("items")
+                    .update({
                       deleted: false,
                       deleted_at: null
                     })
                     .eq("id", data.id);
-                
-                  if (result.error) throw result.error;
+
+                  if (itemError) throw itemError;
+
+                  const { error: txError } = await supabase
+                    .from("inventory_transactions")
+                    .update({
+                      deleted: false,
+                      deleted_at: null
+                    })
+                    .eq("item_id", data.id);
+
+                  if (txError) throw txError;
                 }
 
-              else if (type === "permanentDeleteTx") {
-                const result = await supabase
-                  .from("inventory_transactions")
-                  .delete()
-                  .eq("id", data.id);
-              
-                if (result.error) throw result.error;
+                // ✅ PERMANENT DELETE ITEM
+                else if (type === "permanentDeleteItem") {
+
+                  const { error: txError } = await supabase
+                    .from("inventory_transactions")
+                    .delete()
+                    .eq("item_id", data.id);
+
+                  if (txError) throw txError;
+
+                  const { error: itemError } = await supabase
+                    .from("items")
+                    .delete()
+                    .eq("id", data.id);
+
+                  if (itemError) throw itemError;
+                }
+
+                // ✅ DELETE TRANSACTION (soft)
+                else if (type === "deleteTx") {
+
+                  const { error } = await supabase
+                    .from("inventory_transactions")
+                    .update({
+                      deleted: true,
+                      deleted_at: new Date().toISOString()
+                    })
+                    .eq("id", data.id);
+
+                  if (error) throw error;
+                }
+
+                // ✅ RESTORE TRANSACTION
+                else if (type === "restoreTx") {
+
+                  const { error } = await supabase
+                    .from("inventory_transactions")
+                    .update({
+                      deleted: false,
+                      deleted_at: null
+                    })
+                    .eq("id", data.id);
+
+                  if (error) throw error;
+                }
+
+                // ✅ PERMANENT DELETE TRANSACTION
+                else if (type === "permanentDeleteTx") {
+
+                  const { error } = await supabase
+                    .from("inventory_transactions")
+                    .delete()
+                    .eq("id", data.id);
+
+                  if (error) throw error;
+                }
+
+                await loadData();
+
+              } catch (error) {
+                console.error(error);
+                alert(error.message);
               }
 
-              await loadData();
+              setConfirmAction(null);
+            }}
+          >
+            Confirm
+          </button>
 
-            } catch (error) {
-              console.error(error);
-              alert(error.message);
-            }
-
-            setConfirmAction(null);
-          }}
-        >
-          Confirm
-        </button>
-
-        <button
-          style={styles.buttonSecondary}
-          onClick={() => setConfirmAction(null)}
-        >
-          Cancel
-        </button>
+          <button
+            style={styles.buttonSecondary}
+            onClick={() => setConfirmAction(null)}
+          >
+            Cancel
+          </button>
         </div>
+
       </div>
-   </Draggable>
- </div>
+    </Draggable>
+
+  </div>
 )}
     
           <style>
