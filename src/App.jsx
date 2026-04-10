@@ -618,11 +618,14 @@ const stockInventory = useMemo(() => {
     .filter(i => !i.deleted)
     .filter(i => {
       if (!selectedStockRoom) return true;
-
       return normalize(i.location || "") === normalize(selectedStockRoom);
     })
     .map(i => {
-      const stock = getStock(i.id);
+      const stock = transactions.reduce((acc, t) => {
+        if (t.deleted || t.item_id !== i.id) return acc;
+        const qty = Number(t.quantity) || 0;
+        return acc + (t.type === "IN" ? qty : -qty);
+      }, 0);
 
       return {
         id: i.id,
@@ -634,7 +637,7 @@ const stockInventory = useMemo(() => {
         location: i.location
       };
     });
-}, [items, selectedStockRoom, getStock]);
+}, [items, transactions, selectedStockRoom]);
 
   const groupedStockData = useMemo(() => {
   const filteredItems = stockInventory.filter(
