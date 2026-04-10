@@ -1583,7 +1583,7 @@ const saveTransaction = async () => {
                             </div>
                           </td>
                         </tr>
-                                        ))}
+                      ))}
                     </React.Fragment>
                   );
                 })
