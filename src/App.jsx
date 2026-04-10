@@ -557,15 +557,9 @@ const filteredTransactions = useMemo(() => {
       if (!selectedStockRoom) return true;
 
       const txLocation = (t.location || t.items?.location || "")
-        .trim()
-        .toLowerCase();
-
-      const selected = selectedStockRoom
-        .trim()
-        .toLowerCase();
-
-      const selected = normalize(selectedStockRoom);
-return normalize(txLocation) === selected;
+    const selected = normalize(selectedStockRoom);
+    
+    return normalize(txLocation) === selected;
     });
 }, [transactions, selectedStockRoom]);
 
@@ -2813,8 +2807,8 @@ if (form.type === "OUT") {
     .eq("id", data.id);
 
   if (error) throw error;
-}
-   else if (type === "restoreItem") {
+
+} else if (type === "restoreItem") {
   const { error } = await supabase
     .from("items")
     .update({
@@ -2824,11 +2818,18 @@ if (form.type === "OUT") {
     .eq("id", data.id);
 
   if (error) throw error;
-}
 
-    } else if (type === "permanentDeleteItem") {
-      await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
-      await supabase.from("items").delete().eq("id", data.id);
+} else if (type === "permanentDeleteItem") {
+  await supabase
+    .from("inventory_transactions")
+    .delete()
+    .eq("item_id", data.id);
+
+  await supabase
+    .from("items")
+    .delete()
+    .eq("id", data.id);
+}
 
     } else if (type === "deleteTx") {
       await supabase
