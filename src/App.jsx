@@ -340,13 +340,12 @@ export default function App() {
   const [brandOptions, setBrandOptions] = useState([]);
   const getStock = useCallback((itemId) => {
   return transactions.reduce((acc, t) => {
-      if (t.deleted || t.item_id !== itemId) return acc;
-  
-      const qty = Number(t.quantity) || 0;
-  
-      return acc + (t.type === "IN" ? qty : -qty);
-    }, 0);
-  }, [transactions]);
+    if (t.deleted || t.item_id !== itemId) return acc;
+
+    const qty = Number(t.quantity) || 0;
+    return acc + (t.type === "IN" ? qty : -qty);
+  }, 0);
+}, [transactions]);
   const [inSearch, setInSearch] = useState("");
   const [outSearch, setOutSearch] = useState("");
   const filteredOut = useMemo(() => {
@@ -556,10 +555,9 @@ const filteredTransactions = useMemo(() => {
     .filter(t => {
       if (!selectedStockRoom) return true;
 
-      const txLocation = (t.location || t.items?.location || "")
-    const selected = normalize(selectedStockRoom);
-    
-    return normalize(txLocation) === selected;
+      const txLocation = t.location || t.items?.location || "";
+
+      return normalize(txLocation) === normalize(selectedStockRoom);
     });
 }, [transactions, selectedStockRoom]);
 
@@ -593,13 +591,7 @@ const stockInventory = useMemo(() => {
     .filter(i => {
       if (!selectedStockRoom) return true;
 
-      const selected = selectedStockRoom.replace(/\s+/g, " ").trim().toLowerCase();
-      const itemLocation = (i.location || "")
-        .replace(/\s+/g, " ")
-        .trim()
-        .toLowerCase();
-
-      return normalize(itemLocation) === normalize(selectedStockRoom);
+      return normalize(i.location || "") === normalize(selectedStockRoom);
     })
     .map(i => {
       const stock = getStock(i.id);
@@ -610,11 +602,11 @@ const stockInventory = useMemo(() => {
         brand: i.brand,
         category: i.category,
         unit_price: i.unit_price,
-        stock: stock,
+        stock,
         location: i.location
       };
     });
-}, [items, selectedStockRoom, stockMap]);
+}, [items, selectedStockRoom, getStock]);
 
   const groupedStockData = useMemo(() => {
   const filteredItems = stockInventory.filter(
