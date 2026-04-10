@@ -2831,7 +2831,7 @@ if (form.type === "OUT") {
     .eq("id", data.id);
 }
 
-    } else if (type === "deleteTx") {
+    else if (type === "deleteTx") {
       await supabase
         .from("inventory_transactions")
         .update({
