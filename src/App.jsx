@@ -364,14 +364,16 @@ export default function App() {
 }, [inTransactions, inSearch]);
   
   const [outSearch, setOutSearch] = useState("");
-  const filteredOut = useMemo(() => {
-  return (outTransactions || [])
+  const filteredOut = (outTransactions || [])
     .filter((item) => {
-      const name = (item.items?.item_name || "").toLowerCase();
-      const brand = (item.items?.brand || "").toLowerCase();
+      const name = item.items?.item_name || "";
+      const brand = item.items?.brand || "";
       const search = outSearch.toLowerCase();
 
-      return name.includes(search) || brand.includes(search);
+      return (
+        (name || "").toLowerCase().includes(search) ||
+(brand || "").toLowerCase().includes(search)
+      );
     })
     .sort((a, b) => {
       const dateA = new Date(a.created_at || a.date || 0).getTime();
@@ -1686,25 +1688,7 @@ if (form.type === "OUT") {
             </tr>
           </thead>
           <tbody>
- {filteredOut.length === 0 ? (
-  const filteredOut = (outTransactions || [])
-    .filter((item) => {
-      const name = item.items?.item_name || "";
-      const brand = item.items?.brand || "";
-      const search = outSearch.toLowerCase();
-
-      return (
-        (name || "").toLowerCase().includes(search) ||
-(brand || "").toLowerCase().includes(search)
-      );
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.created_at || a.date || 0).getTime();
-      const dateB = new Date(b.created_at || b.date || 0).getTime();
-      return dateB - dateA;
-    });
-
-  return filteredOut.length === 0 ? (
+  {filteredOut.length === 0 ? (
     <tr>
       <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
         No transactions found
@@ -1735,8 +1719,7 @@ if (form.type === "OUT") {
           ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
         </td>
 
-        <td style={{ padding: "12px 10px", position: "relative", textAlign: "center" }}>
-
+        <td style={{ textAlign: "center" }}>
           <div
             className="action-menu"
             ref={(el) => (menuRefs.current["out-" + i.id] = el)}
@@ -1807,7 +1790,6 @@ if (form.type === "OUT") {
               </div>
             )}
           </div>
-
         </td>
 
       </tr>
