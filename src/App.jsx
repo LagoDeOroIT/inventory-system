@@ -332,12 +332,21 @@ export default function App() {
     setUserRooms(data.stock_rooms || []);
   }
 
-}, [stockRooms]); 
+}, []); 
   
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
   const [brandOptions, setBrandOptions] = useState([]);
+  const getStock = useCallback((itemId) => {
+  return transactions.reduce((acc, t) => {
+      if (t.deleted || t.item_id !== itemId) return acc;
+  
+      const qty = Number(t.quantity) || 0;
+  
+      return acc + (t.type === "IN" ? qty : -qty);
+    }, 0);
+  }, [transactions]);
   const [inSearch, setInSearch] = useState("");
   const [outSearch, setOutSearch] = useState("");
   const filteredOut = useMemo(() => {
@@ -555,7 +564,8 @@ const filteredTransactions = useMemo(() => {
         .trim()
         .toLowerCase();
 
-      return normalize(txLocation) === normalize(selectedStockRoom);
+      const selected = normalize(selectedStockRoom);
+return normalize(txLocation) === selected;
     });
 }, [transactions, selectedStockRoom]);
 
@@ -598,7 +608,7 @@ const stockInventory = useMemo(() => {
       return normalize(itemLocation) === normalize(selectedStockRoom);
     })
     .map(i => {
-      const stock = stockMap[i.id] || 0;
+      const stock = getStock(i.id);
 
       return {
         id: i.id,
@@ -1510,111 +1520,143 @@ if (form.type === "OUT") {
             </tr>
           </thead>
           <tbody>
-              {(() => {
-                const filteredIn = inTransactions
-                  .filter(item =>
-                    (item.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
-                    (item.items?.brand || "").toLowerCase().includes(inSearch.toLowerCase())
-                  )
-                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            
-                if (filteredIn.length === 0) {
-                  return (
-                    <tr>
-                      <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                        No transactions found
-                      </td>
-                    </tr>
-                  );
-                }
-            
-                return filteredIn.map((i) => (
-                  <tr key={i.id}>
-                    <td>{i.date}</td>
-                    <td style={{maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                      {capitalizeWords(i.items?.item_name)}
-                    </td>
-                    <td>{displayBrand(i.items?.brand)}</td>
-                    <td>{formatNumber(i.quantity)}</td>
-                    <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-            
-                    <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
+  {(() => {
+    const filteredIn = (inTransactions || [])
+      .filter((item) => {
+        const name = item.items?.item_name || "";
+        const brand = item.items?.brand || "";
+        const search = inSearch.toLowerCase();
 
-                      <div className="action-menu"
-                        ref={(el) => (menuRefs.current["in-" + i.id] = el)}
-                      >
-                      <button
-                      onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenMenuId(openMenuId === "in-"+i.id ? null : "in-"+i.id);
-                        }}
-                      style={{
-                      background:"none",
-                      border:"none",
-                      fontSize:20,
-                      cursor:"pointer"
-                      }}
-                      >
-                      ⋮
-                      </button>
-                      
-                      {openMenuId === "in-"+i.id && (
-                      <div
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        position:"absolute",
-                      right:0,
-                      top:28,
-                      background:"#fff",
-                      border:"1px solid #e5e7eb",
-                      borderRadius:8,
-                      boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                      zIndex:50,
-                      minWidth:120,
-                      display:"flex",
-                      flexDirection:"column"
-                      }}>
-                      
-                      <button
-                      style={menuItemStyle}
-                      onClick={()=>{
+        return (
+          name.toLowerCase().includes(search) ||
+          brand.toLowerCase().includes(search)
+        );
+      })
+      .sort((a, b) => {
+        const dateA = new Date(a.created_at || a.date || 0).getTime();
+        const dateB = new Date(b.created_at || b.date || 0).getTime();
+        return dateB - dateA;
+      });
+
+    if (filteredIn.length === 0) {
+      return (
+        <tr>
+          <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+            No transactions found
+          </td>
+        </tr>
+      );
+    }
+
+    return filteredIn.map((i) => {
+      const unitPrice = Number(i.unit_price || i.items?.unit_price || 0);
+      const qty = Number(i.quantity || 0);
+      const total = qty * unitPrice;
+
+      return (
+        <tr key={`${i.id}-${i.deleted_at || "active"}`}>
+
+          <td>{i.date}</td>
+
+          <td style={{
+            maxWidth: 160,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap"
+          }}>
+            {capitalizeWords(i.items?.item_name || "")}
+          </td>
+
+          <td>{displayBrand(i.items?.brand || "")}</td>
+
+          <td>{formatNumber(qty)}</td>
+
+          <td>
+            ₱{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </td>
+
+          <td style={{ padding: "12px 10px", position: "relative", textAlign: "center" }}>
+
+            <div
+              className="action-menu"
+              ref={(el) => (menuRefs.current["in-" + i.id] = el)}
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenMenuId(openMenuId === "in-" + i.id ? null : "in-" + i.id);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 20,
+                  cursor: "pointer"
+                }}
+              >
+                ⋮
+              </button>
+
+              {openMenuId === "in-" + i.id && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: 28,
+                    background: "#fff",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 8,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    zIndex: 50,
+                    minWidth: 120,
+                    display: "flex",
+                    flexDirection: "column"
+                  }}
+                >
+
+                  <button
+                    style={menuItemStyle}
+                    onClick={() => {
                       setForm({
-                      id:i.id,
-                      item_id:i.item_id,
-                      date:i.date,
-                      item_name:i.items?.item_name,
-                      brand:i.items?.brand,
-                      type:i.type,
-                      quantity:i.quantity,
-                      unit_price:i.unit_price || i.items?.unit_price,
-                      brandOptions:[i.items?.brand],
+                        id: i.id,
+                        item_id: i.item_id,
+                        date: i.date,
+                        item_name: i.items?.item_name,
+                        brand: i.items?.brand,
+                        type: i.type,
+                        quantity: i.quantity,
+                        unit_price: i.unit_price || i.items?.unit_price,
+                        brandOptions: [i.items?.brand],
                       });
                       setModalType("transaction");
                       setShowModal(true);
                       setOpenMenuId(null);
-                      }}
-                      >
-                      Edit
-                      </button>
-                      
-                      <button
-                      style={{...menuItemStyle,color:"#ef4444"}}
-                      onClick={()=>{
-                      setConfirmAction({ type:"deleteTx", data:i });
+                    }}
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    style={{ ...menuItemStyle, color: "#ef4444" }}
+                    onClick={() => {
+                      setConfirmAction({ type: "deleteTx", data: i });
                       setOpenMenuId(null);
-                      }}
-                      >
-                      Delete
-                      </button>
-                      
-                      </div>
-                      )}
-                      </div>
-                      </td>
-                  </tr>
-                ));
-              })()}
-            </tbody>
+                    }}
+                  >
+                    Delete
+                  </button>
+
+                </div>
+              )}
+            </div>
+
+          </td>
+
+        </tr>
+      );
+    });
+  })()}
+</tbody>
         </table>
       </div>
     </div>
@@ -2341,7 +2383,7 @@ if (form.type === "OUT") {
                 ? emptyRowComponent(6, "No transactions")
                 : monthlyTransactions
                   .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
-                  .sort((a, b) => new Date(b.date) - new Date(a.date))
+                  .sort((a, b) => new Date(b.created_at) - new Date(a.date))
                   .map(t => (
                       <tr key={t.id}>
                         <td style={styles.thtd}>{t.date}</td>
@@ -2758,84 +2800,70 @@ if (form.type === "OUT") {
         <button
           style={styles.buttonPrimary}
           onClick={async () => {
-            const { type, data } = confirmAction;
+  const { type, data } = confirmAction;
 
-            try {
+  try {
+    if (type === "deleteItem") {
+  const { error } = await supabase
+    .from("items")
+    .update({
+      deleted: true,
+      deleted_at: new Date().toISOString()
+    })
+    .eq("id", data.id);
 
-              if (type === "deleteItem") {
-                await supabase.from("items").update({ 
-                  deleted: true,
-                  deleted_at: new Date().toISOString() // ✅ add this
-                }).eq("id", data.id);
-              
-                await supabase.from("inventory_transactions").update({ 
-                  deleted: true,
-                  deleted_at: new Date().toISOString() // optional but consistent
-                }).eq("item_id", data.id);
-              }
+  if (error) throw error;
+}
+   else if (type === "restoreItem") {
+  const { error } = await supabase
+    .from("items")
+    .update({
+      deleted: false,
+      deleted_at: null
+    })
+    .eq("id", data.id);
 
-              else if (type === "restoreItem") {
-                const itemRes = await supabase
-                    .from("items")
-                    .update({ deleted: true, deleted_at: new Date().toISOString() })
-                    .eq("id", data.id);
-                  
-                  if (itemRes.error) throw itemRes.error;
-                  
-                  const txRes = await supabase
-                    .from("inventory_transactions")
-                    .update({ deleted: true, deleted_at: new Date().toISOString() })
-                    .eq("item_id", data.id);
-                  
-                  if (txRes.error) throw txRes.error;
+  if (error) throw error;
+}
 
-              else if (type === "permanentDeleteItem") {
-                await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
-                await supabase.from("items").delete().eq("id", data.id);
-              }
+    } else if (type === "permanentDeleteItem") {
+      await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
+      await supabase.from("items").delete().eq("id", data.id);
 
-             else if (type === "deleteTx") {
-                const result = await supabase
-                  .from("inventory_transactions")
-                  .update({ 
-                    deleted: true,
-                    deleted_at: new Date().toISOString() // ✅ add this
-                  })
-                  .eq("id", data.id);
-              
-                if (result.error) throw result.error;
-              }
+    } else if (type === "deleteTx") {
+      await supabase
+        .from("inventory_transactions")
+        .update({
+          deleted: true,
+          deleted_at: new Date().toISOString()
+        })
+        .eq("id", data.id);
 
-              else if (type === "restoreTx") {
-                  const result = await supabase
-                    .from("inventory_transactions")
-                    .update({ 
-                      deleted: false,
-                      deleted_at: null
-                    })
-                    .eq("id", data.id);
-                
-                  if (result.error) throw result.error;
-                }
+    } else if (type === "restoreTx") {
+      await supabase
+        .from("inventory_transactions")
+        .update({
+          deleted: false,
+          deleted_at: null
+        })
+        .eq("id", data.id);
 
-              else if (type === "permanentDeleteTx") {
-                const result = await supabase
-                  .from("inventory_transactions")
-                  .delete()
-                  .eq("id", data.id);
-              
-                if (result.error) throw result.error;
-              }
+    } else if (type === "permanentDeleteTx") {
+      await supabase
+        .from("inventory_transactions")
+        .delete()
+        .eq("id", data.id);
+    }
 
-              await loadData();
+    await loadData();
 
-            } catch (error) {
-              console.error(error);
-              alert(error.message);
-            }
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+  }
 
-            setConfirmAction(null);
-          }}
+  setConfirmAction(null);
+}}
         >
           Confirm
         </button>
