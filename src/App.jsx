@@ -364,15 +364,16 @@ export default function App() {
 }, [inTransactions, inSearch]);
   
   const [outSearch, setOutSearch] = useState("");
-  const filteredOut = (outTransactions || [])
+  const filteredOut = useMemo(() => {
+  return (outTransactions || [])
     .filter((item) => {
       const name = item.items?.item_name || "";
       const brand = item.items?.brand || "";
       const search = outSearch.toLowerCase();
 
       return (
-        (name || "").toLowerCase().includes(search) ||
-(brand || "").toLowerCase().includes(search)
+        name.toLowerCase().includes(search) ||
+        brand.toLowerCase().includes(search)
       );
     })
     .sort((a, b) => {
