@@ -1587,7 +1587,8 @@ const saveTransaction = async () => {
                     </React.Fragment>
                   );
                 });
-              })()}
+                )
+            }
             </tbody>
       </table>
     </div>
