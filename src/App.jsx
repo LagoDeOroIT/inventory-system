@@ -347,41 +347,7 @@ export default function App() {
   }, 0);
 }, [transactions]);
   const [inSearch, setInSearch] = useState("");
-  const filteredIn = useMemo(() => {
-  return (inTransactions || [])
-    .filter((item) => {
-      const name = (item.items?.item_name || "").toLowerCase();
-      const brand = (item.items?.brand || "").toLowerCase();
-      const search = inSearch.toLowerCase();
-
-      return name.includes(search) || brand.includes(search);
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.created_at || a.date || 0).getTime();
-      const dateB = new Date(b.created_at || b.date || 0).getTime();
-      return dateB - dateA;
-    });
-}, [inTransactions, inSearch]);
-  
   const [outSearch, setOutSearch] = useState("");
-  const filteredOut = useMemo(() => {
-  return (outTransactions || [])
-    .filter((item) => {
-      const name = item.items?.item_name || "";
-      const brand = item.items?.brand || "";
-      const search = outSearch.toLowerCase();
-
-      return (
-        name.toLowerCase().includes(search) ||
-        brand.toLowerCase().includes(search)
-      );
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.created_at || a.date || 0).getTime();
-      const dateB = new Date(b.created_at || b.date || 0).getTime();
-      return dateB - dateA;
-    });
-}, [outTransactions, outSearch]);
   const [stockSearch, setStockSearch] = useState("");
   const [openCategories, setOpenCategories] = useState({});
     useEffect(() => {
@@ -612,6 +578,40 @@ const outTransactions = useMemo(() => {
     .filter(t => t.type === "OUT")
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }, [filteredTransactions]);
+  const filteredIn = useMemo(() => {
+  return (inTransactions || [])
+    .filter((item) => {
+      const name = (item.items?.item_name || "").toLowerCase();
+      const brand = (item.items?.brand || "").toLowerCase();
+      const search = inSearch.toLowerCase();
+
+      return name.includes(search) || brand.includes(search);
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.created_at || a.date || 0).getTime();
+      const dateB = new Date(b.created_at || b.date || 0).getTime();
+      return dateB - dateA;
+    });
+}, [inTransactions, inSearch]);
+
+const filteredOut = useMemo(() => {
+  return (outTransactions || [])
+    .filter((item) => {
+      const name = item.items?.item_name || "";
+      const brand = item.items?.brand || "";
+      const search = outSearch.toLowerCase();
+
+      return (
+        name.toLowerCase().includes(search) ||
+        brand.toLowerCase().includes(search)
+      );
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.created_at || a.date || 0).getTime();
+      const dateB = new Date(b.created_at || b.date || 0).getTime();
+      return dateB - dateA;
+    });
+}, [outTransactions, outSearch]);
 
 const stockInventory = useMemo(() => {
   return items
