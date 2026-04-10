@@ -347,19 +347,38 @@ export default function App() {
   }, 0);
 }, [transactions]);
   const [inSearch, setInSearch] = useState("");
+  const filteredIn = useMemo(() => {
+  return (inTransactions || [])
+    .filter((item) => {
+      const name = (item.items?.item_name || "").toLowerCase();
+      const brand = (item.items?.brand || "").toLowerCase();
+      const search = inSearch.toLowerCase();
+
+      return name.includes(search) || brand.includes(search);
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.created_at || a.date || 0).getTime();
+      const dateB = new Date(b.created_at || b.date || 0).getTime();
+      return dateB - dateA;
+    });
+}, [inTransactions, inSearch]);
+  
   const [outSearch, setOutSearch] = useState("");
   const filteredOut = useMemo(() => {
-    return outTransactions
-      .filter(item =>
-        (item.items?.item_name || "")
-          .toLowerCase()
-          .includes(outSearch.toLowerCase()) ||
-        (item.items?.brand || "")
-          .toLowerCase()
-          .includes(outSearch.toLowerCase())
-      )
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  }, [outTransactions, outSearch]);
+  return (outTransactions || [])
+    .filter((item) => {
+      const name = (item.items?.item_name || "").toLowerCase();
+      const brand = (item.items?.brand || "").toLowerCase();
+      const search = outSearch.toLowerCase();
+
+      return name.includes(search) || brand.includes(search);
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.created_at || a.date || 0).getTime();
+      const dateB = new Date(b.created_at || b.date || 0).getTime();
+      return dateB - dateA;
+    });
+}, [outTransactions, outSearch]);
   const [stockSearch, setStockSearch] = useState("");
   const [openCategories, setOpenCategories] = useState({});
     useEffect(() => {
@@ -380,22 +399,28 @@ export default function App() {
   };
   const [deletedItemSearch, setDeletedItemSearch] = useState("");
       const filteredDeleted = useMemo(() => {
-      return deletedItems
-        .filter(item =>
-          (item.item_name || "").toLowerCase().includes(deletedItemSearch.toLowerCase()) ||
-          (item.brand || "").toLowerCase().includes(deletedItemSearch.toLowerCase())
-        )
-        .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
-    }, [deletedItems, deletedItemSearch]);
+  return (deletedItems || []).filter((i) => {
+    const name = (i.item_name || "").toLowerCase();
+    const brand = (i.brand || "").toLowerCase();
+    const search = deletedItemSearch.toLowerCase();
+
+    return name.includes(search) || brand.includes(search);
+  });
+}, [deletedItems, deletedItemSearch]);
   const [deletedTxSearch, setDeletedTxSearch] = useState("");
   const filteredDeletedTx = useMemo(() => {
-      return deletedTransactions
-        .filter(t =>
-          (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
-          (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
-        )
-        .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
-    }, [deletedTransactions, deletedTxSearch]);
+  return (deletedTransactions || [])
+    .filter((t) => {
+      const name = (t.items?.item_name || "").toLowerCase();
+      const brand = (t.items?.brand || "").toLowerCase();
+      const search = deletedTxSearch.toLowerCase();
+
+      return name.includes(search) || brand.includes(search);
+    })
+    .sort((a, b) =>
+      new Date(b.deleted_at) - new Date(a.deleted_at)
+    );
+}, [deletedTransactions, deletedTxSearch]);;
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
@@ -1506,41 +1531,20 @@ if (form.type === "OUT") {
             </tr>
           </thead>
           <tbody>
-  {(() => {
-    const filteredIn = (inTransactions || [])
-      .filter((item) => {
-        const name = item.items?.item_name || "";
-        const brand = item.items?.brand || "";
-        const search = inSearch.toLowerCase();
-
-        return (
-          name.toLowerCase().includes(search) ||
-          brand.toLowerCase().includes(search)
-        );
-      })
-      .sort((a, b) => {
-        const dateA = new Date(a.created_at || a.date || 0).getTime();
-        const dateB = new Date(b.created_at || b.date || 0).getTime();
-        return dateB - dateA;
-      });
-
-    if (filteredIn.length === 0) {
-      return (
-        <tr>
-          <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-            No transactions found
-          </td>
-        </tr>
-      );
-    }
-
-    return filteredIn.map((i) => {
+  {filteredIn.length === 0 ? (
+    <tr>
+      <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+        No transactions found
+      </td>
+    </tr>
+  ) : (
+    filteredIn.map((i) => {
       const unitPrice = Number(i.unit_price || i.items?.unit_price || 0);
       const qty = Number(i.quantity || 0);
       const total = qty * unitPrice;
 
       return (
-        <tr key={`${i.id}-${i.deleted_at || "active"}`}>
+        <tr key={i.id}>
 
           <td>{i.date}</td>
 
@@ -1640,8 +1644,8 @@ if (form.type === "OUT") {
 
         </tr>
       );
-    });
-  })()}
+    })
+  )}
 </tbody>
         </table>
       </div>
@@ -1682,7 +1686,25 @@ if (form.type === "OUT") {
             </tr>
           </thead>
           <tbody>
-  {filteredOut.length === 0 ? (
+ {filteredOut.length === 0 ? (
+  const filteredOut = (outTransactions || [])
+    .filter((item) => {
+      const name = item.items?.item_name || "";
+      const brand = item.items?.brand || "";
+      const search = outSearch.toLowerCase();
+
+      return (
+        (name || "").toLowerCase().includes(search) ||
+(brand || "").toLowerCase().includes(search)
+      );
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.created_at || a.date || 0).getTime();
+      const dateB = new Date(b.created_at || b.date || 0).getTime();
+      return dateB - dateA;
+    });
+
+  return filteredOut.length === 0 ? (
     <tr>
       <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
         No transactions found
@@ -1690,7 +1712,7 @@ if (form.type === "OUT") {
     </tr>
   ) : (
     filteredOut.map((i) => (
-      <tr key={`${i.id}-${i.deleted_at || "active"}`}>
+      <tr key={i.id}>
 
         <td>{i.date}</td>
 
@@ -2053,141 +2075,135 @@ if (form.type === "OUT") {
                 </tr>
                 </thead>
                 
-                <tbody>
-                {(() => {
-                
-                const filteredDeletedTx = deletedTransactions
-                  .filter(
-                    (t) =>
-                      (t.items?.item_name || "").toLowerCase().includes(deletedTxSearch.toLowerCase()) ||
-                      (t.items?.brand || "").toLowerCase().includes(deletedTxSearch.toLowerCase())
-                  )
-                  .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
-                
-                if (filteredDeletedTx.length === 0) {
-                  return (
-                    <tr>
-                      <td colSpan={7} style={{ padding:16,textAlign:"center",color:"#9ca3af" }}>
-                        No deleted transactions
-                      </td>
-                    </tr>
-                  );
-                }
-                
-                return filteredDeletedTx.map((i) => (
-                <tr key={`${i.id}-${i.deleted_at || "active"}`}>
-                
-                <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                {i.date}
-                </td>
-                
-                <td style={{
-                  padding:"12px 10px",
-                  borderBottom:"1px solid #f1f5f9",
-                  maxWidth:160,
-                  overflow:"hidden",
-                  textOverflow:"ellipsis",
-                  whiteSpace:"nowrap"
-                }}>
-                {capitalizeWords(i.items?.item_name)}
-                </td>
-                
-               <td style={{
-                  padding:"12px 10px",
-                  borderBottom:"1px solid #f1f5f9",
-                  maxWidth:160,
-                  overflow:"hidden",
-                  textOverflow:"ellipsis",
-                  whiteSpace:"nowrap"
-                }}>
-                {displayBrand(i.items?.brand)}
-                </td>
-                
-                <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                {i.type}
-                </td>
-                
-                <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                {formatNumber(i.quantity)}
-                </td>
-                
-                <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                ₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}
-                </td>
-                
-                <td style={{
-                  padding:"12px 10px",
-                  borderBottom:"1px solid #f1f5f9",
-                  position:"relative",
-                  textAlign:"center"
-                  }}>
-                  <div className="action-menu"
-                    ref={(el) => (menuRefs.current["deltx-" + i.id] = el)}
-                  >
-                  <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setOpenMenuId(openMenuId === "deltx-"+i.id ? null : "deltx-"+i.id);
-                  }}
-                  style={{
-                  background:"none",
-                  border:"none",
-                  fontSize:20,
-                  cursor:"pointer",
-                  padding:"4px 8px",
-                  borderRadius:6
-                  }}
-                  >
-                  ⋮
-                  </button>
-                  
-                  {openMenuId === "deltx-"+i.id && (
-                  <div
-                  onClick={(e) => e.stopPropagation()}
-                  style={{
-                    position:"absolute",
-                  right:0,
-                  top:30,
-                  background:"#fff",
-                  border:"1px solid #e5e7eb",
-                  borderRadius:8,
-                  boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                  zIndex:10,
-                  minWidth:120,
-                  display:"flex",
-                  flexDirection:"column"
-                  }}>
-                  
-                  <button
-                  style={menuItemStyle}
-                  onClick={()=>{
-                  setConfirmAction({ type:"restoreTx", data:i });
-                  setOpenMenuId(null);
-                  }}
-                  >
-                  Restore
-                  </button>
-                  
-                  <button
-                  style={{...menuItemStyle,color:"#ef4444"}}
-                  onClick={()=>{
-                  setConfirmAction({ type:"permanentDeleteTx", data:i });
-                  setOpenMenuId(null);
-                  }}
-                  >
-                  Delete
-                  </button>
-                  
-                  </div>
-                  )}
-                  </div>
+               <tbody>
+  {filteredDeletedTx.length === 0 ? (
+    <tr>
+      <td colSpan={7} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+        No deleted transactions
+      </td>
+    </tr>
+  ) : (
+    filteredDeletedTx.map((i) => (
+      <tr key={`${i.id}-${i.deleted_at || "active"}`}>
 
-                  </td>
-                
-                </tr>
-                ));
-                })()}
-                </tbody>
+        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
+          {i.date}
+        </td>
+
+        <td style={{
+          padding: "12px 10px",
+          borderBottom: "1px solid #f1f5f9",
+          maxWidth: 160,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap"
+        }}>
+          {capitalizeWords(i.items?.item_name || "")}
+        </td>
+
+        <td style={{
+          padding: "12px 10px",
+          borderBottom: "1px solid #f1f5f9",
+          maxWidth: 160,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap"
+        }}>
+          {displayBrand(i.items?.brand || "")}
+        </td>
+
+        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
+          {i.type}
+        </td>
+
+        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
+          {formatNumber(i.quantity)}
+        </td>
+
+        <td style={{ padding: "12px 10px", borderBottom: "1px solid #f1f5f9" }}>
+          ₱{Number(
+            i.quantity * (i.unit_price || i.items?.unit_price || 0)
+          ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        </td>
+
+        <td style={{
+          padding: "12px 10px",
+          borderBottom: "1px solid #f1f5f9",
+          position: "relative",
+          textAlign: "center"
+        }}>
+
+          <div
+            className="action-menu"
+            ref={(el) => (menuRefs.current["deltx-" + i.id] = el)}
+          >
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenMenuId(openMenuId === "deltx-" + i.id ? null : "deltx-" + i.id);
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: 20,
+                cursor: "pointer",
+                padding: "4px 8px",
+                borderRadius: 6
+              }}
+            >
+              ⋮
+            </button>
+
+            {openMenuId === "deltx-" + i.id && (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: 30,
+                  background: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 8,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  zIndex: 10,
+                  minWidth: 120,
+                  display: "flex",
+                  flexDirection: "column"
+                }}
+              >
+
+                <button
+                  style={menuItemStyle}
+                  onClick={() => {
+                    setConfirmAction({ type: "restoreTx", data: i });
+                    setOpenMenuId(null);
+                  }}
+                >
+                  Restore
+                </button>
+
+                <button
+                  style={{ ...menuItemStyle, color: "#ef4444" }}
+                  onClick={() => {
+                    setConfirmAction({ type: "permanentDeleteTx", data: i });
+                    setOpenMenuId(null);
+                  }}
+                >
+                  Delete
+                </button>
+
+              </div>
+            )}
+
+          </div>
+
+        </td>
+
+      </tr>
+    ))
+  )}
+</tbody>
                 
                 </table>
                 </div>
@@ -2369,7 +2385,7 @@ if (form.type === "OUT") {
                 ? emptyRowComponent(6, "No transactions")
                 : monthlyTransactions
                   .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
-                  .sort((a, b) => new Date(b.created_at) - new Date(a.date))
+                  .sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date))
                   .map(t => (
                       <tr key={t.id}>
                         <td style={styles.thtd}>{t.date}</td>
@@ -2441,9 +2457,7 @@ if (form.type === "OUT") {
                     
                           setItemOptions([...new Set(allItems)]);
                         }}
-                        onBlur={() => {
-                          setTimeout(() => setItemOptions([]), 150);
-                        }}
+                        onMouseDown={(e) => e.preventDefault()}
                       />
                     
                       {/* FLOATING SELECTOR */}
@@ -2796,7 +2810,8 @@ if (form.type === "OUT") {
       deleted: true,
       deleted_at: new Date().toISOString()
     })
-    .eq("id", data.id);
+    .eq("item_id", data.id)
+.eq("location", selectedStockRoom)
 
   if (error) throw error;
 
