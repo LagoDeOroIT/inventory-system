@@ -554,20 +554,7 @@ const filteredTransactions = useMemo(() => {
       return normalize(txLocation) === normalize(selectedStockRoom);
     });
 }, [transactions, selectedStockRoom]);
-
-const stockMap = useMemo(() => {
-  return filteredTransactions.reduce((acc, t) => {
-    const qty = Number(t.quantity) || 0;
-
-    if (!acc[t.item_id]) acc[t.item_id] = 0;
-
-    acc[t.item_id] += t.type === "IN" ? qty : -qty;
-
-    return acc;
-  }, {});
-}, [filteredTransactions]);
-
-const inTransactions = useMemo(() => {
+  const inTransactions = useMemo(() => {
   return filteredTransactions
     .filter(t => t.type === "IN")
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -612,6 +599,19 @@ const filteredOut = useMemo(() => {
       return dateB - dateA;
     });
 }, [outTransactions, outSearch]);
+
+
+const stockMap = useMemo(() => {
+  return filteredTransactions.reduce((acc, t) => {
+    const qty = Number(t.quantity) || 0;
+
+    if (!acc[t.item_id]) acc[t.item_id] = 0;
+
+    acc[t.item_id] += t.type === "IN" ? qty : -qty;
+
+    return acc;
+  }, {});
+}, [filteredTransactions]);
 
 const stockInventory = useMemo(() => {
   return items
