@@ -321,6 +321,7 @@ export default function App() {
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [items, setItems] = useState([]);
   const [itemOptions, setItemOptions] = useState([]);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const [userRooms, setUserRooms] = useState([]);
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
@@ -1433,7 +1434,7 @@ const handleFormChange = (key, value) => {
     minHeight: 0,
     maxHeight: "500px", 
     overflowY: "auto",
-    overflowX: "auto",
+    overflowX: "visible",
     border: "1px solid #e5e7eb",
     borderRadius: 8
   }}
@@ -1552,8 +1553,16 @@ const handleFormChange = (key, value) => {
                           <td style={{ ...styles.thtd, position:"relative" }}>
                             <div className="action-menu" ref={(el) => (menuRefs.current["stock-" + i.id] = el)}>
                               <button
-                                onClick={(e) => {
+                               onClick={(e) => {
                                   e.stopPropagation();
+                                
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                
+                                  setMenuPosition({
+                                    top: rect.bottom + 5,
+                                    left: rect.right - 120
+                                  });
+                                
                                   setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id);
                                 }}
                                 style={{ background:"none", border:"none", fontSize:20, cursor:"pointer" }}
@@ -1562,19 +1571,19 @@ const handleFormChange = (key, value) => {
                               {openMenuId === "stock-"+i.id && (
                                 <div
                                   onClick={(e) => e.stopPropagation()}
-                                  style={{
-                                    position:"absolute",
-                                    right:0,
-                                    top:30,
-                                    background:"#fff",
-                                    border:"1px solid #e5e7eb",
-                                    borderRadius:8,
-                                    boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                                    zIndex:10,
-                                    minWidth:120,
-                                    display:"flex",
-                                    flexDirection:"column"
-                                  }}
+                                 style={{
+                                  position: "fixed",
+                                  top: menuPosition.top,
+                                  left: menuPosition.left,
+                                  background: "#fff",
+                                  border: "1px solid #e5e7eb",
+                                  borderRadius: 8,
+                                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                                  zIndex: 99999,
+                                  minWidth: 120,
+                                  display: "flex",
+                                  flexDirection: "column"
+                                }}
                                 >
                                   <button style={menuItemStyle} onClick={()=>{
                                     setForm({
@@ -1642,7 +1651,8 @@ const handleFormChange = (key, value) => {
       <div style={{
           flex: 1,
           minHeight: 0,
-          overflowY: "auto"
+          overflowY: "auto",
+          overflowX: "visible"
         }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
@@ -1691,7 +1701,14 @@ const handleFormChange = (key, value) => {
                       >
                       <button
                       onClick={(e) => {
-                          e.stopPropagation();
+                        e.stopPropagation();
+                        
+                          const rect = e.currentTarget.getBoundingClientRect();
+                        
+                          setMenuPosition({
+                            top: rect.bottom + 5,
+                            left: rect.right - 120
+                          });
                           setOpenMenuId(openMenuId === "in-"+i.id ? null : "in-"+i.id);
                         }}
                       style={{
@@ -1708,18 +1725,19 @@ const handleFormChange = (key, value) => {
                       <div
                       onClick={(e) => e.stopPropagation()}
                       style={{
-                        position:"absolute",
-                      right:0,
-                      top:28,
-                      background:"#fff",
-                      border:"1px solid #e5e7eb",
-                      borderRadius:8,
-                      boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                      zIndex:50,
-                      minWidth:120,
-                      display:"flex",
-                      flexDirection:"column"
-                      }}>
+                          position: "fixed",
+                          top: menuPosition.top,
+                          left: menuPosition.left,
+                          background: "#fff",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: 8,
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                          zIndex: 99999,
+                          minWidth: 120,
+                          display: "flex",
+                          flexDirection: "column"
+                        }}
+                        >
                       
                       <button
                       style={menuItemStyle}
@@ -1787,7 +1805,8 @@ const handleFormChange = (key, value) => {
      <div style={{
         flex: 1,
         minHeight: 0,
-        overflowY: "auto",
+      overflowY: "auto",
+      overflowX: "visible",
         marginTop: 10
       }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -1838,6 +1857,13 @@ const handleFormChange = (key, value) => {
                     <button
                     onClick={(e) => {
                       e.stopPropagation();
+                    
+                      const rect = e.currentTarget.getBoundingClientRect();
+                    
+                      setMenuPosition({
+                        top: rect.bottom + 5,
+                        left: rect.right - 120
+                      });
                       setOpenMenuId(openMenuId === "out-"+i.id ? null : "out-"+i.id);
                     }}
                     style={{
@@ -1854,18 +1880,19 @@ const handleFormChange = (key, value) => {
                     <div
                     onClick={(e) => e.stopPropagation()}
                     style={{
-                      position:"absolute",
-                    right:0,
-                    top:28,
-                    background:"#fff",
-                    border:"1px solid #e5e7eb",
-                    borderRadius:8,
-                    boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                    zIndex:50,
-                    minWidth:120,
-                    display:"flex",
-                    flexDirection:"column"
-                    }}>
+                        position: "fixed",
+                        top: menuPosition.top,
+                        left: menuPosition.left,
+                        background: "#fff",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 8,
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                        zIndex: 99999,
+                        minWidth: 120,
+                        display: "flex",
+                        flexDirection: "column"
+                      }}
+                      >
                     
                     <button
                     style={menuItemStyle}
@@ -1952,7 +1979,8 @@ const handleFormChange = (key, value) => {
                   style={{
                     flex: 1,
                     minHeight: 0,
-                    overflowY: "auto"
+                    overflowY: "auto",
+                    overflowX: "visible"
                   }}
                 >
                                 
@@ -2069,6 +2097,13 @@ const handleFormChange = (key, value) => {
                   <button
                   onClick={(e) => {
                       e.stopPropagation();
+                    
+                      const rect = e.currentTarget.getBoundingClientRect();
+                    
+                      setMenuPosition({
+                        top: rect.bottom + 5,
+                        left: rect.right - 120
+                      });
                       setOpenMenuId(openMenuId === "delitem-"+i.id ? null : "delitem-"+i.id);
                     }}
                   style={{
@@ -2087,18 +2122,19 @@ const handleFormChange = (key, value) => {
                   <div
                   onClick={(e) => e.stopPropagation()}
                   style={{
-                    position:"absolute",
-                  right:0,
-                  top:30,
-                  background:"#fff",
-                  border:"1px solid #e5e7eb",
-                  borderRadius:8,
-                  boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                  zIndex:10,
-                  minWidth:120,
-                  display:"flex",
-                  flexDirection:"column"
-                  }}>
+                      position: "fixed",
+                      top: menuPosition.top,
+                      left: menuPosition.left,
+                      background: "#fff",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: 8,
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      zIndex: 99999,
+                      minWidth: 120,
+                      display: "flex",
+                      flexDirection: "column"
+                    }}
+                    >
                   
                   <button
                   style={menuItemStyle}
@@ -2162,7 +2198,8 @@ const handleFormChange = (key, value) => {
                   style={{
                     flex: 1,
                     minHeight: 0,
-                    overflowY: "auto"
+                    overflowY: "auto",
+                    overflowX: "visible"
                   }}
                 >
                 
@@ -2256,7 +2293,14 @@ const handleFormChange = (key, value) => {
                   >
                   <button
                   onClick={(e) => {
-                    e.stopPropagation();
+                      e.stopPropagation();
+                    
+                      const rect = e.currentTarget.getBoundingClientRect();
+                    
+                      setMenuPosition({
+                        top: rect.bottom + 5,
+                        left: rect.right - 120
+                      });
                     setOpenMenuId(openMenuId === "deltx-"+i.id ? null : "deltx-"+i.id);
                   }}
                   style={{
@@ -2275,18 +2319,19 @@ const handleFormChange = (key, value) => {
                   <div
                   onClick={(e) => e.stopPropagation()}
                   style={{
-                    position:"absolute",
-                  right:0,
-                  top:30,
-                  background:"#fff",
-                  border:"1px solid #e5e7eb",
-                  borderRadius:8,
-                  boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                  zIndex:10,
-                  minWidth:120,
-                  display:"flex",
-                  flexDirection:"column"
-                  }}>
+                      position: "fixed",
+                      top: menuPosition.top,
+                      left: menuPosition.left,
+                      background: "#fff",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: 8,
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      zIndex: 99999,
+                      minWidth: 120,
+                      display: "flex",
+                      flexDirection: "column"
+                    }}
+                    >
                   
                   <button
                   style={menuItemStyle}
@@ -2328,7 +2373,8 @@ const handleFormChange = (key, value) => {
 
       {/* ================= PROFESSIONAL MONTHLY REPORT ================= */}
 {activeTab === "report" && (
-  <div style={{ flex: 1, overflowY: "auto" }}>
+  <div style={{ flex: 1, overflowY: "auto",
+overflowX: "visible" }}>
     <div id="reportSection">
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
@@ -2591,6 +2637,7 @@ const handleFormChange = (key, value) => {
                             boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
                             maxHeight: 160,
                             overflowY: "auto",
+                            overflowX: "visible"
                             zIndex: 1000
                           }}
                         >
@@ -2676,6 +2723,7 @@ const handleFormChange = (key, value) => {
                           boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
                           maxHeight: 160,
                           overflowY: "auto",
+                          overflowX: "visible"
                           zIndex: 1000
                         }}
                       >
@@ -2741,6 +2789,7 @@ const handleFormChange = (key, value) => {
                         boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
                         maxHeight: 160,
                         overflowY: "auto",
+                        overflowX: "visible",                
                         zIndex: 1000
                       }}
                     >
