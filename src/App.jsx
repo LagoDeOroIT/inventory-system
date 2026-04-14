@@ -449,7 +449,7 @@ export default function App() {
   
   useEffect(() => {
     if (session) {
-      loadUserProfile(session.user.id);   // ← load assigned rooms
+      loadUserProfile(session.user.id);   
       loadData();
     }
   }, [session]);
@@ -515,7 +515,7 @@ export default function App() {
           const savedCategories = localStorage.getItem("openCategories");
           if (!savedCategories) setOpenCategories(opened);
 
-        }, []); // 👈 important
+        }, []); 
         
 // ================= FILTERS =================
 const filteredTransactions = useMemo(() => {
@@ -1418,6 +1418,7 @@ const handleFormChange = (key, value) => {
   style={{
     flex: 1,
     minHeight: 0,
+    maxHeight: "500px", 
     overflowY: "auto",
     overflowX: "auto",
     border: "1px solid #e5e7eb",
@@ -2909,12 +2910,12 @@ const handleFormChange = (key, value) => {
               if (type === "deleteItem") {
                 await supabase.from("items").update({ 
                   deleted: true,
-                  deleted_at: new Date().toISOString() // ✅ add this
+                  deleted_at: new Date().toISOString() 
                 }).eq("id", data.id);
               
                 await supabase.from("inventory_transactions").update({ 
                   deleted: true,
-                  deleted_at: new Date().toISOString() // optional but consistent
+                  deleted_at: new Date().toISOString() 
                 }).eq("item_id", data.id);
               }
 
@@ -2940,7 +2941,7 @@ const handleFormChange = (key, value) => {
                   .from("inventory_transactions")
                   .update({ 
                     deleted: true,
-                    deleted_at: new Date().toISOString() // ✅ add this
+                    deleted_at: new Date().toISOString() 
                   })
                   .eq("id", data.id);
               
