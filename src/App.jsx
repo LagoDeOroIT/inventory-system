@@ -1163,7 +1163,6 @@ const handleFormChange = (key, value) => {
         </div>
       
       );
-  is this the code?
 
 // ================= MAIN APP =================
   return (
