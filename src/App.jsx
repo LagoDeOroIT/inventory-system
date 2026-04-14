@@ -129,9 +129,22 @@ const styles = {
     justifyContent: "space-between",
     top: 0
   },
-  sidebarHeader: { fontSize: 20, fontWeight: 700, marginBottom: 24 },
-  sidebarSelect: { marginBottom: 24, padding: 8, borderRadius: 6, border: "none", width: "100%" },
-  sidebarTabs: { display: "flex", flexDirection: "column", gap: 12 },
+  sidebarHeader: { 
+    fontSize: 20, 
+    fontWeight: 700,
+    marginBottom: 24 
+  },
+  sidebarSelect: { 
+    marginBottom: 24, 
+    padding: 8, 
+    borderRadius: 6, 
+    border: "none", 
+    width: "100%"
+  },
+  sidebarTabs: { 
+    display: "flex", 
+    flexDirection: "column", 
+    gap: 12 },
   tabButton: (active) => ({ padding: 10, borderRadius: 6, background: active ? "#1f2937" : "transparent", border: "none", color: "#fff", cursor: "pointer", textAlign: "left" }),
   main: { 
     flex: 1, 
