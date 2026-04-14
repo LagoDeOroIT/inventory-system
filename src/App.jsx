@@ -50,12 +50,14 @@ const styles = {
     fontWeight: 600,
     fontSize: 15
   },
-  welcomeScreen: {
+   welcomeScreen: {
+    flex: 1,
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    height: "100%",
     width: "100%"
-  },
+  }
   welcomeContainer:{
     background:"#ffffff",
     padding:"70px 90px",
@@ -1299,11 +1301,14 @@ const handleFormChange = (key, value) => {
         </div>
 
    {/* MAIN AREA */}
-      <div style={{
-          ...styles.main,
-          height: "100%",
-          minHeight: 0
-        }}>
+     <div style={{
+  ...styles.main,
+  flex: 1,
+  display: "flex",
+  flexDirection: "column",
+  minHeight: 0,
+  overflow: "hidden"
+}}>
 
           {!selectedStockRoom ? (
             <div style={styles.welcomeScreen}>
