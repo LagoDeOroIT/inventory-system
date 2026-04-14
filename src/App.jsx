@@ -1,37 +1,12 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Draggable from "react-draggable";
 // ================= SUPABASE CONFIG =================
-const supabaseUrl = "https://mkfhjklomofrvnnwwknh.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZmhqa2xvbW9mcnZubnd3a25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTczNzAsImV4cCI6MjA4ODU5MzM3MH0.6Q8p9ms8mnf2daONf7HTP3jGZD_bQuNQrv6cpy0ZUts";
+const supabaseUrl = "https://zchhskjbbqzkfeiyklsd.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjaGhza2piYnF6a2ZlaXlrbHNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5OTY3ODUsImV4cCI6MjA5MDU3Mjc4NX0.F1uIGnMAyw3fhct2UN1Z9jPn6Lmdd1nVc0AhhQUa9QU";
 const supabase = createClient(supabaseUrl, supabaseKey);
 // ================= STYLES =================
 const styles = {
-  container:{},
-  sidebar:{},
-  main:{},
-  thtd:{
-    padding:"10px"
-  },
-  buttonSecondary:{
-    padding:"6px 12px"
-  },
-  categoryRow:{
-    background:"#f8fafc",
-    cursor:"pointer"
-  },
-  categoryContainer:{
-    display:"flex",
-    justifyContent:"space-between"
-  },
-  categoryLeft:{
-    display:"flex",
-    gap:10
-  },
-  categoryRight:{
-    display:"flex",
-    gap:20
-  },
   welcomeCard: {
     background: "#ffffff",
     padding: "60px 80px",
@@ -140,7 +115,6 @@ const styles = {
     display: "flex",
     height: "100vh",
     fontFamily: "Inter, Arial, sans-serif", 
-    padding: "12px",
     gap: "12px",
     background: "#f3f4f6"
   },
@@ -164,7 +138,6 @@ const styles = {
     flexDirection: "column",
     overflow: "hidden",
     minHeight: 0,
-    padding: "16px" // ✅ adds inner spacing
   },
   categoryRow:{
     background:"#f8fafc",
@@ -323,30 +296,46 @@ const styles = {
   };
 // ================= APP COMPONENT =================
 export default function App() {
+  const normalize = (val) =>
+  (val || "").replace(/\s+/g, " ").trim().toLowerCase();
   const [session, setSession] = useState(null);
+  const [stockPage, setStockPage] = useState(1); 
+  const rowsPerPage = 50; 
   const [notification, setNotification] = useState("");
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [items, setItems] = useState([]);
   const [itemOptions, setItemOptions] = useState([]);
   const [userRooms, setUserRooms] = useState([]);
-  const loadUserProfile = async (userId) => {
-    console.log("LOAD PROFILE FOR USER:", userId);
+  const stockRooms = [
+    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
+    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room"
+  ];
+  const loadUserProfile = useCallback(async (userId) => {
+  console.log("LOAD PROFILE FOR USER:", userId);
+
   const { data, error } = await supabase
     .from("profiles")
     .select("stock_rooms, role")
     .eq("id", userId)
     .single();
-    console.log("PROFILE RESULT:", data);
+
+  console.log("PROFILE RESULT:", data);
+
   if (error) {
     console.error("Profile error:", error);
     return;
   }
+
+  if (!data) return;
+
   if (data.role === "admin") {
     setUserRooms(stockRooms);
   } else {
     setUserRooms(data.stock_rooms || []);
   }
-  };
+
+}, [stockRooms]); 
+  
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState("stock");
   const [selectedStockRoom, setSelectedStockRoom] = useState("");
@@ -423,10 +412,7 @@ export default function App() {
 }, []);  
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
-  const stockRooms = [
-    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
-    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
-  ];
+    
   // ================= AUTH =================
    useEffect(() => {
   
@@ -482,40 +468,52 @@ export default function App() {
       
       };
   // ================= LOAD DATA =================
-        const loadData = async () => {
-        const { data: itemsData } = await supabase
-        .from("items")
-        .select("*")
-        .order("item_name", { ascending: true });
-        const itemsWithDeleted = (itemsData || []).map(i => ({
-          ...i,
-          deleted: i.deleted ?? false
-        }));
-      
-        const { data: tx } = await supabase
-          .from("inventory_transactions")
-          .select("*, items(item_name, brand, unit_price, location, category)")
-          .order("created_at", { ascending: false });
-      
-        const transactionsWithDeleted = (tx || []).map(t => ({
-          ...t,
-          deleted: t.deleted ?? false
-        }));
-      
-        setItems(itemsWithDeleted);
-        setTransactions(transactionsWithDeleted);
-      
-        // Category state
-        const opened = {};
-        itemsWithDeleted.forEach(i => {
-          const cat = i.category || "Uncategorized";
-          if (!(cat in opened)) opened[cat] = true;
-        });
-      
-        const savedCategories = localStorage.getItem("openCategories");
-        if (!savedCategories) setOpenCategories(opened);
-      };
+        const loadData = useCallback(async () => {
 
+          const { data: itemsData, error: itemsError } = await supabase
+            .from("items")
+            .select("*")
+            .order("item_name", { ascending: true });
+        
+          if (itemsError) {
+            console.error("Items error:", itemsError);
+            return;
+          }
+        
+          const itemsWithDeleted = (itemsData || []).map(i => ({
+            ...i,
+            deleted: i.deleted ?? false
+          }));
+        
+          const { data: tx, error: txError } = await supabase
+            .from("inventory_transactions")
+            .select("*, items(item_name, brand, unit_price, location, category)")
+            .order("created_at", { ascending: false });
+        
+          if (txError) {
+            console.error("Transactions error:", txError);
+            return;
+          }
+        
+          const transactionsWithDeleted = (tx || []).map(t => ({
+            ...t,
+            deleted: t.deleted ?? false
+          }));
+        
+          setItems(itemsWithDeleted);
+          setTransactions(transactionsWithDeleted);
+                  // Category state
+          const opened = {};
+          itemsWithDeleted.forEach(i => {
+            const cat = i.category || "Uncategorized";
+            if (!(cat in opened)) opened[cat] = true;
+          });
+        
+          const savedCategories = localStorage.getItem("openCategories");
+          if (!savedCategories) setOpenCategories(opened);
+
+        }, []); // 👈 important
+        
 // ================= FILTERS =================
 const filteredTransactions = useMemo(() => {
   return transactions
@@ -531,7 +529,7 @@ const filteredTransactions = useMemo(() => {
         .trim()
         .toLowerCase();
 
-      return txLocation === selected;
+      return normalize(txLocation) === normalize(selectedStockRoom);
     });
 }, [transactions, selectedStockRoom]);
 
@@ -571,7 +569,7 @@ const stockInventory = useMemo(() => {
         .trim()
         .toLowerCase();
 
-      return itemLocation === selected;
+      return normalize(itemLocation) === normalize(selectedStockRoom);
     })
     .map(i => {
       const stock = stockMap[i.id] || 0;
@@ -742,7 +740,7 @@ const filteredDeletedTransactions = useMemo(() => {
       
         perItem.forEach(row=>{
           const netQty = row.inQty - row.outQty;
-          const value = netQty * row.price;
+          const value = netQty * row.unit_price;
       
           rows.push([
             row.item,
@@ -859,7 +857,7 @@ const handleFormChange = (key, value) => {
       );
 
       if (selectedItem) {
-        updated.price = selectedItem.unit_price;
+        updated.unit_price = selectedItem.unit_price;
       }
 
     }
@@ -877,7 +875,7 @@ const handleFormChange = (key, value) => {
     brandOptions:[], 
     type:"IN", 
     quantity:"", 
-    price:"", 
+    unit_price:"", 
     id:null,
     location: selectedStockRoom  // ✅ add this
   });
@@ -893,7 +891,7 @@ const handleFormChange = (key, value) => {
     brandOptions:[], 
     type:"IN", 
     quantity:"", 
-    price:"", 
+    unit_price:"", 
     id:null,
     location: selectedStockRoom // ✅ add this
   });
@@ -950,7 +948,7 @@ if (form.type === "OUT") {
           brand: form.brand || existingItem.brand || "No Brand",
           type: form.type,
           quantity: Number(form.quantity),
-          unit_price: Number(form.price || existingItem.unit_price || 0),
+          unit_price: Number(form.unit_price || existingItem.unit_price || 0),
           location: form.location || selectedStockRoom
         };
       if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
@@ -1270,7 +1268,7 @@ if (form.type === "OUT") {
         type="text"
         placeholder="Search by Item Name or Brand..."
         value={stockSearch}
-        onChange={(e) => setStockSearch(e.target.value)}
+        onChange={(e) => {   setStockSearch(e.target.value);   setStockPage(1); }}
         style={{
           padding: "8px 12px",
           borderRadius: 8,
@@ -1292,7 +1290,7 @@ if (form.type === "OUT") {
         boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
         display: "flex",
         flexDirection: "column",
-        overflowY: "auto",
+        minHeight: 0,
         scrollBehavior: "smooth"
       }}
     >
@@ -1325,7 +1323,8 @@ if (form.type === "OUT") {
         </div>
       <div
         style={{
-          maxHeight: "400px",   // 🔥 controls table height
+          flex: 1,                
+          minHeight: 0,           
           overflowY: "auto",
           overflowX: "hidden",
           border: "1px solid #e5e7eb",
@@ -1352,196 +1351,153 @@ if (form.type === "OUT") {
           </tr>
         </thead>
         <tbody>
-            {(() => {
-              // Group stock by category
-              const groupedStock = stockInventory
-                .filter(
+              {(() => {
+                // 1️⃣ Filtered items
+                const filteredItems = stockInventory.filter(
                   (item) =>
                     (item.item_name || "").toLowerCase().includes(stockSearch.toLowerCase()) ||
                     (item.brand || "").toLowerCase().includes(stockSearch.toLowerCase())
-                )
-                .reduce((acc, item) => {
+                );
+            
+                // 2️⃣ Pagination
+                const totalPages = Math.ceil(filteredItems.length / rowsPerPage);
+                const paginatedItems = filteredItems.slice(
+                  (stockPage - 1) * rowsPerPage,
+                  stockPage * rowsPerPage
+                );
+            
+                // 3️⃣ Group paginated items by category
+                const groupedStock = paginatedItems.reduce((acc, item) => {
                   const cat = item.category || "Uncategorized";
                   if (!acc[cat]) acc[cat] = [];
                   acc[cat].push(item);
                   return acc;
                 }, {});
-          
-              if (Object.keys(groupedStock).length === 0) {
-                return (
-                  <tr>
-                    <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
-                      No matching items
-                    </td>
-                  </tr>
-                );
-              }
-          
-              return Object.entries(groupedStock).map(([category, items]) => {
-
-                const isOpen = openCategories[category] === true;
-              
-                const totalValue = items.reduce(
-                  (sum, i) => sum + (i.stock * i.unit_price),
-                  0
-                );
-              
-                return (
-                  <React.Fragment key={category}>
-              
-                    {/* CATEGORY HEADER */}
-                    <tr
-                      style={styles.categoryRow}
-                      onClick={(e)=>{
-                          if(e.target.tagName !== "BUTTON"){
-                            toggleCategory(category);
-                          }
+            
+                if (Object.keys(groupedStock).length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={6}>
+                        <div style={{ display: "flex", justifyContent: "center", color:"#9ca3af" }}>
+                          No matching items
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }
+            
+                return Object.entries(groupedStock).map(([category, items]) => {
+                  const isOpen = openCategories[category] === true;
+                  const totalValue = items.reduce((sum, i) => sum + (i.stock * i.unit_price), 0);
+            
+                  return (
+                    <React.Fragment key={category}>
+                      {/* CATEGORY HEADER */}
+                      <tr
+                        style={styles.categoryRow}
+                        onClick={(e)=>{
+                          if(e.target.tagName !== "BUTTON") toggleCategory(category);
                         }}
                       >
-                      <td colSpan={6} style={{padding:"12px 14px"}}>
-                      
-                      <div style={styles.categoryContainer}>
-                      
-                      <div style={styles.categoryLeft}>
-                      <span style={{color:"#6b7280"}}>
-                      {isOpen ? "▾" : "▸"}
-                      </span>
-                      
-                      <span>
-                          {category}
-                        
-                          {(() => {
-                            const lowStockCount = items.filter(i => i.stock <= 5).length;
-                        
-                            if (lowStockCount === 0) return null;
-                        
-                            return (
-                              <span
-                                style={{
-                                  marginLeft:8,
-                                  background:"#fee2e2",
-                                  color:"#b91c1c",
-                                  fontSize:11,
-                                  padding:"2px 6px",
-                                  borderRadius:6,
-                                  fontWeight:600
-                                }}
-                              >
-                                ⚠ {lowStockCount} Low Stock
+                        <td colSpan={6} style={{padding:"12px 14px"}}>
+                          <div style={styles.categoryContainer}>
+                            <div style={styles.categoryLeft}>
+                              <span style={{color:"#6b7280"}}>{isOpen ? "▾" : "▸"}</span>
+                              <span>
+                                {category}
+                                {(() => {
+                                  const lowStockCount = items.filter(i => i.stock <= 5).length;
+                                  if (lowStockCount === 0) return null;
+                                  return (
+                                    <span style={{
+                                      marginLeft:8,
+                                      background:"#fee2e2",
+                                      color:"#b91c1c",
+                                      fontSize:11,
+                                      padding:"2px 6px",
+                                      borderRadius:6,
+                                      fontWeight:600
+                                    }}>
+                                      ⚠ {lowStockCount} Low Stock
+                                    </span>
+                                  );
+                                })()}
                               </span>
-                            );
-                          })()}
-                        </span>
-                      </div>
-                      
-                      <div style={styles.categoryRight}>
-                      <span>
-                      {items.length} item{items.length !== 1 ? "s" : ""}
-                      </span>
-                      
-                      <span style={{fontWeight:600,color:"#111827"}}>
-                      ₱{totalValue.toLocaleString(undefined,{minimumFractionDigits:2})}
-                      </span>
-                      </div>
-                      
-                      </div>
-                      
-                      </td>
-                      </tr>
-              
-                    {/* ITEMS */}
-                    {isOpen && items.map(i => (
-                      <tr
-                          key={i.id}
-                          style={{
-                            background: i.stock <= 5 ? "#fee2e2" : "transparent"
-                          }}
-                        >
-                        <td style={styles.thtd}>{formatNumber(i.stock)}</td>
-                        <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
-                        <td style={styles.thtd}>{displayBrand(i.brand)}</td>
-                        <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-                        <td style={styles.thtd}>₱{Number(i.stock * Number(i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-                        <td style={{ ...styles.thtd, position:"relative" }}>
-
-                        <div
-                            className="action-menu"
-                            ref={(el) => (menuRefs.current["stock-" + i.id] = el)}
-                          >
-                        
-                        <button
-                          onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id);
-                            }}
-                          style={{
-                            background:"none",
-                            border:"none",
-                            fontSize:20,
-                            cursor:"pointer"
-                          }}
-                        >
-                        ⋮
-                        </button>
-                        
-                        {openMenuId === "stock-"+i.id && (
-                        <div
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        position:"absolute",
-                        right:0,
-                        top:30,
-                        background:"#fff",
-                        border:"1px solid #e5e7eb",
-                        borderRadius:8,
-                        boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                        zIndex:10,
-                        minWidth:120,
-                        display:"flex",
-                        flexDirection:"column"
-                        }}>
-                        
-                        <button
-                        style={menuItemStyle}
-                        onClick={()=>{
-                        setForm({
-                          id: i.id,
-                          item_name: i.item_name || "",
-                          brand: i.brand || "",
-                          category: i.category || "",
-                          unit_price: i.unit_price || "",
-                          brandOptions:[i.brand],
-                        });
-                        setModalType("item");
-                        setShowModal(true);
-                        setOpenMenuId(null);
-                        }}
-                        >
-                        Edit
-                        </button>
-                        
-                        <button
-                        style={{...menuItemStyle,color:"#ef4444"}}
-                        onClick={()=>{
-                        setConfirmAction({ type:"deleteItem", data:i });
-                        setOpenMenuId(null);
-                        }}
-                        >
-                        Delete
-                        </button>
-                        
-                        </div>
-                        )}
-                        </div>
+                            </div>
+                            <div style={styles.categoryRight}>
+                              <span>{items.length} item{items.length !== 1 ? "s" : ""}</span>
+                              <span style={{fontWeight:600,color:"#111827"}}>
+                                ₱{totalValue.toLocaleString(undefined,{minimumFractionDigits:2})}
+                              </span>
+                            </div>
+                          </div>
                         </td>
                       </tr>
-                    ))}
-              
-                  </React.Fragment>
-                );
-              });
-            })()}
-          </tbody>
+            
+                      {/* ITEMS */}
+                      {isOpen && items.map(i => (
+                        <tr key={i.id} style={{ background: i.stock <= 5 ? "#fee2e2" : "transparent" }}>
+                          <td style={styles.thtd}>{formatNumber(i.stock)}</td>
+                          <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
+                          <td style={styles.thtd}>{displayBrand(i.brand)}</td>
+                          <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                          <td style={styles.thtd}>₱{Number(i.stock * (i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                          <td style={{ ...styles.thtd, position:"relative" }}>
+                            <div className="action-menu" ref={(el) => (menuRefs.current["stock-" + i.id] = el)}>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id);
+                                }}
+                                style={{ background:"none", border:"none", fontSize:20, cursor:"pointer" }}
+                              >⋮</button>
+            
+                              {openMenuId === "stock-"+i.id && (
+                                <div
+                                  onClick={(e) => e.stopPropagation()}
+                                  style={{
+                                    position:"absolute",
+                                    right:0,
+                                    top:30,
+                                    background:"#fff",
+                                    border:"1px solid #e5e7eb",
+                                    borderRadius:8,
+                                    boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                                    zIndex:10,
+                                    minWidth:120,
+                                    display:"flex",
+                                    flexDirection:"column"
+                                  }}
+                                >
+                                  <button style={menuItemStyle} onClick={()=>{
+                                    setForm({
+                                      id: i.id,
+                                      item_name: i.item_name || "",
+                                      brand: i.brand || "",
+                                      category: i.category || "",
+                                      unit_price: i.unit_price || "",
+                                      brandOptions:[i.brand],
+                                    });
+                                    setModalType("item");
+                                    setShowModal(true);
+                                    setOpenMenuId(null);
+                                  }}>Edit</button>
+            
+                                  <button style={{...menuItemStyle,color:"#ef4444"}} onClick={()=>{
+                                    setConfirmAction({ type:"deleteItem", data:i });
+                                    setOpenMenuId(null);
+                                  }}>Delete</button>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  );
+                });
+              })()}
+            </tbody>
       </table>
     </div>
     </div>
@@ -1884,8 +1840,8 @@ if (form.type === "OUT") {
                 
                 <div style={{ 
                   flex: 1, 
-                  minHeight: 0,
-                  overflowY: "auto", 
+                  height: "520px",    
+                  overflowY: "auto",  
                   marginTop: 10 
                 }}>
                                 
@@ -2093,8 +2049,8 @@ if (form.type === "OUT") {
                 
                 <div style={{ 
                   flex: 1, 
-                  minHeight: 0,
-                  overflowY: "auto", 
+                  height: "520px",    
+                  overflowY: "auto",  
                   marginTop: 10 
                 }}>
                 
