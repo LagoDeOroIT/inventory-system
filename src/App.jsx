@@ -311,7 +311,7 @@ const styles = {
 // ================= APP COMPONENT =================
 export default function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [loading, setLoading] = useState(false);
   const normalize = (val) =>
   (val || "").replace(/\s+/g, " ").trim().toLowerCase();
   const [session, setSession] = useState(null);
@@ -2965,81 +2965,85 @@ overflowX: "visible" }}>
         <button
           style={styles.buttonPrimary}
           onClick={async () => {
-            const { type, data } = confirmAction;
+  const { type, data } = confirmAction;
 
-            try {
+  setLoading(true);
 
-              if (type === "deleteItem") {
-                await supabase.from("items").update({ 
-                  deleted: true,
-                  deleted_at: new Date().toISOString() 
-                }).eq("id", data.id);
-              
-                await supabase.from("inventory_transactions").update({ 
-                  deleted: true,
-                  deleted_at: new Date().toISOString() 
-                }).eq("item_id", data.id);
-              }
+  try {
 
-              else if (type === "restoreItem") {
-                await supabase.from("items").update({ 
-                  deleted: false,
-                  deleted_at: null
-                }).eq("id", data.id);
-              
-                await supabase.from("inventory_transactions").update({ 
-                  deleted: false,
-                  deleted_at: null
-                }).eq("item_id", data.id);
-              }
+    if (type === "deleteItem") {
+      await supabase.from("items").update({ 
+        deleted: true,
+        deleted_at: new Date().toISOString() 
+      }).eq("id", data.id);
+    
+      await supabase.from("inventory_transactions").update({ 
+        deleted: true,
+        deleted_at: new Date().toISOString() 
+      }).eq("item_id", data.id);
+    }
 
-              else if (type === "permanentDeleteItem") {
-                await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
-                await supabase.from("items").delete().eq("id", data.id);
-              }
+    else if (type === "restoreItem") {
+      await supabase.from("items").update({ 
+        deleted: false,
+        deleted_at: null
+      }).eq("id", data.id);
+    
+      await supabase.from("inventory_transactions").update({ 
+        deleted: false,
+        deleted_at: null
+      }).eq("item_id", data.id);
+    }
 
-             else if (type === "deleteTx") {
-                const result = await supabase
-                  .from("inventory_transactions")
-                  .update({ 
-                    deleted: true,
-                    deleted_at: new Date().toISOString() 
-                  })
-                  .eq("id", data.id);
-              
-                if (result.error) throw result.error;
-              }
+    else if (type === "permanentDeleteItem") {
+      await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
+      await supabase.from("items").delete().eq("id", data.id);
+    }
 
-              else if (type === "restoreTx") {
-                  const result = await supabase
-                    .from("inventory_transactions")
-                    .update({ 
-                      deleted: false,
-                      deleted_at: null
-                    })
-                    .eq("id", data.id);
-                
-                  if (result.error) throw result.error;
-                }
+    else if (type === "deleteTx") {
+      const result = await supabase
+        .from("inventory_transactions")
+        .update({ 
+          deleted: true,
+          deleted_at: new Date().toISOString() 
+        })
+        .eq("id", data.id);
+    
+      if (result.error) throw result.error;
+    }
 
-              else if (type === "permanentDeleteTx") {
-                const result = await supabase
-                  .from("inventory_transactions")
-                  .delete()
-                  .eq("id", data.id);
-              
-                if (result.error) throw result.error;
-              }
+    else if (type === "restoreTx") {
+      const result = await supabase
+        .from("inventory_transactions")
+        .update({ 
+          deleted: false,
+          deleted_at: null
+        })
+        .eq("id", data.id);
+    
+      if (result.error) throw result.error;
+    }
 
-              await loadData();
+    else if (type === "permanentDeleteTx") {
+      const result = await supabase
+        .from("inventory_transactions")
+        .delete()
+        .eq("id", data.id);
+    
+      if (result.error) throw result.error;
+    }
 
-            } catch (error) {
-              console.error(error);
-              alert(error.message);
-            }
+    await loadData();
 
-            setConfirmAction(null);
-          }}
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+
+  } finally {
+    setLoading(false);
+    setConfirmAction(null);
+  }
+}}
         >
           Confirm
         </button>
@@ -3080,6 +3084,51 @@ overflowX: "visible" }}>
          </style>
             </>
           )}
+       {loading && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          background: "rgba(0,0,0,0.4)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 999999
+        }}>
+          <div style={{
+            background: "#fff",
+            padding: "20px 30px",
+            borderRadius: 12,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 10
+          }}>
+            <div className="spinner" />
+            <p>Processing...</p>
+          </div>
+      
+          <style>
+            {`
+              .spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid #e5e7eb;
+                border-top: 4px solid #111827;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+              }
+      
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}
+          </style>
+        </div>
+      )}
     </div>
   </div>
     );
