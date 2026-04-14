@@ -1322,15 +1322,16 @@ if (form.type === "OUT") {
         
         </div>
       <div
-        style={{
-          flex: 1,                
-          minHeight: 0,           
-          overflowY: "auto",
-          overflowX: "hidden",
-          border: "1px solid #e5e7eb",
-          borderRadius: 8
-        }}
-      >
+  style={{
+    flex: 1,
+    minHeight: 0,
+    maxHeight: "100%",
+    overflowY: "auto",
+    overflowX: "auto",
+    border: "1px solid #e5e7eb",
+    borderRadius: 8
+  }}
+>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
           <tr>
@@ -1522,7 +1523,8 @@ if (form.type === "OUT") {
         display: "flex",
         flexDirection: "column",
         minWidth: 0,
-        height: "520px"
+        flex: 1,
+        minHeight: 0
       }}>
       <h2>IN Transactions</h2>
       <input
@@ -1533,8 +1535,8 @@ if (form.type === "OUT") {
       />
       <div style={{
           flex: 1,
-          overflowY: "auto",
-          marginTop: 10
+          minHeight: 0,
+          overflowY: "auto"
         }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
@@ -1666,7 +1668,8 @@ if (form.type === "OUT") {
         display: "flex",
         flexDirection: "column",
         minWidth: 0,
-        height: "520px"
+        flex: 1,
+        minHeight: 0
       }}>
       <h2>OUT Transactions</h2>
       <input
@@ -1675,11 +1678,12 @@ if (form.type === "OUT") {
         value={outSearch}
         onChange={(e) => setOutSearch(e.target.value)}
       />
-      <div style={{
-          flex: 1,
-          overflowY: "auto",
-          marginTop: 10
-        }}>
+     <div style={{
+        flex: 1,
+        minHeight: 0,
+        overflowY: "auto",
+        marginTop: 10
+      }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead style={{ position: "sticky", top: 0, background: "#f3f4f6", zIndex: 1 }}>
              <tr>
@@ -1815,6 +1819,7 @@ if (form.type === "OUT") {
                   gap: 20,
                   width: "100%",
                   height: "100%",
+                  alignItems: "stretch",
                   minHeight: 0
                 }}>
                 {/* ================= DELETED INVENTORY ================= */}
@@ -1838,12 +1843,13 @@ if (form.type === "OUT") {
                   onChange={(e) => setDeletedItemSearch(e.target.value)}
                 />
                 
-                <div style={{ 
-                  flex: 1, 
-                  height: "520px",    
-                  overflowY: "auto",  
-                  marginTop: 10 
-                }}>
+                <div
+                  style={{
+                    flex: 1,
+                    minHeight: 0,
+                    overflowY: "auto"
+                  }}
+                >
                                 
                 <table style={{
                   width:"100%",
@@ -2047,12 +2053,13 @@ if (form.type === "OUT") {
                 onChange={(e) => setDeletedTxSearch(e.target.value)}
                 />
                 
-                <div style={{ 
-                  flex: 1, 
-                  height: "520px",    
-                  overflowY: "auto",  
-                  marginTop: 10 
-                }}>
+                <div
+                  style={{
+                    flex: 1,
+                    minHeight: 0,
+                    overflowY: "auto"
+                  }}
+                >
                 
                 <table style={{
                   width:"100%",
