@@ -310,7 +310,6 @@ const styles = {
   };
 // ================= APP COMPONENT =================
 export default function App() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
   const normalize = (val) =>
   (val || "").replace(/\s+/g, " ").trim().toLowerCase();
@@ -931,16 +930,16 @@ const handleFormChange = (key, value) => {
         setShowModal(true);
       };
       const handleSubmit = async () => {
-  if (isSubmitting) return; // 🚫 BLOCK DOUBLE CLICK
+  if (loading) return;
 
-  setIsSubmitting(true);
+  setLoading(true);
 
   try {
     if (modalType === "item" || modalType === "transaction") {
       await saveTransaction();
     }
 
-    await loadData(); // refresh data
+    await loadData();
     setShowModal(false);
 
   } catch (error) {
@@ -948,19 +947,19 @@ const handleFormChange = (key, value) => {
     alert(error.message);
 
   } finally {
-    setIsSubmitting(false); // always unlock
+    setLoading(false);
   }
 };
       // ================= SUBMIT =================
    const saveTransaction = async () => {
-  if (isSubmitting) return; // 🚫 BLOCK DOUBLE CLICK IMMEDIATELY
-
-  setIsSubmitting(true);
+  setLoading(true);
 
   try {
     if (modalType === "transaction") {
-      if (!form.item_name || !form.quantity || !form.date)
-        return alert("Fill required fields");
+      if (!form.item_name || !form.quantity || !form.date) {
+        alert("Fill required fields");
+        return;
+      }
 
       const existingItem = items.find(
         i =>
@@ -1014,7 +1013,6 @@ const handleFormChange = (key, value) => {
         if (error) throw error;
       }
 
-      // ✅ UI RESET
       setForm({
         date: "",
         item_id: "",
@@ -1030,13 +1028,14 @@ const handleFormChange = (key, value) => {
       setShowModal(false);
       setModalType("");
 
-      // ✅ IMPORTANT: wait for reload
       await loadData();
     }
 
     else if (modalType === "item") {
-      if (!form.item_name || !form.unit_price)
-        return alert("Fill required fields");
+      if (!form.item_name || !form.unit_price) {
+        alert("Fill required fields");
+        return;
+      }
 
       const itemData = {
         item_name: form.item_name,
@@ -1094,7 +1093,7 @@ const handleFormChange = (key, value) => {
     alert(error.message);
 
   } finally {
-    setIsSubmitting(false); // 🔓 ALWAYS UNLOCK
+    setLoading(false);
   }
 };
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
