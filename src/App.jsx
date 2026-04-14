@@ -296,6 +296,8 @@ const styles = {
   };
 // ================= APP COMPONENT =================
 export default function App() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const normalize = (val) =>
   (val || "").replace(/\s+/g, " ").trim().toLowerCase();
   const [session, setSession] = useState(null);
@@ -914,86 +916,172 @@ const handleFormChange = (key, value) => {
         setShowModal(true);
       };
       const handleSubmit = async () => {
+  if (isSubmitting) return; // 🚫 BLOCK DOUBLE CLICK
 
-          if (modalType === "item" || modalType === "transaction") {
-            await saveTransaction();
-          }
-    
-    };
+  setIsSubmitting(true);
+
+  try {
+    if (modalType === "item" || modalType === "transaction") {
+      await saveTransaction();
+    }
+
+    await loadData(); // refresh data
+    setShowModal(false);
+
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+
+  } finally {
+    setIsSubmitting(false); // always unlock
+  }
+};
       // ================= SUBMIT =================
    const saveTransaction = async () => {
-    if(modalType === "transaction") {
-      if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
-      const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
-     if(!existingItem) {
-  setConfirmAction({
-    type: "createItemConfirm",
-    data: { ...form }
-  });
-  return;
-}
-if (form.type === "OUT") {
-  const currentStock = stockMap[existingItem.id] || 0;
-  const requestedQty = Number(form.quantity) || 0;
+  if (isSubmitting) return; // 🚫 BLOCK DOUBLE CLICK IMMEDIATELY
 
-  if (requestedQty > currentStock) {
-    alert(`Not enough stock.\n\nAvailable: ${currentStock}`);
-    return;
-  }
-}
-      const txData = {
-          date: form.date, // keep this for reporting
-          created_at: new Date().toISOString(), // ✅ ensures ordering
-          item_id: existingItem.id,
-          brand: form.brand || existingItem.brand || "No Brand",
-          type: form.type,
-          quantity: Number(form.quantity),
-          unit_price: Number(form.unit_price || existingItem.unit_price || 0),
-          location: form.location || selectedStockRoom
-        };
-      if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
-      else await supabase.from("inventory_transactions").insert([txData]);
-      setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
-      setShowModal(false);
-      setModalType("");
-      loadData();
-    } else if(modalType === "item") {
-      if(!form.item_name || !form.unit_price) return alert("Fill required fields");
-      const itemData = { 
-          item_name: form.item_name, 
-          brand: form.brand || "No Brand",
-          category: form.category,
-          unit_price: Number(form.unit_price),
-          location: form.location || selectedStockRoom
-        };
-      if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
-      else {
-          const { data, error } = await supabase
-            .from("items")
-            .insert([itemData])
-            .select();
-        
-          if (error) {
-            console.error(error);
-            alert(error.message);
-            return;
-          }
-        
-          if (data?.length && modalTypeBeforeItem === "transaction") {
-            setForm(prev => ({ ...prev, item_id: data[0].id }));
-            setModalType("transaction");
-            setShowModal(true);
-            setModalTypeBeforeItem("");
-            return;
-          }
-        
+  setIsSubmitting(true);
+
+  try {
+    if (modalType === "transaction") {
+      if (!form.item_name || !form.quantity || !form.date)
+        return alert("Fill required fields");
+
+      const existingItem = items.find(
+        i =>
+          i.item_name === form.item_name &&
+          i.brand === form.brand &&
+          !i.deleted &&
+          i.location === selectedStockRoom
+      );
+
+      if (!existingItem) {
+        setConfirmAction({
+          type: "createItemConfirm",
+          data: { ...form }
+        });
+        return;
+      }
+
+      if (form.type === "OUT") {
+        const currentStock = stockMap[existingItem.id] || 0;
+        const requestedQty = Number(form.quantity) || 0;
+
+        if (requestedQty > currentStock) {
+          alert(`Not enough stock.\n\nAvailable: ${currentStock}`);
+          return;
         }
-      setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
+      }
+
+      const txData = {
+        date: form.date,
+        created_at: new Date().toISOString(),
+        item_id: existingItem.id,
+        brand: form.brand || existingItem.brand || "No Brand",
+        type: form.type,
+        quantity: Number(form.quantity),
+        unit_price: Number(form.unit_price || existingItem.unit_price || 0),
+        location: form.location || selectedStockRoom
+      };
+
+      if (form.id) {
+        const { error } = await supabase
+          .from("inventory_transactions")
+          .update(txData)
+          .eq("id", form.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("inventory_transactions")
+          .insert([txData]);
+
+        if (error) throw error;
+      }
+
+      // ✅ UI RESET
+      setForm({
+        date: "",
+        item_id: "",
+        item_name: "",
+        brand: "",
+        category: "",
+        type: "IN",
+        quantity: "",
+        unit_price: "",
+        id: null
+      });
+
       setShowModal(false);
       setModalType("");
-      loadData();
+
+      // ✅ IMPORTANT: wait for reload
+      await loadData();
     }
-  };
+
+    else if (modalType === "item") {
+      if (!form.item_name || !form.unit_price)
+        return alert("Fill required fields");
+
+      const itemData = {
+        item_name: form.item_name,
+        brand: form.brand || "No Brand",
+        category: form.category,
+        unit_price: Number(form.unit_price),
+        location: form.location || selectedStockRoom
+      };
+
+      if (form.id) {
+        const { error } = await supabase
+          .from("items")
+          .update(itemData)
+          .eq("id", form.id);
+
+        if (error) throw error;
+
+      } else {
+        const { data, error } = await supabase
+          .from("items")
+          .insert([itemData])
+          .select();
+
+        if (error) throw error;
+
+        if (data?.length && modalTypeBeforeItem === "transaction") {
+          setForm(prev => ({ ...prev, item_id: data[0].id }));
+          setModalType("transaction");
+          setShowModal(true);
+          setModalTypeBeforeItem("");
+          return;
+        }
+      }
+
+      setForm({
+        date: "",
+        item_id: "",
+        item_name: "",
+        brand: "",
+        category: "",
+        type: "IN",
+        quantity: "",
+        unit_price: "",
+        id: null
+      });
+
+      setShowModal(false);
+      setModalType("");
+
+      await loadData();
+    }
+
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+
+  } finally {
+    setIsSubmitting(false); // 🔓 ALWAYS UNLOCK
+  }
+};
   const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
   // ================= AUTH SCREEN =================
       if(!session) return (
