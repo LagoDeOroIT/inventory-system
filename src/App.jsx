@@ -57,7 +57,7 @@ const styles = {
     alignItems: "center",
     height: "100%",
     width: "100%"
-  }
+  },
   welcomeContainer:{
     background:"#ffffff",
     padding:"70px 90px",
