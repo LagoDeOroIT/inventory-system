@@ -1,12 +1,37 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Draggable from "react-draggable";
 // ================= SUPABASE CONFIG =================
-const supabaseUrl = "https://zchhskjbbqzkfeiyklsd.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjaGhza2piYnF6a2ZlaXlrbHNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5OTY3ODUsImV4cCI6MjA5MDU3Mjc4NX0.F1uIGnMAyw3fhct2UN1Z9jPn6Lmdd1nVc0AhhQUa9QU";
+const supabaseUrl = "https://mkfhjklomofrvnnwwknh.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZmhqa2xvbW9mcnZubnd3a25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTczNzAsImV4cCI6MjA4ODU5MzM3MH0.6Q8p9ms8mnf2daONf7HTP3jGZD_bQuNQrv6cpy0ZUts";
 const supabase = createClient(supabaseUrl, supabaseKey);
 // ================= STYLES =================
 const styles = {
+  container:{},
+  sidebar:{},
+  main:{},
+  thtd:{
+    padding:"10px"
+  },
+  buttonSecondary:{
+    padding:"6px 12px"
+  },
+  categoryRow:{
+    background:"#f8fafc",
+    cursor:"pointer"
+  },
+  categoryContainer:{
+    display:"flex",
+    justifyContent:"space-between"
+  },
+  categoryLeft:{
+    display:"flex",
+    gap:10
+  },
+  categoryRight:{
+    display:"flex",
+    gap:20
+  },
   welcomeCard: {
     background: "#ffffff",
     padding: "60px 80px",
@@ -115,6 +140,7 @@ const styles = {
     display: "flex",
     height: "100vh",
     fontFamily: "Inter, Arial, sans-serif", 
+    padding: "12px",
     gap: "12px",
     background: "#f3f4f6"
   },
@@ -138,6 +164,7 @@ const styles = {
     flexDirection: "column",
     overflow: "hidden",
     minHeight: 0,
+    padding: "16px" // ✅ adds inner spacing
   },
   categoryRow:{
     background:"#f8fafc",
@@ -294,442 +321,384 @@ const styles = {
     if (num === null || num === undefined) return "";
     return Number(num).toLocaleString();
   };
-const getTotal = (t) => {
-  const price = t.unit_price ?? t.items?.unit_price ?? 0;
-  const qty = t.quantity ?? 0;
-  return Number(qty) * Number(price);
-};
-  // ================= APP COMPONENT =================
-  export default function App() {
-    const normalize = (val) =>
-    (val || "").replace(/\s+/g, " ").trim().toLowerCase();
-    const [session, setSession] = useState(null);
-    const [stockPage, setStockPage] = useState(1); 
-    const rowsPerPage = 50; 
-    const [notification, setNotification] = useState("");
-    const [categoryOptions, setCategoryOptions] = useState([]);
-    const [items, setItems] = useState([]);
-    const [itemOptions, setItemOptions] = useState([]);
-    const [userRooms, setUserRooms] = useState([]);
-    const stockRooms = [
-      "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
-      "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room"
-    ];
-    const loadUserProfile = useCallback(async (userId) => {
+// ================= APP COMPONENT =================
+export default function App() {
+  const [session, setSession] = useState(null);
+  const [notification, setNotification] = useState("");
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [items, setItems] = useState([]);
+  const [itemOptions, setItemOptions] = useState([]);
+  const [userRooms, setUserRooms] = useState([]);
+  const loadUserProfile = async (userId) => {
     console.log("LOAD PROFILE FOR USER:", userId);
-  
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("stock_rooms, role")
-      .eq("id", userId)
-      .single();
-  
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("stock_rooms, role")
+    .eq("id", userId)
+    .single();
     console.log("PROFILE RESULT:", data);
-  
-    if (error) {
-      console.error("Profile error:", error);
-      return;
-    }
-  
-    if (!data) return;
-  
-    if (data.role === "admin") {
-      setUserRooms(stockRooms);
-    } else {
-      setUserRooms(data.stock_rooms || []);
-    }
-  
-  }, [stockRooms]); 
-    
-    const [transactions, setTransactions] = useState([]);
-    const [activeTab, setActiveTab] = useState("stock");
-    const [selectedStockRoom, setSelectedStockRoom] = useState("");
-    const [brandOptions, setBrandOptions] = useState([]);
-    const [inSearch, setInSearch] = useState("");
-    const [outSearch, setOutSearch] = useState("");
-    const [stockSearch, setStockSearch] = useState("");
-    const [openCategories, setOpenCategories] = useState({});
-      useEffect(() => {
-      const savedCategories = localStorage.getItem("openCategories");
-        if (savedCategories) {
-          setOpenCategories(JSON.parse(savedCategories));
-        }
-    }, []);
-    const toggleCategory = (category) => {
-      setOpenCategories(prev => {
-        const updated = {
-          ...prev,
-          [category]: !prev[category]
-        };
-          localStorage.setItem("openCategories", JSON.stringify(updated));
-          return updated;
-        });
-    };
-    const [deletedItemSearch, setDeletedItemSearch] = useState("");
-    const [deletedTxSearch, setDeletedTxSearch] = useState("");
-    const [showModal, setShowModal] = useState(false);
-    const [modalType, setModalType] = useState("");
-    const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
-    const [form, setForm] = useState({
-      date:"",
-      item_id:"",
-      item_name:"",
-      brand:"",
-      category:"",
-      brandOptions:[],
-      type:"IN",
-      quantity:"",
-      unit_price:"",
-      id:null
-    });
-    const categories = [
-    ...new Set(items.map(i => i.category).filter(Boolean))
-      ];
-    // ================= DASHBOARD DATA =================
-    const [confirmAction, setConfirmAction] = useState(null);
-    const [openMenuId, setOpenMenuId] = useState(null);
-    const menuItemStyle = {
-        padding:"8px 12px",
-        textAlign:"left",
-        background:"none",
-        border:"none",
-        cursor:"pointer",
-        borderBottom:"1px solid #f1f5f9"
-      };
-    const menuRefs = useRef({});
-    useEffect(() => {
-    const handleClickOutside = (event) => {
-  
-      const isInsideMenu = Object.values(menuRefs.current).some(
-        (ref) => ref && ref.contains(event.target)
-      );
-  
-      if (!isInsideMenu) {
-        setOpenMenuId(null);
-      }
-    };
-  
-    document.addEventListener("mousedown", handleClickOutside);
-  
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);  
-    const [authEmail, setAuthEmail] = useState("");
-    const [authPassword, setAuthPassword] = useState("");
-      
-    // ================= AUTH =================
-     useEffect(() => {
-    
-      const initAuth = async () => {
-    
-        const { data } = await supabase.auth.getSession();
-        setSession(data.session);
-    
-        if (data.session) {
-          setSelectedStockRoom("");
-          loadUserProfile(data.session.user.id);
-        }
-    
-      };
-    
-      initAuth();
-    
-      const { data } = supabase.auth.onAuthStateChange((_e, s) => {
-    
-        setSession(s);
-    
-        if (s) {
-          loadUserProfile(s.user.id);
-        }
-    
-      });
-    
-      return () => data.subscription.unsubscribe();
-    
-    }, []);
-    
-    useEffect(() => {
-  if (session) {
-    loadUserProfile(session.user.id);
-    loadData();
+  if (error) {
+    console.error("Profile error:", error);
+    return;
   }
-}, [session, loadUserProfile, loadData]);
-          const handleAuth = async () => {
-        
-          if (!authEmail || !authPassword) {
-            alert("Enter email and password");
-            return;
-          }
-        
-          const { error } = await supabase.auth.signInWithPassword({
-            email: authEmail,
-            password: authPassword
-          });
-        
-          if (error) {
-            alert(error.message);
-          }
-        
-        };
-    // ================= LOAD DATA =================
-          const loadData = useCallback(async () => {
-  
-            const { data: itemsData, error: itemsError } = await supabase
-              .from("items")
-              .select("*")
-              .order("item_name", { ascending: true });
-          
-            if (itemsError) {
-              console.error("Items error:", itemsError);
-              return;
-            }
-          
-            const itemsWithDeleted = (itemsData || []).map(i => ({
-              ...i,
-              deleted: i.deleted ?? false
-            }));
-          
-            const { data: tx, error: txError } = await supabase
-              .from("inventory_transactions")
-              .select("*, items(item_name, brand, unit_price, location, category)")
-              .order("created_at", { ascending: false });
-          
-            if (txError) {
-              console.error("Transactions error:", txError);
-              return;
-            }
-          
-            const transactionsWithDeleted = (tx || []).map(t => ({
-              ...t,
-              deleted: t.deleted ?? false
-            }));
-          
-            setItems(itemsWithDeleted);
-            setTransactions(transactionsWithDeleted);
-                    // Category state
-            const opened = {};
-            itemsWithDeleted.forEach(i => {
-              const cat = i.category || "Uncategorized";
-              if (!(cat in opened)) opened[cat] = true;
-            });
-          
-            const savedCategories = localStorage.getItem("openCategories");
-            if (!savedCategories) setOpenCategories(opened);
-  
-          }, []); // 👈 important
-
-      
-  // ================= FILTERS =================
-  const filteredTransactions = useMemo(() => {
-    return transactions
-      .filter(t => !t.deleted)
-      .filter(t => {
-        if (!selectedStockRoom) return true;
-  
-        const txLocation = (t.location || t.items?.location || "")
-          .trim()
-          .toLowerCase();
-  
-        const selected = selectedStockRoom
-          .trim()
-          .toLowerCase();
-  
-        return normalize(txLocation) === normalize(selectedStockRoom);
+  if (data.role === "admin") {
+    setUserRooms(stockRooms);
+  } else {
+    setUserRooms(data.stock_rooms || []);
+  }
+  };
+  const [transactions, setTransactions] = useState([]);
+  const [activeTab, setActiveTab] = useState("stock");
+  const [selectedStockRoom, setSelectedStockRoom] = useState("");
+  const [brandOptions, setBrandOptions] = useState([]);
+  const [inSearch, setInSearch] = useState("");
+  const [outSearch, setOutSearch] = useState("");
+  const [stockSearch, setStockSearch] = useState("");
+  const [openCategories, setOpenCategories] = useState({});
+    useEffect(() => {
+    const savedCategories = localStorage.getItem("openCategories");
+      if (savedCategories) {
+        setOpenCategories(JSON.parse(savedCategories));
+      }
+  }, []);
+  const toggleCategory = (category) => {
+    setOpenCategories(prev => {
+      const updated = {
+        ...prev,
+        [category]: !prev[category]
+      };
+        localStorage.setItem("openCategories", JSON.stringify(updated));
+        return updated;
       });
-  }, [transactions, selectedStockRoom]);
-  
-  const stockMap = useMemo(() => {
-    return filteredTransactions.reduce((acc, t) => {
-      const qty = Number(t.quantity) || 0;
-  
-      if (!acc[t.item_id]) acc[t.item_id] = 0;
-  
-      acc[t.item_id] += t.type === "IN" ? qty : -qty;
-  
-      return acc;
-    }, {});
-  }, [filteredTransactions]);
-  
-  const inTransactions = useMemo(() => {
-    return filteredTransactions
-      .filter(t => t.type === "IN")
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  }, [filteredTransactions]);
-  
-  const outTransactions = useMemo(() => {
-    return filteredTransactions
-      .filter(t => t.type === "OUT")
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  }, [filteredTransactions]);
-  
-  const stockInventory = useMemo(() => {
-    return items
-      .filter(i => !i.deleted)
-      .filter(i => {
-        if (!selectedStockRoom) return true;
-  
-        const selected = selectedStockRoom.replace(/\s+/g, " ").trim().toLowerCase();
-        const itemLocation = (i.location || "")
-          .replace(/\s+/g, " ")
-          .trim()
-          .toLowerCase();
-  
-        return normalize(itemLocation) === normalize(selectedStockRoom);
-      })
-      .map(i => {
-        const stock = stockMap[i.id] || 0;
-  
-        return {
-          id: i.id,
-          item_name: i.item_name,
-          brand: i.brand,
-          category: i.category,
-          unit_price: i.unit_price,
-          stock: stock,
-          location: i.location
-        };
-      });
-  }, [items, selectedStockRoom, stockMap]);
+  };
+  const [deletedItemSearch, setDeletedItemSearch] = useState("");
+  const [deletedTxSearch, setDeletedTxSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState("");
+  const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
+  const [form, setForm] = useState({
+    date:"",
+    item_id:"",
+    item_name:"",
+    brand:"",
+    category:"",
+    brandOptions:[],
+    type:"IN",
+    quantity:"",
+    unit_price:"",
+    id:null
+  });
+  const categories = [
+  ...new Set(items.map(i => i.category).filter(Boolean))
+    ];
+  // ================= DASHBOARD DATA =================
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const menuItemStyle = {
+      padding:"8px 12px",
+      textAlign:"left",
+      background:"none",
+      border:"none",
+      cursor:"pointer",
+      borderBottom:"1px solid #f1f5f9"
+    };
+  const menuRefs = useRef({});
+  useEffect(() => {
+  const handleClickOutside = (event) => {
 
-    const filteredItems = useMemo(() => {
-    const search = stockSearch.toLowerCase();
+    const isInsideMenu = Object.values(menuRefs.current).some(
+      (ref) => ref && ref.contains(event.target)
+    );
 
-    return stockInventory.filter(item =>
-      (item.item_name || "").toLowerCase().includes(search) ||
-      (item.brand || "").toLowerCase().includes(search)
-    );
-  }, [stockInventory, stockSearch]);
+    if (!isInsideMenu) {
+      setOpenMenuId(null);
+    }
+  };
 
-  const totalPages = Math.ceil(filteredItems.length / rowsPerPage);
+  document.addEventListener("mousedown", handleClickOutside);
 
-  const paginatedItems = useMemo(() => {
-    return filteredItems.slice(
-      (stockPage - 1) * rowsPerPage,
-      stockPage * rowsPerPage
-    );
-  }, [filteredItems, stockPage, rowsPerPage]);
-
-  const groupedStock = useMemo(() => {
-    return paginatedItems.reduce((acc, item) => {
-      const cat = item.category || "Uncategorized";
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(item);
-      return acc;
-    }, {});
-  }, [paginatedItems]);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);  
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const stockRooms = [
+    "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
+    "Maintenance Bodega 1","Maintenance Bodega 2","Maintenance Bodega 3","SKI Stock Room","Quarry Stock Room"
+  ];
+  // ================= AUTH =================
+   useEffect(() => {
   
-  const totalTransactions = useMemo(() => filteredTransactions.length, [filteredTransactions]);
+    const initAuth = async () => {
   
-  const totalCategories = useMemo(() => {
-    return new Set(
-      stockInventory.map(i => i.category || "Uncategorized")
-    ).size;
-  }, [stockInventory]);
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
   
-  const totalItems = useMemo(() => stockInventory.length, [stockInventory]);
+      if (data.session) {
+        setSelectedStockRoom("");
+        loadUserProfile(data.session.user.id);
+      }
   
-  const totalInventoryValue = useMemo(() => {
-    return stockInventory.reduce(
-      (sum, i) => sum + (i.stock * (i.unit_price || 0)),
-      0
-    );
-  }, [stockInventory]);
+    };
   
-  const lowStockItems = useMemo(() => {
-    return stockInventory.filter(i => i.stock <= 5).length;
-  }, [stockInventory]);
+    initAuth();
   
-  const deletedItems = useMemo(() => {
-    return items
-      .filter(i =>
-        i.deleted &&
-        (!selectedStockRoom || i.location === selectedStockRoom || !i.location)
-      )
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  }, [items, selectedStockRoom]);
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => {
   
-  const deletedTransactions = useMemo(() => {
-    return transactions
-      .filter(t => t.deleted)
-      .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
-      .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
-  }, [transactions, selectedStockRoom]);
+      setSession(s);
   
-  const filteredDeletedItems = useMemo(() => {
-    const search = deletedItemSearch.toLowerCase();
+      if (s) {
+        loadUserProfile(s.user.id);
+      }
   
-    return deletedItems.filter(i =>
-      (i.item_name || "").toLowerCase().includes(search) ||
-      (i.brand || "").toLowerCase().includes(search)
-    );
-  }, [deletedItems, deletedItemSearch]);
+    });
   
-  const filteredDeletedTransactions = useMemo(() => {
-    const search = deletedTxSearch.toLowerCase();
+    return () => data.subscription.unsubscribe();
   
-    return deletedTransactions.filter(t =>
-      t.items?.item_name?.toLowerCase().includes(search) ||
-      t.items?.brand?.toLowerCase().includes(search)
-    );
-  }, [deletedTransactions, deletedTxSearch]);
-    
-    // ================= MONTHLY REPORT STATE =================
-      const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
-      const [reportYear, setReportYear] = useState(new Date().getFullYear());
-    
-      // ================= MONTHLY REPORT LOGIC =================
-      const monthlyTransactions = filteredTransactions.filter(t => {
-        if (!t.date) return false;
+  }, []);
+  
+  useEffect(() => {
+    if (session) {
+      loadUserProfile(session.user.id);   // ← load assigned rooms
+      loadData();
+    }
+  }, [session]);
+        const handleAuth = async () => {
       
-        const txDate = new Date(t.date);
-      
-        return (
-          txDate.getMonth() + 1 === Number(reportMonth) &&
-          txDate.getFullYear() === Number(reportYear)
-        );
-      });
-      
-      const monthlySummary = monthlyTransactions.reduce((acc, t) => {
-      
-        const price = Number(t.unit_price || t.items?.unit_price || 0);
-        const qty = Number(t.quantity || 0);
-        const total = price * qty;
-      
-        if (t.type === "IN") {
-          acc.totalInQty += qty;
-          acc.totalInValue += total;
-        } else {
-          acc.totalOutQty += qty;
-          acc.totalOutValue += total;
+        if (!authEmail || !authPassword) {
+          alert("Enter email and password");
+          return;
         }
       
-        return acc;
+        const { error } = await supabase.auth.signInWithPassword({
+          email: authEmail,
+          password: authPassword
+        });
       
-      }, {
-        totalInQty: 0,
-        totalOutQty: 0,
-        totalInValue: 0,
-        totalOutValue: 0
-      });
+        if (error) {
+          alert(error.message);
+        }
       
-      const netValue =
-        (monthlySummary?.totalInValue || 0) -
-        (monthlySummary?.totalOutValue || 0);
-    // ================= EXPORT EXCEL =================
-      const exportMonthlyReport = () => {
-        
-          if (monthlyTransactions.length === 0) {
-            alert("No data to export.");
-            return;
-          }
-        
-          const rows = [];
+      };
+  // ================= LOAD DATA =================
+        const loadData = async () => {
+        const { data: itemsData } = await supabase
+        .from("items")
+        .select("*")
+        .order("item_name", { ascending: true });
+        const itemsWithDeleted = (itemsData || []).map(i => ({
+          ...i,
+          deleted: i.deleted ?? false
+        }));
+      
+        const { data: tx } = await supabase
+          .from("inventory_transactions")
+          .select("*, items(item_name, brand, unit_price, location, category)")
+          .order("created_at", { ascending: false });
+      
+        const transactionsWithDeleted = (tx || []).map(t => ({
+          ...t,
+          deleted: t.deleted ?? false
+        }));
+      
+        setItems(itemsWithDeleted);
+        setTransactions(transactionsWithDeleted);
+      
+        // Category state
+        const opened = {};
+        itemsWithDeleted.forEach(i => {
+          const cat = i.category || "Uncategorized";
+          if (!(cat in opened)) opened[cat] = true;
+        });
+      
+        const savedCategories = localStorage.getItem("openCategories");
+        if (!savedCategories) setOpenCategories(opened);
+      };
+
+// ================= FILTERS =================
+const filteredTransactions = useMemo(() => {
+  return transactions
+    .filter(t => !t.deleted)
+    .filter(t => {
+      if (!selectedStockRoom) return true;
+
+      const txLocation = (t.location || t.items?.location || "")
+        .trim()
+        .toLowerCase();
+
+      const selected = selectedStockRoom
+        .trim()
+        .toLowerCase();
+
+      return txLocation === selected;
+    });
+}, [transactions, selectedStockRoom]);
+
+const stockMap = useMemo(() => {
+  return filteredTransactions.reduce((acc, t) => {
+    const qty = Number(t.quantity) || 0;
+
+    if (!acc[t.item_id]) acc[t.item_id] = 0;
+
+    acc[t.item_id] += t.type === "IN" ? qty : -qty;
+
+    return acc;
+  }, {});
+}, [filteredTransactions]);
+
+const inTransactions = useMemo(() => {
+  return filteredTransactions
+    .filter(t => t.type === "IN")
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+}, [filteredTransactions]);
+
+const outTransactions = useMemo(() => {
+  return filteredTransactions
+    .filter(t => t.type === "OUT")
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+}, [filteredTransactions]);
+
+const stockInventory = useMemo(() => {
+  return items
+    .filter(i => !i.deleted)
+    .filter(i => {
+      if (!selectedStockRoom) return true;
+
+      const selected = selectedStockRoom.replace(/\s+/g, " ").trim().toLowerCase();
+      const itemLocation = (i.location || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+
+      return itemLocation === selected;
+    })
+    .map(i => {
+      const stock = stockMap[i.id] || 0;
+
+      return {
+        id: i.id,
+        item_name: i.item_name,
+        brand: i.brand,
+        category: i.category,
+        unit_price: i.unit_price,
+        stock: stock,
+        location: i.location
+      };
+    });
+}, [items, selectedStockRoom, stockMap]);
+
+const totalTransactions = useMemo(() => filteredTransactions.length, [filteredTransactions]);
+
+const totalCategories = useMemo(() => {
+  return new Set(
+    stockInventory.map(i => i.category || "Uncategorized")
+  ).size;
+}, [stockInventory]);
+
+const totalItems = useMemo(() => stockInventory.length, [stockInventory]);
+
+const totalInventoryValue = useMemo(() => {
+  return stockInventory.reduce(
+    (sum, i) => sum + (i.stock * (i.unit_price || 0)),
+    0
+  );
+}, [stockInventory]);
+
+const lowStockItems = useMemo(() => {
+  return stockInventory.filter(i => i.stock <= 5).length;
+}, [stockInventory]);
+
+const deletedItems = useMemo(() => {
+  return items
+    .filter(i =>
+      i.deleted &&
+      (!selectedStockRoom || i.location === selectedStockRoom || !i.location)
+    )
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+}, [items, selectedStockRoom]);
+
+const deletedTransactions = useMemo(() => {
+  return transactions
+    .filter(t => t.deleted)
+    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
+    .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
+}, [transactions, selectedStockRoom]);
+
+const filteredDeletedItems = useMemo(() => {
+  const search = deletedItemSearch.toLowerCase();
+
+  return deletedItems.filter(i =>
+    (i.item_name || "").toLowerCase().includes(search) ||
+    (i.brand || "").toLowerCase().includes(search)
+  );
+}, [deletedItems, deletedItemSearch]);
+
+const filteredDeletedTransactions = useMemo(() => {
+  const search = deletedTxSearch.toLowerCase();
+
+  return deletedTransactions.filter(t =>
+    t.items?.item_name?.toLowerCase().includes(search) ||
+    t.items?.brand?.toLowerCase().includes(search)
+  );
+}, [deletedTransactions, deletedTxSearch]);
+  
+  // ================= MONTHLY REPORT STATE =================
+    const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
+    const [reportYear, setReportYear] = useState(new Date().getFullYear());
+  
+    // ================= MONTHLY REPORT LOGIC =================
+    const monthlyTransactions = filteredTransactions.filter(t => {
+      if (!t.date) return false;
+    
+      const txDate = new Date(t.date);
+    
+      return (
+        txDate.getMonth() + 1 === Number(reportMonth) &&
+        txDate.getFullYear() === Number(reportYear)
+      );
+    });
+    
+    const monthlySummary = monthlyTransactions.reduce((acc, t) => {
+    
+      const price = Number(t.unit_price || t.items?.unit_price || 0);
+      const qty = Number(t.quantity || 0);
+      const total = price * qty;
+    
+      if (t.type === "IN") {
+        acc.totalInQty += qty;
+        acc.totalInValue += total;
+      } else {
+        acc.totalOutQty += qty;
+        acc.totalOutValue += total;
+      }
+    
+      return acc;
+    
+    }, {
+      totalInQty: 0,
+      totalOutQty: 0,
+      totalInValue: 0,
+      totalOutValue: 0
+    });
+    
+    const netValue =
+      (monthlySummary?.totalInValue || 0) -
+      (monthlySummary?.totalOutValue || 0);
+  // ================= EXPORT EXCEL =================
+    const exportMonthlyReport = () => {
+      
+        if (monthlyTransactions.length === 0) {
+          alert("No data to export.");
+          return;
+        }
+      
+        const rows = [];
       
         // ================= REPORT HEADER =================
         rows.push(["Lago De Oro Inventory Monthly Report"]);
         rows.push([
-          `${new Date(reportYear, reportMonth - 1).toLocaleString("default",{month:"long"})} ${reportYear}`
+          `${new Date(0, reportMonth - 1).toLocaleString("default",{month:"long"})} ${reportYear}`
         ]);
         rows.push([]);
       
@@ -773,7 +742,7 @@ const getTotal = (t) => {
       
         perItem.forEach(row=>{
           const netQty = row.inQty - row.outQty;
-          const value = netQty * row.unit_price;
+          const value = netQty * row.price;
       
           rows.push([
             row.item,
@@ -890,7 +859,7 @@ const handleFormChange = (key, value) => {
       );
 
       if (selectedItem) {
-        updated.unit_price = selectedItem.unit_price;
+        updated.price = selectedItem.unit_price;
       }
 
     }
@@ -908,7 +877,7 @@ const handleFormChange = (key, value) => {
     brandOptions:[], 
     type:"IN", 
     quantity:"", 
-    unit_price:"", 
+    price:"", 
     id:null,
     location: selectedStockRoom  // ✅ add this
   });
@@ -924,7 +893,7 @@ const handleFormChange = (key, value) => {
     brandOptions:[], 
     type:"IN", 
     quantity:"", 
-    unit_price:"", 
+    price:"", 
     id:null,
     location: selectedStockRoom // ✅ add this
   });
@@ -953,163 +922,81 @@ const handleFormChange = (key, value) => {
           }
     
     };
-     // ================= SUBMIT =================
-const saveTransaction = async () => {
+      // ================= SUBMIT =================
+   const saveTransaction = async () => {
+    if(modalType === "transaction") {
+      if(!form.item_name || !form.quantity || !form.date) return alert("Fill required fields");
+      const existingItem = items.find(i => i.item_name === form.item_name && i.brand === form.brand && !i.deleted && i.location === selectedStockRoom);
+     if(!existingItem) {
+  setConfirmAction({
+    type: "createItemConfirm",
+    data: { ...form }
+  });
+  return;
+}
+if (form.type === "OUT") {
+  const currentStock = stockMap[existingItem.id] || 0;
+  const requestedQty = Number(form.quantity) || 0;
 
-  if (modalType === "transaction") {
-
-    if (!form.item_name || !form.quantity || !form.date) {
-      return alert("Fill required fields");
-    }
-
-    const existingItem = items.find(i =>
-      i.item_name === form.item_name &&
-      i.brand === form.brand &&
-      !i.deleted &&
-      i.location === selectedStockRoom
-    );
-
-    if (!existingItem) {
-      setConfirmAction({
-        type: "createItemConfirm",
-        data: { ...form }
-      });
-      return;
-    }
-
-    // ✅ STOCK CHECK
-    if (form.type === "OUT") {
-      const currentStock = stockMap[existingItem.id] || 0;
-      const requestedQty = Number(form.quantity) || 0;
-
-      if (requestedQty > currentStock) {
-        alert(`Not enough stock.\n\nAvailable: ${currentStock}`);
-        return;
-      }
-    }
-
-    const txData = {
-      date: form.date,
-      created_at: new Date().toISOString(),
-      item_id: existingItem.id,
-      brand: form.brand || existingItem.brand || "No Brand",
-      type: form.type,
-      quantity: Number(form.quantity),
-      unit_price: Number(form.unit_price || existingItem.unit_price || 0),
-      location: form.location || selectedStockRoom
-    };
-
-    // ✅ UPDATE OR INSERT
-    if (form.id) {
-      const { error } = await supabase
-        .from("inventory_transactions")
-        .update(txData)
-        .eq("id", form.id);
-
-      if (error) {
-        alert(error.message);
-        return;
-      }
-    } else {
-      const { error } = await supabase
-        .from("inventory_transactions")
-        .insert([txData]);
-
-      if (error) {
-        alert(error.message);
-        return;
-      }
-    }
-
-    // ✅ RESET
-    setForm({
-      date: "",
-      item_id: "",
-      item_name: "",
-      brand: "",
-      category: "",
-      type: "IN",
-      quantity: "",
-      unit_price: "",
-      id: null
-    });
-
-    setShowModal(false);
-    setModalType("");
-    loadData();
+  if (requestedQty > currentStock) {
+    alert(`Not enough stock.\n\nAvailable: ${currentStock}`);
+    return;
   }
-
-  // ================= ITEM =================
-  else if (modalType === "item") {
-
-    if (!form.item_name || !form.unit_price) {
-      return alert("Fill required fields");
+}
+      const txData = {
+          date: form.date, // keep this for reporting
+          created_at: new Date().toISOString(), // ✅ ensures ordering
+          item_id: existingItem.id,
+          brand: form.brand || existingItem.brand || "No Brand",
+          type: form.type,
+          quantity: Number(form.quantity),
+          unit_price: Number(form.price || existingItem.unit_price || 0),
+          location: form.location || selectedStockRoom
+        };
+      if(form.id) await supabase.from("inventory_transactions").update(txData).eq("id", form.id);
+      else await supabase.from("inventory_transactions").insert([txData]);
+      setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
+      setShowModal(false);
+      setModalType("");
+      loadData();
+    } else if(modalType === "item") {
+      if(!form.item_name || !form.unit_price) return alert("Fill required fields");
+      const itemData = { 
+          item_name: form.item_name, 
+          brand: form.brand || "No Brand",
+          category: form.category,
+          unit_price: Number(form.unit_price),
+          location: form.location || selectedStockRoom
+        };
+      if(form.id) await supabase.from("items").update(itemData).eq("id", form.id);
+      else {
+          const { data, error } = await supabase
+            .from("items")
+            .insert([itemData])
+            .select();
+        
+          if (error) {
+            console.error(error);
+            alert(error.message);
+            return;
+          }
+        
+          if (data?.length && modalTypeBeforeItem === "transaction") {
+            setForm(prev => ({ ...prev, item_id: data[0].id }));
+            setModalType("transaction");
+            setShowModal(true);
+            setModalTypeBeforeItem("");
+            return;
+          }
+        
+        }
+      setForm({   date:"",   item_id:"",   item_name:"",   brand:"",   category:"",   type:"IN",   quantity:"",   unit_price:"",   id:null });
+      setShowModal(false);
+      setModalType("");
+      loadData();
     }
-
-    const itemData = {
-      item_name: form.item_name,
-      brand: form.brand || "No Brand",
-      category: form.category,
-      unit_price: Number(form.unit_price),
-      location: form.location || selectedStockRoom
-    };
-
-    if (form.id) {
-      // ✅ UPDATE ITEM
-      const { error } = await supabase
-        .from("items")
-        .update(itemData)
-        .eq("id", form.id);
-
-      if (error) {
-        console.error(error);
-        alert(error.message);
-        return;
-      }
-
-    } else {
-      // ✅ INSERT ITEM
-      const { data, error } = await supabase
-        .from("items")
-        .insert([itemData])
-        .select();
-
-      if (error) {
-        console.error(error);
-        alert(error.message);
-        return;
-      }
-
-      // ✅ RETURN TO TRANSACTION FLOW
-      if (data?.length && modalTypeBeforeItem === "transaction") {
-        setForm(prev => ({ ...prev, item_id: data[0].id }));
-        setModalType("transaction");
-        setShowModal(true);
-        setModalTypeBeforeItem("");
-        return;
-      }
-    }
-
-    // ✅ RESET
-    setForm({
-      date: "",
-      item_id: "",
-      item_name: "",
-      brand: "",
-      category: "",
-      type: "IN",
-      quantity: "",
-      unit_price: "",
-      id: null
-    });
-
-    setShowModal(false);
-    setModalType("");
-    loadData();
-  }
-};
-    const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
-
+  };
+  const emptyRowComponent = (colSpan, text) => <tr><td colSpan={colSpan} style={styles.emptyRow}>{text}</td></tr>;
   // ================= AUTH SCREEN =================
       if(!session) return (
       
@@ -1326,11 +1213,7 @@ const saveTransaction = async () => {
         </div>
 
    {/* MAIN AREA */}
-      <div style={{
-          ...styles.main,
-          height: "100%",
-          minHeight: 0
-        }}>
+      <div style={styles.main}>
 
           {!selectedStockRoom ? (
             <div style={styles.welcomeScreen}>
@@ -1383,7 +1266,7 @@ const saveTransaction = async () => {
         type="text"
         placeholder="Search by Item Name or Brand..."
         value={stockSearch}
-        onChange={(e) => {   setStockSearch(e.target.value);   setStockPage(1); }}
+        onChange={(e) => setStockSearch(e.target.value)}
         style={{
           padding: "8px 12px",
           borderRadius: 8,
@@ -1405,7 +1288,7 @@ const saveTransaction = async () => {
         boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
         display: "flex",
         flexDirection: "column",
-        minHeight: 0,
+        overflowY: "auto",
         scrollBehavior: "smooth"
       }}
     >
@@ -1438,8 +1321,7 @@ const saveTransaction = async () => {
         </div>
       <div
         style={{
-          flex: 1,                
-          minHeight: 0,           
+          maxHeight: "400px",   // 🔥 controls table height
           overflowY: "auto",
           overflowX: "hidden",
           border: "1px solid #e5e7eb",
@@ -1466,131 +1348,195 @@ const saveTransaction = async () => {
           </tr>
         </thead>
         <tbody>
-            {Object.keys(groupedStock).length === 0 ? (
-              <tr>
-                <td colSpan={6}>
-                  <div style={{ display: "flex", justifyContent: "center", color: "#9ca3af" }}>
-                    No matching items
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              Object.entries(groupedStock).map(([category, categoryItems]) => {
-                const isOpen = openCategories[category] === true;
+            {(() => {
+              // Group stock by category
+              const groupedStock = stockInventory
+                .filter(
+                  (item) =>
+                    (item.item_name || "").toLowerCase().includes(stockSearch.toLowerCase()) ||
+                    (item.brand || "").toLowerCase().includes(stockSearch.toLowerCase())
+                )
+                .reduce((acc, item) => {
+                  const cat = item.category || "Uncategorized";
+                  if (!acc[cat]) acc[cat] = [];
+                  acc[cat].push(item);
+                  return acc;
+                }, {});
           
+              if (Object.keys(groupedStock).length === 0) {
+                return (
+                  <tr>
+                    <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                      No matching items
+                    </td>
+                  </tr>
+                );
+              }
+          
+              return Object.entries(groupedStock).map(([category, items]) => {
+
+                const isOpen = openCategories[category] === true;
+              
                 const totalValue = items.reduce(
-                  (sum, i) => sum + (i.stock * (i.unit_price || 0)),
+                  (sum, i) => sum + (i.stock * i.unit_price),
                   0
                 );
-            
-                  return (
-                    <React.Fragment key={category}>
-                      {/* CATEGORY HEADER */}
-                      <tr
-                        style={styles.categoryRow}
-                        onClick={(e)=>{
-                          if(e.target.tagName !== "BUTTON") toggleCategory(category);
+              
+                return (
+                  <React.Fragment key={category}>
+              
+                    {/* CATEGORY HEADER */}
+                    <tr
+                      style={styles.categoryRow}
+                      onClick={(e)=>{
+                          if(e.target.tagName !== "BUTTON"){
+                            toggleCategory(category);
+                          }
                         }}
                       >
-                        <td colSpan={6} style={{padding:"12px 14px"}}>
-                          <div style={styles.categoryContainer}>
-                            <div style={styles.categoryLeft}>
-                              <span style={{color:"#6b7280"}}>{isOpen ? "▾" : "▸"}</span>
-                              <span>
-                                {category}
-                                {(() => {
-                                  const lowStockCount = items.filter(i => i.stock <= 5).length;
-                                  if (lowStockCount === 0) return null;
-                                  return (
-                                    <span style={{
-                                      marginLeft:8,
-                                      background:"#fee2e2",
-                                      color:"#b91c1c",
-                                      fontSize:11,
-                                      padding:"2px 6px",
-                                      borderRadius:6,
-                                      fontWeight:600
-                                    }}>
-                                      ⚠ {lowStockCount} Low Stock
-                                    </span>
-                                  );
-                                })()}
+                      <td colSpan={6} style={{padding:"12px 14px"}}>
+                      
+                      <div style={styles.categoryContainer}>
+                      
+                      <div style={styles.categoryLeft}>
+                      <span style={{color:"#6b7280"}}>
+                      {isOpen ? "▾" : "▸"}
+                      </span>
+                      
+                      <span>
+                          {category}
+                        
+                          {(() => {
+                            const lowStockCount = items.filter(i => i.stock <= 5).length;
+                        
+                            if (lowStockCount === 0) return null;
+                        
+                            return (
+                              <span
+                                style={{
+                                  marginLeft:8,
+                                  background:"#fee2e2",
+                                  color:"#b91c1c",
+                                  fontSize:11,
+                                  padding:"2px 6px",
+                                  borderRadius:6,
+                                  fontWeight:600
+                                }}
+                              >
+                                ⚠ {lowStockCount} Low Stock
                               </span>
-                            </div>
-                            <div style={styles.categoryRight}>
-                              <span>{items.length} item{items.length !== 1 ? "s" : ""}</span>
-                              <span style={{fontWeight:600,color:"#111827"}}>
-                                ₱{totalValue.toLocaleString(undefined,{minimumFractionDigits:2})}
-                              </span>
-                            </div>
-                          </div>
+                            );
+                          })()}
+                        </span>
+                      </div>
+                      
+                      <div style={styles.categoryRight}>
+                      <span>
+                      {items.length} item{items.length !== 1 ? "s" : ""}
+                      </span>
+                      
+                      <span style={{fontWeight:600,color:"#111827"}}>
+                      ₱{totalValue.toLocaleString(undefined,{minimumFractionDigits:2})}
+                      </span>
+                      </div>
+                      
+                      </div>
+                      
+                      </td>
+                      </tr>
+              
+                    {/* ITEMS */}
+                    {isOpen && items.map(i => (
+                      <tr
+                          key={i.id}
+                          style={{
+                            background: i.stock <= 5 ? "#fee2e2" : "transparent"
+                          }}
+                        >
+                        <td style={styles.thtd}>{formatNumber(i.stock)}</td>
+                        <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
+                        <td style={styles.thtd}>{displayBrand(i.brand)}</td>
+                        <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                        <td style={styles.thtd}>₱{Number(i.stock * Number(i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                        <td style={{ ...styles.thtd, position:"relative" }}>
+
+                        <div
+                            className="action-menu"
+                            ref={(el) => (menuRefs.current["stock-" + i.id] = el)}
+                          >
+                        
+                        <button
+                          onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id);
+                            }}
+                          style={{
+                            background:"none",
+                            border:"none",
+                            fontSize:20,
+                            cursor:"pointer"
+                          }}
+                        >
+                        ⋮
+                        </button>
+                        
+                        {openMenuId === "stock-"+i.id && (
+                        <div
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        position:"absolute",
+                        right:0,
+                        top:30,
+                        background:"#fff",
+                        border:"1px solid #e5e7eb",
+                        borderRadius:8,
+                        boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                        zIndex:10,
+                        minWidth:120,
+                        display:"flex",
+                        flexDirection:"column"
+                        }}>
+                        
+                        <button
+                        style={menuItemStyle}
+                        onClick={()=>{
+                        setForm({
+                          id: i.id,
+                          item_name: i.item_name || "",
+                          brand: i.brand || "",
+                          category: i.category || "",
+                          unit_price: i.unit_price || "",
+                          brandOptions:[i.brand],
+                        });
+                        setModalType("item");
+                        setShowModal(true);
+                        setOpenMenuId(null);
+                        }}
+                        >
+                        Edit
+                        </button>
+                        
+                        <button
+                        style={{...menuItemStyle,color:"#ef4444"}}
+                        onClick={()=>{
+                        setConfirmAction({ type:"deleteItem", data:i });
+                        setOpenMenuId(null);
+                        }}
+                        >
+                        Delete
+                        </button>
+                        
+                        </div>
+                        )}
+                        </div>
                         </td>
                       </tr>
-            
-                      {/* ITEMS */}
-                      {isOpen && items.map(i => (
-                        <tr key={i.id} style={{ background: i.stock <= 5 ? "#fee2e2" : "transparent" }}>
-                          <td style={styles.thtd}>{formatNumber(i.stock)}</td>
-                          <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
-                          <td style={styles.thtd}>{displayBrand(i.brand)}</td>
-                          <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-                          <td style={styles.thtd}>₱{Number(i.stock * (i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-                          <td style={{ ...styles.thtd, position:"relative" }}>
-                            <div className="action-menu" ref={(el) => (menuRefs.current["stock-" + i.id] = el)}>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id);
-                                }}
-                                style={{ background:"none", border:"none", fontSize:20, cursor:"pointer" }}
-                              >⋮</button>
-            
-                              {openMenuId === "stock-"+i.id && (
-                                <div
-                                  onClick={(e) => e.stopPropagation()}
-                                  style={{
-                                    position:"absolute",
-                                    right:0,
-                                    top:30,
-                                    background:"#fff",
-                                    border:"1px solid #e5e7eb",
-                                    borderRadius:8,
-                                    boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
-                                    zIndex:10,
-                                    minWidth:120,
-                                    display:"flex",
-                                    flexDirection:"column"
-                                  }}
-                                >
-                                  <button style={menuItemStyle} onClick={()=>{
-                                    setForm({
-                                      id: i.id,
-                                      item_name: i.item_name || "",
-                                      brand: i.brand || "",
-                                      category: i.category || "",
-                                      unit_price: i.unit_price || "",
-                                      brandOptions:[i.brand],
-                                    });
-                                    setModalType("item");
-                                    setShowModal(true);
-                                    setOpenMenuId(null);
-                                  }}>Edit</button>
-            
-                                  <button style={{...menuItemStyle,color:"#ef4444"}} onClick={()=>{
-                                    setConfirmAction({ type:"deleteItem", data:i });
-                                    setOpenMenuId(null);
-                                  }}>Delete</button>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </React.Fragment>
-                  );
-                })
-              )
-            }
+                    ))}
+              
+                  </React.Fragment>
+                );
+              });
+            })()}
           </tbody>
       </table>
     </div>
@@ -1642,103 +1588,111 @@ const saveTransaction = async () => {
             </tr>
           </thead>
           <tbody>
-  {Object.keys(groupedStock).length === 0 ? (
-  <tr>
-    <td colSpan={6}>
-      <div style={{ display: "flex", justifyContent: "center", color: "#9ca3af" }}>
-        No matching items
-      </div>
-    </td>
-  </tr>
-) : (
-  Object.entries(groupedStock).map(([category, categoryItems]) => {
-    const isOpen = openCategories[category] === true;
+              {(() => {
+                const filteredIn = inTransactions
+                  .filter(item =>
+                    (item.items?.item_name || "").toLowerCase().includes(inSearch.toLowerCase()) ||
+                    (item.items?.brand || "").toLowerCase().includes(inSearch.toLowerCase())
+                  )
+                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+                if (filteredIn.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={6} style={{ padding: 16, textAlign: "center", color: "#9ca3af" }}>
+                        No transactions found
+                      </td>
+                    </tr>
+                  );
+                }
+            
+                return filteredIn.map((i) => (
+                  <tr key={i.id}>
+                    <td>{i.date}</td>
+                    <td style={{maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+                      {capitalizeWords(i.items?.item_name)}
+                    </td>
+                    <td>{displayBrand(i.items?.brand)}</td>
+                    <td>{formatNumber(i.quantity)}</td>
+                    <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+            
+                    <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
 
-    const totalValue = categoryItems.reduce(
-      (sum, i) => sum + (i.stock * (i.unit_price || 0)),
-      0
-    );
-
-    const lowStockCount = categoryItems.filter(i => i.stock <= 5).length;
-
-    return (
-      <React.Fragment key={category}>
-        <tr
-          style={styles.categoryRow}
-          onClick={(e) => {
-            if (e.target.tagName !== "BUTTON") toggleCategory(category);
-          }}
-        >
-          <td colSpan={6} style={{ padding: "12px 14px" }}>
-            <div style={styles.categoryContainer}>
-              <div style={styles.categoryLeft}>
-                <span style={{ color: "#6b7280" }}>
-                  {isOpen ? "▾" : "▸"}
-                </span>
-
-                <span>
-                  {category}
-
-                  {lowStockCount > 0 && (
-                    <span style={{
-                      marginLeft: 8,
-                      background: "#fee2e2",
-                      color: "#b91c1c",
-                      fontSize: 11,
-                      padding: "2px 6px",
-                      borderRadius: 6,
-                      fontWeight: 600
-                    }}>
-                      ⚠ {lowStockCount} Low Stock
-                    </span>
-                  )}
-                </span>
-              </div>
-
-              <div style={styles.categoryRight}>
-                <span>
-                  {categoryItems.length} item{categoryItems.length !== 1 ? "s" : ""}
-                </span>
-
-                <span style={{ fontWeight: 600, color: "#111827" }}>
-                  ₱{totalValue.toLocaleString(undefined, {
-                    minimumFractionDigits: 2
-                  })}
-                </span>
-              </div>
-            </div>
-          </td>
-        </tr>
-
-        {isOpen &&
-          categoryItems.map(i => (
-            <tr key={i.id} style={{
-              background: i.stock <= 5 ? "#fee2e2" : "transparent"
-            }}>
-              <td style={styles.thtd}>{formatNumber(i.stock)}</td>
-              <td style={styles.thtd}>{capitalizeWords(i.item_name || "")}</td>
-              <td style={styles.thtd}>{displayBrand(i.brand)}</td>
-              <td style={styles.thtd}>
-                ₱{Number(i.unit_price || 0).toLocaleString(undefined, {
-                  minimumFractionDigits: 2
-                })}
-              </td>
-              <td style={styles.thtd}>
-                ₱{Number(i.stock * (i.unit_price || 0)).toLocaleString(undefined, {
-                  minimumFractionDigits: 2
-                })}
-              </td>
-
-              <td style={{ ...styles.thtd, position: "relative" }}>
-                {/* your menu stays same */}
-              </td>
-            </tr>
-          ))}
-      </React.Fragment>
-    );
-  })
-)}
-</tbody>
+                      <div className="action-menu"
+                        ref={(el) => (menuRefs.current["in-" + i.id] = el)}
+                      >
+                      <button
+                      onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(openMenuId === "in-"+i.id ? null : "in-"+i.id);
+                        }}
+                      style={{
+                      background:"none",
+                      border:"none",
+                      fontSize:20,
+                      cursor:"pointer"
+                      }}
+                      >
+                      ⋮
+                      </button>
+                      
+                      {openMenuId === "in-"+i.id && (
+                      <div
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        position:"absolute",
+                      right:0,
+                      top:28,
+                      background:"#fff",
+                      border:"1px solid #e5e7eb",
+                      borderRadius:8,
+                      boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+                      zIndex:50,
+                      minWidth:120,
+                      display:"flex",
+                      flexDirection:"column"
+                      }}>
+                      
+                      <button
+                      style={menuItemStyle}
+                      onClick={()=>{
+                      setForm({
+                      id:i.id,
+                      item_id:i.item_id,
+                      date:i.date,
+                      item_name:i.items?.item_name,
+                      brand:i.items?.brand,
+                      type:i.type,
+                      quantity:i.quantity,
+                      unit_price:i.unit_price || i.items?.unit_price,
+                      brandOptions:[i.items?.brand],
+                      });
+                      setModalType("transaction");
+                      setShowModal(true);
+                      setOpenMenuId(null);
+                      }}
+                      >
+                      Edit
+                      </button>
+                      
+                      <button
+                      style={{...menuItemStyle,color:"#ef4444"}}
+                      onClick={()=>{
+                      setConfirmAction({ type:"deleteTx", data:i });
+                      setOpenMenuId(null);
+                      }}
+                      >
+                      Delete
+                      </button>
+                      
+                      </div>
+                      )}
+                      </div>
+                      </td>
+                  </tr>
+                ));
+              })()}
+            </tbody>
         </table>
       </div>
     </div>
@@ -1800,11 +1754,11 @@ const saveTransaction = async () => {
                 <tr key={i.id}>
                   <td>{i.date}</td>
                   <td style={{maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-                    {capitalizeWords(i.items?.item_name || "")}
+                    {capitalizeWords(i.items?.item_name)}
                   </td>
                   <td>{displayBrand(i.items?.brand)}</td>
                   <td>{formatNumber(i.quantity)}</td>
-                  <td>₱{getTotal(i).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                  <td>₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
           
                   <td style={{ padding:"12px 10px", position:"relative", textAlign:"center" }}>
 
@@ -1896,13 +1850,13 @@ const saveTransaction = async () => {
  {/* ================= DELETED HISTORY TAB ================= */}
                 {activeTab==="deleted" && (
                 <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 20,
-                  width: "100%",
-                  height: "100%",
-                  minHeight: 0
-                }}>
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 20,
+                    width: "100%",
+                    maxWidth: "100%",
+                    overflow: "hidden"
+                  }}>  
                 {/* ================= DELETED INVENTORY ================= */}
                 <div style={{
                   background: "#fff",
@@ -1912,8 +1866,7 @@ const saveTransaction = async () => {
                   display: "flex",
                   flexDirection: "column",
                   minWidth: 0,
-                  flex: 1,
-                  minHeight: 0,
+                  height: "520px",
                 }}>
                 <h2>Deleted Inventory</h2>
                 
@@ -1924,13 +1877,8 @@ const saveTransaction = async () => {
                   onChange={(e) => setDeletedItemSearch(e.target.value)}
                 />
                 
-                <div style={{ 
-                  flex: 1, 
-                  height: "520px",    
-                  overflowY: "auto",  
-                  marginTop: 10 
-                }}>
-                                
+                <div style={{ flex: 1, overflowY: "auto", marginTop: 10 }}>
+                
                 <table style={{
                   width:"100%",
                   borderCollapse:"collapse"
@@ -2120,8 +2068,7 @@ const saveTransaction = async () => {
                 display: "flex",
                 flexDirection: "column",
                 minWidth: 0,
-                flex: 1,
-                minHeight: 0,
+                height: "520px",
                 }}>
                 
                 <h2>Deleted Transactions</h2>
@@ -2133,12 +2080,7 @@ const saveTransaction = async () => {
                 onChange={(e) => setDeletedTxSearch(e.target.value)}
                 />
                 
-                <div style={{ 
-                  flex: 1, 
-                  height: "520px",    
-                  overflowY: "auto",  
-                  marginTop: 10 
-                }}>
+                <div style={{ flex: 1, overflowY: "auto", marginTop: 10 }}>
                 
                 <table style={{
                   width:"100%",
@@ -2193,7 +2135,7 @@ const saveTransaction = async () => {
                   textOverflow:"ellipsis",
                   whiteSpace:"nowrap"
                 }}>
-                {capitalizeWords(i.items?.item_name || "")}
+                {capitalizeWords(i.items?.item_name)}
                 </td>
                 
                <td style={{
@@ -2216,7 +2158,7 @@ const saveTransaction = async () => {
                 </td>
                 
                 <td style={{ padding:"12px 10px", borderBottom:"1px solid #f1f5f9" }}>
-                ₱{getTotal(i).toLocaleString(undefined,{minimumFractionDigits:2})}
+                ₱{Number(i.quantity * (i.unit_price || i.items?.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}
                 </td>
                 
                 <td style={{
@@ -2315,7 +2257,7 @@ const saveTransaction = async () => {
         }}>
           <h2 style={{ margin: 0 }}>Lago De Oro Inventory Monthly Report</h2>
           <p style={{ margin: "4px 0 0 0", opacity: 0.8 }}>
-            {new Date(reportYear, reportMonth - 1).toLocaleString("default", { month: "long" })} {reportYear}
+            {new Date(0, reportMonth - 1).toLocaleString("default", { month: "long" })} {reportYear}
             {selectedStockRoom && ` — ${selectedStockRoom}`}
           </p>
         </div>
@@ -2482,7 +2424,7 @@ const saveTransaction = async () => {
                         <td style={styles.thtd}>{t.type}</td>
                         <td style={styles.thtd}>{formatNumber(t.quantity)}</td>
                         <td style={styles.thtd}>
-                          ₱{getTotal(t).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          ₱{Number((t.quantity || 0) * (t.unit_price || t.items?.unit_price || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </td>
                       </tr>
                     ))
@@ -2545,8 +2487,8 @@ const saveTransaction = async () => {
                     
                           setItemOptions([...new Set(allItems)]);
                         }}
-                        onMouseDown={() => {
-                          setItemOptions([]);
+                        onBlur={() => {
+                          setTimeout(() => setItemOptions([]), 150);
                         }}
                       />
                     
@@ -2863,167 +2805,122 @@ const saveTransaction = async () => {
         </div>
        )}
 
-       {/* ================= CONFIRM MODAL ================= */}
+        {/* ================= CONFIRM MODAL ================= */}
 {confirmAction && (
   <div style={styles.modalOverlay}>
 
-    <Draggable handle=".modalHeader" bounds="parent">
+   <Draggable handle=".modalHeader" bounds="parent">
       <div style={styles.modalCard}>
+    
+      <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
+        <h3>Confirm Action</h3>
+      </div>
+    
+      <p>
+        Are you sure you want to{" "}
+        <b>
+          {confirmAction.type === "deleteItem" && `delete item "${confirmAction?.data?.item_name}"?`}
+          {confirmAction.type === "restoreItem" && "restore this item?"}
+          {confirmAction.type === "permanentDeleteItem" && `permanently delete item "${confirmAction?.data?.item_name}"?`}
+          {confirmAction.type === "deleteTx" && `delete transaction on "${confirmAction?.data?.date}"?`}
+          {confirmAction.type === "restoreTx" && "restore this transaction?"}
+          {confirmAction.type === "permanentDeleteTx" && "permanently delete this transaction?"}
+        </b>
+      </p>
 
-        <div className="modalHeader" style={{ cursor: "move", marginBottom: 10 }}>
-          <h3>Confirm Action</h3>
-        </div>
+      <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+        <button
+          style={styles.buttonPrimary}
+          onClick={async () => {
+            const { type, data } = confirmAction;
 
-        <p>
-          Are you sure you want to{" "}
-          <b>
-            {confirmAction.type === "deleteItem" && `delete item "${confirmAction?.data?.item_name}"?`}
-            {confirmAction.type === "restoreItem" && "restore this item?"}
-            {confirmAction.type === "permanentDeleteItem" && `permanently delete item "${confirmAction?.data?.item_name}"?`}
-            {confirmAction.type === "deleteTx" && `delete transaction on "${confirmAction?.data?.date}"?`}
-            {confirmAction.type === "restoreTx" && "restore this transaction?"}
-            {confirmAction.type === "permanentDeleteTx" && "permanently delete this transaction?"}
-          </b>
-        </p>
+            try {
 
-        <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-          <button
-            style={styles.buttonPrimary}
-            onClick={async () => {
-              const { type, data } = confirmAction;
-
-              try {
-
-                // ✅ DELETE ITEM (soft delete)
-                if (type === "deleteItem") {
-
-                  const { error: itemError } = await supabase
-                    .from("items")
-                    .update({
-                      deleted: true,
-                      deleted_at: new Date().toISOString()
-                    })
-                    .eq("id", data.id);
-
-                  if (itemError) throw itemError;
-
-                  const { error: txError } = await supabase
-                    .from("inventory_transactions")
-                    .update({
-                      deleted: true,
-                      deleted_at: new Date().toISOString()
-                    })
-                    .eq("item_id", data.id);
-
-                  if (txError) throw txError;
-                }
-
-                // ✅ RESTORE ITEM
-                else if (type === "restoreItem") {
-
-                  const { error: itemError } = await supabase
-                    .from("items")
-                    .update({
-                      deleted: false,
-                      deleted_at: null
-                    })
-                    .eq("id", data.id);
-
-                  if (itemError) throw itemError;
-
-                  const { error: txError } = await supabase
-                    .from("inventory_transactions")
-                    .update({
-                      deleted: false,
-                      deleted_at: null
-                    })
-                    .eq("item_id", data.id);
-
-                  if (txError) throw txError;
-                }
-
-                // ✅ PERMANENT DELETE ITEM
-                else if (type === "permanentDeleteItem") {
-
-                  const { error: txError } = await supabase
-                    .from("inventory_transactions")
-                    .delete()
-                    .eq("item_id", data.id);
-
-                  if (txError) throw txError;
-
-                  const { error: itemError } = await supabase
-                    .from("items")
-                    .delete()
-                    .eq("id", data.id);
-
-                  if (itemError) throw itemError;
-                }
-
-                // ✅ DELETE TRANSACTION (soft)
-                else if (type === "deleteTx") {
-
-                  const { error } = await supabase
-                    .from("inventory_transactions")
-                    .update({
-                      deleted: true,
-                      deleted_at: new Date().toISOString()
-                    })
-                    .eq("id", data.id);
-
-                  if (error) throw error;
-                }
-
-                // ✅ RESTORE TRANSACTION
-                else if (type === "restoreTx") {
-
-                  const { error } = await supabase
-                    .from("inventory_transactions")
-                    .update({
-                      deleted: false,
-                      deleted_at: null
-                    })
-                    .eq("id", data.id);
-
-                  if (error) throw error;
-                }
-
-                // ✅ PERMANENT DELETE TRANSACTION
-                else if (type === "permanentDeleteTx") {
-
-                  const { error } = await supabase
-                    .from("inventory_transactions")
-                    .delete()
-                    .eq("id", data.id);
-
-                  if (error) throw error;
-                }
-
-                await loadData();
-
-              } catch (error) {
-                console.error(error);
-                alert(error.message);
+              if (type === "deleteItem") {
+                await supabase.from("items").update({ 
+                  deleted: true,
+                  deleted_at: new Date().toISOString() // ✅ add this
+                }).eq("id", data.id);
+              
+                await supabase.from("inventory_transactions").update({ 
+                  deleted: true,
+                  deleted_at: new Date().toISOString() // optional but consistent
+                }).eq("item_id", data.id);
               }
 
-              setConfirmAction(null);
-            }}
-          >
-            Confirm
-          </button>
+              else if (type === "restoreItem") {
+                await supabase.from("items").update({ 
+                  deleted: false,
+                  deleted_at: null
+                }).eq("id", data.id);
+              
+                await supabase.from("inventory_transactions").update({ 
+                  deleted: false,
+                  deleted_at: null
+                }).eq("item_id", data.id);
+              }
 
-          <button
-            style={styles.buttonSecondary}
-            onClick={() => setConfirmAction(null)}
-          >
-            Cancel
-          </button>
+              else if (type === "permanentDeleteItem") {
+                await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
+                await supabase.from("items").delete().eq("id", data.id);
+              }
+
+             else if (type === "deleteTx") {
+                const result = await supabase
+                  .from("inventory_transactions")
+                  .update({ 
+                    deleted: true,
+                    deleted_at: new Date().toISOString() // ✅ add this
+                  })
+                  .eq("id", data.id);
+              
+                if (result.error) throw result.error;
+              }
+
+              else if (type === "restoreTx") {
+                  const result = await supabase
+                    .from("inventory_transactions")
+                    .update({ 
+                      deleted: false,
+                      deleted_at: null
+                    })
+                    .eq("id", data.id);
+                
+                  if (result.error) throw result.error;
+                }
+
+              else if (type === "permanentDeleteTx") {
+                const result = await supabase
+                  .from("inventory_transactions")
+                  .delete()
+                  .eq("id", data.id);
+              
+                if (result.error) throw result.error;
+              }
+
+              await loadData();
+
+            } catch (error) {
+              console.error(error);
+              alert(error.message);
+            }
+
+            setConfirmAction(null);
+          }}
+        >
+          Confirm
+        </button>
+
+        <button
+          style={styles.buttonSecondary}
+          onClick={() => setConfirmAction(null)}
+        >
+          Cancel
+        </button>
         </div>
-
       </div>
-    </Draggable>
-
-  </div>
+   </Draggable>
+ </div>
 )}
     
           <style>
