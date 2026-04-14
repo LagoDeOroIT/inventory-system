@@ -2723,7 +2723,7 @@ overflowX: "visible" }}>
                           boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
                           maxHeight: 160,
                           overflowY: "auto",
-                          overflowX: "visible"
+                          overflowX: "visible",
                           zIndex: 1000
                         }}
                       >
