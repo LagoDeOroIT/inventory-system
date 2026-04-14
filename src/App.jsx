@@ -54,7 +54,6 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    height: "100%",
     width: "100%"
   },
   welcomeContainer:{
@@ -1165,187 +1164,151 @@ const handleFormChange = (key, value) => {
       
       );
   // ================= MAIN APP =================
-  return (
-    <div style={styles.container}>
+return (
+  <div style={{
+    ...styles.container,
+    display: "flex",
+    height: "100vh",
+    overflow: "hidden"
+  }}>
 
-      {/* NOTIFICATION */}
-      {notification && (
-        <div style={styles.notification}>
-          ⚠ {notification}
-        </div>
-      )}
-     {/* SIDEBAR */}
-        <div style={{
-          ...styles.sidebar,
-          display: "flex",
-          flexDirection: "column",
-          height: "100vh",
-          justifyContent: "space-between",
-          padding: "16px 12px",       // smaller horizontal padding on narrow screens
-          boxSizing: "border-box",
-          width: "220px",             // fixed default width
-          minWidth: "180px",          // ensures it doesn't shrink too much
-          maxWidth: "250px",          // prevents it from being too wide on large screens
-        }}>
-          {/* Top Section */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={styles.sidebarHeader}>Lago De Oro</div>
-            
-            <select
-              style={{ ...styles.sidebarSelect, width: "100%" }}
-              value={selectedStockRoom}
-              onChange={e => {
-                  const room = e.target.value;
-                  setSelectedStockRoom(room === "" ? "" : room);
-                }}
-            >
-              <option value="">Select Stock Room</option>
-              {stockRooms
-                .filter(r => userRooms.includes(r))
-                .map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
-      
-            <div style={styles.sidebarTabs}>
-              <button style={styles.tabButton(activeTab==="stock")} onClick={()=>setActiveTab("stock")}>📦 Stock Inventory</button>
-              <button style={styles.tabButton(activeTab==="transactions")} onClick={()=>setActiveTab("transactions")}>📄 Transactions</button>
-              <button style={styles.tabButton(activeTab==="deleted")} onClick={()=>setActiveTab("deleted")}>🗑️ Deleted History</button>
-              <button style={styles.tabButton(activeTab==="report")} onClick={()=>setActiveTab("report")}>📊 Monthly Report</button>
-            </div>
-          </div>
-        
-          {/* Bottom Section */}
-          <div style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-            alignItems: "center",
-            paddingBottom: 16,
-            textAlign: "center"
-          }}>
-            {session?.user?.email && (
-              <div style={{
-                color: "#f9fafb",
-                fontSize: 13,
-                fontWeight: 500,
-                marginBottom: 8,
-                lineHeight: 1.3,
-                wordBreak: "break-word"
-              }}>
-                Logged in as<br />
-                <span style={{ fontWeight: 700 }}>{session.user.email}</span>
-              </div>
-            )}
-          
-            {/* + New Button */}
-              <button
-                style={{
-                  width: "100%",
-                  padding: "10px 0",
-                  borderRadius: 8,
-                  border: "none",
-                  background: "#2563eb",    // friendly blue background
-                  color: "#ffffff",         // white text
-                  fontWeight: 600,
-                  fontSize: 14,
-                  cursor: "pointer",
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                  transition: "background 0.2s, transform 0.1s"
-                }}
-                onClick={handleNewClick}
-                onMouseEnter={e => { 
-                  e.currentTarget.style.background = "#1d4ed8";  // slightly darker on hover
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={e => { 
-                  e.currentTarget.style.background = "#2563eb";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                + New
-              </button>
-              
-              {/* Logout Button */}
-              <button
-                style={{
-                  width: "100%",
-                  padding: "10px 0",
-                  borderRadius: 8,
-                  border: "none",
-                  background: "#ef4444",   // friendly red
-                  color: "#ffffff",
-                  fontWeight: 600,
-                  fontSize: 14,
-                  cursor: "pointer",
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                  transition: "background 0.2s, transform 0.1s"
-                }}
-                onClick={async () => { 
-              await supabase.auth.signOut();
-                setSelectedStockRoom("");
-                setSession(null);
-                }}
-                onMouseEnter={e => { 
-                  e.currentTarget.style.background = "#dc2626"; // darker red on hover
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={e => { 
-                  e.currentTarget.style.background = "#ef4444";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                Logout
-              </button>
-          </div>
-        </div>
+    {/* NOTIFICATION */}
+    {notification && (
+      <div style={styles.notification}>
+        ⚠ {notification}
+      </div>
+    )}
 
-   {/* MAIN AREA */}
+    {/* SIDEBAR */}
+    <div style={{
+      ...styles.sidebar,
+      display: "flex",
+      flexDirection: "column",
+      height: "100vh",
+      justifyContent: "space-between",
+      padding: "16px 12px",
+      boxSizing: "border-box",
+      width: "220px",
+      minWidth: "180px",
+      maxWidth: "250px"
+    }}>
+      {/* Top Section */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={styles.sidebarHeader}>Lago De Oro</div>
+
+        <select
+          style={{ ...styles.sidebarSelect, width: "100%" }}
+          value={selectedStockRoom}
+          onChange={e => {
+            const room = e.target.value;
+            setSelectedStockRoom(room === "" ? "" : room);
+          }}
+        >
+          <option value="">Select Stock Room</option>
+          {stockRooms
+            .filter(r => userRooms.includes(r))
+            .map(r => <option key={r} value={r}>{r}</option>)}
+        </select>
+
+        <div style={styles.sidebarTabs}>
+          <button style={styles.tabButton(activeTab === "stock")} onClick={() => setActiveTab("stock")}>📦 Stock Inventory</button>
+          <button style={styles.tabButton(activeTab === "transactions")} onClick={() => setActiveTab("transactions")}>📄 Transactions</button>
+          <button style={styles.tabButton(activeTab === "deleted")} onClick={() => setActiveTab("deleted")}>🗑️ Deleted History</button>
+          <button style={styles.tabButton(activeTab === "report")} onClick={() => setActiveTab("report")}>📊 Monthly Report</button>
+        </div>
+      </div>
+
+      {/* Bottom Section */}
       <div style={{
-          ...styles.main,
-          height: "100%",
-          minHeight: 0
-        }}>
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+        alignItems: "center",
+        paddingBottom: 16,
+        textAlign: "center"
+      }}>
+        {session?.user?.email && (
+          <div style={{
+            color: "#f9fafb",
+            fontSize: 13,
+            fontWeight: 500,
+            marginBottom: 8,
+            lineHeight: 1.3,
+            wordBreak: "break-word"
+          }}>
+            Logged in as<br />
+            <span style={{ fontWeight: 700 }}>{session.user.email}</span>
+          </div>
+        )}
 
-          {!selectedStockRoom ? (
-            <div style={styles.welcomeScreen}>
-          
-              <div style={styles.welcomeContainer}>
-          
-                <img
-                  src="/logo.jpg"
-                  alt="Lago de Oro"
-                  style={styles.welcomeLogo}
-                />
-          
-                <h1 style={styles.welcomeTitle}>
-                  LAGO DE ORO NORTHERN LIGHTS AGRI-AQUATIC
-                  <br/>
-                  AND RESORTS DEVELOPMENT INC.
-                  <br/>
-                  INVENTORY SYSTEM
-                </h1>
-          
-                <div style={styles.welcomeDivider}></div>
-          
-                <p style={styles.welcomeSubtitle}>
-                  Inventory Management Portal
-                </p>
-          
-                <p style={styles.welcomeInstruction}>
-                  Please select a Stock Room from the left panel to begin
-                </p>
-          
-              </div>
-          
+        <button style={styles.buttonPrimary} onClick={handleNewClick}>
+          + New
+        </button>
+
+        <button
+          style={styles.buttonDanger}
+          onClick={async () => {
+            await supabase.auth.signOut();
+            setSelectedStockRoom("");
+            setSession(null);
+          }}
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+
+    {/* MAIN AREA */}
+    <div style={{
+      ...styles.main,
+      flex: 1,
+      display: "flex",
+      flexDirection: "column",
+      minHeight: 0,
+      overflow: "hidden"
+    }}>
+
+      {/* IMPORTANT: TAB WRAPPER (THIS FIXES SCROLL FOR ALL TABS) */}
+      <div style={{
+        flex: 1,
+        minHeight: 0,
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column"
+      }}>
+
+        {!selectedStockRoom ? (
+          <div style={styles.welcomeScreen}>
+            <div style={styles.welcomeContainer}>
+              <img src="/logo.jpg" alt="Lago de Oro" style={styles.welcomeLogo} />
+
+              <h1 style={styles.welcomeTitle}>
+                LAGO DE ORO NORTHERN LIGHTS AGRI-AQUATIC
+                <br />
+                AND RESORTS DEVELOPMENT INC.
+                <br />
+                INVENTORY SYSTEM
+              </h1>
+
+              <div style={styles.welcomeDivider}></div>
+
+              <p style={styles.welcomeSubtitle}>
+                Inventory Management Portal
+              </p>
+
+              <p style={styles.welcomeInstruction}>
+                Please select a Stock Room from the left panel to begin
+              </p>
             </div>
-          
-          ) : (
-          
+          </div>
+
+        ) : (
           <>
             {selectedStockRoom && (
-            <div style={styles.stockRoomHeader}>
-              Stock Room: {selectedStockRoom}
-            </div>
-          )}
+              <div style={styles.stockRoomHeader}>
+                Stock Room: {selectedStockRoom}
+              </div>
+            )}
       
   {/* STOCK INVENTORY TAB WITH SEARCH */}
 {activeTab === "stock" && (
@@ -1413,7 +1376,6 @@ const handleFormChange = (key, value) => {
   style={{
     flex: 1,
     minHeight: 0,
-    maxHeight: "100%",
     overflowY: "auto",
     overflowX: "auto",
     border: "1px solid #e5e7eb",
@@ -1906,7 +1868,6 @@ const handleFormChange = (key, value) => {
                   gridTemplateColumns: "1fr 1fr",
                   gap: 20,
                   width: "100%",
-                  height: "100%",
                   alignItems: "stretch",
                   minHeight: 0
                 }}>
