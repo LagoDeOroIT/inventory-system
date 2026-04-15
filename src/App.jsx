@@ -311,8 +311,21 @@ const styles = {
 // ================= APP COMPONENT =================
 export default function App() {
   const [loading, setLoading] = useState(false);
-  const normalize = (val) =>
-  (val || "").replace(/\s+/g, " ").trim().toLowerCase();
+  const normalize = (val) => {
+    return (val || "")
+      .toString()
+      .trim()
+      .replace(/\s+/g, " ")
+      .toLowerCase();
+  };
+  const formatDisplay = (text) => {
+    if (!text) return "";
+    return text
+      .toLowerCase()
+      .split(" ")
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+  };
   const [session, setSession] = useState(null);
   const [stockPage, setStockPage] = useState(1); 
   const rowsPerPage = 50; 
@@ -636,7 +649,7 @@ const deletedItems = useMemo(() => {
   return items
     .filter(i =>
       i.deleted &&
-      (!selectedStockRoom || i.location === selectedStockRoom || !i.location)
+      (!selectedStockRoom || normalize(i.location) === normalize(selectedStockRoom) || !i.location)
     )
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }, [items, selectedStockRoom]);
@@ -644,7 +657,7 @@ const deletedItems = useMemo(() => {
 const deletedTransactions = useMemo(() => {
   return transactions
     .filter(t => t.deleted)
-    .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
+    .filter(t => !selectedStockRoom || normalize(t.items?.location) === normalize(selectedStockRoom))
     .sort((a, b) => new Date(b.deleted_at) - new Date(a.deleted_at));
 }, [transactions, selectedStockRoom]);
 
@@ -969,14 +982,13 @@ const handleFormChange = (key, value) => {
         return;
       }
 
-      const existingItem = items.find(
+     const existingItem = items.find(
         i =>
-          i.item_name === form.item_name &&
-          i.brand === form.brand &&
+          normalize(i.item_name) === normalize(form.item_name) &&
+          normalize(i.brand) === normalize(form.brand) &&
           !i.deleted &&
-          i.location === selectedStockRoom
+          normalize(i.location) === normalize(selectedStockRoom)
       );
-
       if (!existingItem) {
         setConfirmAction({
           type: "createItemConfirm",
@@ -999,11 +1011,11 @@ const handleFormChange = (key, value) => {
         date: form.date,
         created_at: new Date().toISOString(),
         item_id: existingItem.id,
-        brand: form.brand || existingItem.brand || "No Brand",
+        brand: normalize(form.brand) || normalize(existingItem.brand) || "no brand",
         type: form.type,
         quantity: Number(form.quantity),
         unit_price: Number(form.unit_price || existingItem.unit_price || 0),
-        location: form.location || selectedStockRoom
+        location: normalize(form.location || selectedStockRoom)
       };
 
       if (form.id) {
@@ -1046,11 +1058,11 @@ const handleFormChange = (key, value) => {
       }
 
       const itemData = {
-        item_name: form.item_name,
-        brand: form.brand || "No Brand",
-        category: form.category,
+        item_name: normalize(form.item_name),
+        brand: normalize(form.brand) || "no brand",
+        category: normalize(form.category),
         unit_price: Number(form.unit_price),
-        location: form.location || selectedStockRoom
+        location: normalize(form.location || selectedStockRoom)
       };
 
       if (form.id) {
@@ -1496,8 +1508,8 @@ const handleFormChange = (key, value) => {
                 // 1️⃣ Filtered items
                 const filteredItems = stockInventory.filter(
                   (item) =>
-                    (item.item_name || "").toLowerCase().includes(stockSearch.toLowerCase()) ||
-                    (item.brand || "").toLowerCase().includes(stockSearch.toLowerCase())
+                    normalize(item.item_name).includes(normalize(stockSearch)) ||
+                    normalize(item.brand).includes(normalize(stockSearch))
                 );
             
                 // 2️⃣ Pagination
@@ -1579,8 +1591,8 @@ const handleFormChange = (key, value) => {
                       {isOpen && items.map(i => (
                         <tr key={i.id} style={{ background: i.stock <= 5 ? "#fee2e2" : "transparent" }}>
                           <td style={styles.thtd}>{formatNumber(i.stock)}</td>
-                          <td style={styles.thtd}>{capitalizeWords(i.item_name)}</td>
-                          <td style={styles.thtd}>{displayBrand(i.brand)}</td>
+                          <td style={styles.thtd}>{formatDisplay(i.item_name)}</td>
+                          <td style={styles.thtd}>{formatDisplay(i.brand)}</td>
                           <td style={styles.thtd}>₱{Number(i.unit_price || 0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                           <td style={styles.thtd}>₱{Number(i.stock * (i.unit_price || 0)).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                           <td style={{ ...styles.thtd, position:"relative" }}>
@@ -2100,7 +2112,7 @@ const handleFormChange = (key, value) => {
                   textOverflow:"ellipsis",
                   whiteSpace:"nowrap"
                 }}>
-                {capitalizeWords(i.item_name)}
+                {formatDisplay(i.item_name)}
                 </td>
                 
                 <td style={{
@@ -2577,7 +2589,7 @@ overflowX: "visible" }}>
               {monthlyTransactions.length === 0
                 ? emptyRowComponent(6, "No transactions")
                 : monthlyTransactions
-                  .filter(t => !selectedStockRoom || t.items?.location === selectedStockRoom)
+                  .filter(t => !selectedStockRoom || normalize(t.items?.location) === normalize(selectedStockRoom))
                   .sort((a, b) => new Date(b.date) - new Date(a.date))
                   .map(t => (
                       <tr key={t.id}>
@@ -2635,7 +2647,7 @@ overflowX: "visible" }}>
                     
                           const matches = items
                             .filter(i =>
-                              i.location === selectedStockRoom &&
+                              normalize(i.location) === normalize(selectedStockRoom) &&
                               !i.deleted &&
                               i.item_name.toLowerCase().includes(value.toLowerCase())
                             )
@@ -2645,7 +2657,7 @@ overflowX: "visible" }}>
                         }}
                         onFocus={() => {
                           const allItems = items
-                            .filter(i => i.location === selectedStockRoom && !i.deleted)
+                            .filter(i => normalize(i.location) === normalize(selectedStockRoom) && !i.deleted)
                             .map(i => i.item_name);
                     
                           setItemOptions([...new Set(allItems)]);
@@ -2717,7 +2729,7 @@ overflowX: "visible" }}>
                   
                         const matches = items
                           .filter(i =>
-                            i.location === selectedStockRoom &&
+                            normalize(i.location) === normalize(selectedStockRoom) &&
                             !i.deleted &&
                             i.item_name === form.item_name &&
                             i.brand &&
@@ -2730,7 +2742,7 @@ overflowX: "visible" }}>
                       onFocus={() => {
                         const allBrands = items
                           .filter(i =>
-                            i.location === selectedStockRoom &&
+                            normalize(i.location) === normalize(selectedStockRoom) &&
                             !i.deleted &&
                             i.item_name === form.item_name
                           )
@@ -2788,7 +2800,7 @@ overflowX: "visible" }}>
                     
                         const matches = items
                           .filter(i =>
-                            i.location === selectedStockRoom &&
+                            normalize(i.location) === normalize(selectedStockRoom) &&
                             !i.deleted &&
                             i.category &&
                             i.category.toLowerCase().includes(value.toLowerCase())
@@ -2799,7 +2811,7 @@ overflowX: "visible" }}>
                       }}
                       onFocus={() => {
                         const allCategories = items
-                          .filter(i => i.location === selectedStockRoom && !i.deleted)
+                          .filter(i => normalize(i.location) === normalize(selectedStockRoom) && !i.deleted)
                           .map(i => i.category)
                           .filter(Boolean);
                     
@@ -2884,7 +2896,7 @@ overflowX: "visible" }}>
                 {[
                   ...new Set(
                     items
-                      .filter(i => i.location === selectedStockRoom && !i.deleted)
+                      .filter(i => normalize(i.location) === normalize(selectedStockRoom) && !i.deleted)
                       .map(i => i.item_name)
                   )
                 ].map(itemName => (
@@ -2905,7 +2917,7 @@ overflowX: "visible" }}>
                           i =>
                             i.item_name === form.item_name &&
                             i.brand === selectedBrand &&
-                            i.location === selectedStockRoom &&
+                            normalize(i.location) === normalize(selectedStockRoom) &&
                             !i.deleted
                         );
                     
@@ -2919,7 +2931,7 @@ overflowX: "visible" }}>
                     >
                     <option value="">Select Brand</option>
                     {items
-                      .filter(i => i.item_name === form.item_name && i.location === selectedStockRoom && !i.deleted)
+                      .filter(i => i.item_name === form.item_name && normalize(i.location) === normalize(selectedStockRoom) && !i.deleted)
                       .map(i => i.brand)
                       .filter((brand, index, self) => self.indexOf(brand) === index) // unique brands
                       .map(brand => (
