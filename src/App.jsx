@@ -3162,6 +3162,7 @@ overflowX: "visible" }}>
 
     if (error) throw error;
   }
+  {
 
   await loadData();
 } catch (error) {
@@ -3171,7 +3172,6 @@ overflowX: "visible" }}>
   setLoading(false);
   setConfirmAction(null);
 }
-        >
           Confirm
         </button>
 
