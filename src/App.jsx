@@ -467,22 +467,31 @@ export default function App() {
     }
   }, [session]);
         const handleAuth = async () => {
-      
-        if (!authEmail || !authPassword) {
-          alert("Enter email and password");
-          return;
-        }
-      
-        const { error } = await supabase.auth.signInWithPassword({
-          email: authEmail,
-          password: authPassword
-        });
-      
-        if (error) {
-          alert(error.message);
-        }
-      
-      };
+  if (loading) return;
+
+  if (!authEmail || !authPassword) {
+    alert("Enter email and password");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: authEmail,
+      password: authPassword
+    });
+
+    if (error) {
+      alert(error.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Login failed");
+  } finally {
+    setLoading(false);
+  }
+};
   // ================= LOAD DATA =================
         const loadData = useCallback(async () => {
 
@@ -952,8 +961,7 @@ const handleFormChange = (key, value) => {
 };
       // ================= SUBMIT =================
    const saveTransaction = async () => {
-  setLoading(true);
-
+     
   try {
     if (modalType === "transaction") {
       if (!form.item_name || !form.quantity || !form.date) {
@@ -1167,8 +1175,12 @@ const handleFormChange = (key, value) => {
                 onChange={e=>setAuthPassword(e.target.value)}
               />
       
-              <button style={styles.loginButton} onClick={handleAuth}>
-                Login
+              <button 
+                style={styles.loginButton} 
+                onClick={handleAuth}
+                disabled={loading}
+              >
+                {loading ? "Logging in..." : "Login"}
               </button>
       
             </div>
@@ -1209,10 +1221,22 @@ const handleFormChange = (key, value) => {
             <select
               style={{ ...styles.sidebarSelect, width: "100%" }}
               value={selectedStockRoom}
-              onChange={e => {
-                  const room = e.target.value;
+              onChange={async e => {
+                if (loading) return;
+              
+                const room = e.target.value;
+              
+                setLoading(true);
+              
+                try {
                   setSelectedStockRoom(room === "" ? "" : room);
-                }}
+                  await loadData(); // refresh data safely
+                } catch (err) {
+                  console.error(err);
+                } finally {
+                  setLoading(false);
+                }
+              }}
             >
               <option value="">Select Stock Room</option>
               {stockRooms
@@ -1294,11 +1318,21 @@ const handleFormChange = (key, value) => {
                   boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
                   transition: "background 0.2s, transform 0.1s"
                 }}
-                onClick={async () => { 
-              await supabase.auth.signOut();
-                setSelectedStockRoom("");
-                setSession(null);
-                }}
+               onClick={async () => {
+                    if (loading) return;
+                  
+                    setLoading(true);
+                  
+                    try {
+                      await supabase.auth.signOut();
+                      setSelectedStockRoom("");
+                      setSession(null);
+                    } catch (err) {
+                      console.error(err);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
                 onMouseEnter={e => { 
                   e.currentTarget.style.background = "#dc2626"; // darker red on hover
                   e.currentTarget.style.transform = "translateY(-1px)";
