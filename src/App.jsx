@@ -333,7 +333,7 @@ export default function App() {
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [items, setItems] = useState([]);
   const [itemOptions, setItemOptions] = useState([]);
-  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const [menuPosition, setMenuPosition] = useState({});
   const [userRooms, setUserRooms] = useState([]);
   const stockRooms = [
     "L1","L2 Room 1","L2 Room 2","L2 Room 3","L2 Room 4","L3","L4","L5","L6","L7",
@@ -392,8 +392,17 @@ export default function App() {
   const [deletedItemSearch, setDeletedItemSearch] = useState("");
   const [deletedTxSearch, setDeletedTxSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+      useEffect(() => {
+      const handleClick = () => {
+        setOpenMenuId(null);
+      };
+    
+      document.addEventListener("click", handleClick);
+      return () => document.removeEventListener("click", handleClick);
+    }, []);
   const [modalType, setModalType] = useState("");
   const [modalTypeBeforeItem, setModalTypeBeforeItem] = useState("");
+  
   const [form, setForm] = useState({
     date:"",
     item_id:"",
@@ -679,28 +688,32 @@ const filteredDeletedTransactions = useMemo(() => {
   );
 }, [deletedTransactions, deletedTxSearch]);
   
-  // ================= MONTHLY REPORT STATE =================
-    const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
-    const [reportYear, setReportYear] = useState(new Date().getFullYear());
-  
-    // ================= MONTHLY REPORT LOGIC =================
-    const monthlyTransactions = filteredTransactions.filter(t => {
-      if (!t.date) return false;
-    
-      const txDate = new Date(t.date);
-    
-      return (
-        txDate.getMonth() + 1 === Number(reportMonth) &&
-        txDate.getFullYear() === Number(reportYear)
-      );
-    });
-    
-    const monthlySummary = monthlyTransactions.reduce((acc, t) => {
-    
+    // ================= MONTHLY REPORT STATE =================
+const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
+const [reportYear, setReportYear] = useState(new Date().getFullYear());
+
+// ================= MONTHLY TRANSACTIONS (OPTIMIZED) =================
+const monthlyTransactions = useMemo(() => {
+  return filteredTransactions.filter(t => {
+    if (!t.date) return false;
+
+    const txDate = new Date(t.date);
+
+    return (
+      txDate.getMonth() + 1 === Number(reportMonth) &&
+      txDate.getFullYear() === Number(reportYear)
+    );
+  });
+}, [filteredTransactions, reportMonth, reportYear]);
+
+// ================= MONTHLY SUMMARY (OPTIMIZED) =================
+const monthlySummary = useMemo(() => {
+  return monthlyTransactions.reduce(
+    (acc, t) => {
       const price = Number(t.unit_price || t.items?.unit_price || 0);
       const qty = Number(t.quantity || 0);
       const total = price * qty;
-    
+
       if (t.type === "IN") {
         acc.totalInQty += qty;
         acc.totalInValue += total;
@@ -708,19 +721,25 @@ const filteredDeletedTransactions = useMemo(() => {
         acc.totalOutQty += qty;
         acc.totalOutValue += total;
       }
-    
+
       return acc;
-    
-    }, {
+    },
+    {
       totalInQty: 0,
       totalOutQty: 0,
       totalInValue: 0,
       totalOutValue: 0
-    });
-    
-    const netValue =
-      (monthlySummary?.totalInValue || 0) -
-      (monthlySummary?.totalOutValue || 0);
+    }
+  );
+}, [monthlyTransactions]);
+
+// ================= NET VALUE =================
+const netValue = useMemo(() => {
+  return (
+    (monthlySummary?.totalInValue || 0) -
+    (monthlySummary?.totalOutValue || 0)
+  );
+}, [monthlySummary]);
   // ================= EXPORT EXCEL =================
     const exportMonthlyReport = () => {
       
@@ -1603,10 +1622,15 @@ const handleFormChange = (key, value) => {
                                 
                                   const rect = e.currentTarget.getBoundingClientRect();
                                 
-                                  setMenuPosition({
-                                    top: rect.bottom + 5,
-                                    left: rect.right - 120
-                                  });
+                                  const menuId = "in-" + i.id; // (or out-, delitem-, etc)
+
+                                    setMenuPosition(prev => ({
+                                      ...prev,
+                                      [menuId]: {
+                                        top: rect.bottom + 5,
+                                        left: rect.right - 120
+                                      }
+                                    }));
                                 
                                   setOpenMenuId(openMenuId === "stock-"+i.id ? null : "stock-"+i.id);
                                 }}
@@ -1617,18 +1641,18 @@ const handleFormChange = (key, value) => {
                                 <div
                                   onClick={(e) => e.stopPropagation()}
                                  style={{
-                                  position: "fixed",
-                                  top: menuPosition.top,
-                                  left: menuPosition.left,
-                                  background: "#fff",
-                                  border: "1px solid #e5e7eb",
-                                  borderRadius: 8,
-                                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                                  zIndex: 99999,
-                                  minWidth: 120,
-                                  display: "flex",
-                                  flexDirection: "column"
-                                }}
+                                    position: "fixed",
+                                    top: menuPosition[menuId]?.top,
+                                    left: menuPosition[menuId]?.left,
+                                    background: "#fff",
+                                    border: "1px solid #e5e7eb",
+                                    borderRadius: 8,
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                                    zIndex: 99999,
+                                    minWidth: 120,
+                                    display: "flex",
+                                    flexDirection: "column"
+                                  }}
                                 >
                                   <button style={menuItemStyle} onClick={()=>{
                                     setForm({
@@ -1750,10 +1774,15 @@ const handleFormChange = (key, value) => {
                         
                           const rect = e.currentTarget.getBoundingClientRect();
                         
-                          setMenuPosition({
-                            top: rect.bottom + 5,
-                            left: rect.right - 120
-                          });
+                          const menuId = "in-" + i.id; // (or out-, delitem-, etc)
+
+                            setMenuPosition(prev => ({
+                              ...prev,
+                              [menuId]: {
+                                top: rect.bottom + 5,
+                                left: rect.right - 120
+                              }
+                            }));
                           setOpenMenuId(openMenuId === "in-"+i.id ? null : "in-"+i.id);
                         }}
                       style={{
@@ -1905,10 +1934,15 @@ const handleFormChange = (key, value) => {
                     
                       const rect = e.currentTarget.getBoundingClientRect();
                     
-                      setMenuPosition({
-                        top: rect.bottom + 5,
-                        left: rect.right - 120
-                      });
+                      const menuId = "in-" + i.id; // (or out-, delitem-, etc)
+                        
+                        setMenuPosition(prev => ({
+                          ...prev,
+                          [menuId]: {
+                            top: rect.bottom + 5,
+                            left: rect.right - 120
+                          }
+                        }));
                       setOpenMenuId(openMenuId === "out-"+i.id ? null : "out-"+i.id);
                     }}
                     style={{
@@ -2145,10 +2179,15 @@ const handleFormChange = (key, value) => {
                     
                       const rect = e.currentTarget.getBoundingClientRect();
                     
-                      setMenuPosition({
-                        top: rect.bottom + 5,
-                        left: rect.right - 120
-                      });
+                     const menuId = "in-" + i.id; // (or out-, delitem-, etc)
+
+                        setMenuPosition(prev => ({
+                          ...prev,
+                          [menuId]: {
+                            top: rect.bottom + 5,
+                            left: rect.right - 120
+                          }
+                        }));
                       setOpenMenuId(openMenuId === "delitem-"+i.id ? null : "delitem-"+i.id);
                     }}
                   style={{
@@ -2342,10 +2381,15 @@ const handleFormChange = (key, value) => {
                     
                       const rect = e.currentTarget.getBoundingClientRect();
                     
-                      setMenuPosition({
-                        top: rect.bottom + 5,
-                        left: rect.right - 120
-                      });
+                      const menuId = "in-" + i.id; // (or out-, delitem-, etc)
+
+                      setMenuPosition(prev => ({
+                        ...prev,
+                        [menuId]: {
+                          top: rect.bottom + 5,
+                          left: rect.right - 120
+                        }
+                      }));
                     setOpenMenuId(openMenuId === "deltx-"+i.id ? null : "deltx-"+i.id);
                   }}
                   style={{
@@ -3015,80 +3059,118 @@ overflowX: "visible" }}>
   setLoading(true);
 
   try {
+  setLoading(true);
 
-    if (type === "deleteItem") {
-      await supabase.from("items").update({ 
+  const now = new Date().toISOString();
+  const { type, data } = confirmAction;
+
+  // ================= DELETE ITEM =================
+  if (type === "deleteItem") {
+    const { error: itemError } = await supabase
+      .from("items")
+      .update({
         deleted: true,
-        deleted_at: new Date().toISOString() 
-      }).eq("id", data.id);
-    
-      await supabase.from("inventory_transactions").update({ 
+        deleted_at: now
+      })
+      .eq("id", data.id);
+
+    if (itemError) throw itemError;
+
+    const { error: txError } = await supabase
+      .from("inventory_transactions")
+      .update({
         deleted: true,
-        deleted_at: new Date().toISOString() 
-      }).eq("item_id", data.id);
-    }
+        deleted_at: now
+      })
+      .eq("item_id", data.id);
 
-    else if (type === "restoreItem") {
-      await supabase.from("items").update({ 
-        deleted: false,
-        deleted_at: null
-      }).eq("id", data.id);
-    
-      await supabase.from("inventory_transactions").update({ 
-        deleted: false,
-        deleted_at: null
-      }).eq("item_id", data.id);
-    }
-
-    else if (type === "permanentDeleteItem") {
-      await supabase.from("inventory_transactions").delete().eq("item_id", data.id);
-      await supabase.from("items").delete().eq("id", data.id);
-    }
-
-    else if (type === "deleteTx") {
-      const result = await supabase
-        .from("inventory_transactions")
-        .update({ 
-          deleted: true,
-          deleted_at: new Date().toISOString() 
-        })
-        .eq("id", data.id);
-    
-      if (result.error) throw result.error;
-    }
-
-    else if (type === "restoreTx") {
-      const result = await supabase
-        .from("inventory_transactions")
-        .update({ 
-          deleted: false,
-          deleted_at: null
-        })
-        .eq("id", data.id);
-    
-      if (result.error) throw result.error;
-    }
-
-    else if (type === "permanentDeleteTx") {
-      const result = await supabase
-        .from("inventory_transactions")
-        .delete()
-        .eq("id", data.id);
-    
-      if (result.error) throw result.error;
-    }
-
-    await loadData();
-
-  } catch (error) {
-    console.error(error);
-    alert(error.message);
-
-  } finally {
-    setLoading(false);
-    setConfirmAction(null);
+    if (txError) throw txError;
   }
-}}
+
+  // ================= RESTORE ITEM =================
+  else if (type === "restoreItem") {
+    const { error: itemError } = await supabase
+      .from("items")
+      .update({
+        deleted: false,
+        deleted_at: null
+      })
+      .eq("id", data.id);
+
+    if (itemError) throw itemError;
+
+    const { error: txError } = await supabase
+      .from("inventory_transactions")
+      .update({
+        deleted: false,
+        deleted_at: null
+      })
+      .eq("item_id", data.id);
+
+    if (txError) throw txError;
+  }
+
+  // ================= PERMANENT DELETE ITEM =================
+  else if (type === "permanentDeleteItem") {
+    const { error: txError } = await supabase
+      .from("inventory_transactions")
+      .delete()
+      .eq("item_id", data.id);
+
+    if (txError) throw txError;
+
+    const { error: itemError } = await supabase
+      .from("items")
+      .delete()
+      .eq("id", data.id);
+
+    if (itemError) throw itemError;
+  }
+
+  // ================= DELETE TRANSACTION =================
+  else if (type === "deleteTx") {
+    const { error } = await supabase
+      .from("inventory_transactions")
+      .update({
+        deleted: true,
+        deleted_at: now
+      })
+      .eq("id", data.id);
+
+    if (error) throw error;
+  }
+
+  // ================= RESTORE TRANSACTION =================
+  else if (type === "restoreTx") {
+    const { error } = await supabase
+      .from("inventory_transactions")
+      .update({
+        deleted: false,
+        deleted_at: null
+      })
+      .eq("id", data.id);
+
+    if (error) throw error;
+  }
+
+  // ================= PERMANENT DELETE TRANSACTION =================
+  else if (type === "permanentDeleteTx") {
+    const { error } = await supabase
+      .from("inventory_transactions")
+      .delete()
+      .eq("id", data.id);
+
+    if (error) throw error;
+  }
+
+  await loadData();
+} catch (error) {
+  console.error(error);
+  alert(error.message);
+} finally {
+  setLoading(false);
+  setConfirmAction(null);
+}
         >
           Confirm
         </button>
